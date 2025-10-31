@@ -227,27 +227,451 @@ def test_edge_cases():
     
     return True
 
+def test_pie_chart_generation():
+    """Test pie chart generation via chat interface"""
+    
+    print("\n=== Testing Pie Chart Generation ===")
+    
+    # Step 1: Upload test dataset
+    print("\n1. Uploading test dataset...")
+    
+    upload_url = f"{API_BASE}/datasource/upload-file"
+    
+    with open('/app/test_data.csv', 'rb') as f:
+        files = {'file': ('test_data.csv', f, 'text/csv')}
+        response = requests.post(upload_url, files=files)
+    
+    if response.status_code != 200:
+        print(f"❌ Upload failed: {response.status_code} - {response.text}")
+        return False
+    
+    dataset_info = response.json()
+    dataset_id = dataset_info['id']
+    print(f"✅ Dataset uploaded successfully. ID: {dataset_id}")
+    
+    # Step 2: Test pie chart request
+    print("\n2. Testing pie chart request...")
+    
+    chat_url = f"{API_BASE}/analysis/chat-action"
+    chat_request = {
+        "dataset_id": dataset_id,
+        "message": "show me a pie chart",
+        "conversation_history": []
+    }
+    
+    response = requests.post(chat_url, json=chat_request)
+    
+    if response.status_code != 200:
+        print(f"❌ Pie chart request failed: {response.status_code} - {response.text}")
+        return False
+    
+    chat_response = response.json()
+    print(f"✅ Pie chart request successful")
+    
+    # Step 3: Verify response structure
+    print("\n3. Verifying pie chart response structure...")
+    
+    # Check required fields
+    required_fields = ['action', 'message', 'chart_data']
+    for field in required_fields:
+        if field not in chat_response:
+            print(f"❌ Missing '{field}' field in response")
+            return False
+    
+    if chat_response['action'] != 'add_chart':
+        print(f"❌ Expected action 'add_chart', got '{chat_response['action']}'")
+        return False
+    
+    chart_data = chat_response['chart_data']
+    
+    if chart_data.get('type') != 'pie':
+        print(f"❌ Expected chart_data.type 'pie', got '{chart_data.get('type')}'")
+        return False
+    
+    # Check for required chart_data fields
+    chart_required_fields = ['type', 'title', 'plotly_data', 'description']
+    for field in chart_required_fields:
+        if field not in chart_data:
+            print(f"❌ Missing '{field}' field in chart_data")
+            return False
+    
+    # Verify Plotly data structure
+    plotly_data = chart_data['plotly_data']
+    if 'data' not in plotly_data or 'layout' not in plotly_data:
+        print(f"❌ Plotly data missing 'data' or 'layout' fields")
+        return False
+    
+    # Check if it's actually a pie chart
+    pie_traces = [trace for trace in plotly_data['data'] if trace.get('type') == 'pie']
+    if not pie_traces:
+        print(f"❌ No pie chart traces found in Plotly data")
+        return False
+    
+    print(f"✅ Pie chart generation test passed!")
+    print(f"   Title: {chart_data['title']}")
+    print(f"   Description: {chart_data['description']}")
+    
+    return True
+
+def test_bar_chart_generation():
+    """Test bar chart generation via chat interface"""
+    
+    print("\n=== Testing Bar Chart Generation ===")
+    
+    # Step 1: Upload test dataset
+    print("\n1. Uploading test dataset...")
+    
+    upload_url = f"{API_BASE}/datasource/upload-file"
+    
+    with open('/app/test_data.csv', 'rb') as f:
+        files = {'file': ('test_data.csv', f, 'text/csv')}
+        response = requests.post(upload_url, files=files)
+    
+    if response.status_code != 200:
+        print(f"❌ Upload failed: {response.status_code} - {response.text}")
+        return False
+    
+    dataset_info = response.json()
+    dataset_id = dataset_info['id']
+    print(f"✅ Dataset uploaded successfully. ID: {dataset_id}")
+    
+    # Step 2: Test bar chart request
+    print("\n2. Testing bar chart request...")
+    
+    chat_url = f"{API_BASE}/analysis/chat-action"
+    chat_request = {
+        "dataset_id": dataset_id,
+        "message": "create a bar chart",
+        "conversation_history": []
+    }
+    
+    response = requests.post(chat_url, json=chat_request)
+    
+    if response.status_code != 200:
+        print(f"❌ Bar chart request failed: {response.status_code} - {response.text}")
+        return False
+    
+    chat_response = response.json()
+    print(f"✅ Bar chart request successful")
+    
+    # Step 3: Verify response structure
+    print("\n3. Verifying bar chart response structure...")
+    
+    # Check required fields
+    if chat_response.get('action') != 'add_chart':
+        print(f"❌ Expected action 'add_chart', got '{chat_response.get('action')}'")
+        return False
+    
+    chart_data = chat_response['chart_data']
+    
+    if chart_data.get('type') != 'bar':
+        print(f"❌ Expected chart_data.type 'bar', got '{chart_data.get('type')}'")
+        return False
+    
+    # Check for required chart_data fields
+    chart_required_fields = ['type', 'title', 'plotly_data', 'description']
+    for field in chart_required_fields:
+        if field not in chart_data:
+            print(f"❌ Missing '{field}' field in chart_data")
+            return False
+    
+    # Verify Plotly data structure
+    plotly_data = chart_data['plotly_data']
+    if 'data' not in plotly_data or 'layout' not in plotly_data:
+        print(f"❌ Plotly data missing 'data' or 'layout' fields")
+        return False
+    
+    # Check if it's actually a bar chart
+    bar_traces = [trace for trace in plotly_data['data'] if trace.get('type') == 'bar']
+    if not bar_traces:
+        print(f"❌ No bar chart traces found in Plotly data")
+        return False
+    
+    print(f"✅ Bar chart generation test passed!")
+    print(f"   Title: {chart_data['title']}")
+    print(f"   Description: {chart_data['description']}")
+    
+    return True
+
+def test_line_chart_generation():
+    """Test line chart generation via chat interface"""
+    
+    print("\n=== Testing Line Chart Generation ===")
+    
+    # Step 1: Upload test dataset
+    print("\n1. Uploading test dataset...")
+    
+    upload_url = f"{API_BASE}/datasource/upload-file"
+    
+    with open('/app/test_data.csv', 'rb') as f:
+        files = {'file': ('test_data.csv', f, 'text/csv')}
+        response = requests.post(upload_url, files=files)
+    
+    if response.status_code != 200:
+        print(f"❌ Upload failed: {response.status_code} - {response.text}")
+        return False
+    
+    dataset_info = response.json()
+    dataset_id = dataset_info['id']
+    print(f"✅ Dataset uploaded successfully. ID: {dataset_id}")
+    
+    # Step 2: Test line chart request
+    print("\n2. Testing line chart request...")
+    
+    chat_url = f"{API_BASE}/analysis/chat-action"
+    chat_request = {
+        "dataset_id": dataset_id,
+        "message": "show line chart trend",
+        "conversation_history": []
+    }
+    
+    response = requests.post(chat_url, json=chat_request)
+    
+    if response.status_code != 200:
+        print(f"❌ Line chart request failed: {response.status_code} - {response.text}")
+        return False
+    
+    chat_response = response.json()
+    print(f"✅ Line chart request successful")
+    
+    # Step 3: Verify response structure
+    print("\n3. Verifying line chart response structure...")
+    
+    # Check required fields
+    if chat_response.get('action') != 'add_chart':
+        print(f"❌ Expected action 'add_chart', got '{chat_response.get('action')}'")
+        return False
+    
+    chart_data = chat_response['chart_data']
+    
+    if chart_data.get('type') != 'line':
+        print(f"❌ Expected chart_data.type 'line', got '{chart_data.get('type')}'")
+        return False
+    
+    # Check for required chart_data fields
+    chart_required_fields = ['type', 'title', 'plotly_data', 'description']
+    for field in chart_required_fields:
+        if field not in chart_data:
+            print(f"❌ Missing '{field}' field in chart_data")
+            return False
+    
+    # Verify Plotly data structure
+    plotly_data = chart_data['plotly_data']
+    if 'data' not in plotly_data or 'layout' not in plotly_data:
+        print(f"❌ Plotly data missing 'data' or 'layout' fields")
+        return False
+    
+    # Check if it's actually a line chart (scatter with lines)
+    line_traces = [trace for trace in plotly_data['data'] if trace.get('type') == 'scatter' and 'lines' in trace.get('mode', '')]
+    if not line_traces:
+        print(f"❌ No line chart traces found in Plotly data")
+        return False
+    
+    print(f"✅ Line chart generation test passed!")
+    print(f"   Title: {chart_data['title']}")
+    print(f"   Description: {chart_data['description']}")
+    
+    return True
+
+def test_correlation_request():
+    """Test correlation analysis request via chat interface"""
+    
+    print("\n=== Testing Correlation Analysis Request ===")
+    
+    # Step 1: Upload test dataset
+    print("\n1. Uploading test dataset...")
+    
+    upload_url = f"{API_BASE}/datasource/upload-file"
+    
+    with open('/app/test_data.csv', 'rb') as f:
+        files = {'file': ('test_data.csv', f, 'text/csv')}
+        response = requests.post(upload_url, files=files)
+    
+    if response.status_code != 200:
+        print(f"❌ Upload failed: {response.status_code} - {response.text}")
+        return False
+    
+    dataset_info = response.json()
+    dataset_id = dataset_info['id']
+    print(f"✅ Dataset uploaded successfully. ID: {dataset_id}")
+    
+    # Step 2: Test correlation request
+    print("\n2. Testing correlation analysis request...")
+    
+    chat_url = f"{API_BASE}/analysis/chat-action"
+    chat_request = {
+        "dataset_id": dataset_id,
+        "message": "show correlation analysis",
+        "conversation_history": []
+    }
+    
+    response = requests.post(chat_url, json=chat_request)
+    
+    if response.status_code != 200:
+        print(f"❌ Correlation request failed: {response.status_code} - {response.text}")
+        return False
+    
+    chat_response = response.json()
+    print(f"✅ Correlation request successful")
+    
+    # Step 3: Verify response structure
+    print("\n3. Verifying correlation response structure...")
+    
+    # Check required fields
+    if chat_response.get('action') != 'add_chart':
+        print(f"❌ Expected action 'add_chart', got '{chat_response.get('action')}'")
+        return False
+    
+    chart_data = chat_response['chart_data']
+    
+    if chart_data.get('type') != 'correlation':
+        print(f"❌ Expected chart_data.type 'correlation', got '{chart_data.get('type')}'")
+        return False
+    
+    # Check for correlations array
+    if 'correlations' not in chart_data:
+        print(f"❌ Missing 'correlations' field in chart_data")
+        return False
+    
+    # Check for heatmap data
+    if 'heatmap' not in chart_data:
+        print(f"❌ Missing 'heatmap' field in chart_data")
+        return False
+    
+    print(f"✅ Correlation analysis test passed!")
+    print(f"   Found {len(chart_data['correlations'])} correlation pairs")
+    
+    return True
+
+def test_removal_requests():
+    """Test chart removal functionality via chat interface"""
+    
+    print("\n=== Testing Chart Removal Functionality ===")
+    
+    # Step 1: Upload test dataset
+    print("\n1. Uploading test dataset...")
+    
+    upload_url = f"{API_BASE}/datasource/upload-file"
+    
+    with open('/app/test_data.csv', 'rb') as f:
+        files = {'file': ('test_data.csv', f, 'text/csv')}
+        response = requests.post(upload_url, files=files)
+    
+    if response.status_code != 200:
+        print(f"❌ Upload failed: {response.status_code} - {response.text}")
+        return False
+    
+    dataset_info = response.json()
+    dataset_id = dataset_info['id']
+    print(f"✅ Dataset uploaded successfully. ID: {dataset_id}")
+    
+    # Step 2: Test correlation removal
+    print("\n2. Testing correlation removal...")
+    
+    chat_url = f"{API_BASE}/analysis/chat-action"
+    chat_request = {
+        "dataset_id": dataset_id,
+        "message": "remove correlation",
+        "conversation_history": []
+    }
+    
+    response = requests.post(chat_url, json=chat_request)
+    
+    if response.status_code != 200:
+        print(f"❌ Correlation removal request failed: {response.status_code} - {response.text}")
+        return False
+    
+    chat_response = response.json()
+    
+    # Verify removal response structure
+    if chat_response.get('action') != 'remove_section':
+        print(f"❌ Expected action 'remove_section', got '{chat_response.get('action')}'")
+        return False
+    
+    if chat_response.get('section_to_remove') != 'correlations':
+        print(f"❌ Expected section_to_remove 'correlations', got '{chat_response.get('section_to_remove')}'")
+        return False
+    
+    print(f"✅ Correlation removal test passed!")
+    
+    # Step 3: Test custom chart removal
+    print("\n3. Testing custom chart removal...")
+    
+    chat_request = {
+        "dataset_id": dataset_id,
+        "message": "remove pie chart",
+        "conversation_history": []
+    }
+    
+    response = requests.post(chat_url, json=chat_request)
+    
+    if response.status_code != 200:
+        print(f"❌ Custom chart removal request failed: {response.status_code} - {response.text}")
+        return False
+    
+    chat_response = response.json()
+    
+    # Verify removal response structure
+    if chat_response.get('action') != 'remove_section':
+        print(f"❌ Expected action 'remove_section', got '{chat_response.get('action')}'")
+        return False
+    
+    if chat_response.get('section_to_remove') != 'custom_chart':
+        print(f"❌ Expected section_to_remove 'custom_chart', got '{chat_response.get('section_to_remove')}'")
+        return False
+    
+    print(f"✅ Custom chart removal test passed!")
+    
+    return True
+
 def main():
     """Run all tests"""
-    print("Starting Backend API Tests for Correlation Analysis")
-    print("=" * 60)
+    print("Starting Backend API Tests for Custom Chart Generation and Removal")
+    print("=" * 70)
     
     try:
-        # Test main functionality
-        success = test_correlation_analysis()
+        test_results = []
         
-        if success:
-            # Test edge cases
-            test_edge_cases()
-            
-            print("\n" + "=" * 60)
-            print("🎉 ALL TESTS PASSED!")
-            print("Correlation analysis via chat interface is working correctly.")
+        # Test all chart generation types
+        print("\n🔍 Testing Chart Generation...")
+        test_results.append(("Pie Chart Generation", test_pie_chart_generation()))
+        test_results.append(("Bar Chart Generation", test_bar_chart_generation()))
+        test_results.append(("Line Chart Generation", test_line_chart_generation()))
+        test_results.append(("Correlation Analysis", test_correlation_request()))
+        
+        # Test removal functionality
+        print("\n🗑️  Testing Removal Functionality...")
+        test_results.append(("Chart Removal", test_removal_requests()))
+        
+        # Test edge cases
+        print("\n⚠️  Testing Edge Cases...")
+        test_results.append(("Edge Cases", test_edge_cases()))
+        
+        # Summary
+        print("\n" + "=" * 70)
+        print("📊 TEST RESULTS SUMMARY:")
+        print("=" * 70)
+        
+        passed = 0
+        failed = 0
+        
+        for test_name, result in test_results:
+            status = "✅ PASSED" if result else "❌ FAILED"
+            print(f"{test_name:<30} {status}")
+            if result:
+                passed += 1
+            else:
+                failed += 1
+        
+        print(f"\nTotal: {len(test_results)} tests | Passed: {passed} | Failed: {failed}")
+        
+        if failed == 0:
+            print("\n🎉 ALL TESTS PASSED!")
+            print("Custom chart generation and removal via chat interface is working correctly.")
             return True
         else:
-            print("\n" + "=" * 60)
-            print("❌ TESTS FAILED!")
-            print("Correlation analysis has issues that need to be addressed.")
+            print(f"\n❌ {failed} TEST(S) FAILED!")
+            print("Some functionality needs to be addressed.")
             return False
             
     except Exception as e:
