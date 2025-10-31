@@ -67,6 +67,25 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     }
   }, [analysisResults?.correlation_heatmap]);
 
+  // Render custom charts when available
+  useEffect(() => {
+    if (analysisResults?.custom_charts && analysisResults.custom_charts.length > 0) {
+      loadPlotly().then((Plotly) => {
+        analysisResults.custom_charts.forEach((chart, idx) => {
+          const chartDiv = document.getElementById(`custom-chart-${idx}`);
+          if (chartDiv && chart.plotly_data) {
+            const plotlyData = chart.plotly_data;
+            Plotly.newPlot(`custom-chart-${idx}`, plotlyData.data, plotlyData.layout, {
+              responsive: true,
+              displayModeBar: true,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d']
+            });
+          }
+        });
+      });
+    }
+  }, [analysisResults?.custom_charts]);
+
   const runHolisticAnalysis = async () => {
     setLoading(true);
     toast.info("Running comprehensive AI/ML analysis...");
