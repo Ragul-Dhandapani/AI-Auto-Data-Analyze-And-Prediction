@@ -593,7 +593,7 @@ async def load_table(source_type: str = Form(...),
         raise HTTPException(500, f"Table load failed: {str(e)}")
 
 @api_router.post("/analysis/holistic")
-async def holistic_analysis(request: AnalysisRequest):
+async def holistic_analysis(request: HolisticRequest):
     """Run comprehensive holistic analysis on entire dataset"""
     try:
         # Retrieve dataset
