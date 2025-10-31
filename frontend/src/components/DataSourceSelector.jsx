@@ -80,6 +80,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
       const response = await axios.post(`${API}/datasource/upload-file`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         cancelToken: source.token,
+        timeout: 300000, // 5 minutes timeout for large files
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadProgress(percentCompleted);
@@ -94,7 +95,10 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
       if (history.length > 10) history.shift(); // Keep last 10
       localStorage.setItem('uploadHistory', JSON.stringify(history));
       
-      toast.success("File uploaded successfully!");
+      // Add upload time to response
+      response.data.upload_time = uploadTime;
+      
+      toast.success(`File uploaded in ${uploadTime.toFixed(1)}s!`);
       onDatasetLoaded(response.data);
     } catch (error) {
       if (axios.isCancel(error)) {
