@@ -408,7 +408,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       return;
     }
     
-
+    try {
+      await axios.delete(`${API}/analysis/delete-state/${stateId}`);
+      toast.success("Saved state deleted");
+      loadSavedStates();
+    } catch (error) {
+      toast.error("Failed to delete state: " + (error.response?.data?.detail || error.message));
+    }
+  };
 
   // Drag handlers for chat
   const handleChatMouseDown = (e) => {
