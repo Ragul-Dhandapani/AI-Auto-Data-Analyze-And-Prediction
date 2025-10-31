@@ -977,7 +977,7 @@ Provide a helpful response about their data."""
         message = UserMessage(text=context)
         response = await chat.send_message(message)
         
-        return {\"response\": response}
+        return {"response": response}
     except Exception as e:
         logging.error(f\"Chat action error: {traceback.format_exc()}\")
         raise HTTPException(500, f\"Chat failed: {str(e)}\")
