@@ -724,6 +724,7 @@ async def holistic_analysis(request: HolisticRequest):
             "trend_analysis": {"trends": []},
             "correlations": [],
             "predictions": [],
+            "ml_models": [],
             "ai_summary": ""
         }
         
