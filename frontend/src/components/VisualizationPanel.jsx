@@ -89,7 +89,9 @@ const VisualizationPanel = ({ dataset }) => {
         analysis_type: "visualize"
       });
       setCharts(response.data.charts || []);
-      toast.success("Charts generated successfully!");
+      if (response.data.charts?.length > 0) {
+        toast.success(`Generated ${response.data.charts.length} visualizations!`);
+      }
     } catch (error) {
       toast.error("Chart generation failed: " + (error.response?.data?.detail || error.message));
     } finally {
@@ -97,17 +99,18 @@ const VisualizationPanel = ({ dataset }) => {
     }
   };
 
+  // Auto-generate charts on mount
   useEffect(() => {
-    if (dataset && charts.length === 0) {
+    if (dataset) {
       generateCharts();
     }
   }, [dataset]);
 
   if (loading && charts.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-12" data-testid="visualization-panel">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <span className="ml-3 text-lg">Generating visualizations...</span>
+        <span className="ml-3 text-lg">Generating smart visualizations...</span>
       </div>
     );
   }
