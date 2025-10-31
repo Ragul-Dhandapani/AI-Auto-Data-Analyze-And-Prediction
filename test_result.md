@@ -141,7 +141,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Correlation calculation via chat"
     - "Display correlation heatmap in PredictiveAnalysis"
   stuck_tasks: []
   test_all: false
