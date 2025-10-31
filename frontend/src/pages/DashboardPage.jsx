@@ -20,6 +20,10 @@ const DashboardPage = () => {
   const [selectedDataset, setSelectedDataset] = useState(null);
   const [datasets, setDatasets] = useState([]);
   const [showRecentDatasets, setShowRecentDatasets] = useState(true);
+  
+  // Lift analysis state to prevent re-analysis on tab switch
+  const [predictiveAnalysisCache, setPredictiveAnalysisCache] = useState({});
+  const [visualizationCache, setVisualizationCache] = useState({});
 
   useEffect(() => {
     loadDatasets();
