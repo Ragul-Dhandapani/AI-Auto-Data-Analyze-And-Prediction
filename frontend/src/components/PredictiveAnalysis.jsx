@@ -182,17 +182,27 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const sendChatMessage = async () => {
     if (!chatInput.trim()) return;
 
-    const userMessage = chatInput;
+    const userMsg = chatInput;
     setChatInput("");
-    setChatMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setChatMessages(prev => [...prev, { role: "user", content: userMsg }]);
     setChatLoading(true);
 
     try {
+      // Prepare simplified analysis data (exclude large Plotly data)
+      const simplifiedAnalysis = analysisResults ? {
+        has_correlations: !!analysisResults.correlations,
+        has_ml_models: !!analysisResults.ml_models,
+        has_custom_charts: !!analysisResults.custom_charts,
+        custom_charts_count: analysisResults.custom_charts?.length || 0,
+        volume_analysis: analysisResults.volume_analysis,
+        predictions: analysisResults.predictions
+      } : null;
+
       const response = await axios.post(`${API}/analysis/chat-action`, {
         dataset_id: dataset.id,
-        message: userMessage,
-        conversation_history: chatMessages,
-        current_analysis: analysisResults
+        message: userMsg,
+        conversation_history: chatMessages.slice(-5).map(m => ({ role: m.role, content: m.content })),
+        current_analysis: simplifiedAnalysis
       });
 
       // Check if response contains actions - show confirmation instead of auto-execute
