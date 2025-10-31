@@ -75,23 +75,25 @@ const VisualizationPanel = ({ dataset }) => {
         </Card>
       )}
 
-      {charts.map((chart, idx) => (
-        <Card key={idx} className="p-6" data-testid={`chart-${idx}`}>
-          <h4 className="text-lg font-semibold mb-2">{chart.title}</h4>
-          <p className="text-sm text-gray-600 mb-4 italic">{chart.description}</p>
-          <div className="w-full overflow-x-auto bg-white rounded-lg p-4">
-            <PlotlyChart
-              data={chart.data.data}
-              layout={{
-                ...chart.data.layout,
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)'
-              }}
-              config={{}}
-            />
-          </div>
-        </Card>
-      ))}
+      <div className="grid md:grid-cols-2 gap-6">
+        {charts.map((chart, idx) => (
+          <Card key={idx} className="p-6" data-testid={`chart-${idx}`}>
+            <h4 className="text-lg font-semibold mb-2">{chart.title}</h4>
+            <p className="text-sm text-gray-600 mb-4 italic">{chart.description}</p>
+            <div className="w-full overflow-x-auto bg-white rounded-lg p-4">
+              <PlotlyChart
+                data={chart.data.data}
+                layout={{
+                  ...chart.data.layout,
+                  paper_bgcolor: 'rgba(0,0,0,0)',
+                  plot_bgcolor: 'rgba(0,0,0,0)'
+                }}
+                config={{}}
+              />
+            </div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
