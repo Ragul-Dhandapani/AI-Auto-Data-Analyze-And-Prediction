@@ -456,6 +456,47 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         type: 'heatmap',
         x: features,
         y: features,
+
+
+  // Regenerate custom charts from metadata
+  const regenerateCustomCharts = async (chartsMetadata) => {
+    if (!chartsMetadata || chartsMetadata.length === 0) return [];
+    
+    const regeneratedCharts = [];
+    
+    for (const chartMeta of chartsMetadata) {
+      try {
+        // Construct appropriate chat message based on chart type
+        let message = "";
+        if (chartMeta.type === 'pie') {
+          message = chartMeta.column ? `show me a pie chart of ${chartMeta.column}` : "show me a pie chart";
+        } else if (chartMeta.type === 'bar') {
+          message = chartMeta.x_column && chartMeta.y_column 
+            ? `create a bar chart with ${chartMeta.x_column} and ${chartMeta.y_column}` 
+            : "create a bar chart";
+        } else if (chartMeta.type === 'line') {
+          message = chartMeta.column ? `show line chart trend of ${chartMeta.column}` : "show line chart trend";
+        }
+        
+        // Call backend to regenerate chart
+        const response = await axios.post(`${API}/analysis/chat-action`, {
+          dataset_id: dataset.id,
+          message: message,
+          conversation_history: [],
+          current_analysis: null
+        });
+        
+        if (response.data.action === 'add_chart' && response.data.chart_data) {
+          regeneratedCharts.push(response.data.chart_data);
+        }
+      } catch (error) {
+        console.error("Error regenerating chart:", error);
+      }
+    }
+    
+    return regeneratedCharts;
+  };
+
         z: matrix,
         colorscale: 'RdBu',
         zmid: 0
