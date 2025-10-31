@@ -957,7 +957,7 @@ async def analysis_chat_action(request: ChatRequest):
                     }
                 }
             else:
-                return {\"response\": \"Not enough numeric columns for correlation analysis. Need at least 2 numeric columns.\"}
+                return {"response": "Not enough numeric columns for correlation analysis. Need at least 2 numeric columns."}
         
         # Default: use AI for general responses
         context = f\"\"\"Dataset: {dataset['name']}
