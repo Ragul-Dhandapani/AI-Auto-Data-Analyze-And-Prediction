@@ -13,10 +13,8 @@ const API = `${BACKEND_URL}/api`;
 
 const PredictiveAnalysis = ({ dataset }) => {
   const [loading, setLoading] = useState(false);
-  const [targetColumn, setTargetColumn] = useState("");
-  const [selectedModel, setSelectedModel] = useState("random_forest");
   const [predictions, setPredictions] = useState({});
-  const [activeModelTab, setActiveModelTab] = useState("random_forest");
+  const [activeTarget, setActiveTarget] = useState("");
 
   const models = [
     { key: "random_forest", name: "Random Forest", desc: "Ensemble method, highly accurate" },
@@ -25,12 +23,58 @@ const PredictiveAnalysis = ({ dataset }) => {
     { key: "decision_tree", name: "Decision Tree", desc: "Visual, easy to understand" }
   ];
 
-  const runPrediction = async (modelType) => {
-    if (!targetColumn) {
-      toast.error("Please select a target column");
-      return;
-    }
+  // Numeric columns only
+  const numericColumns = dataset.columns.filter((col) => {
+    const sample = dataset.data_preview[0]?.[col];
+    return typeof sample === 'number' || !isNaN(Number(sample));
+  });
 
+  // Auto-run analysis on mount
+  useEffect(() => {
+    if (dataset && numericColumns.length > 0) {
+      runAutoAnalysis();
+    }
+  }, [dataset]);
+
+  const runAutoAnalysis = async () => {
+    setLoading(true);
+    toast.info("Running automatic ML analysis on all numeric columns...");
+    
+    try {
+      // Run predictions for each numeric column with best model
+      for (const targetCol of numericColumns) {
+        // Run with Random Forest (best general-purpose model)
+        const response = await axios.post(`${API}/analysis/run`, {
+          dataset_id: dataset.id,
+          analysis_type: "predict",
+          options: { 
+            target_column: targetCol,
+            model_type: "random_forest"
+          }
+        });
+
+        if (!response.data.error) {
+          setPredictions(prev => ({
+            ...prev,
+            [targetCol]: {
+              random_forest: response.data
+            }
+          }));
+          
+          if (!activeTarget) {
+            setActiveTarget(targetCol);
+          }
+        }
+      }
+      toast.success(`Completed automated analysis for ${numericColumns.length} columns!`);
+    } catch (error) {
+      toast.error("Auto-analysis failed: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runModelForTarget = async (targetColumn, modelType) => {
     setLoading(true);
     try {
       const response = await axios.post(`${API}/analysis/run`, {
@@ -47,26 +91,17 @@ const PredictiveAnalysis = ({ dataset }) => {
       } else {
         setPredictions(prev => ({
           ...prev,
-          [modelType]: response.data
+          [targetColumn]: {
+            ...prev[targetColumn],
+            [modelType]: response.data
+          }
         }));
-        setActiveModelTab(modelType);
-        toast.success(`${response.data.model_type} completed!`);
+        toast.success(`${response.data.model_type} completed for ${targetColumn}!`);
       }
     } catch (error) {
       toast.error("Prediction failed: " + (error.response?.data?.detail || error.message));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const runAllModels = async () => {
-    if (!targetColumn) {
-      toast.error("Please select a target column");
-      return;
-    }
-
-    for (const model of models) {
-      await runPrediction(model.key);
     }
   };
 
