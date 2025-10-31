@@ -165,40 +165,66 @@ const PredictiveAnalysis = ({ dataset }) => {
 
           {/* Prediction vs Actual Chart */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Predictions vs Actual Values</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="index" 
-                  stroke="#6b7280"
-                  label={{ value: 'Sample Index', position: 'insideBottom', offset: -5 }}
-                />
-                <YAxis stroke="#6b7280" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="Actual" 
-                  stroke="#3b82f6" 
-                  strokeWidth={2}
-                  dot={{ fill: '#3b82f6', r: 4 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Predicted" 
-                  stroke="#8b5cf6" 
-                  strokeWidth={2}
-                  dot={{ fill: '#8b5cf6', r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <h3 className="text-lg font-semibold mb-4">Predictions vs Actual Values (First {maxDisplay} samples)</h3>
+            <div className="relative h-96 bg-gray-50 rounded-lg p-4">
+              <svg viewBox="0 0 800 300" className="w-full h-full">
+                {/* Grid lines */}
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <line
+                    key={`grid-${i}`}
+                    x1="50"
+                    y1={50 + i * 50}
+                    x2="750"
+                    y2={50 + i * 50}
+                    stroke="#e5e7eb"
+                    strokeWidth="1"
+                  />
+                ))}
+                
+                {/* Data points and lines */}
+                {displayData.length > 0 && (() => {
+                  const minVal = Math.min(...displayActuals, ...displayData);
+                  const maxVal = Math.max(...displayActuals, ...displayData);
+                  const range = maxVal - minVal || 1;
+                  const xStep = 700 / (displayData.length - 1 || 1);
+                  
+                  const normalize = (val) => 250 - ((val - minVal) / range) * 200;
+                  
+                  return (
+                    <>
+                      {/* Actual line */}
+                      <polyline
+                        points={displayActuals.map((val, idx) => 
+                          `${50 + idx * xStep},${normalize(val)}`
+                        ).join(' ')}
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="2"
+                      />
+                      {/* Predicted line */}
+                      <polyline
+                        points={displayData.map((val, idx) => 
+                          `${50 + idx * xStep},${normalize(val)}`
+                        ).join(' ')}
+                        fill="none"
+                        stroke="#8b5cf6"
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                      />
+                      {/* Legend */}
+                      <g transform="translate(600, 20)">
+                        <line x1="0" y1="0" x2="30" y2="0" stroke="#3b82f6" strokeWidth="2" />
+                        <text x="35" y="5" fontSize="12" fill="#374151">Actual</text>
+                      </g>
+                      <g transform="translate(600, 40)">
+                        <line x1="0" y1="0" x2="30" y2="0" stroke="#8b5cf6" strokeWidth="2" strokeDasharray="5,5" />
+                        <text x="35" y="5" fontSize="12" fill="#374151">Predicted</text>
+                      </g>
+                    </>
+                  );
+                })()}
+              </svg>
+            </div>
           </Card>
         </>
       )}
