@@ -38,6 +38,26 @@ db = client[os.environ['DB_NAME']]
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Increase max request size for large file uploads
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+
+class LargeUploadMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Set a larger max body size (500MB)
+        request._receive = request.receive
+        return await call_next(request)
+
+app.add_middleware(LargeUploadMiddleware)
+
 api_router = APIRouter(prefix="/api")
 
 # Models
