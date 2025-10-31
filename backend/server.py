@@ -912,15 +912,15 @@ async def analysis_chat_action(request: ChatRequest):
                     for j in range(i+1, len(numeric_cols)):
                         corr_val = corr_matrix.iloc[i, j]
                         if not np.isnan(corr_val) and abs(corr_val) > 0.1:  # Only significant
-                            strength = \"Strong\" if abs(corr_val) > 0.7 else \"Moderate\" if abs(corr_val) > 0.5 else \"Weak\"
-                            interpretation = f\"{'Positive' if corr_val > 0 else 'Negative'} relationship\"
+                            strength = "Strong" if abs(corr_val) > 0.7 else "Moderate" if abs(corr_val) > 0.5 else "Weak"
+                            interpretation = f"{'Positive' if corr_val > 0 else 'Negative'} relationship"
                             
                             correlations.append({
-                                \"feature1\": numeric_cols[i],
-                                \"feature2\": numeric_cols[j],
-                                \"value\": float(corr_val),
-                                \"strength\": strength,
-                                \"interpretation\": interpretation
+                                "feature1": numeric_cols[i],
+                                "feature2": numeric_cols[j],
+                                "value": float(corr_val),
+                                "strength": strength,
+                                "interpretation": interpretation
                             })
                 
                 # Sort by absolute value
