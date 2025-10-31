@@ -948,12 +948,12 @@ async def analysis_chat_action(request: ChatRequest):
                 )
                 
                 return {
-                    \"action\": \"add_chart\",
-                    \"message\": f\"I've calculated correlations for {len(numeric_cols)} numeric variables. Found {len(correlations)} significant correlations.\",
-                    \"chart_data\": {
-                        \"type\": \"correlation\",
-                        \"correlations\": correlations[:20],  # Top 20
-                        \"heatmap\": json.loads(fig.to_json())
+                    "action": "add_chart",
+                    "message": f"I've calculated correlations for {len(numeric_cols)} numeric variables. Found {len(correlations)} significant correlations.",
+                    "chart_data": {
+                        "type": "correlation",
+                        "correlations": correlations[:20],  # Top 20
+                        "heatmap": json.loads(fig.to_json())
                     }
                 }
             else:
