@@ -115,42 +115,15 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         current_analysis: analysisResults
       });
 
-      // Check if response contains actions to execute
+      // Check if response contains actions - show confirmation instead of auto-execute
       if (response.data.action) {
-        if (response.data.action === 'refresh_analysis') {
-          toast.info("Updating analysis...");
-          await refreshAnalysis();
-          setChatMessages(prev => [...prev, { 
-            role: "assistant", 
-            content: "I've refreshed the analysis with the latest data. Please check the updated results above." 
-          }]);
-        } else if (response.data.action === 'add_chart') {
-          // Add new chart to results
-          const updatedResults = {
-            ...analysisResults,
-            custom_charts: [...(analysisResults.custom_charts || []), response.data.chart_data]
-          };
-          setAnalysisResults(updatedResults);
-          onAnalysisUpdate(updatedResults);
-          setChatMessages(prev => [...prev, { 
-            role: "assistant", 
-            content: response.data.message || "I've added the new chart to your analysis." 
-          }]);
-        } else if (response.data.action === 'modify_analysis') {
-          // Update specific analysis sections
-          const updatedResults = {
-            ...analysisResults,
-            ...response.data.updated_data
-          };
-          setAnalysisResults(updatedResults);
-          onAnalysisUpdate(updatedResults);
-          setChatMessages(prev => [...prev, { 
-            role: "assistant", 
-            content: response.data.message || "I've updated the analysis based on your request." 
-          }]);
-        } else {
-          setChatMessages(prev => [...prev, { role: "assistant", content: response.data.response }]);
-        }
+        setPendingAction(response.data);
+        setChatMessages(prev => [...prev, { 
+          role: "assistant", 
+          content: response.data.message || "I can help with that!",
+          pendingAction: true,
+          actionData: response.data
+        }]);
       } else {
         setChatMessages(prev => [...prev, { role: "assistant", content: response.data.response }]);
       }
@@ -163,6 +136,61 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     } finally {
       setChatLoading(false);
     }
+  };
+
+  const executeAction = async (actionData) => {
+    setChatLoading(true);
+    try {
+      if (actionData.action === 'refresh_analysis') {
+        toast.info("Updating analysis...");
+        await refreshAnalysis();
+        setChatMessages(prev => [...prev, { 
+          role: "assistant", 
+          content: "✓ Analysis refreshed successfully! Check the updated results above." 
+        }]);
+      } else if (actionData.action === 'add_chart') {
+        // Add correlation or custom chart
+        const updatedResults = {
+          ...analysisResults,
+          correlations: actionData.chart_data?.type === 'correlation' 
+            ? [...(analysisResults.correlations || []), ...actionData.chart_data.correlations]
+            : analysisResults.correlations,
+          custom_charts: [...(analysisResults.custom_charts || []), actionData.chart_data]
+        };
+        setAnalysisResults(updatedResults);
+        onAnalysisUpdate(updatedResults);
+        toast.success("Chart added successfully!");
+        setChatMessages(prev => [...prev, { 
+          role: "assistant", 
+          content: "✓ Chart has been added to your analysis. Scroll up to see it!" 
+        }]);
+      } else if (actionData.action === 'modify_analysis') {
+        const updatedResults = {
+          ...analysisResults,
+          ...actionData.updated_data
+        };
+        setAnalysisResults(updatedResults);
+        onAnalysisUpdate(updatedResults);
+        toast.success("Analysis updated!");
+        setChatMessages(prev => [...prev, { 
+          role: "assistant", 
+          content: "✓ Analysis has been updated based on your request." 
+        }]);
+      }
+      setPendingAction(null);
+    } catch (error) {
+      toast.error("Action failed: " + error.message);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const cancelAction = () => {
+    setPendingAction(null);
+    setChatMessages(prev => [...prev, { 
+      role: "assistant", 
+      content: "Action cancelled. Let me know if you need anything else!" 
+    }]);
   };
 
   if (loading && !analysisResults) {
