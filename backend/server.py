@@ -1243,6 +1243,14 @@ User question: {request.message}
             session_id=f"chat_{request.dataset_id}",
             system_message="You are a data analysis assistant. Help users analyze their data by suggesting specific analyses, explaining results, and guiding them through the process. Keep responses concise and actionable."
         ).with_model("openai", "gpt-4o-mini")
+        
+        message = UserMessage(text=context)
+        response = await chat.send_message(message)
+        
+        return {"response": response}
+    except Exception as e:
+        logging.error(f"Chat action error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Chat failed: {str(e)}")
 
 # Save/Load Analysis States
 @api_router.post("/analysis/save-state")
