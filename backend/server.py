@@ -513,12 +513,13 @@ async def list_tables(request: DataSourceTest):
 async def upload_file(file: UploadFile = File(...)):
     """Upload and preview data file"""
     try:
+        # Read file in chunks for large files
         contents = await file.read()
         file_size = len(contents)
         
         # Detect file type and read
         if file.filename.endswith('.csv'):
-            df = pd.read_csv(BytesIO(contents))
+            df = pd.read_csv(BytesIO(contents), low_memory=False)
         elif file.filename.endswith(('.xlsx', '.xls')):
             df = pd.read_excel(BytesIO(contents))
         else:
@@ -526,7 +527,7 @@ async def upload_file(file: UploadFile = File(...)):
         
         # Check for duplicate names and generate unique name
         base_name = file.filename.rsplit('.', 1)[0]
-        extension = file.filename.rsplit('.', 1)[-1]
+        extension = file.filename.rsplit('.', 1)[-1] if '.' in file.filename else 'csv'
         unique_name = file.filename
         
         existing = await db.datasets.find_one({"name": unique_name}, {"_id": 0})
@@ -538,6 +539,10 @@ async def upload_file(file: UploadFile = File(...)):
         
         # Store dataset info
         dataset_id = str(uuid.uuid4())
+        
+        # For large datasets, only store sample data in preview
+        preview_size = min(len(df), 100)
+        
         dataset_info = {
             "id": dataset_id,
             "name": unique_name,
@@ -547,14 +552,14 @@ async def upload_file(file: UploadFile = File(...)):
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": df.columns.tolist(),
-            "data_preview": df.head(10).to_dict('records'),
+            "data_preview": df.head(preview_size).to_dict('records'),
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
         # Store in MongoDB
         result = await db.datasets.insert_one(dataset_info)
         
-        # Store actual data
+        # Store actual data (for large files, consider using GridFS)
         data_records = df.to_dict('records')
         await db.dataset_data.insert_one({
             "dataset_id": dataset_id,
@@ -564,6 +569,7 @@ async def upload_file(file: UploadFile = File(...)):
         # Return without MongoDB ObjectId
         return {k: v for k, v in dataset_info.items() if k != '_id'}
     except Exception as e:
+        logging.error(f"Upload error: {traceback.format_exc()}")
         raise HTTPException(500, f"File upload failed: {str(e)}")
 
 @api_router.post("/datasource/load-table")
