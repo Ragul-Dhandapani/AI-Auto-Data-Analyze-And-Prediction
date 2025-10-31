@@ -357,14 +357,12 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     }
 
     try {
-      // Prepare analysis data without large Plotly objects
+      // Prepare analysis data without large Plotly objects and custom charts
+      // Custom charts are temporary and can be re-added via chat
       const dataToSave = {
         ...analysisResults,
         correlation_heatmap: null, // Remove large Plotly data
-        custom_charts: analysisResults.custom_charts?.map(chart => ({
-          ...chart,
-          plotly_data: null // Remove Plotly data but keep metadata
-        }))
+        custom_charts: [] // Don't save custom charts as they're temporary chat additions
       };
 
       await axios.post(`${API}/analysis/save-state`, {
@@ -375,6 +373,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       });
       
       toast.success(`Analysis saved as "${stateName}"`);
+      toast.info("Note: Custom charts from chat are not saved. You can re-add them after loading.");
       setStateName("");
       setShowSaveDialog(false);
       loadSavedStates();
