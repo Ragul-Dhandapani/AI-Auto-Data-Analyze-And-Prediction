@@ -353,7 +353,13 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       setShowSaveDialog(false);
       loadSavedStates();
     } catch (error) {
-      toast.error("Failed to save analysis: " + (error.response?.data?.detail || error.message));
+      const errorMessage = error.response?.data?.detail 
+        ? (typeof error.response.data.detail === 'string' 
+            ? error.response.data.detail 
+            : JSON.stringify(error.response.data.detail))
+        : error.message || "Unknown error occurred";
+      toast.error("Failed to save analysis: " + errorMessage);
+      console.error("Save error:", error);
     }
   };
 
