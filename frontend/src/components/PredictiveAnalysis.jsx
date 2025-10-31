@@ -41,7 +41,7 @@ const PredictiveAnalysis = ({ dataset }) => {
     
     try {
       // Run predictions for each numeric column with best model
-      for (const targetCol of numericColumns) {
+      for (const targetCol of numericCols) {
         // Run with Random Forest (best general-purpose model)
         const response = await axios.post(`${API}/analysis/run`, {
           dataset_id: dataset.id,
