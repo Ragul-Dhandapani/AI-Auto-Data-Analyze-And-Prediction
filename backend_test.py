@@ -353,7 +353,6 @@ def test_bar_chart_generation():
     
     chat_response = response.json()
     print(f"✅ Bar chart request successful")
-    print(f"Response: {json.dumps(chat_response, indent=2)}")
     
     # Step 3: Verify response structure
     print("\n3. Verifying bar chart response structure...")
@@ -361,7 +360,6 @@ def test_bar_chart_generation():
     # Check required fields
     if chat_response.get('action') != 'add_chart':
         print(f"❌ Expected action 'add_chart', got '{chat_response.get('action')}'")
-        print(f"Available fields: {list(chat_response.keys())}")
         return False
     
     chart_data = chat_response['chart_data']
