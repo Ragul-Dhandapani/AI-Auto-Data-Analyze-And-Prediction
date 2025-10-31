@@ -348,8 +348,57 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
-      {/* Similar sections for trends, correlations, predictions... */}
-      {/* I'll add the chat panel at the bottom */}
+      {/* Correlations */}
+      {analysisResults.correlations && analysisResults.correlations.length > 0 && !collapsed.correlations && (
+        <Card className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">🔗 Key Correlations</h3>
+              <p className="text-sm text-gray-600 italic mt-1">Statistical relationships between variables in your dataset</p>
+            </div>
+            <Button onClick={() => toggleSection('correlations')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          {/* Correlation Heatmap */}
+          {analysisResults.correlation_heatmap && (
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3">Correlation Matrix Heatmap</h4>
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <div id="correlation-heatmap" style={{ width: '100%', height: '500px' }}></div>
+              </div>
+            </div>
+          )}
+          
+          {/* Correlation List */}
+          <div className="space-y-3">
+            {analysisResults.correlations.map((corr, idx) => (
+              <div key={idx} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="flex-1">
+                  <p className="font-medium">{String(corr.feature1)} ↔ {String(corr.feature2)}</p>
+                  <p className="text-sm text-gray-600">{String(corr.interpretation)}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-purple-600">{Number(corr.value).toFixed(2)}</div>
+                  <div className="text-xs text-gray-500">{String(corr.strength)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.correlations && analysisResults.correlations.length > 0 && collapsed.correlations && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('correlations')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">🔗 Key Correlations ({analysisResults.correlations.length} found)</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
+      {/* Rest of sections... */}
 
       {/* Chat Panel */}
       {showChat && !chatMinimized && (
