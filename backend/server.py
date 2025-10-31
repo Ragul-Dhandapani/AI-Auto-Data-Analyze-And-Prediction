@@ -980,6 +980,143 @@ async def analysis_chat_action(request: ChatRequest):
             else:
                 return {"response": "Not enough numeric columns for correlation analysis. Need at least 2 numeric columns."}
         
+        # Detect pie chart request
+        if 'pie' in user_message and 'chart' in user_message:
+            # Find categorical columns
+            categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+            
+            if categorical_cols:
+                import plotly.graph_objects as go
+                
+                # Use first categorical column or the one mentioned
+                target_col = categorical_cols[0]
+                for col in categorical_cols:
+                    if col.lower() in user_message:
+                        target_col = col
+                        break
+                
+                # Get value counts
+                value_counts = df[target_col].value_counts().head(10)  # Top 10
+                
+                fig = go.Figure(data=[go.Pie(
+                    labels=value_counts.index.tolist(),
+                    values=value_counts.values.tolist(),
+                    hole=0.3
+                )])
+                fig.update_layout(
+                    title=f"Distribution of {target_col}",
+                    width=600,
+                    height=500
+                )
+                
+                return {
+                    "action": "add_chart",
+                    "message": f"I've created a pie chart showing the distribution of {target_col}.",
+                    "chart_data": {
+                        "type": "pie",
+                        "title": f"Distribution of {target_col}",
+                        "column": target_col,
+                        "plotly_data": json.loads(fig.to_json()),
+                        "description": f"This pie chart shows the distribution of {target_col}. The top {len(value_counts)} categories are displayed."
+                    }
+                }
+            else:
+                return {"response": "No categorical columns found for pie chart. Need at least one text/category column."}
+        
+        # Detect bar chart request
+        if 'bar' in user_message and 'chart' in user_message:
+            categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            
+            if categorical_cols and numeric_cols:
+                import plotly.graph_objects as go
+                
+                cat_col = categorical_cols[0]
+                num_col = numeric_cols[0]
+                
+                # Check if specific columns mentioned
+                for col in categorical_cols:
+                    if col.lower() in user_message:
+                        cat_col = col
+                        break
+                for col in numeric_cols:
+                    if col.lower() in user_message:
+                        num_col = col
+                        break
+                
+                grouped = df.groupby(cat_col)[num_col].sum().sort_values(ascending=False).head(10)
+                
+                fig = go.Figure(data=[go.Bar(
+                    x=grouped.index.tolist(),
+                    y=grouped.values.tolist(),
+                    marker_color='rgb(99, 110, 250)'
+                )])
+                fig.update_layout(
+                    title=f"{num_col} by {cat_col}",
+                    xaxis_title=cat_col,
+                    yaxis_title=num_col,
+                    width=800,
+                    height=500
+                )
+                
+                return {
+                    "action": "add_chart",
+                    "message": f"I've created a bar chart showing {num_col} by {cat_col}.",
+                    "chart_data": {
+                        "type": "bar",
+                        "title": f"{num_col} by {cat_col}",
+                        "x_column": cat_col,
+                        "y_column": num_col,
+                        "plotly_data": json.loads(fig.to_json()),
+                        "description": f"This bar chart displays {num_col} grouped by {cat_col}. Shows the top {len(grouped)} categories."
+                    }
+                }
+            else:
+                return {"response": "Need both categorical and numeric columns for bar chart."}
+        
+        # Detect line chart / trend request
+        if ('line' in user_message or 'trend' in user_message) and 'chart' in user_message:
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            
+            if len(numeric_cols) >= 1:
+                import plotly.graph_objects as go
+                
+                # Use first numeric column or mentioned one
+                target_col = numeric_cols[0]
+                for col in numeric_cols:
+                    if col.lower() in user_message:
+                        target_col = col
+                        break
+                
+                fig = go.Figure(data=[go.Scatter(
+                    y=df[target_col].values.tolist(),
+                    mode='lines+markers',
+                    name=target_col,
+                    line=dict(color='rgb(99, 110, 250)', width=2),
+                    marker=dict(size=6)
+                )])
+                fig.update_layout(
+                    title=f"Trend of {target_col}",
+                    xaxis_title="Index",
+                    yaxis_title=target_col,
+                    width=800,
+                    height=500
+                )
+                
+                return {
+                    "action": "add_chart",
+                    "message": f"I've created a line chart showing the trend of {target_col}.",
+                    "chart_data": {
+                        "type": "line",
+                        "title": f"Trend of {target_col}",
+                        "column": target_col,
+                        "plotly_data": json.loads(fig.to_json()),
+                        "description": f"This line chart shows the trend of {target_col} over the dataset records."
+                    }
+                }
+            else:
+                return {"response": "Need at least one numeric column for line chart."}
+        
         # Default: use AI for general responses
         context = f"""Dataset: {dataset['name']}
 Rows: {dataset['row_count']}, Columns: {dataset['column_count']}
