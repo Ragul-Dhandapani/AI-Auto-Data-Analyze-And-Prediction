@@ -375,12 +375,41 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
             )}
             {chatMessages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-3 rounded-lg ${
+                <div className={`max-w-[80%] ${
                   msg.role === 'user' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-100 text-gray-800'
+                    ? 'bg-blue-600 text-white p-3 rounded-lg' 
+                    : 'space-y-2'
                 }`}>
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  {msg.role === 'assistant' && (
+                    <div className="bg-gray-100 text-gray-800 p-3 rounded-lg">
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  )}
+                  {msg.role === 'user' && (
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  )}
+                  {msg.pendingAction && msg.actionData && (
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        onClick={() => executeAction(msg.actionData)}
+                        disabled={chatLoading}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        data-testid="append-chart-btn"
+                      >
+                        ✓ Append to Analysis
+                      </Button>
+                      <Button
+                        onClick={cancelAction}
+                        disabled={chatLoading}
+                        size="sm"
+                        variant="outline"
+                        data-testid="cancel-action-btn"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
