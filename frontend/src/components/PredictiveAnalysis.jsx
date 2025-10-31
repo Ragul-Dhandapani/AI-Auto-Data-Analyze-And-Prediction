@@ -444,6 +444,42 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
+      {/* Custom Charts Section */}
+      {analysisResults.custom_charts && analysisResults.custom_charts.length > 0 && !collapsed.custom_charts && (
+        <Card className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">📈 Custom Analysis Charts</h3>
+              <p className="text-sm text-gray-600 italic mt-1">Additional charts added via chat assistant</p>
+            </div>
+            <Button onClick={() => toggleSection('custom_charts')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="space-y-6">
+            {analysisResults.custom_charts.map((chart, idx) => (
+              <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                <h4 className="font-semibold mb-2">{chart.title}</h4>
+                {chart.description && (
+                  <p className="text-sm text-gray-600 italic mb-3">{chart.description}</p>
+                )}
+                <div id={`custom-chart-${idx}`} style={{ width: '100%', height: '500px' }}></div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.custom_charts && analysisResults.custom_charts.length > 0 && collapsed.custom_charts && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('custom_charts')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">📈 Custom Analysis Charts ({analysisResults.custom_charts.length})</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
       {/* Rest of sections... */}
 
       {/* Chat Panel */}
