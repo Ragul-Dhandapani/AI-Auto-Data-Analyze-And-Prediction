@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,13 +8,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useDropzone } from "react-dropzone";
-import { Upload, Database, Loader2, Check, X } from "lucide-react";
+import { Upload, Database, Loader2, Check, X, Clock } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const DataSourceSelector = ({ onDatasetLoaded }) => {
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [estimatedTime, setEstimatedTime] = useState(null);
+  const cancelTokenRef = useRef(null);
   const [dbConfig, setDbConfig] = useState({
     source_type: "postgresql",
     host: "",
@@ -22,7 +25,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
     database: "",
     username: "",
     password: "",
-    service_name: "" // for Oracle
+    service_name: ""
   });
   const [connectionTested, setConnectionTested] = useState(false);
   const [tables, setTables] = useState([]);
@@ -42,21 +45,74 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
     }
   });
 
+  const estimateUploadTime = (fileSize) => {
+    // Get historical upload times from localStorage
+    const history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');
+    
+    if (history.length > 0) {
+      // Calculate average speed from history
+      const avgSpeed = history.reduce((sum, item) => sum + (item.size / item.time), 0) / history.length;
+      const estimatedSeconds = Math.ceil(fileSize / avgSpeed);
+      return estimatedSeconds;
+    }
+    
+    // Default estimation: 1MB per second
+    return Math.ceil(fileSize / (1024 * 1024));
+  };
+
   const handleFileUpload = async (file) => {
+    const startTime = Date.now();
     setLoading(true);
+    setUploadProgress(0);
+    
+    const estimated = estimateUploadTime(file.size);
+    setEstimatedTime(estimated);
+    
     const formData = new FormData();
     formData.append("file", file);
 
+    // Create cancel token
+    const CancelToken = axios.CancelToken;
+    const source = CancelToken.source();
+    cancelTokenRef.current = source;
+
     try {
       const response = await axios.post(`${API}/datasource/upload-file`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { "Content-Type": "multipart/form-data" },
+        cancelToken: source.token,
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+        }
       });
+      
+      const uploadTime = (Date.now() - startTime) / 1000; // seconds
+      
+      // Save to history for learning
+      const history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');
+      history.push({ size: file.size, time: uploadTime });
+      if (history.length > 10) history.shift(); // Keep last 10
+      localStorage.setItem('uploadHistory', JSON.stringify(history));
+      
       toast.success("File uploaded successfully!");
       onDatasetLoaded(response.data);
     } catch (error) {
-      toast.error("File upload failed: " + (error.response?.data?.detail || error.message));
+      if (axios.isCancel(error)) {
+        toast.info("Upload cancelled");
+      } else {
+        toast.error("File upload failed: " + (error.response?.data?.detail || error.message));
+      }
     } finally {
       setLoading(false);
+      setUploadProgress(null);
+      setEstimatedTime(null);
+      cancelTokenRef.current = null;
+    }
+  };
+
+  const cancelUpload = () => {
+    if (cancelTokenRef.current) {
+      cancelTokenRef.current.cancel('Upload cancelled by user');
     }
   };
 
@@ -147,10 +203,37 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
             <p className="text-sm text-gray-500 mb-4">or click to browse</p>
             <p className="text-xs text-gray-400">Supports CSV, XLSX, XLS files</p>
           </div>
-          {loading && (
-            <div className="mt-4 flex items-center justify-center gap-2 text-blue-600">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Uploading...</span>
+          
+          {loading && uploadProgress !== null && (
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 text-blue-600">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Uploading... {uploadProgress}%</span>
+                </div>
+                {estimatedTime && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Clock className="w-4 h-4" />
+                    <span>Est. {estimatedTime}s</span>
+                  </div>
+                )}
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <Button
+                data-testid="cancel-upload-btn"
+                onClick={cancelUpload}
+                variant="destructive"
+                size="sm"
+                className="w-full"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel Upload
+              </Button>
             </div>
           )}
         </TabsContent>
