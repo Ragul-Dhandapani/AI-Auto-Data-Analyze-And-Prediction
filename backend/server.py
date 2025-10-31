@@ -785,38 +785,29 @@ async def holistic_analysis(request: HolisticRequest):
                             "interpretation": interpretation
                         })
         
-        # Predictive Insights - Run predictions on key numeric columns
-        for target_col in numeric_cols[:2]:  # Predict top 2 numeric columns
+        # ML Models - Train multiple models on key numeric columns
+        for target_col in numeric_cols[:2]:  # Train on top 2 numeric columns
             try:
                 feature_cols = [col for col in numeric_cols if col != target_col]
-                if not feature_cols:
+                if not feature_cols or len(feature_cols) < 1:
                     continue
                     
-                X = df[feature_cols].fillna(df[feature_cols].median())
-                y = df[target_col].fillna(df[target_col].median())
-                
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-                
-                model = RandomForestRegressor(n_estimators=50, random_state=42)
-                model.fit(X_train, y_train)
-                
-                accuracy = model.score(X_test, y_test)
-                predictions = model.predict(X_test)
-                
-                # Calculate risk based on variance
-                pred_variance = np.var(predictions - y_test)
-                risk_level = "High" if pred_variance > y.std() else "Medium" if pred_variance > y.std() * 0.5 else "Low"
-                
-                results["predictions"].append({
-                    "title": f"Prediction for {target_col}",
-                    "description": f"ML model predicting {target_col} based on {len(feature_cols)} features",
-                    "accuracy": float(accuracy),
-                    "confidence": "High" if accuracy > 0.7 else "Medium" if accuracy > 0.5 else "Low",
-                    "risk_level": risk_level,
-                    "model_used": "Random Forest"
-                })
+                models_results = train_ml_models(df, target_col, feature_cols)
+                results["ml_models"].extend(models_results)
             except Exception as e:
-                logging.error(f"Prediction error for {target_col}: {str(e)}")
+                logging.error(f"ML training error for {target_col}: {str(e)}")
+        
+        # Predictive Insights - Summary from best model
+        if results["ml_models"]:
+            best_model = max(results["ml_models"], key=lambda x: x["r2_score"])
+            results["predictions"].append({
+                "title": f"Best Model Prediction for {best_model['target_column']}",
+                "description": f"{best_model['model_name']} achieved R² score of {best_model['r2_score']:.3f}",
+                "accuracy": float(best_model["r2_score"]),
+                "confidence": best_model["confidence"],
+                "risk_level": "Low" if best_model["r2_score"] > 0.7 else "Medium" if best_model["r2_score"] > 0.5 else "High",
+                "model_used": best_model["model_name"]
+            })
         
         # Generate AI Summary
         try:
