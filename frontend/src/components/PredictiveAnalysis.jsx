@@ -809,6 +809,74 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           </Button>
         </div>
       )}
+
+
+      {/* Save Dialog */}
+      {showSaveDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-96 p-6">
+            <h3 className="text-lg font-semibold mb-4">Save Analysis State</h3>
+            <Input
+              value={stateName}
+              onChange={(e) => setStateName(e.target.value)}
+              placeholder="Enter a name for this analysis..."
+              className="mb-4"
+              onKeyPress={(e) => e.key === 'Enter' && saveAnalysisState()}
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveAnalysisState} disabled={!stateName.trim()}>
+                Save
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Load Dialog */}
+      {showLoadDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-[500px] p-6 max-h-[600px] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Load Saved Analysis</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowLoadDialog(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {savedStates.length === 0 ? (
+                <p className="text-gray-600 text-center py-4">No saved analysis states found</p>
+              ) : (
+                savedStates.map((state) => (
+                  <div
+                    key={state.id}
+                    className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between group"
+                    onClick={() => loadAnalysisState(state.id)}
+                  >
+                    <div>
+                      <h4 className="font-semibold">{state.state_name}</h4>
+                      <p className="text-xs text-gray-500">
+                        Saved: {new Date(state.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => deleteState(state.id, e)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+
     </div>
   );
 };
