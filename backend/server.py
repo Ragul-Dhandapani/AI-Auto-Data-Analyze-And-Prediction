@@ -589,6 +589,154 @@ async def load_table(source_type: str = Form(...),
     except Exception as e:
         raise HTTPException(500, f"Table load failed: {str(e)}")
 
+@api_router.post("/analysis/holistic")
+async def holistic_analysis(request: AnalysisRequest):
+    """Run comprehensive holistic analysis on entire dataset"""
+    try:
+        # Retrieve dataset
+        dataset = await db.datasets.find_one({"id": request.dataset_id}, {"_id": 0})
+        if not dataset:
+            raise HTTPException(404, "Dataset not found")
+        
+        # Load data
+        data_doc = await db.dataset_data.find_one({"dataset_id": request.dataset_id}, {"_id": 0})
+        if not data_doc:
+            raise HTTPException(404, "Dataset data not found")
+            
+        df = pd.DataFrame(data_doc['data'])
+        
+        # Initialize results
+        results = {
+            "volume_analysis": {"by_dimensions": []},
+            "trend_analysis": {"trends": []},
+            "correlations": [],
+            "predictions": [],
+            "ai_summary": ""
+        }
+        
+        # Identify key dimensions (categorical columns that might represent groups)
+        categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        
+        # Try to identify time columns
+        time_cols = [col for col in df.columns if any(keyword in col.lower() for keyword in ['time', 'date', 'day', 'hour', 'timestamp'])]
+        
+        # Volume Analysis by Dimensions
+        for cat_col in categorical_cols[:3]:  # Analyze top 3 categorical columns
+            try:
+                value_counts = df[cat_col].value_counts().head(10)
+                insights = f"Top categories in {cat_col}: {', '.join([f'{k} ({v} records)' for k, v in value_counts.head(3).items()])}"
+                
+                results["volume_analysis"]["by_dimensions"].append({
+                    "dimension": f"Volume by {cat_col}",
+                    "insights": insights,
+                    "data": value_counts.to_dict()
+                })
+            except Exception as e:
+                logging.error(f"Volume analysis error for {cat_col}: {str(e)}")
+        
+        # Trend Analysis
+        if len(numeric_cols) > 0:
+            for num_col in numeric_cols[:3]:
+                try:
+                    trend = "increasing" if df[num_col].corr(pd.Series(range(len(df)))) > 0 else "decreasing"
+                    mean_val = df[num_col].mean()
+                    std_val = df[num_col].std()
+                    
+                    results["trend_analysis"]["trends"].append({
+                        "category": num_col,
+                        "insight": f"Average: {mean_val:.2f}, Std Dev: {std_val:.2f}",
+                        "direction": trend,
+                        "mean": float(mean_val),
+                        "std": float(std_val)
+                    })
+                except Exception as e:
+                    logging.error(f"Trend analysis error for {num_col}: {str(e)}")
+        
+        # Correlation Analysis
+        if len(numeric_cols) >= 2:
+            corr_matrix = df[numeric_cols].corr()
+            for i in range(len(numeric_cols)):
+                for j in range(i+1, min(i+4, len(numeric_cols))):  # Top correlations
+                    corr_val = corr_matrix.iloc[i, j]
+                    if abs(corr_val) > 0.3:  # Only significant correlations
+                        strength = "Strong" if abs(corr_val) > 0.7 else "Moderate" if abs(corr_val) > 0.5 else "Weak"
+                        interpretation = f"{'Positive' if corr_val > 0 else 'Negative'} relationship"
+                        
+                        results["correlations"].append({
+                            "feature1": numeric_cols[i],
+                            "feature2": numeric_cols[j],
+                            "value": float(corr_val),
+                            "strength": strength,
+                            "interpretation": interpretation
+                        })
+        
+        # Predictive Insights - Run predictions on key numeric columns
+        for target_col in numeric_cols[:2]:  # Predict top 2 numeric columns
+            try:
+                feature_cols = [col for col in numeric_cols if col != target_col]
+                if not feature_cols:
+                    continue
+                    
+                X = df[feature_cols].fillna(df[feature_cols].median())
+                y = df[target_col].fillna(df[target_col].median())
+                
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                
+                model = RandomForestRegressor(n_estimators=50, random_state=42)
+                model.fit(X_train, y_train)
+                
+                accuracy = model.score(X_test, y_test)
+                predictions = model.predict(X_test)
+                
+                # Calculate risk based on variance
+                pred_variance = np.var(predictions - y_test)
+                risk_level = "High" if pred_variance > y.std() else "Medium" if pred_variance > y.std() * 0.5 else "Low"
+                
+                results["predictions"].append({
+                    "title": f"Prediction for {target_col}",
+                    "description": f"ML model predicting {target_col} based on {len(feature_cols)} features",
+                    "accuracy": float(accuracy),
+                    "confidence": "High" if accuracy > 0.7 else "Medium" if accuracy > 0.5 else "Low",
+                    "risk_level": risk_level,
+                    "model_used": "Random Forest"
+                })
+            except Exception as e:
+                logging.error(f"Prediction error for {target_col}: {str(e)}")
+        
+        # Generate AI Summary
+        try:
+            summary_context = f"""Dataset Analysis Summary:
+- Total Records: {len(df)}
+- Columns: {len(df.columns)}
+- Key Dimensions: {', '.join(categorical_cols[:3]) if categorical_cols else 'None identified'}
+- Numeric Features: {', '.join(numeric_cols[:5]) if numeric_cols else 'None'}
+- Correlations Found: {len(results['correlations'])}
+- Predictions Generated: {len(results['predictions'])}
+
+Key Findings:
+{chr(10).join([f"- {item['insights']}" for item in results['volume_analysis']['by_dimensions'][:3]])}
+"""
+            
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"holistic_{request.dataset_id}",
+                system_message="You are a data analyst. Provide concise, actionable 3-4 sentence summary of key findings."
+            ).with_model("openai", "gpt-4o-mini")
+            
+            message = UserMessage(text=f"Provide a brief executive summary of this dataset analysis:\\n{summary_context}")
+            ai_summary = await chat.send_message(message)
+            results["ai_summary"] = ai_summary
+        except Exception as e:
+            results["ai_summary"] = "AI summary generation failed. Please review the detailed analysis above."
+            logging.error(f"AI summary error: {str(e)}")
+        
+        return results
+        
+    except Exception as e:
+        logging.error(f"Holistic analysis error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Holistic analysis failed: {str(e)}")
+
 @api_router.post("/analysis/run")
 async def run_analysis(request: AnalysisRequest):
     """Run analysis on dataset"""
