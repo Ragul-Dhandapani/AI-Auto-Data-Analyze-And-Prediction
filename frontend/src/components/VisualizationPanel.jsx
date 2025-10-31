@@ -120,29 +120,33 @@ const VisualizationPanel = ({ dataset }) => {
       <Card className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
         <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <BarChart3 className="w-6 h-6 text-blue-600" />
-          Smart Visualizations
+          Smart Data Visualizations
         </h3>
         <p className="text-sm text-gray-600 mb-4">
-          AI-recommended charts based on your data characteristics and types.
+          AI-generated charts automatically created based on your data characteristics. 
+          {charts.length > 0 && ` Showing ${charts.length} visualizations.`}
         </p>
-        <Button 
-          data-testid="regenerate-charts-btn"
-          onClick={generateCharts}
-          disabled={loading}
-          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
-        >
-          {loading ? (
-            <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating...</>
-          ) : (
-            <><BarChart3 className="w-4 h-4 mr-2" /> Regenerate Charts</>
-          )}
-        </Button>
+        {charts.length > 0 && (
+          <Button 
+            data-testid="regenerate-charts-btn"
+            onClick={generateCharts}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+          >
+            {loading ? (
+              <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Regenerating...</>
+            ) : (
+              <><BarChart3 className="w-4 h-4 mr-2" /> Regenerate Charts</>
+            )}
+          </Button>
+        )}
       </Card>
 
       {charts.length === 0 && !loading && (
         <Card className="p-12 text-center">
           <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600">No visualizations yet. Click "Regenerate Charts" to create them.</p>
+          <p className="text-gray-600">No visualizations generated yet. Please wait...</p>
         </Card>
       )}
 
