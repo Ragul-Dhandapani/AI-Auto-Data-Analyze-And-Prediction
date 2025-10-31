@@ -107,16 +107,58 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     setChatLoading(true);
 
     try {
-      const response = await axios.post(`${API}/analysis/chat`, {
+      const response = await axios.post(`${API}/analysis/chat-action`, {
         dataset_id: dataset.id,
         message: userMessage,
-        conversation_history: chatMessages
+        conversation_history: chatMessages,
+        current_analysis: analysisResults
       });
 
-      setChatMessages(prev => [...prev, { role: "assistant", content: response.data.response }]);
+      // Check if response contains actions to execute
+      if (response.data.action) {
+        if (response.data.action === 'refresh_analysis') {
+          toast.info("Updating analysis...");
+          await refreshAnalysis();
+          setChatMessages(prev => [...prev, { 
+            role: "assistant", 
+            content: "I've refreshed the analysis with the latest data. Please check the updated results above." 
+          }]);
+        } else if (response.data.action === 'add_chart') {
+          // Add new chart to results
+          const updatedResults = {
+            ...analysisResults,
+            custom_charts: [...(analysisResults.custom_charts || []), response.data.chart_data]
+          };
+          setAnalysisResults(updatedResults);
+          onAnalysisUpdate(updatedResults);
+          setChatMessages(prev => [...prev, { 
+            role: "assistant", 
+            content: response.data.message || "I've added the new chart to your analysis." 
+          }]);
+        } else if (response.data.action === 'modify_analysis') {
+          // Update specific analysis sections
+          const updatedResults = {
+            ...analysisResults,
+            ...response.data.updated_data
+          };
+          setAnalysisResults(updatedResults);
+          onAnalysisUpdate(updatedResults);
+          setChatMessages(prev => [...prev, { 
+            role: "assistant", 
+            content: response.data.message || "I've updated the analysis based on your request." 
+          }]);
+        } else {
+          setChatMessages(prev => [...prev, { role: "assistant", content: response.data.response }]);
+        }
+      } else {
+        setChatMessages(prev => [...prev, { role: "assistant", content: response.data.response }]);
+      }
     } catch (error) {
       toast.error("Chat failed: " + (error.response?.data?.detail || error.message));
-      setChatMessages(prev => [...prev, { role: "assistant", content: "Sorry, I encountered an error. Please try again." }]);
+      setChatMessages(prev => [...prev, { 
+        role: "assistant", 
+        content: "Sorry, I encountered an error. Please try again or use the 'Refresh Analysis' button." 
+      }]);
     } finally {
       setChatLoading(false);
     }
