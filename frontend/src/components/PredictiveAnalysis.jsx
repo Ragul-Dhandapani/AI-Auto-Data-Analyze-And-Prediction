@@ -208,7 +208,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         setChatMessages(prev => [...prev, { role: "assistant", content: response.data.response }]);
       }
     } catch (error) {
-      toast.error("Chat failed: " + (error.response?.data?.detail || error.message));
+      console.error("Chat error:", error);
+      console.error("Error response:", error.response?.data);
+      const errorMsg = error.response?.data?.detail || error.message || "Unknown error";
+      toast.error("Chat failed: " + errorMsg);
       setChatMessages(prev => [...prev, { 
         role: "assistant", 
         content: "Sorry, I encountered an error. Please try again or use the 'Refresh Analysis' button." 
