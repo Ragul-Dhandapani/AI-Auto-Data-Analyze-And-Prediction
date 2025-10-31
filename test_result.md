@@ -192,6 +192,8 @@ test_plan:
 agent_communication:
     - agent: "main"
       message: "Completed correlation heatmap display implementation. Backend already calculates correlations correctly. Frontend now has useEffect to render Plotly heatmap when correlation data is available. Need to test: 1) Upload dataset 2) Go to Predictive Analysis 3) Open chat 4) Request correlation analysis 5) Click 'Append to Analysis' 6) Verify heatmap displays correctly in Key Correlations section."
+    - agent: "main"
+      message: "Fixed 4 critical issues: 1) Chat panel repositioned from bottom-6 to top-24 for better visibility on right side of page 2) Save dialog error handling improved to properly display error messages instead of '[object Object]' 3) Backend removal detection fixed - now properly distinguishes between 'add bar chart' and 'remove bar chart' requests 4) Dialogs use proper z-50 positioning and centering"
     - agent: "testing"
       message: "✅ BACKEND CORRELATION ANALYSIS COMPLETE: Fixed critical syntax errors in server.py and successfully tested correlation analysis via chat interface. The /api/analysis/chat-action endpoint works perfectly - correctly detects correlation requests, calculates correlation matrix for all numeric columns, returns proper response structure with action='add_chart', includes correlations array with all required fields (feature1, feature2, value, strength, interpretation), generates valid Plotly heatmap data, filters to significant correlations only (abs>0.1), and sorts by absolute value. All 5 numeric columns processed correctly with strong correlations detected. Backend is fully functional for correlation analysis feature."
     - agent: "testing"
