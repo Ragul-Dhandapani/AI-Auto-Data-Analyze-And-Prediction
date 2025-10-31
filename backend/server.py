@@ -295,8 +295,8 @@ Column Details:
     except Exception as e:
         return f"AI insights generation failed: {str(e)}"
 
-def predict_with_ml(df: pd.DataFrame, target_column: str) -> dict:
-    """Run predictive analysis"""
+def predict_with_ml(df: pd.DataFrame, target_column: str, model_type: str = "random_forest") -> dict:
+    """Run predictive analysis with multiple model options"""
     try:
         # Prepare data
         if target_column not in df.columns:
@@ -317,24 +317,53 @@ def predict_with_ml(df: pd.DataFrame, target_column: str) -> dict:
         # Split data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
-        # Train model
-        model = RandomForestRegressor(n_estimators=100, random_state=42)
+        # Select and train model
+        from sklearn.ensemble import GradientBoostingRegressor
+        from sklearn.linear_model import LinearRegression
+        from sklearn.tree import DecisionTreeRegressor
+        
+        if model_type == "random_forest":
+            model = RandomForestRegressor(n_estimators=100, random_state=42)
+            model_name = "Random Forest Regression"
+        elif model_type == "gradient_boosting":
+            model = GradientBoostingRegressor(n_estimators=100, random_state=42)
+            model_name = "Gradient Boosting Regression"
+        elif model_type == "linear_regression":
+            model = LinearRegression()
+            model_name = "Linear Regression"
+        elif model_type == "decision_tree":
+            model = DecisionTreeRegressor(random_state=42)
+            model_name = "Decision Tree Regression"
+        else:
+            model = RandomForestRegressor(n_estimators=100, random_state=42)
+            model_name = "Random Forest Regression"
+        
         model.fit(X_train, y_train)
         
         # Evaluate
         train_score = model.score(X_train, y_train)
         test_score = model.score(X_test, y_test)
         
-        # Feature importance
-        feature_importance = dict(zip(feature_cols, model.feature_importances_.tolist()))
-        feature_importance = dict(sorted(feature_importance.items(), key=lambda x: x[1], reverse=True))
+        # Feature importance (if available)
+        feature_importance = {}
+        if hasattr(model, 'feature_importances_'):
+            feature_importance = dict(zip(feature_cols, model.feature_importances_.tolist()))
+            feature_importance = dict(sorted(feature_importance.items(), key=lambda x: x[1], reverse=True))
+        elif hasattr(model, 'coef_'):
+            # For linear models, use absolute coefficients
+            feature_importance = dict(zip(feature_cols, [abs(c) for c in model.coef_]))
+            # Normalize
+            total = sum(feature_importance.values())
+            feature_importance = {k: v/total for k, v in feature_importance.items()}
+            feature_importance = dict(sorted(feature_importance.items(), key=lambda x: x[1], reverse=True))
         
         # Make predictions
         predictions = model.predict(X_test).tolist()
         actuals = y_test.tolist()
         
         return {
-            "model_type": "Random Forest Regression",
+            "model_type": model_name,
+            "model_key": model_type,
             "train_score": float(train_score),
             "test_score": float(test_score),
             "feature_importance": feature_importance,
