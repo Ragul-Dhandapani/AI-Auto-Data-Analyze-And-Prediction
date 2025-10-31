@@ -814,8 +814,17 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
 
       {/* Chat Panel */}
       {showChat && !chatMinimized && (
-        <div className="fixed right-6 top-24 w-96 h-[calc(100vh-120px)] max-h-[600px] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50">
-          <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-xl">
+        <div 
+          className="fixed w-96 h-[calc(100vh-120px)] max-h-[600px] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50"
+          style={{
+            left: chatPosition.x !== null ? `${chatPosition.x}px` : 'auto',
+            top: chatPosition.y !== null ? `${chatPosition.y}px` : '96px',
+            right: chatPosition.x !== null ? 'auto' : '24px',
+            cursor: isDragging ? 'grabbing' : 'default'
+          }}
+          onMouseDown={handleChatMouseDown}
+        >
+          <div className="chat-header p-4 border-b flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-xl cursor-grab active:cursor-grabbing">
             <h3 className="font-semibold">Analysis Assistant</h3>
             <div className="flex gap-2">
               <Button
