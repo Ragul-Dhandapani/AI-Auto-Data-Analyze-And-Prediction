@@ -637,6 +637,71 @@ async def load_table(source_type: str = Form(...),
     except Exception as e:
         raise HTTPException(500, f"Table load failed: {str(e)}")
 
+
+def train_ml_models(df, target_col, feature_cols):
+    """Train multiple ML models and return results"""
+    models_results = []
+    
+    try:
+        # Prepare data
+        X = df[feature_cols].fillna(df[feature_cols].median())
+        y = df[target_col].fillna(df[target_col].median())
+        
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        # Define models to train
+        models = {
+            "Linear Regression": LinearRegression(),
+            "Random Forest": RandomForestRegressor(n_estimators=50, random_state=42, max_depth=10),
+            "Decision Tree": DecisionTreeRegressor(random_state=42, max_depth=10),
+            "XGBoost": xgb.XGBRegressor(n_estimators=50, random_state=42, max_depth=5, verbosity=0)
+        }
+        
+        for model_name, model in models.items():
+            try:
+                # Train model
+                model.fit(X_train, y_train)
+                
+                # Make predictions
+                y_pred = model.predict(X_test)
+                
+                # Calculate metrics
+                mse = mean_squared_error(y_test, y_pred)
+                r2 = r2_score(y_test, y_pred)
+                rmse = np.sqrt(mse)
+                
+                # Feature importance (if available)
+                feature_importance = {}
+                if hasattr(model, 'feature_importances_'):
+                    importances = model.feature_importances_
+                    feature_importance = {feature_cols[i]: float(importances[i]) for i in range(len(feature_cols))}
+                    feature_importance = dict(sorted(feature_importance.items(), key=lambda x: x[1], reverse=True))
+                
+                # Calculate confidence
+                confidence = "High" if r2 > 0.7 else "Medium" if r2 > 0.5 else "Low"
+                
+                models_results.append({
+                    "model_name": model_name,
+                    "target_column": target_col,
+                    "r2_score": float(r2),
+                    "rmse": float(rmse),
+                    "mse": float(mse),
+                    "confidence": confidence,
+                    "feature_importance": feature_importance,
+                    "predictions_sample": {
+                        "actual": y_test.head(10).tolist(),
+                        "predicted": y_pred[:10].tolist()
+                    }
+                })
+            except Exception as e:
+                logging.error(f"Error training {model_name}: {str(e)}")
+                continue
+    except Exception as e:
+        logging.error(f"ML training error: {str(e)}")
+    
+    return models_results
+
+
 @api_router.post("/analysis/holistic")
 async def holistic_analysis(request: HolisticRequest):
     """Run comprehensive holistic analysis on entire dataset"""
