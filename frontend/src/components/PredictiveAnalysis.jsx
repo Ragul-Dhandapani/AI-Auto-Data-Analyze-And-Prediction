@@ -391,9 +391,17 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const loadAnalysisState = async (stateId) => {
     try {
       const response = await axios.get(`${API}/analysis/load-state/${stateId}`);
-      setAnalysisResults(response.data.analysis_data);
+      const loadedData = response.data.analysis_data;
+      
+      // If correlations exist but no heatmap, regenerate heatmap
+      if (loadedData.correlations && loadedData.correlations.length > 0 && !loadedData.correlation_heatmap) {
+        toast.info("Regenerating correlation heatmap...");
+        // The useEffect will handle heatmap rendering once correlations are present
+      }
+      
+      setAnalysisResults(loadedData);
       setChatMessages(response.data.chat_history || []);
-      onAnalysisUpdate(response.data.analysis_data);
+      onAnalysisUpdate(loadedData);
       toast.success("Analysis state loaded successfully");
       setShowLoadDialog(false);
     } catch (error) {
