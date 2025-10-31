@@ -82,15 +82,15 @@ const HomePage = () => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              Unlock the Power of
+              Predictive Real-time Operational
               <br />
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Intelligent Data Analysis
+                Monitoring & Intelligence
               </span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-              Transform raw data into actionable insights with AI-powered analysis, 
-              predictive modeling, and automated visualizations—no coding required.
+              PROMISE - Transform raw data into actionable insights with AI-powered analysis, 
+              predictive forecasting, and automated visualizations for real-time operational intelligence.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Button 
