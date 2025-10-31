@@ -50,6 +50,23 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
+  // Render correlation heatmap when available
+  useEffect(() => {
+    if (analysisResults?.correlation_heatmap) {
+      loadPlotly().then((Plotly) => {
+        const heatmapDiv = document.getElementById('correlation-heatmap');
+        if (heatmapDiv) {
+          const plotlyData = analysisResults.correlation_heatmap;
+          Plotly.newPlot('correlation-heatmap', plotlyData.data, plotlyData.layout, {
+            responsive: true,
+            displayModeBar: true,
+            modeBarButtonsToRemove: ['lasso2d', 'select2d']
+          });
+        }
+      });
+    }
+  }, [analysisResults?.correlation_heatmap]);
+
   const runHolisticAnalysis = async () => {
     setLoading(true);
     toast.info("Running comprehensive AI/ML analysis...");
