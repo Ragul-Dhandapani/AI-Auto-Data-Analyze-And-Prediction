@@ -913,6 +913,28 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </div>
       )}
 
+
+      {/* Auto-Load Prompt */}
+      {showAutoLoadPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-[450px] p-6">
+            <h3 className="text-lg font-semibold mb-3">Saved Analysis Found</h3>
+            <p className="text-gray-600 mb-4">
+              We found a previously saved analysis for this dataset. Would you like to load it or run a new analysis?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => handleAutoLoadResponse(false)}>
+                Run New Analysis
+              </Button>
+              <Button onClick={() => handleAutoLoadResponse(true)}>
+                Load Saved Analysis
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+
     </div>
   );
 };
