@@ -936,8 +936,8 @@ async def analysis_chat_action(request: ChatRequest):
                     zmid=0,
                     text=corr_matrix.values.round(2),
                     texttemplate='%{text}',
-                    textfont={\"size\": 10},
-                    colorbar=dict(title=\"Correlation\")
+                    textfont={"size": 10},
+                    colorbar=dict(title="Correlation")
                 ))
                 fig.update_layout(
                     title=\"Correlation Matrix Heatmap\",
