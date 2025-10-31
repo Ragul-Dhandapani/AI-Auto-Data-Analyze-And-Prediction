@@ -34,6 +34,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const chatEndRef = useRef(null);
 
   // Use cached data if available
