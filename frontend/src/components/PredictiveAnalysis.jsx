@@ -357,11 +357,21 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     }
 
     try {
+      // Prepare analysis data without large Plotly objects
+      const dataToSave = {
+        ...analysisResults,
+        correlation_heatmap: null, // Remove large Plotly data
+        custom_charts: analysisResults.custom_charts?.map(chart => ({
+          ...chart,
+          plotly_data: null // Remove Plotly data but keep metadata
+        }))
+      };
+
       await axios.post(`${API}/analysis/save-state`, {
         dataset_id: dataset.id,
         state_name: stateName,
-        analysis_data: analysisResults,
-        chat_history: chatMessages
+        analysis_data: dataToSave,
+        chat_history: chatMessages.map(m => ({ role: m.role, content: m.content })) // Strip action data
       });
       
       toast.success(`Analysis saved as "${stateName}"`);
