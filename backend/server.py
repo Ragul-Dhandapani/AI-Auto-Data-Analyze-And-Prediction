@@ -886,6 +886,15 @@ class ChatRequest(BaseModel):
     message: str
     conversation_history: List[Dict[str, str]] = []
 
+class SaveStateRequest(BaseModel):
+    dataset_id: str
+    state_name: str
+    analysis_data: Dict[str, Any]
+    chat_history: List[Dict[str, str]] = []
+    
+class LoadStateRequest(BaseModel):
+    state_id: str
+
 @api_router.post("/analysis/chat-action")
 async def analysis_chat_action(request: ChatRequest):
     """Chat with AI that can execute actions on the analysis"""
