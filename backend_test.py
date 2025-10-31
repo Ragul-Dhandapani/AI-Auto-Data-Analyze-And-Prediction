@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Correlation Analysis Feature
-Tests the correlation analysis via chat interface functionality
+Backend API Testing for Custom Chart Generation and Removal via Chat Interface
+Tests Phase 1 & 3 implementation: Custom chart generation and removal via chat interface.
 """
 
 import requests
