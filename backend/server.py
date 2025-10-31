@@ -55,8 +55,11 @@ class DataSourceTest(BaseModel):
 
 class AnalysisRequest(BaseModel):
     dataset_id: str
-    analysis_type: str  # 'profile', 'clean', 'predict', 'insights'
+    analysis_type: str = "holistic"  # 'profile', 'clean', 'predict', 'insights', 'holistic'
     options: Dict[str, Any] = {}
+
+class HolisticRequest(BaseModel):
+    dataset_id: str
 
 class DatasetInfo(BaseModel):
     model_config = ConfigDict(extra="ignore")
