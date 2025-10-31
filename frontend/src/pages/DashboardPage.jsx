@@ -194,11 +194,29 @@ const DashboardPage = () => {
                   </TabsContent>
 
                   <TabsContent value="predict">
-                    <PredictiveAnalysis dataset={selectedDataset} />
+                    <PredictiveAnalysis 
+                      dataset={selectedDataset}
+                      analysisCache={predictiveAnalysisCache[selectedDataset.id]}
+                      onAnalysisUpdate={(data) => {
+                        setPredictiveAnalysisCache(prev => ({
+                          ...prev,
+                          [selectedDataset.id]: data
+                        }));
+                      }}
+                    />
                   </TabsContent>
 
                   <TabsContent value="visualize">
-                    <VisualizationPanel dataset={selectedDataset} />
+                    <VisualizationPanel 
+                      dataset={selectedDataset}
+                      chartsCache={visualizationCache[selectedDataset.id]}
+                      onChartsUpdate={(data) => {
+                        setVisualizationCache(prev => ({
+                          ...prev,
+                          [selectedDataset.id]: data
+                        }));
+                      }}
+                    />
                   </TabsContent>
                 </Tabs>
               </Card>
