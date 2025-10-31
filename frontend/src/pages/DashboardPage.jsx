@@ -131,7 +131,7 @@ const DashboardPage = () => {
                   </TabsList>
 
                   <TabsContent value="profile">
-                    <DataProfiler dataset={selectedDataset} />
+                    <DataProfiler dataset={selectedDataset} onLoadNewDataset={() => setSelectedDataset(null)} />
                   </TabsContent>
 
                   <TabsContent value="predict">
