@@ -373,6 +373,30 @@ def predict_with_ml(df: pd.DataFrame, target_column: str, model_type: str = "ran
     except Exception as e:
         return {"error": f"Prediction failed: {str(e)}"}
 
+async def generate_chart_description(chart_data: dict, df: pd.DataFrame) -> str:
+    """Generate AI description for a chart"""
+    try:
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"chart_desc_{uuid.uuid4()}",
+            system_message="You are a data visualization expert. Provide concise 1-2 sentence descriptions of charts explaining what they show and why they're useful."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        chart_type = chart_data.get("type", "unknown")
+        title = chart_data.get("title", "Chart")
+        
+        # Get data context
+        context = f"Chart Type: {chart_type}\\nTitle: {title}\\nDataset size: {len(df)} rows, {len(df.columns)} columns"
+        
+        message = UserMessage(
+            text=f"Generate a brief 1-2 sentence description explaining what this chart shows and why it's useful for analysis:\\n{context}"
+        )
+        
+        description = await chat.send_message(message)
+        return description
+    except Exception as e:
+        return f"This {chart_type} visualization helps identify patterns in the data."
+
 def generate_chart_recommendations(df: pd.DataFrame) -> List[dict]:
     """Recommend charts based on data types"""
     charts = []
@@ -389,7 +413,8 @@ def generate_chart_recommendations(df: pd.DataFrame) -> List[dict]:
         charts.append({
             "type": "heatmap",
             "title": "Correlation Heatmap",
-            "data": json.loads(fig.to_json())
+            "data": json.loads(fig.to_json()),
+            "description": f"Shows correlations between {len(numeric_cols)} numeric variables. Strong positive (red) or negative (blue) correlations indicate related features."
         })
     
     # Distribution plots for numeric columns
@@ -398,7 +423,8 @@ def generate_chart_recommendations(df: pd.DataFrame) -> List[dict]:
         charts.append({
             "type": "histogram",
             "title": f"Distribution of {col}",
-            "data": json.loads(fig.to_json())
+            "data": json.loads(fig.to_json()),
+            "description": f"Distribution histogram for {col} showing data spread and frequency patterns across value ranges."
         })
     
     # Bar chart for categorical
@@ -411,7 +437,30 @@ def generate_chart_recommendations(df: pd.DataFrame) -> List[dict]:
         charts.append({
             "type": "bar",
             "title": f"Top 10 {col}",
-            "data": json.loads(fig.to_json())
+            "data": json.loads(fig.to_json()),
+            "description": f"Bar chart showing the top 10 most frequent values in {col}, useful for identifying dominant categories."
+        })
+    
+    # Box plot for outlier detection
+    if len(numeric_cols) >= 1:
+        col = numeric_cols[0]
+        fig = px.box(df, y=col, title=f"Outlier Detection - {col}")
+        charts.append({
+            "type": "box",
+            "title": f"Outlier Detection - {col}",
+            "data": json.loads(fig.to_json()),
+            "description": f"Box plot revealing outliers and quartile distribution for {col}, helping identify anomalous data points."
+        })
+    
+    # Scatter plot for relationships
+    if len(numeric_cols) >= 2:
+        fig = px.scatter(df, x=numeric_cols[0], y=numeric_cols[1],
+                        title=f"{numeric_cols[0]} vs {numeric_cols[1]}")
+        charts.append({
+            "type": "scatter",
+            "title": f"{numeric_cols[0]} vs {numeric_cols[1]}",
+            "data": json.loads(fig.to_json()),
+            "description": f"Scatter plot showing relationship between {numeric_cols[0]} and {numeric_cols[1]}, revealing potential correlations or patterns."
         })
     
     return charts
