@@ -103,10 +103,15 @@ const DashboardPage = () => {
                       >
                         <h3 className="font-semibold text-lg mb-2 truncate">{dataset.name}</h3>
                         <div className="text-sm text-gray-600 space-y-1">
-                          <p>Rows: {dataset.row_count}</p>
+                          <p>Rows: {dataset.row_count.toLocaleString()}</p>
                           <p>Columns: {dataset.column_count}</p>
+                          {dataset.file_size && (
+                            <p className="text-xs text-gray-500">
+                              Size: {(dataset.file_size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          )}
                           <p className="text-xs text-gray-400">
-                            {new Date(dataset.created_at).toLocaleDateString()}
+                            {new Date(dataset.created_at).toLocaleString()}
                           </p>
                         </div>
                       </div>
