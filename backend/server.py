@@ -970,9 +970,9 @@ Provide a helpful response about their data."""
         
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            session_id=f\"chat_{request.dataset_id}\",
-            system_message=\"You are a helpful data analysis assistant.\"
-        ).with_model(\"openai\", \"gpt-4o-mini\")
+            session_id=f"chat_{request.dataset_id}",
+            system_message="You are a helpful data analysis assistant."
+        ).with_model("openai", "gpt-4o-mini")
         
         message = UserMessage(text=context)
         response = await chat.send_message(message)
