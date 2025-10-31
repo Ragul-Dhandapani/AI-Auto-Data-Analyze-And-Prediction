@@ -626,9 +626,10 @@ async def run_analysis(request: AnalysisRequest):
         
         elif request.analysis_type == 'predict':
             target_col = request.options.get('target_column')
+            model_type = request.options.get('model_type', 'random_forest')
             if not target_col:
                 raise HTTPException(400, "target_column required for prediction")
-            result = predict_with_ml(df, target_col)
+            result = predict_with_ml(df, target_col, model_type)
         
         elif request.analysis_type == 'visualize':
             charts = generate_chart_recommendations(df)
