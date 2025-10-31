@@ -50,11 +50,9 @@ const PredictiveAnalysis = ({ dataset }) => {
   });
 
   // Prepare chart data
-  const chartData = predictionResults?.predictions?.map((pred, idx) => ({
-    index: idx + 1,
-    Predicted: pred,
-    Actual: predictionResults.actuals[idx]
-  })) || [];
+  const maxDisplay = 30;
+  const displayData = predictionResults?.predictions?.slice(0, maxDisplay) || [];
+  const displayActuals = predictionResults?.actuals?.slice(0, maxDisplay) || [];
 
   return (
     <div className="space-y-6" data-testid="predictive-analysis">
