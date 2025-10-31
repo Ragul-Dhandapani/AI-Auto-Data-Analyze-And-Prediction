@@ -73,6 +73,28 @@ const PredictiveAnalysis = ({ dataset }) => {
     );
   }
 
+  if (analysisResults.error) {
+    return (
+      <div className="space-y-6" data-testid="predictive-analysis">
+        <Card className="p-6 bg-red-50 border-red-200">
+          <h3 className="text-lg font-semibold text-red-800 mb-2">Analysis Error</h3>
+          <p className="text-sm text-red-700 mb-4">{analysisResults.message}</p>
+          <p className="text-sm text-gray-600">
+            This may happen if you selected an old dataset. Please try uploading a new file or connecting to a fresh database table.
+          </p>
+          <Button
+            data-testid="retry-analysis-btn"
+            onClick={refreshAnalysis}
+            className="mt-4"
+            variant="outline"
+          >
+            Retry Analysis
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6" data-testid="predictive-analysis">
       {/* Header with Refresh */}
