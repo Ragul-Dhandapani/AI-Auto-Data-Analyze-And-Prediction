@@ -23,20 +23,19 @@ const PredictiveAnalysis = ({ dataset }) => {
     { key: "decision_tree", name: "Decision Tree", desc: "Visual, easy to understand" }
   ];
 
-  // Numeric columns only
-  const numericColumns = dataset.columns.filter((col) => {
-    const sample = dataset.data_preview[0]?.[col];
-    return typeof sample === 'number' || !isNaN(Number(sample));
-  });
-
   // Auto-run analysis on mount
   useEffect(() => {
-    if (dataset && numericColumns.length > 0) {
-      runAutoAnalysis();
+    const numericCols = dataset.columns.filter((col) => {
+      const sample = dataset.data_preview[0]?.[col];
+      return typeof sample === 'number' || !isNaN(Number(sample));
+    });
+    
+    if (dataset && numericCols.length > 0) {
+      runAutoAnalysis(numericCols);
     }
   }, [dataset]);
 
-  const runAutoAnalysis = async () => {
+  const runAutoAnalysis = async (numericCols) => {
     setLoading(true);
     toast.info("Running automatic ML analysis on all numeric columns...");
     
