@@ -111,84 +111,94 @@ const PredictiveAnalysis = ({ dataset }) => {
     return typeof sample === 'number' || !isNaN(Number(sample));
   });
 
-  // Prepare chart data
-  const currentPrediction = predictions[activeModelTab];
-  const maxDisplay = 30;
-  const displayData = currentPrediction?.predictions?.slice(0, maxDisplay) || [];
-  const displayActuals = currentPrediction?.actuals?.slice(0, maxDisplay) || [];
+  // Numeric columns only
+  const numericColumns = dataset.columns.filter((col) => {
+    const sample = dataset.data_preview[0]?.[col];
+    return typeof sample === 'number' || !isNaN(Number(sample));
+  });
+
+  if (loading && Object.keys(predictions).length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12" data-testid="predictive-analysis">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <span className="ml-3 text-lg">Running automated ML analysis...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6" data-testid="predictive-analysis">
       <Card className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
         <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-indigo-600" />
-          Predictive Analytics
+          Automated Predictive Analytics
         </h3>
-        <p className="text-sm text-gray-600 mb-6">
-          Run multiple ML models to predict your target variable. Compare results across different algorithms.
+        <p className="text-sm text-gray-600 mb-4">
+          AI automatically analyzed all {numericColumns.length} numeric columns and generated predictions. 
+          Select a column below to view detailed results or run additional models for comparison.
         </p>
 
-        <div className="space-y-4">
-          <div>
-            <Label>Target Column (What to Predict)</Label>
-            <Select value={targetColumn} onValueChange={setTargetColumn}>
-              <SelectTrigger data-testid="target-column-select">
-                <SelectValue placeholder="Select numeric column" />
-              </SelectTrigger>
-              <SelectContent>
-                {numericColumns.map((col) => (
-                  <SelectItem key={col} value={col}>{col}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Column Selection */}
+        {numericColumns.length > 0 && (
+          <div className="space-y-4">
+            <div>
+              <Label>View Predictions For Column:</Label>
+              <Select value={activeTarget} onValueChange={setActiveTarget}>
+                <SelectTrigger data-testid="target-column-select">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  {numericColumns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col} {predictions[col] ? "✓" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-            {models.map((model) => (
-              <Button
-                key={model.key}
-                data-testid={`run-${model.key}-btn`}
-                onClick={() => runPrediction(model.key)}
-                disabled={loading || !targetColumn}
-                variant={predictions[model.key] ? "default" : "outline"}
-                className={predictions[model.key] ? "bg-green-600 hover:bg-green-700" : ""}
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : predictions[model.key] ? (
-                  <span className="mr-2">✓</span>
-                ) : null}
-                {model.name}
-              </Button>
-            ))}
-          </div>
-
-          <Button
-            data-testid="run-all-models-btn"
-            onClick={runAllModels}
-            disabled={loading || !targetColumn}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-          >
-            {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Running All Models...</>
-            ) : (
-              <><TrendingUp className="w-4 h-4 mr-2" /> Run All Models & Compare</>
+            {/* Additional model buttons */}
+            {activeTarget && (
+              <div>
+                <Label className="mb-2 block">Run Additional Models for {activeTarget}:</Label>
+                <div className="grid md:grid-cols-4 gap-3">
+                  {models.map((model) => (
+                    <Button
+                      key={model.key}
+                      data-testid={`run-${model.key}-btn`}
+                      onClick={() => runModelForTarget(activeTarget, model.key)}
+                      disabled={loading}
+                      variant={predictions[activeTarget]?.[model.key] ? "default" : "outline"}
+                      className={predictions[activeTarget]?.[model.key] ? "bg-green-600 hover:bg-green-700" : ""}
+                      size="sm"
+                    >
+                      {loading ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : predictions[activeTarget]?.[model.key] ? (
+                        <span className="mr-2">✓</span>
+                      ) : null}
+                      {model.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             )}
-          </Button>
-        </div>
+          </div>
+        )}
       </Card>
 
-      {Object.keys(predictions).length > 0 && (
+      {activeTarget && predictions[activeTarget] && (
         <>
-          {/* Model Tabs */}
+          {/* Model Tabs for Selected Column */}
           <Card className="p-6">
-            <Tabs value={activeModelTab} onValueChange={setActiveModelTab}>
+            <h3 className="text-lg font-semibold mb-4">Results for: {activeTarget}</h3>
+            <Tabs defaultValue={Object.keys(predictions[activeTarget])[0]}>
               <TabsList className="grid w-full grid-cols-4 mb-6">
                 {models.map((model) => (
                   <TabsTrigger 
                     key={model.key} 
                     value={model.key}
-                    disabled={!predictions[model.key]}
+                    disabled={!predictions[activeTarget]?.[model.key]}
                     data-testid={`tab-${model.key}`}
                   >
                     {model.name}
@@ -198,8 +208,8 @@ const PredictiveAnalysis = ({ dataset }) => {
 
               {models.map((model) => (
                 <TabsContent key={model.key} value={model.key}>
-                  {predictions[model.key] && (
-                    <ModelResults prediction={predictions[model.key]} maxDisplay={maxDisplay} />
+                  {predictions[activeTarget]?.[model.key] && (
+                    <ModelResults prediction={predictions[activeTarget][model.key]} maxDisplay={30} />
                   )}
                 </TabsContent>
               ))}
@@ -209,6 +219,7 @@ const PredictiveAnalysis = ({ dataset }) => {
       )}
     </div>
   );
+};
 };
 
 // Separate component for model results
