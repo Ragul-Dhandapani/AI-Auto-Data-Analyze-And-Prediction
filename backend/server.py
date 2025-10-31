@@ -896,55 +896,91 @@ async def analysis_chat_action(request: ChatRequest):
         data_doc = await db.dataset_data.find_one({"dataset_id": request.dataset_id}, {"_id": 0})
         df = pd.DataFrame(data_doc['data'])
         
-        # Build context with action understanding
-        context = f"""Dataset Information:
-- Name: {dataset['name']}
-- Rows: {dataset['row_count']}
-- Columns: {dataset['column_count']}
-- Column names: {', '.join(dataset['columns'])}
+        user_message = request.message.lower()
+        
+        # Detect correlation request
+        if 'correlation' in user_message or 'correlate' in user_message:
+            # Calculate actual correlations
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            
+            if len(numeric_cols) >= 2:
+                corr_matrix = df[numeric_cols].corr()
+                
+                # Create correlation pairs
+                correlations = []
+                for i in range(len(numeric_cols)):
+                    for j in range(i+1, len(numeric_cols)):
+                        corr_val = corr_matrix.iloc[i, j]
+                        if not np.isnan(corr_val) and abs(corr_val) > 0.1:  # Only significant
+                            strength = \"Strong\" if abs(corr_val) > 0.7 else \"Moderate\" if abs(corr_val) > 0.5 else \"Weak\"
+                            interpretation = f\"{'Positive' if corr_val > 0 else 'Negative'} relationship\"
+                            
+                            correlations.append({
+                                \"feature1\": numeric_cols[i],
+                                \"feature2\": numeric_cols[j],
+                                \"value\": float(corr_val),
+                                \"strength\": strength,
+                                \"interpretation\": interpretation
+                            })
+                
+                # Sort by absolute value
+                correlations.sort(key=lambda x: abs(x['value']), reverse=True)
+                
+                # Create heatmap data for Plotly
+                import plotly.graph_objects as go
+                fig = go.Figure(data=go.Heatmap(
+                    z=corr_matrix.values,
+                    x=numeric_cols,
+                    y=numeric_cols,
+                    colorscale='RdBu',
+                    zmid=0,
+                    text=corr_matrix.values.round(2),
+                    texttemplate='%{text}',
+                    textfont={\"size\": 10},
+                    colorbar=dict(title=\"Correlation\")
+                ))
+                fig.update_layout(
+                    title=\"Correlation Matrix Heatmap\",
+                    xaxis_title=\"Variables\",
+                    yaxis_title=\"Variables\",
+                    width=800,
+                    height=600
+                )
+                
+                return {
+                    \"action\": \"add_chart\",
+                    \"message\": f\"I've calculated correlations for {len(numeric_cols)} numeric variables. Found {len(correlations)} significant correlations.\",
+                    \"chart_data\": {
+                        \"type\": \"correlation\",
+                        \"correlations\": correlations[:20],  # Top 20
+                        \"heatmap\": json.loads(fig.to_json())
+                    }
+                }
+            else:
+                return {\"response\": \"Not enough numeric columns for correlation analysis. Need at least 2 numeric columns.\"}
+        
+        # Default: use AI for general responses
+        context = f\"\"\"Dataset: {dataset['name']}
+Rows: {dataset['row_count']}, Columns: {dataset['column_count']}
+Available columns: {', '.join(dataset['columns'])}
 
 User request: {request.message}
 
-You are an AI assistant that can execute actions. Analyze the user's request and determine if they want to:
-1. Add a new chart or analysis - respond with action: add_chart
-2. Modify existing analysis - respond with action: modify_analysis  
-3. Refresh/update the analysis - respond with action: refresh_analysis
-4. Just get information - respond normally without action
-
-If the user asks to add charts, create analysis, show trends, or modify visualizations, provide a JSON response with:
-{{
-  "action": "add_chart" or "modify_analysis" or "refresh_analysis",
-  "message": "Brief description of what you're doing",
-  "chart_data": {{...}} (if adding chart),
-  "updated_data": {{...}} (if modifying)
-}}
-
-Otherwise, just provide a helpful text response explaining the data or answering their question.
-"""
+Provide a helpful response about their data.\"\"\"
         
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            session_id=f"chat_{request.dataset_id}",
-            system_message="You are a helpful data analysis assistant that can execute actions to modify the analysis interface. When users ask for new charts or changes, provide structured responses with action types."
-        ).with_model("openai", "gpt-4o-mini")
+            session_id=f\"chat_{request.dataset_id}\",
+            system_message=\"You are a helpful data analysis assistant.\"
+        ).with_model(\"openai\", \"gpt-4o-mini\")
         
         message = UserMessage(text=context)
         response = await chat.send_message(message)
         
-        # Try to parse as JSON for actions
-        try:
-            import json
-            response_data = json.loads(response)
-            if 'action' in response_data:
-                return response_data
-        except:
-            pass
-        
-        # Return as regular response
-        return {"response": response}
+        return {\"response\": response}
     except Exception as e:
-        logging.error(f"Chat action error: {traceback.format_exc()}")
-        raise HTTPException(500, f"Chat failed: {str(e)}")
+        logging.error(f\"Chat action error: {traceback.format_exc()}\")
+        raise HTTPException(500, f\"Chat failed: {str(e)}\")
 
 @api_router.post("/analysis/chat")
 async def analysis_chat(request: ChatRequest):
