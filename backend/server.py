@@ -940,9 +940,9 @@ async def analysis_chat_action(request: ChatRequest):
                     colorbar=dict(title="Correlation")
                 ))
                 fig.update_layout(
-                    title=\"Correlation Matrix Heatmap\",
-                    xaxis_title=\"Variables\",
-                    yaxis_title=\"Variables\",
+                    title="Correlation Matrix Heatmap",
+                    xaxis_title="Variables",
+                    yaxis_title="Variables",
                     width=800,
                     height=600
                 )
