@@ -768,7 +768,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
               <div key={targetCol} className="mb-6">
                 <h4 className="font-semibold mb-3">Predicting: {targetCol}</h4>
                 <Tabs defaultValue={models[0].model_name} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 mb-4">
+                  <TabsList className="grid w-full grid-cols-5 mb-4">
                     {models.map((model) => (
                       <TabsTrigger key={model.model_name} value={model.model_name}>
                         {model.model_name}
