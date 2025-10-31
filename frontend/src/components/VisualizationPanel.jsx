@@ -80,6 +80,7 @@ const ChartComponent = ({ chart, index }) => {
 const VisualizationPanel = ({ dataset }) => {
   const [loading, setLoading] = useState(false);
   const [charts, setCharts] = useState([]);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   const generateCharts = async () => {
     setLoading(true);
@@ -89,6 +90,7 @@ const VisualizationPanel = ({ dataset }) => {
         analysis_type: "visualize"
       });
       setCharts(response.data.charts || []);
+      setHasGenerated(true);
       if (response.data.charts?.length > 0) {
         toast.success(`Generated ${response.data.charts.length} visualizations!`);
       }
@@ -99,12 +101,18 @@ const VisualizationPanel = ({ dataset }) => {
     }
   };
 
-  // Auto-generate charts on mount
+  // Auto-generate charts only once on mount
   useEffect(() => {
-    if (dataset) {
+    if (dataset && !hasGenerated) {
       generateCharts();
     }
-  }, [dataset]);
+  }, [dataset, hasGenerated]);
+
+  const refreshCharts = () => {
+    setHasGenerated(false);
+    setCharts([]);
+    generateCharts();
+  };
 
   if (loading && charts.length === 0) {
     return (
