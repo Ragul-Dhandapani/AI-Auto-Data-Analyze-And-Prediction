@@ -132,6 +132,21 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Added useEffect hook to render Plotly heatmap when correlation_heatmap data is available. The heatmap should display in the 'Key Correlations' section when user requests correlation via chat and clicks 'Append to Analysis'."
+        - working: "NA"
+          agent: "main"
+          comment: "Phase 1 & 3 implementation: 1) Added caching support to prevent re-analysis on tab switch (already existed in DashboardPage) 2) Enhanced backend to detect pie chart, bar chart, line chart requests and removal requests 3) Added Custom Charts section in frontend to display dynamically added charts 4) Added useEffect to render custom charts with Plotly 5) Added removal functionality to delete correlation or custom charts 6) All charts persist after refresh via cache mechanism"
+  
+  - task: "Support custom chart types (pie, bar, line) via chat"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/PredictiveAnalysis.jsx, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented pie, bar, and line chart generation via chat. Backend detects keywords and generates appropriate Plotly charts. Frontend displays them in Custom Charts section with AI descriptions."
 
 metadata:
   created_by: "main_agent"
