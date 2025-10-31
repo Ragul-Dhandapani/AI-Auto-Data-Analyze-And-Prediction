@@ -395,7 +395,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     );
   }
 
-  if (!analysisResults) {
+  if (!analysisResults && !showAutoLoadPrompt) {
     return (
       <div className="flex items-center justify-center py-12">
         <p className="text-gray-600">Loading analysis...</p>
@@ -403,7 +403,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     );
   }
 
-  if (analysisResults.error) {
+  if (analysisResults && analysisResults.error) {
     return (
       <div className="space-y-6" data-testid="predictive-analysis">
         <Card className="p-6 bg-red-50 border-red-200">
