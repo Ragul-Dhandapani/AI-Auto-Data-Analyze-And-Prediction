@@ -552,7 +552,7 @@ async def upload_file(file: UploadFile = File(...)):
         }
         
         # Store in MongoDB
-        await db.datasets.insert_one(dataset_info)
+        result = await db.datasets.insert_one(dataset_info)
         
         # Store actual data
         data_records = df.to_dict('records')
@@ -561,7 +561,8 @@ async def upload_file(file: UploadFile = File(...)):
             "data": data_records
         })
         
-        return dataset_info
+        # Return without MongoDB ObjectId
+        return {k: v for k, v in dataset_info.items() if k != '_id'}
     except Exception as e:
         raise HTTPException(500, f"File upload failed: {str(e)}")
 
