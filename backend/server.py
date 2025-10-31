@@ -656,6 +656,54 @@ async def delete_dataset(dataset_id: str):
     await db.dataset_data.delete_one({"dataset_id": dataset_id})
     return {"message": "Dataset deleted"}
 
+class ChatRequest(BaseModel):
+    dataset_id: str
+    message: str
+    conversation_history: List[Dict[str, str]] = []
+
+@api_router.post("/analysis/chat")
+async def analysis_chat(request: ChatRequest):
+    """Chat with AI about the dataset for custom analysis"""
+    try:
+        # Retrieve dataset
+        dataset = await db.datasets.find_one({"id": request.dataset_id}, {"_id": 0})
+        if not dataset:
+            raise HTTPException(404, "Dataset not found")
+        
+        # Load data
+        data_doc = await db.dataset_data.find_one({"dataset_id": request.dataset_id}, {"_id": 0})
+        df = pd.DataFrame(data_doc['data'])
+        
+        # Build context
+        context = f"""Dataset Information:
+- Name: {dataset['name']}
+- Rows: {dataset['row_count']}
+- Columns: {dataset['column_count']}
+- Column names: {', '.join(dataset['columns'])}
+
+Available analysis options:
+1. Run specific ML models (random_forest, gradient_boosting, linear_regression, decision_tree)
+2. Generate specific visualizations
+3. Analyze specific columns or relationships
+4. Custom statistical analysis
+
+User question: {request.message}
+"""
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"chat_{request.dataset_id}",
+            system_message="You are a data analysis assistant. Help users analyze their data by suggesting specific analyses, explaining results, and guiding them through the process. Keep responses concise and actionable."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        message = UserMessage(text=context)
+        response = await chat.send_message(message)
+        
+        return {"response": response}
+    except Exception as e:
+        logging.error(f"Chat error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Chat failed: {str(e)}")
+
 app.include_router(api_router)
 
 app.add_middleware(
