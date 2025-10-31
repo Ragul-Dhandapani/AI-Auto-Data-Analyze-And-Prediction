@@ -40,6 +40,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [stateName, setStateName] = useState("");
   const [savedStates, setSavedStates] = useState([]);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [showAutoLoadPrompt, setShowAutoLoadPrompt] = useState(false);
+  const [autoLoadStateId, setAutoLoadStateId] = useState(null);
   const chatEndRef = useRef(null);
 
   // Use cached data if available
