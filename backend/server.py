@@ -816,6 +816,35 @@ async def list_datasets():
     datasets = await db.datasets.find({}, {"_id": 0}).to_list(100)
     return {"datasets": datasets}
 
+@api_router.get("/datasets/{dataset_id}/download")
+async def download_dataset(dataset_id: str):
+    """Download cleaned dataset as CSV"""
+    try:
+        # Load cleaned data
+        data_doc = await db.dataset_data.find_one({"dataset_id": dataset_id}, {"_id": 0})
+        if not data_doc:
+            raise HTTPException(404, "Dataset data not found")
+        
+        df = pd.DataFrame(data_doc['data'])
+        
+        # Convert to CSV
+        csv_buffer = BytesIO()
+        df.to_csv(csv_buffer, index=False)
+        csv_buffer.seek(0)
+        
+        # Get dataset name
+        dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+        filename = f"{dataset['name'].rsplit('.', 1)[0]}_cleaned.csv" if dataset else "cleaned_data.csv"
+        
+        from fastapi.responses import StreamingResponse
+        return StreamingResponse(
+            csv_buffer,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Download failed: {str(e)}")
+
 @api_router.delete("/datasets/{dataset_id}")
 async def delete_dataset(dataset_id: str):
     """Delete a dataset"""
