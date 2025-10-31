@@ -696,6 +696,59 @@ def train_ml_models(df, target_col, feature_cols):
             except Exception as e:
                 logging.error(f"Error training {model_name}: {str(e)}")
                 continue
+        
+        # Train LSTM model (Neural Network)
+        try:
+            from tensorflow import keras
+            from tensorflow.keras import layers
+            import warnings
+            warnings.filterwarnings('ignore')
+            
+            # Prepare data for LSTM
+            scaler = StandardScaler()
+            X_train_scaled = scaler.fit_transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
+            
+            # Reshape for LSTM (samples, timesteps, features)
+            X_train_lstm = X_train_scaled.reshape((X_train_scaled.shape[0], 1, X_train_scaled.shape[1]))
+            X_test_lstm = X_test_scaled.reshape((X_test_scaled.shape[0], 1, X_test_scaled.shape[1]))
+            
+            # Build LSTM model
+            model = keras.Sequential([
+                layers.LSTM(50, activation='relu', input_shape=(1, X_train_scaled.shape[1])),
+                layers.Dense(25, activation='relu'),
+                layers.Dense(1)
+            ])
+            
+            model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+            
+            # Train with reduced epochs for speed
+            model.fit(X_train_lstm, y_train, epochs=20, batch_size=32, verbose=0, validation_split=0.1)
+            
+            # Predictions
+            y_pred_lstm = model.predict(X_test_lstm, verbose=0).flatten()
+            
+            # Calculate metrics
+            mse = mean_squared_error(y_test, y_pred_lstm)
+            r2 = r2_score(y_test, y_pred_lstm)
+            rmse = np.sqrt(mse)
+            confidence = "High" if r2 > 0.7 else "Medium" if r2 > 0.5 else "Low"
+            
+            models_results.append({
+                "model_name": "LSTM Neural Network",
+                "target_column": target_col,
+                "r2_score": float(r2),
+                "rmse": float(rmse),
+                "mse": float(mse),
+                "confidence": confidence,
+                "feature_importance": {},
+                "predictions_sample": {
+                    "actual": y_test.head(10).tolist(),
+                    "predicted": y_pred_lstm[:10].tolist()
+                }
+            })
+        except Exception as e:
+            logging.error(f"Error training LSTM: {str(e)}")
     except Exception as e:
         logging.error(f"ML training error: {str(e)}")
     
