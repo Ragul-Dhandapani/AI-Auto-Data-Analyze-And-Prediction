@@ -160,6 +160,7 @@ metadata:
 test_plan:
   current_focus:
     - "Display correlation heatmap in PredictiveAnalysis"
+    - "Support custom chart types (pie, bar, line) via chat"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
