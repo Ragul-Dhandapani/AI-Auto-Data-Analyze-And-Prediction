@@ -4,7 +4,78 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, BarChart3 } from "lucide-react";
-import PlotlyChart from "@/components/PlotlyChart";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+// Load Plotly script
+const loadPlotly = () => {
+  return new Promise((resolve) => {
+    if (window.Plotly) {
+      resolve(window.Plotly);
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = 'https://cdn.plot.ly/plotly-2.27.0.min.js';
+    script.async = true;
+    script.onload = () => resolve(window.Plotly);
+    document.head.appendChild(script);
+  });
+};
+
+const ChartComponent = ({ chart, index }) => {
+  const chartId = `plotly-chart-${index}`;
+  
+  useEffect(() => {
+    const renderChart = async () => {
+      await loadPlotly();
+      
+      if (window.Plotly && chart.data) {
+        const container = document.getElementById(chartId);
+        if (container) {
+          window.Plotly.newPlot(
+            chartId,
+            chart.data.data,
+            {
+              ...chart.data.layout,
+              autosize: true,
+              height: 400,
+              paper_bgcolor: 'rgba(0,0,0,0)',
+              plot_bgcolor: 'rgba(0,0,0,0)',
+              font: { family: 'Inter, sans-serif' }
+            },
+            { 
+              responsive: true, 
+              displayModeBar: false 
+            }
+          );
+        }
+      }
+    };
+    
+    renderChart();
+    
+    return () => {
+      if (window.Plotly) {
+        const container = document.getElementById(chartId);
+        if (container) {
+          window.Plotly.purge(chartId);
+        }
+      }
+    };
+  }, [chart, chartId]);
+  
+  return (
+    <Card className="p-6" data-testid={`chart-${index}`}>
+      <h4 className="text-lg font-semibold mb-2">{chart.title}</h4>
+      <p className="text-sm text-gray-600 mb-4 italic">{chart.description}</p>
+      <div className="w-full bg-white rounded-lg p-4">
+        <div id={chartId} style={{ width: '100%', height: '400px' }} />
+      </div>
+    </Card>
+  );
+};
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
