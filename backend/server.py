@@ -514,6 +514,7 @@ async def upload_file(file: UploadFile = File(...)):
     """Upload and preview data file"""
     try:
         contents = await file.read()
+        file_size = len(contents)
         
         # Detect file type and read
         if file.filename.endswith('.csv'):
@@ -523,12 +524,26 @@ async def upload_file(file: UploadFile = File(...)):
         else:
             raise HTTPException(400, "Unsupported file format. Use CSV or Excel")
         
+        # Check for duplicate names and generate unique name
+        base_name = file.filename.rsplit('.', 1)[0]
+        extension = file.filename.rsplit('.', 1)[-1]
+        unique_name = file.filename
+        
+        existing = await db.datasets.find_one({"name": unique_name}, {"_id": 0})
+        counter = 1
+        while existing:
+            unique_name = f"{base_name}_{counter}.{extension}"
+            existing = await db.datasets.find_one({"name": unique_name}, {"_id": 0})
+            counter += 1
+        
         # Store dataset info
         dataset_id = str(uuid.uuid4())
         dataset_info = {
             "id": dataset_id,
-            "name": file.filename,
+            "name": unique_name,
+            "original_name": file.filename,
             "source_type": "file",
+            "file_size": file_size,
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": df.columns.tolist(),
