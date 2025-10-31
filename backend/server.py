@@ -898,6 +898,27 @@ async def analysis_chat_action(request: ChatRequest):
         
         user_message = request.message.lower()
         
+        # Get current analysis if available
+        current_analysis = request.conversation_history
+        
+        # Detect removal request
+        if 'remove' in user_message or 'delete' in user_message:
+            # Extract what to remove
+            if 'correlation' in user_message:
+                return {
+                    "action": "remove_section",
+                    "message": "I'll remove the correlation analysis section.",
+                    "section_to_remove": "correlations"
+                }
+            elif 'pie' in user_message or 'chart' in user_message:
+                return {
+                    "action": "remove_section",
+                    "message": "I'll remove the custom chart.",
+                    "section_to_remove": "custom_chart"
+                }
+            else:
+                return {"response": "Please specify what you'd like to remove (e.g., 'remove correlation' or 'remove pie chart')"}
+        
         # Detect correlation request
         if 'correlation' in user_message or 'correlate' in user_message:
             # Calculate actual correlations
