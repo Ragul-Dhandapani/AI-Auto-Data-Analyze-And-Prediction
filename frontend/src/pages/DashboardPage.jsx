@@ -109,31 +109,69 @@ const DashboardPage = () => {
               
               {datasets.length > 0 && (
                 <Card className="mt-8 p-6 bg-white/90 backdrop-blur-sm">
-                  <h2 className="text-xl font-semibold mb-4">Recent Datasets</h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {datasets.map((dataset) => (
-                      <div
-                        key={dataset.id}
-                        data-testid={`dataset-card-${dataset.id}`}
-                        className="p-4 border border-gray-200 rounded-xl hover:shadow-lg hover:border-blue-400 cursor-pointer transition-all bg-white"
-                        onClick={() => handleDatasetSelect(dataset)}
-                      >
-                        <h3 className="font-semibold text-lg mb-2 truncate">{dataset.name}</h3>
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <p>Rows: {dataset.row_count.toLocaleString()}</p>
-                          <p>Columns: {dataset.column_count}</p>
-                          {dataset.file_size && (
-                            <p className="text-xs text-gray-500">
-                              Size: {(dataset.file_size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                          )}
-                          <p className="text-xs text-gray-400">
-                            {new Date(dataset.created_at).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold">Recent Datasets ({datasets.length})</h2>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowRecentDatasets(!showRecentDatasets)}
+                      data-testid="toggle-recent-datasets"
+                    >
+                      {showRecentDatasets ? (
+                        <>
+                          <ChevronUp className="w-4 h-4 mr-2" />
+                          Collapse
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-4 h-4 mr-2" />
+                          Expand
+                        </>
+                      )}
+                    </Button>
                   </div>
+                  
+                  {showRecentDatasets && (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {datasets.map((dataset) => (
+                        <div
+                          key={dataset.id}
+                          data-testid={`dataset-card-${dataset.id}`}
+                          className="relative p-4 border border-gray-200 rounded-xl hover:shadow-lg hover:border-blue-400 cursor-pointer transition-all bg-white group"
+                          onClick={() => handleDatasetSelect(dataset)}
+                        >
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => deleteDataset(dataset.id, e)}
+                            data-testid={`delete-dataset-${dataset.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                          
+                          <h3 className="font-semibold text-lg mb-2 truncate pr-10">{dataset.name}</h3>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p>Rows: {dataset.row_count.toLocaleString()}</p>
+                            <p>Columns: {dataset.column_count}</p>
+                            {dataset.file_size && (
+                              <p className="text-xs text-gray-500">
+                                Size: {(dataset.file_size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            )}
+                            {dataset.upload_time && (
+                              <p className="text-xs text-green-600 font-medium">
+                                Upload time: {dataset.upload_time.toFixed(1)}s
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-400">
+                              {new Date(dataset.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </Card>
               )}
             </div>
