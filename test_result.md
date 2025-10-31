@@ -150,6 +150,30 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ BACKEND CUSTOM CHART GENERATION FULLY WORKING: Comprehensive testing completed for Phase 1 & 3 implementation. All chart types working perfectly: 1) PIE CHARTS: 'show me a pie chart' correctly returns action='add_chart', type='pie', valid Plotly data with pie traces, meaningful descriptions 2) BAR CHARTS: 'create a bar chart' returns action='add_chart', type='bar', valid Plotly bar data, proper x/y columns 3) LINE CHARTS: 'show line chart trend' returns action='add_chart', type='line', valid Plotly scatter traces with lines+markers mode 4) CORRELATION ANALYSIS: 'show correlation analysis' returns action='add_chart', type='correlation', correlations array with all required fields, valid heatmap data 5) REMOVAL FUNCTIONALITY: 'remove correlation' returns action='remove_section', section_to_remove='correlations'; 'remove pie chart' returns action='remove_section', section_to_remove='custom_chart'. All responses include proper message, chart_data with title/description, and valid Plotly JSON structure. Backend correctly detects keywords and generates appropriate charts with meaningful AI descriptions."
+  
+  - task: "Add ML model tabs (Linear Regression, Random Forest, XGBoost, Decision Tree)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/PredictiveAnalysis.jsx, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented multiple ML models training in backend. Added train_ml_models() function that trains Linear Regression, Random Forest, Decision Tree, and XGBoost. Frontend displays models as tabs with R² score, RMSE, confidence levels, and feature importance charts. Models grouped by target column with tabbed interface for easy comparison."
+  
+  - task: "Save/Load analysis states with chat history"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/PredictiveAnalysis.jsx, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented save/load functionality. Backend endpoints: POST /api/analysis/save-state, GET /api/analysis/load-state/{state_id}, GET /api/analysis/saved-states/{dataset_id}, DELETE /api/analysis/delete-state/{state_id}. Frontend has Save and Load buttons in header, modal dialogs for saving with custom names and loading from list of saved states. Chat history included in saved states."
 
 metadata:
   created_by: "main_agent"
