@@ -77,7 +77,8 @@ const VisualizationPanel = ({ dataset }) => {
 
       {charts.map((chart, idx) => (
         <Card key={idx} className="p-6" data-testid={`chart-${idx}`}>
-          <h4 className="text-lg font-semibold mb-4">{chart.title}</h4>
+          <h4 className="text-lg font-semibold mb-2">{chart.title}</h4>
+          <p className="text-sm text-gray-600 mb-4 italic">{chart.description}</p>
           <div className="w-full overflow-x-auto bg-white rounded-lg p-4">
             <PlotlyChart
               data={chart.data.data}
