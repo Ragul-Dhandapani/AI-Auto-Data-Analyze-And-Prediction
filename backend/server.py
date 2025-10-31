@@ -960,13 +960,13 @@ async def analysis_chat_action(request: ChatRequest):
                 return {"response": "Not enough numeric columns for correlation analysis. Need at least 2 numeric columns."}
         
         # Default: use AI for general responses
-        context = f\"\"\"Dataset: {dataset['name']}
+        context = f"""Dataset: {dataset['name']}
 Rows: {dataset['row_count']}, Columns: {dataset['column_count']}
 Available columns: {', '.join(dataset['columns'])}
 
 User request: {request.message}
 
-Provide a helpful response about their data.\"\"\"
+Provide a helpful response about their data."""
         
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
