@@ -305,25 +305,43 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       {/* I'll add the chat panel at the bottom */}
 
       {/* Chat Panel */}
-      {showChat && (
+      {showChat && !chatMinimized && (
         <div className="fixed right-6 bottom-6 w-96 h-[500px] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50">
           <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-xl">
             <h3 className="font-semibold">Analysis Assistant</h3>
-            <Button
-              onClick={() => setShowChat(false)}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setChatMinimized(true)}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+                data-testid="minimize-chat-btn"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              <Button
+                onClick={() => setShowChat(false)}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+                data-testid="close-chat-btn"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {chatMessages.length === 0 && (
               <div className="text-center text-gray-500 mt-8">
                 <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                <p className="text-sm">Ask me to modify charts, add new analyses, or explain results!</p>
+                <p className="text-sm">Ask me to:</p>
+                <ul className="text-xs mt-2 space-y-1">
+                  <li>• Add new charts or analysis</li>
+                  <li>• Modify existing visualizations</li>
+                  <li>• Explain specific results</li>
+                  <li>• Refresh with latest data</li>
+                </ul>
               </div>
             )}
             {chatMessages.map((msg, idx) => (
@@ -361,6 +379,21 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Minimized Chat Button */}
+      {showChat && chatMinimized && (
+        <div className="fixed right-6 bottom-6 z-50">
+          <Button
+            onClick={() => setChatMinimized(false)}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-2xl"
+            size="lg"
+            data-testid="restore-chat-btn"
+          >
+            <MessageSquare className="w-5 h-5 mr-2" />
+            Chat Assistant {chatMessages.length > 0 && `(${chatMessages.length})`}
+          </Button>
         </div>
       )}
     </div>
