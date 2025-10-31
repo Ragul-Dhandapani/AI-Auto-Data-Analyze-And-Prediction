@@ -267,7 +267,6 @@ def test_pie_chart_generation():
     
     chat_response = response.json()
     print(f"✅ Pie chart request successful")
-    print(f"Response: {json.dumps(chat_response, indent=2)}")
     
     # Step 3: Verify response structure
     print("\n3. Verifying pie chart response structure...")
@@ -277,7 +276,6 @@ def test_pie_chart_generation():
     for field in required_fields:
         if field not in chat_response:
             print(f"❌ Missing '{field}' field in response")
-            print(f"Available fields: {list(chat_response.keys())}")
             return False
     
     if chat_response['action'] != 'add_chart':
