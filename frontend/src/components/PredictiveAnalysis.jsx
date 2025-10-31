@@ -13,202 +13,179 @@ const API = `${BACKEND_URL}/api`;
 
 const PredictiveAnalysis = ({ dataset }) => {
   const [loading, setLoading] = useState(false);
-  const [predictions, setPredictions] = useState({});
-  const [activeTarget, setActiveTarget] = useState("");
+  const [analysisResults, setAnalysisResults] = useState(null);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
-  const models = [
-    { key: "random_forest", name: "Random Forest", desc: "Ensemble method, highly accurate" },
-    { key: "gradient_boosting", name: "Gradient Boosting", desc: "Powerful for complex patterns" },
-    { key: "linear_regression", name: "Linear Regression", desc: "Fast, interpretable" },
-    { key: "decision_tree", name: "Decision Tree", desc: "Visual, easy to understand" }
-  ];
-
-  // Auto-run analysis on mount
+  // Auto-run analysis only once on mount
   useEffect(() => {
-    const numericCols = dataset.columns.filter((col) => {
-      const sample = dataset.data_preview[0]?.[col];
-      return typeof sample === 'number' || !isNaN(Number(sample));
-    });
-    
-    if (dataset && numericCols.length > 0) {
-      runAutoAnalysis(numericCols);
+    if (dataset && !hasAnalyzed) {
+      runHolisticAnalysis();
     }
-  }, [dataset]);
+  }, [dataset, hasAnalyzed]);
 
-  const runAutoAnalysis = async (numericCols) => {
+  const runHolisticAnalysis = async () => {
     setLoading(true);
-    toast.info("Running automatic ML analysis on all numeric columns...");
+    toast.info("Running comprehensive dataset analysis...");
     
     try {
-      // Run predictions for each numeric column with best model
-      for (const targetCol of numericCols) {
-        // Run with Random Forest (best general-purpose model)
-        const response = await axios.post(`${API}/analysis/run`, {
-          dataset_id: dataset.id,
-          analysis_type: "predict",
-          options: { 
-            target_column: targetCol,
-            model_type: "random_forest"
-          }
-        });
-
-        if (!response.data.error) {
-          setPredictions(prev => ({
-            ...prev,
-            [targetCol]: {
-              random_forest: response.data
-            }
-          }));
-          
-          if (!activeTarget) {
-            setActiveTarget(targetCol);
-          }
-        }
-      }
-      toast.success(`Completed automated analysis for ${numericCols.length} columns!`);
-    } catch (error) {
-      toast.error("Auto-analysis failed: " + (error.response?.data?.detail || error.message));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const runModelForTarget = async (targetColumn, modelType) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API}/analysis/run`, {
-        dataset_id: dataset.id,
-        analysis_type: "predict",
-        options: { 
-          target_column: targetColumn,
-          model_type: modelType
-        }
+      const response = await axios.post(`${API}/analysis/holistic`, {
+        dataset_id: dataset.id
       });
 
-      if (response.data.error) {
-        toast.error(response.data.error);
-      } else {
-        setPredictions(prev => ({
-          ...prev,
-          [targetColumn]: {
-            ...prev[targetColumn],
-            [modelType]: response.data
-          }
-        }));
-        toast.success(`${response.data.model_type} completed for ${targetColumn}!`);
-      }
+      setAnalysisResults(response.data);
+      setHasAnalyzed(true);
+      toast.success("Comprehensive analysis complete!");
     } catch (error) {
-      toast.error("Prediction failed: " + (error.response?.data?.detail || error.message));
+      toast.error("Analysis failed: " + (error.response?.data?.detail || error.message));
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate numeric columns for rendering
-  const numericColumns = dataset.columns.filter((col) => {
-    const sample = dataset.data_preview[0]?.[col];
-    return typeof sample === 'number' || !isNaN(Number(sample));
-  });
+  const refreshAnalysis = () => {
+    setHasAnalyzed(false);
+    setAnalysisResults(null);
+    runHolisticAnalysis();
+  };
 
-  if (loading && Object.keys(predictions).length === 0) {
+  if (loading && !analysisResults) {
     return (
       <div className="flex items-center justify-center py-12" data-testid="predictive-analysis">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <span className="ml-3 text-lg">Running automated ML analysis...</span>
+        <span className="ml-3 text-lg">Analyzing entire dataset with AI/ML models...</span>
+      </div>
+    );
+  }
+
+  if (!analysisResults) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-gray-600">Loading analysis...</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6" data-testid="predictive-analysis">
+      {/* Header with Refresh */}
       <Card className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
-        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-indigo-600" />
-          Automated Predictive Analytics
-        </h3>
-        <p className="text-sm text-gray-600 mb-4">
-          AI automatically analyzed all {numericColumns.length} numeric columns and generated predictions. 
-          Select a column below to view detailed results or run additional models for comparison.
-        </p>
-
-        {/* Column Selection */}
-        {numericColumns.length > 0 && (
-          <div className="space-y-4">
-            <div>
-              <Label>View Predictions For Column:</Label>
-              <Select value={activeTarget} onValueChange={setActiveTarget}>
-                <SelectTrigger data-testid="target-column-select">
-                  <SelectValue placeholder="Select column" />
-                </SelectTrigger>
-                <SelectContent>
-                  {numericColumns.map((col) => (
-                    <SelectItem key={col} value={col}>
-                      {col} {predictions[col] ? "✓" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Additional model buttons */}
-            {activeTarget && (
-              <div>
-                <Label className="mb-2 block">Run Additional Models for {activeTarget}:</Label>
-                <div className="grid md:grid-cols-4 gap-3">
-                  {models.map((model) => (
-                    <Button
-                      key={model.key}
-                      data-testid={`run-${model.key}-btn`}
-                      onClick={() => runModelForTarget(activeTarget, model.key)}
-                      disabled={loading}
-                      variant={predictions[activeTarget]?.[model.key] ? "default" : "outline"}
-                      className={predictions[activeTarget]?.[model.key] ? "bg-green-600 hover:bg-green-700" : ""}
-                      size="sm"
-                    >
-                      {loading ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : predictions[activeTarget]?.[model.key] ? (
-                        <span className="mr-2">✓</span>
-                      ) : null}
-                      {model.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-indigo-600" />
+              Comprehensive Predictive Analytics
+            </h3>
+            <p className="text-sm text-gray-600 mt-2">
+              AI-powered holistic analysis of your entire dataset with intelligent groupings and predictions
+            </p>
           </div>
-        )}
+          <Button
+            data-testid="refresh-analysis-btn"
+            onClick={refreshAnalysis}
+            disabled={loading}
+            variant="outline"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
+            Refresh Analysis
+          </Button>
+        </div>
       </Card>
 
-      {activeTarget && predictions[activeTarget] && (
-        <>
-          {/* Model Tabs for Selected Column */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Results for: {activeTarget}</h3>
-            <Tabs defaultValue={Object.keys(predictions[activeTarget])[0]}>
-              <TabsList className="grid w-full grid-cols-4 mb-6">
-                {models.map((model) => (
-                  <TabsTrigger 
-                    key={model.key} 
-                    value={model.key}
-                    disabled={!predictions[activeTarget]?.[model.key]}
-                    data-testid={`tab-${model.key}`}
-                  >
-                    {model.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+      {/* Analysis Results */}
+      {analysisResults.volume_analysis && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">📊 Volume Analysis</h3>
+          <div className="space-y-4">
+            {analysisResults.volume_analysis.by_dimensions?.map((item, idx) => (
+              <div key={idx} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-semibold mb-2">{item.dimension}</h4>
+                <p className="text-sm text-gray-700">{item.insights}</p>
+                {item.chart && <div className="mt-3 h-64 bg-white rounded p-2" id={`chart-volume-${idx}`}></div>}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
-              {models.map((model) => (
-                <TabsContent key={model.key} value={model.key}>
-                  {predictions[activeTarget]?.[model.key] && (
-                    <ModelResults prediction={predictions[activeTarget][model.key]} maxDisplay={30} />
-                  )}
-                </TabsContent>
-              ))}
-            </Tabs>
-          </Card>
-        </>
+      {/* Trend Analysis */}
+      {analysisResults.trend_analysis && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">📈 Trend Analysis</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            {analysisResults.trend_analysis.trends?.map((trend, idx) => (
+              <div key={idx} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <h4 className="font-semibold mb-2">{trend.category}</h4>
+                <p className="text-sm text-gray-700">{trend.insight}</p>
+                <div className="mt-2 text-xs text-gray-600">
+                  Trend: <span className="font-semibold">{trend.direction}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Correlations */}
+      {analysisResults.correlations && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">🔗 Key Correlations</h3>
+          <div className="space-y-3">
+            {analysisResults.correlations.map((corr, idx) => (
+              <div key={idx} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="flex-1">
+                  <p className="font-medium">{corr.feature1} ↔ {corr.feature2}</p>
+                  <p className="text-sm text-gray-600">{corr.interpretation}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-purple-600">{corr.value.toFixed(2)}</div>
+                  <div className="text-xs text-gray-500">{corr.strength}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Predictions */}
+      {analysisResults.predictions && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">🎯 Predictive Insights</h3>
+          <div className="space-y-4">
+            {analysisResults.predictions.map((pred, idx) => (
+              <div key={idx} className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <h4 className="font-semibold mb-2">{pred.title}</h4>
+                <p className="text-sm text-gray-700 mb-3">{pred.description}</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center p-2 bg-white rounded">
+                    <div className="text-xs text-gray-600">Model Accuracy</div>
+                    <div className="text-lg font-bold text-green-600">{(pred.accuracy * 100).toFixed(1)}%</div>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <div className="text-xs text-gray-600">Confidence</div>
+                    <div className="text-lg font-bold text-blue-600">{pred.confidence}</div>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <div className="text-xs text-gray-600">Risk Level</div>
+                    <div className="text-lg font-bold text-orange-600">{pred.risk_level}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* AI Summary */}
+      {analysisResults.ai_summary && (
+        <Card className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-purple-600" />
+            AI-Generated Summary
+          </h3>
+          <div className="prose prose-sm max-w-none">
+            <p className="whitespace-pre-wrap text-gray-700">{analysisResults.ai_summary}</p>
+          </div>
+        </Card>
       )}
     </div>
   );
