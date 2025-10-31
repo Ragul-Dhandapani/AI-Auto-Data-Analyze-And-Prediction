@@ -126,41 +126,44 @@ const VisualizationPanel = ({ dataset }) => {
   return (
     <div className="space-y-6" data-testid="visualization-panel">
       <Card className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
-        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <BarChart3 className="w-6 h-6 text-blue-600" />
-          Smart Data Visualizations
-        </h3>
-        <p className="text-sm text-gray-600 mb-4">
-          AI-generated charts automatically created based on your data characteristics. 
-          {charts.length > 0 && ` Showing ${charts.length} visualizations.`}
-        </p>
-        {charts.length > 0 && (
-          <Button 
-            data-testid="regenerate-charts-btn"
-            onClick={generateCharts}
-            disabled={loading}
-            variant="outline"
-            size="sm"
-          >
-            {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Regenerating...</>
-            ) : (
-              <><BarChart3 className="w-4 h-4 mr-2" /> Regenerate Charts</>
-            )}
-          </Button>
-        )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-blue-600" />
+              Smart Data Visualizations
+            </h3>
+            <p className="text-sm text-gray-600 mt-2">
+              AI-generated charts automatically created based on your data characteristics. 
+              {charts.length > 0 && ` Showing ${charts.length} visualizations.`}
+            </p>
+          </div>
+          {charts.length > 0 && (
+            <Button 
+              data-testid="refresh-charts-btn"
+              onClick={refreshCharts}
+              disabled={loading}
+              variant="outline"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Refreshing...</>
+              ) : (
+                <><BarChart3 className="w-4 h-4 mr-2" /> Refresh Charts</>
+              )}
+            </Button>
+          )}
+        </div>
       </Card>
 
       {charts.length === 0 && !loading && (
         <Card className="p-12 text-center">
           <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600">No visualizations generated yet. Please wait...</p>
+          <p className="text-gray-600">Loading visualizations...</p>
         </Card>
       )}
 
       <div className="grid md:grid-cols-2 gap-6">
         {charts.map((chart, idx) => (
-          <ChartComponent key={idx} chart={chart} index={idx} />
+          <ChartComponent key={`${dataset.id}-${idx}`} chart={chart} index={idx} />
         ))}
       </div>
     </div>
