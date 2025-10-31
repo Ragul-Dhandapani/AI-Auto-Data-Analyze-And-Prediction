@@ -502,6 +502,101 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
 
       {/* Rest of sections... */}
 
+
+      {/* ML Models Section */}
+      {analysisResults.ml_models && analysisResults.ml_models.length > 0 && !collapsed.ml_models && (
+        <Card className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">🤖 ML Model Comparison</h3>
+              <p className="text-sm text-gray-600 italic mt-1">Compare performance of different machine learning models</p>
+            </div>
+            <Button onClick={() => toggleSection('ml_models')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          {/* Group models by target column */}
+          {(() => {
+            const modelsByTarget = {};
+            analysisResults.ml_models.forEach(model => {
+              if (!modelsByTarget[model.target_column]) {
+                modelsByTarget[model.target_column] = [];
+              }
+              modelsByTarget[model.target_column].push(model);
+            });
+            
+            return Object.entries(modelsByTarget).map(([targetCol, models]) => (
+              <div key={targetCol} className="mb-6">
+                <h4 className="font-semibold mb-3">Predicting: {targetCol}</h4>
+                <Tabs defaultValue={models[0].model_name} className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 mb-4">
+                    {models.map((model) => (
+                      <TabsTrigger key={model.model_name} value={model.model_name}>
+                        {model.model_name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  
+                  {models.map((model) => (
+                    <TabsContent key={model.model_name} value={model.model_name}>
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+                        <div className="grid md:grid-cols-3 gap-4 mb-4">
+                          <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <div className="text-sm text-gray-600">R² Score</div>
+                            <div className="text-2xl font-bold text-blue-600">{model.r2_score.toFixed(3)}</div>
+                          </div>
+                          <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <div className="text-sm text-gray-600">RMSE</div>
+                            <div className="text-2xl font-bold text-purple-600">{model.rmse.toFixed(3)}</div>
+                          </div>
+                          <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <div className="text-sm text-gray-600">Confidence</div>
+                            <div className={`text-2xl font-bold ${
+                              model.confidence === 'High' ? 'text-green-600' : 
+                              model.confidence === 'Medium' ? 'text-yellow-600' : 'text-red-600'
+                            }`}>{model.confidence}</div>
+                          </div>
+                        </div>
+                        
+                        {model.feature_importance && Object.keys(model.feature_importance).length > 0 && (
+                          <div className="mt-4">
+                            <h5 className="font-semibold mb-2">Feature Importance</h5>
+                            <div className="space-y-2">
+                              {Object.entries(model.feature_importance).slice(0, 5).map(([feature, importance]) => (
+                                <div key={feature} className="flex items-center gap-2">
+                                  <span className="text-sm w-32 truncate">{feature}</span>
+                                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-blue-600 rounded-full h-2" 
+                                      style={{width: `${importance * 100}%`}}
+                                    ></div>
+                                  </div>
+                                  <span className="text-sm text-gray-600 w-16 text-right">{(importance * 100).toFixed(1)}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </div>
+            ));
+          })()}
+        </Card>
+      )}
+
+      {analysisResults.ml_models && analysisResults.ml_models.length > 0 && collapsed.ml_models && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('ml_models')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">🤖 ML Model Comparison ({analysisResults.ml_models.length} models)</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
       {/* Chat Panel */}
       {showChat && !chatMinimized && (
         <div className="fixed right-6 bottom-6 w-96 h-[500px] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50">
