@@ -44,6 +44,22 @@ const DashboardPage = () => {
     setCurrentStep("analysis");
   };
 
+  const deleteDataset = async (datasetId, event) => {
+    event.stopPropagation(); // Prevent card click
+    
+    if (!confirm("Are you sure you want to delete this dataset?")) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/datasets/${datasetId}`);
+      toast.success("Dataset deleted successfully!");
+      loadDatasets();
+    } catch (error) {
+      toast.error("Failed to delete dataset: " + (error.response?.data?.detail || error.message));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Navigation */}
