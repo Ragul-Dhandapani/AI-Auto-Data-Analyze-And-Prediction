@@ -122,15 +122,14 @@ const PredictiveAnalysis = ({ dataset }) => {
       </Card>
 
       {/* Analysis Results */}
-      {analysisResults.volume_analysis && (
+      {analysisResults.volume_analysis && analysisResults.volume_analysis.by_dimensions && (
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">📊 Volume Analysis</h3>
           <div className="space-y-4">
-            {analysisResults.volume_analysis.by_dimensions?.map((item, idx) => (
+            {analysisResults.volume_analysis.by_dimensions.map((item, idx) => (
               <div key={idx} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-semibold mb-2">{item.dimension}</h4>
-                <p className="text-sm text-gray-700">{item.insights}</p>
-                {item.chart && <div className="mt-3 h-64 bg-white rounded p-2" id={`chart-volume-${idx}`}></div>}
+                <h4 className="font-semibold mb-2">{String(item.dimension)}</h4>
+                <p className="text-sm text-gray-700">{String(item.insights)}</p>
               </div>
             ))}
           </div>
@@ -138,16 +137,16 @@ const PredictiveAnalysis = ({ dataset }) => {
       )}
 
       {/* Trend Analysis */}
-      {analysisResults.trend_analysis && (
+      {analysisResults.trend_analysis && analysisResults.trend_analysis.trends && analysisResults.trend_analysis.trends.length > 0 && (
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">📈 Trend Analysis</h3>
           <div className="grid md:grid-cols-2 gap-4">
-            {analysisResults.trend_analysis.trends?.map((trend, idx) => (
+            {analysisResults.trend_analysis.trends.map((trend, idx) => (
               <div key={idx} className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <h4 className="font-semibold mb-2">{trend.category}</h4>
-                <p className="text-sm text-gray-700">{trend.insight}</p>
+                <h4 className="font-semibold mb-2">{String(trend.category)}</h4>
+                <p className="text-sm text-gray-700">{String(trend.insight)}</p>
                 <div className="mt-2 text-xs text-gray-600">
-                  Trend: <span className="font-semibold">{trend.direction}</span>
+                  Trend: <span className="font-semibold">{String(trend.direction)}</span>
                 </div>
               </div>
             ))}
@@ -156,19 +155,19 @@ const PredictiveAnalysis = ({ dataset }) => {
       )}
 
       {/* Correlations */}
-      {analysisResults.correlations && (
+      {analysisResults.correlations && analysisResults.correlations.length > 0 && (
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">🔗 Key Correlations</h3>
           <div className="space-y-3">
             {analysisResults.correlations.map((corr, idx) => (
               <div key={idx} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
                 <div className="flex-1">
-                  <p className="font-medium">{corr.feature1} ↔ {corr.feature2}</p>
-                  <p className="text-sm text-gray-600">{corr.interpretation}</p>
+                  <p className="font-medium">{String(corr.feature1)} ↔ {String(corr.feature2)}</p>
+                  <p className="text-sm text-gray-600">{String(corr.interpretation)}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-purple-600">{corr.value.toFixed(2)}</div>
-                  <div className="text-xs text-gray-500">{corr.strength}</div>
+                  <div className="text-2xl font-bold text-purple-600">{Number(corr.value).toFixed(2)}</div>
+                  <div className="text-xs text-gray-500">{String(corr.strength)}</div>
                 </div>
               </div>
             ))}
@@ -177,26 +176,26 @@ const PredictiveAnalysis = ({ dataset }) => {
       )}
 
       {/* Predictions */}
-      {analysisResults.predictions && (
+      {analysisResults.predictions && analysisResults.predictions.length > 0 && (
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">🎯 Predictive Insights</h3>
           <div className="space-y-4">
             {analysisResults.predictions.map((pred, idx) => (
               <div key={idx} className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                <h4 className="font-semibold mb-2">{pred.title}</h4>
-                <p className="text-sm text-gray-700 mb-3">{pred.description}</p>
+                <h4 className="font-semibold mb-2">{String(pred.title)}</h4>
+                <p className="text-sm text-gray-700 mb-3">{String(pred.description)}</p>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="text-center p-2 bg-white rounded">
                     <div className="text-xs text-gray-600">Model Accuracy</div>
-                    <div className="text-lg font-bold text-green-600">{(pred.accuracy * 100).toFixed(1)}%</div>
+                    <div className="text-lg font-bold text-green-600">{(Number(pred.accuracy) * 100).toFixed(1)}%</div>
                   </div>
                   <div className="text-center p-2 bg-white rounded">
                     <div className="text-xs text-gray-600">Confidence</div>
-                    <div className="text-lg font-bold text-blue-600">{pred.confidence}</div>
+                    <div className="text-lg font-bold text-blue-600">{String(pred.confidence)}</div>
                   </div>
                   <div className="text-center p-2 bg-white rounded">
                     <div className="text-xs text-gray-600">Risk Level</div>
-                    <div className="text-lg font-bold text-orange-600">{pred.risk_level}</div>
+                    <div className="text-lg font-bold text-orange-600">{String(pred.risk_level)}</div>
                   </div>
                 </div>
               </div>
@@ -213,8 +212,20 @@ const PredictiveAnalysis = ({ dataset }) => {
             AI-Generated Summary
           </h3>
           <div className="prose prose-sm max-w-none">
-            <p className="whitespace-pre-wrap text-gray-700">{analysisResults.ai_summary}</p>
+            <p className="whitespace-pre-wrap text-gray-700">{String(analysisResults.ai_summary)}</p>
           </div>
+        </Card>
+      )}
+
+      {/* Show message if no results */}
+      {!analysisResults.volume_analysis && 
+       !analysisResults.trend_analysis?.trends?.length &&
+       !analysisResults.correlations?.length &&
+       !analysisResults.predictions?.length &&
+       !analysisResults.ai_summary && (
+        <Card className="p-12 text-center">
+          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <p className="text-gray-600">No analysis results available. Please try uploading a dataset with more data.</p>
         </Card>
       )}
     </div>
