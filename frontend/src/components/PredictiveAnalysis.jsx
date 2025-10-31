@@ -150,20 +150,38 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         }]);
       } else if (actionData.action === 'add_chart') {
         // Add correlation or custom chart
-        const updatedResults = {
-          ...analysisResults,
-          correlations: actionData.chart_data?.type === 'correlation' 
-            ? [...(analysisResults.correlations || []), ...actionData.chart_data.correlations]
-            : analysisResults.correlations,
-          custom_charts: [...(analysisResults.custom_charts || []), actionData.chart_data]
-        };
-        setAnalysisResults(updatedResults);
-        onAnalysisUpdate(updatedResults);
-        toast.success("Chart added successfully!");
-        setChatMessages(prev => [...prev, { 
-          role: "assistant", 
-          content: "✓ Chart has been added to your analysis. Scroll up to see it!" 
-        }]);
+        if (actionData.chart_data?.type === 'correlation') {
+          // Add correlations to the analysis results
+          const updatedResults = {
+            ...analysisResults,
+            correlations: actionData.chart_data.correlations || [],
+            correlation_heatmap: actionData.chart_data.heatmap || null
+          };
+          setAnalysisResults(updatedResults);
+          onAnalysisUpdate(updatedResults);
+          
+          // Auto-expand correlations section
+          setCollapsed(prev => ({ ...prev, correlations: false }));
+          
+          toast.success("Correlation analysis added!");
+          setChatMessages(prev => [...prev, { 
+            role: "assistant", 
+            content: "✓ Correlation analysis has been added! Scroll up to the 'Key Correlations' section to see the results." 
+          }]);
+        } else {
+          // Generic custom chart
+          const updatedResults = {
+            ...analysisResults,
+            custom_charts: [...(analysisResults.custom_charts || []), actionData.chart_data]
+          };
+          setAnalysisResults(updatedResults);
+          onAnalysisUpdate(updatedResults);
+          toast.success("Chart added successfully!");
+          setChatMessages(prev => [...prev, { 
+            role: "assistant", 
+            content: "✓ Chart has been added to your analysis. Scroll up to see it!" 
+          }]);
+        }
       } else if (actionData.action === 'modify_analysis') {
         const updatedResults = {
           ...analysisResults,
