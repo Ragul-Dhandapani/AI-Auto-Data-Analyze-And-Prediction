@@ -17,10 +17,13 @@ import json
 import cx_Oracle
 import psycopg2
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score, classification_report
 from statsmodels.tsa.arima.model import ARIMA
+import xgboost as xgb
 import plotly.graph_objects as go
 import plotly.express as px
 from emergentintegrations.llm.chat import LlmChat, UserMessage
