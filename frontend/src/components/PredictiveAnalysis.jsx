@@ -395,14 +395,16 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       
       // If correlations exist but no heatmap, regenerate heatmap
       if (loadedData.correlations && loadedData.correlations.length > 0 && !loadedData.correlation_heatmap) {
-        toast.info("Regenerating correlation heatmap...");
-        // The useEffect will handle heatmap rendering once correlations are present
+        loadedData.correlation_heatmap = regenerateCorrelationHeatmap(loadedData.correlations);
       }
       
       setAnalysisResults(loadedData);
       setChatMessages(response.data.chat_history || []);
       onAnalysisUpdate(loadedData);
       toast.success("Analysis state loaded successfully");
+      if (loadedData.custom_charts && loadedData.custom_charts.length > 0) {
+        toast.info("Custom charts were not saved. You can re-add them using the chat.");
+      }
       setShowLoadDialog(false);
     } catch (error) {
       toast.error("Failed to load analysis: " + (error.response?.data?.detail || error.message));
