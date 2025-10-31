@@ -883,6 +883,69 @@ class ChatRequest(BaseModel):
     message: str
     conversation_history: List[Dict[str, str]] = []
 
+@api_router.post("/analysis/chat-action")
+async def analysis_chat_action(request: ChatRequest):
+    """Chat with AI that can execute actions on the analysis"""
+    try:
+        # Retrieve dataset
+        dataset = await db.datasets.find_one({"id": request.dataset_id}, {"_id": 0})
+        if not dataset:
+            raise HTTPException(404, "Dataset not found")
+        
+        # Load data
+        data_doc = await db.dataset_data.find_one({"dataset_id": request.dataset_id}, {"_id": 0})
+        df = pd.DataFrame(data_doc['data'])
+        
+        # Build context with action understanding
+        context = f"""Dataset Information:
+- Name: {dataset['name']}
+- Rows: {dataset['row_count']}
+- Columns: {dataset['column_count']}
+- Column names: {', '.join(dataset['columns'])}
+
+User request: {request.message}
+
+You are an AI assistant that can execute actions. Analyze the user's request and determine if they want to:
+1. Add a new chart or analysis - respond with action: add_chart
+2. Modify existing analysis - respond with action: modify_analysis  
+3. Refresh/update the analysis - respond with action: refresh_analysis
+4. Just get information - respond normally without action
+
+If the user asks to add charts, create analysis, show trends, or modify visualizations, provide a JSON response with:
+{{
+  "action": "add_chart" or "modify_analysis" or "refresh_analysis",
+  "message": "Brief description of what you're doing",
+  "chart_data": {{...}} (if adding chart),
+  "updated_data": {{...}} (if modifying)
+}}
+
+Otherwise, just provide a helpful text response explaining the data or answering their question.
+"""
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"chat_{request.dataset_id}",
+            system_message="You are a helpful data analysis assistant that can execute actions to modify the analysis interface. When users ask for new charts or changes, provide structured responses with action types."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        message = UserMessage(text=context)
+        response = await chat.send_message(message)
+        
+        # Try to parse as JSON for actions
+        try:
+            import json
+            response_data = json.loads(response)
+            if 'action' in response_data:
+                return response_data
+        except:
+            pass
+        
+        # Return as regular response
+        return {"response": response}
+    except Exception as e:
+        logging.error(f"Chat action error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Chat failed: {str(e)}")
+
 @api_router.post("/analysis/chat")
 async def analysis_chat(request: ChatRequest):
     """Chat with AI about the dataset for custom analysis"""
