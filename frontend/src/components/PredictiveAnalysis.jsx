@@ -25,23 +25,25 @@ const loadPlotly = () => {
   });
 };
 
-const PredictiveAnalysis = ({ dataset }) => {
+const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [loading, setLoading] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState(null);
-  const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState(analysisCache || null);
   const [collapsed, setCollapsed] = useState({});
   const [showChat, setShowChat] = useState(false);
+  const [chatMinimized, setChatMinimized] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Auto-run analysis only once
+  // Use cached data if available
   useEffect(() => {
-    if (dataset && !hasAnalyzed) {
+    if (analysisCache) {
+      setAnalysisResults(analysisCache);
+    } else if (dataset && !analysisResults) {
       runHolisticAnalysis();
     }
-  }, [dataset, hasAnalyzed]);
+  }, [dataset, analysisCache]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,25 +59,27 @@ const PredictiveAnalysis = ({ dataset }) => {
       });
 
       setAnalysisResults(response.data);
-      setHasAnalyzed(true);
+      onAnalysisUpdate(response.data); // Cache the results
       toast.success("Comprehensive analysis complete!");
     } catch (error) {
       const errorMsg = error.response?.data?.detail || error.message || "Unknown error";
       console.error("Analysis error:", error);
       toast.error("Analysis failed: " + errorMsg);
       
-      setAnalysisResults({
+      const errorResult = {
         error: true,
         message: errorMsg
-      });
+      };
+      setAnalysisResults(errorResult);
+      onAnalysisUpdate(errorResult);
     } finally {
       setLoading(false);
     }
   };
 
   const refreshAnalysis = () => {
-    setHasAnalyzed(false);
     setAnalysisResults(null);
+    onAnalysisUpdate(null);
     runHolisticAnalysis();
   };
 
