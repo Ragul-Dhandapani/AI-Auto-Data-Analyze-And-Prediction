@@ -1186,6 +1186,70 @@ User question: {request.message}
             session_id=f"chat_{request.dataset_id}",
             system_message="You are a data analysis assistant. Help users analyze their data by suggesting specific analyses, explaining results, and guiding them through the process. Keep responses concise and actionable."
         ).with_model("openai", "gpt-4o-mini")
+
+# Save/Load Analysis States
+@api_router.post("/analysis/save-state")
+async def save_analysis_state(request: SaveStateRequest):
+    """Save analysis state with custom name"""
+    try:
+        state_id = str(uuid.uuid4())
+        state_doc = {
+            "id": state_id,
+            "dataset_id": request.dataset_id,
+            "state_name": request.state_name,
+            "analysis_data": request.analysis_data,
+            "chat_history": request.chat_history,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.analysis_states.insert_one(state_doc)
+        return {"state_id": state_id, "message": f"Analysis state '{request.state_name}' saved successfully"}
+    except Exception as e:
+        logging.error(f"Save state error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Failed to save state: {str(e)}")
+
+@api_router.get("/analysis/load-state/{state_id}")
+async def load_analysis_state(state_id: str):
+    """Load a saved analysis state"""
+    try:
+        state = await db.analysis_states.find_one({"id": state_id}, {"_id": 0})
+        if not state:
+            raise HTTPException(404, "Analysis state not found")
+        return state
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Load state error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Failed to load state: {str(e)}")
+
+@api_router.get("/analysis/saved-states/{dataset_id}")
+async def get_saved_states(dataset_id: str):
+    """Get all saved states for a dataset"""
+    try:
+        states = await db.analysis_states.find(
+            {"dataset_id": dataset_id}, 
+            {"_id": 0, "id": 1, "state_name": 1, "created_at": 1, "updated_at": 1}
+        ).to_list(length=None)
+        return {"states": states}
+    except Exception as e:
+        logging.error(f"Get saved states error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Failed to get saved states: {str(e)}")
+
+@api_router.delete("/analysis/delete-state/{state_id}")
+async def delete_analysis_state(state_id: str):
+    """Delete a saved analysis state"""
+    try:
+        result = await db.analysis_states.delete_one({"id": state_id})
+        if result.deleted_count == 0:
+            raise HTTPException(404, "Analysis state not found")
+        return {"message": "Analysis state deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Delete state error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Failed to delete state: {str(e)}")
+
         
         message = UserMessage(text=context)
         response = await chat.send_message(message)
