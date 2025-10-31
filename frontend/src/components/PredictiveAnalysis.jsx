@@ -36,7 +36,15 @@ const PredictiveAnalysis = ({ dataset }) => {
       setHasAnalyzed(true);
       toast.success("Comprehensive analysis complete!");
     } catch (error) {
-      toast.error("Analysis failed: " + (error.response?.data?.detail || error.message));
+      const errorMsg = error.response?.data?.detail || error.message || "Unknown error";
+      console.error("Analysis error:", error);
+      toast.error("Analysis failed: " + errorMsg);
+      
+      // Set a default error state
+      setAnalysisResults({
+        error: true,
+        message: errorMsg
+      });
     } finally {
       setLoading(false);
     }
