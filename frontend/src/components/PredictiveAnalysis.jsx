@@ -281,6 +281,75 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     }]);
   };
 
+
+  // Load saved states on mount
+  useEffect(() => {
+    if (dataset) {
+      loadSavedStates();
+    }
+  }, [dataset]);
+
+  const loadSavedStates = async () => {
+    try {
+      const response = await axios.get(`${API}/analysis/saved-states/${dataset.id}`);
+      setSavedStates(response.data.states || []);
+    } catch (error) {
+      console.error("Failed to load saved states:", error);
+    }
+  };
+
+  const saveAnalysisState = async () => {
+    if (!stateName.trim()) {
+      toast.error("Please enter a name for this analysis state");
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/analysis/save-state`, {
+        dataset_id: dataset.id,
+        state_name: stateName,
+        analysis_data: analysisResults,
+        chat_history: chatMessages
+      });
+      
+      toast.success(`Analysis saved as "${stateName}"`);
+      setStateName("");
+      setShowSaveDialog(false);
+      loadSavedStates();
+    } catch (error) {
+      toast.error("Failed to save analysis: " + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const loadAnalysisState = async (stateId) => {
+    try {
+      const response = await axios.get(`${API}/analysis/load-state/${stateId}`);
+      setAnalysisResults(response.data.analysis_data);
+      setChatMessages(response.data.chat_history || []);
+      onAnalysisUpdate(response.data.analysis_data);
+      toast.success("Analysis state loaded successfully");
+      setShowLoadDialog(false);
+    } catch (error) {
+      toast.error("Failed to load analysis: " + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const deleteState = async (stateId, event) => {
+    event.stopPropagation();
+    if (!confirm("Are you sure you want to delete this saved state?")) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API}/analysis/delete-state/${stateId}`);
+      toast.success("Saved state deleted");
+      loadSavedStates();
+    } catch (error) {
+      toast.error("Failed to delete state: " + (error.response?.data?.detail || error.message));
+    }
+  };
+
+
   if (loading && !analysisResults) {
     return (
       <div className="flex items-center justify-center py-12" data-testid="predictive-analysis">
