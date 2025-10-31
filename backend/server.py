@@ -979,8 +979,8 @@ Provide a helpful response about their data."""
         
         return {"response": response}
     except Exception as e:
-        logging.error(f\"Chat action error: {traceback.format_exc()}\")
-        raise HTTPException(500, f\"Chat failed: {str(e)}\")
+        logging.error(f"Chat action error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Chat failed: {str(e)}")
 
 @api_router.post("/analysis/chat")
 async def analysis_chat(request: ChatRequest):
