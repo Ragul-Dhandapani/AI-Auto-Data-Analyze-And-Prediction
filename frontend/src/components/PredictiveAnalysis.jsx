@@ -65,7 +65,7 @@ const PredictiveAnalysis = ({ dataset }) => {
           }
         }
       }
-      toast.success(`Completed automated analysis for ${numericColumns.length} columns!`);
+      toast.success(`Completed automated analysis for ${numericCols.length} columns!`);
     } catch (error) {
       toast.error("Auto-analysis failed: " + (error.response?.data?.detail || error.message));
     } finally {
