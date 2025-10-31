@@ -77,18 +77,19 @@ const VisualizationPanel = ({ dataset }) => {
       {charts.map((chart, idx) => (
         <Card key={idx} className="p-6" data-testid={`chart-${idx}`}>
           <h4 className="text-lg font-semibold mb-4">{chart.title}</h4>
-          <div className="w-full overflow-x-auto">
-            <Plot
-              data={chart.data.data}
-              layout={{
-                ...chart.data.layout,
-                autosize: true,
-                margin: { l: 50, r: 50, t: 50, b: 50 },
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)'
+          <div className="w-full overflow-x-auto bg-white rounded-lg p-4">
+            <div 
+              dangerouslySetInnerHTML={{ 
+                __html: `<div id="plotly-chart-${idx}"></div>
+                <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+                <script>
+                  Plotly.newPlot('plotly-chart-${idx}', ${JSON.stringify(chart.data.data)}, ${JSON.stringify({
+                    ...chart.data.layout,
+                    autosize: true,
+                    margin: { l: 50, r: 50, t: 50, b: 50 }
+                  })}, {responsive: true, displayModeBar: false});
+                </script>` 
               }}
-              config={{ responsive: true, displayModeBar: false }}
-              style={{ width: '100%', height: '400px' }}
             />
           </div>
         </Card>
