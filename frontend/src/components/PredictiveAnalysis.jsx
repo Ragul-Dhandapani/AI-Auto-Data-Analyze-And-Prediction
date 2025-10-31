@@ -13,9 +13,18 @@ const API = `${BACKEND_URL}/api`;
 const PredictiveAnalysis = ({ dataset }) => {
   const [loading, setLoading] = useState(false);
   const [targetColumn, setTargetColumn] = useState("");
-  const [predictionResults, setPredictionResults] = useState(null);
+  const [selectedModel, setSelectedModel] = useState("random_forest");
+  const [predictions, setPredictions] = useState({});
+  const [activeModelTab, setActiveModelTab] = useState("random_forest");
 
-  const runPrediction = async () => {
+  const models = [
+    { key: "random_forest", name: "Random Forest", desc: "Ensemble method, highly accurate" },
+    { key: "gradient_boosting", name: "Gradient Boosting", desc: "Powerful for complex patterns" },
+    { key: "linear_regression", name: "Linear Regression", desc: "Fast, interpretable" },
+    { key: "decision_tree", name: "Decision Tree", desc: "Visual, easy to understand" }
+  ];
+
+  const runPrediction = async (modelType) => {
     if (!targetColumn) {
       toast.error("Please select a target column");
       return;
@@ -26,20 +35,37 @@ const PredictiveAnalysis = ({ dataset }) => {
       const response = await axios.post(`${API}/analysis/run`, {
         dataset_id: dataset.id,
         analysis_type: "predict",
-        options: { target_column: targetColumn }
+        options: { 
+          target_column: targetColumn,
+          model_type: modelType
+        }
       });
 
       if (response.data.error) {
         toast.error(response.data.error);
-        setPredictionResults(null);
       } else {
-        setPredictionResults(response.data);
-        toast.success("Prediction completed successfully!");
+        setPredictions(prev => ({
+          ...prev,
+          [modelType]: response.data
+        }));
+        setActiveModelTab(modelType);
+        toast.success(`${response.data.model_type} completed!`);
       }
     } catch (error) {
       toast.error("Prediction failed: " + (error.response?.data?.detail || error.message));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const runAllModels = async () => {
+    if (!targetColumn) {
+      toast.error("Please select a target column");
+      return;
+    }
+
+    for (const model of models) {
+      await runPrediction(model.key);
     }
   };
 
