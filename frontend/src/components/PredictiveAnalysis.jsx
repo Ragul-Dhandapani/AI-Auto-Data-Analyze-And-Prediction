@@ -421,6 +421,47 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       loadSavedStates();
     } catch (error) {
       toast.error("Failed to delete state: " + (error.response?.data?.detail || error.message));
+
+
+  // Regenerate correlation heatmap from correlation data
+  const regenerateCorrelationHeatmap = (correlations) => {
+    if (!correlations || correlations.length === 0) return null;
+    
+    // Extract unique features
+    const features = [...new Set(correlations.flatMap(c => [c.feature1, c.feature2]))];
+    
+    // Create correlation matrix
+    const matrix = features.map(f1 => 
+      features.map(f2 => {
+        if (f1 === f2) return 1;
+        const corr = correlations.find(c => 
+          (c.feature1 === f1 && c.feature2 === f2) || 
+          (c.feature1 === f2 && c.feature2 === f1)
+        );
+        return corr ? corr.value : 0;
+      })
+    );
+    
+    // Generate Plotly heatmap structure
+    return {
+      data: [{
+        type: 'heatmap',
+        x: features,
+        y: features,
+        z: matrix,
+        colorscale: 'RdBu',
+        zmid: 0
+      }],
+      layout: {
+        title: 'Correlation Matrix',
+        xaxis: { title: 'Features' },
+        yaxis: { title: 'Features' },
+        width: 700,
+        height: 600
+      }
+    };
+  };
+
     }
   };
 
