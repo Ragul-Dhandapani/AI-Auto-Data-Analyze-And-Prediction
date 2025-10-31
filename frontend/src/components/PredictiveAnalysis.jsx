@@ -104,7 +104,7 @@ const PredictiveAnalysis = ({ dataset }) => {
     }
   };
 
-  // Numeric columns only
+  // Calculate numeric columns for rendering
   const numericColumns = dataset.columns.filter((col) => {
     const sample = dataset.data_preview[0]?.[col];
     return typeof sample === 'number' || !isNaN(Number(sample));
