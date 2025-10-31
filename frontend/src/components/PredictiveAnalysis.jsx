@@ -454,16 +454,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     };
   }, [isDragging, dragOffset]);
 
-    try {
-      await axios.delete(`${API}/analysis/delete-state/${stateId}`);
-      toast.success("Saved state deleted");
-      loadSavedStates();
-    } catch (error) {
-      toast.error("Failed to delete state: " + (error.response?.data?.detail || error.message));
-    }
-  };
-
-
   if (loading && !analysisResults) {
     return (
       <div className="flex items-center justify-center py-12" data-testid="predictive-analysis">
