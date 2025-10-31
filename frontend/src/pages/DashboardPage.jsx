@@ -8,7 +8,7 @@ import DataSourceSelector from "@/components/DataSourceSelector";
 import DataProfiler from "@/components/DataProfiler";
 import PredictiveAnalysis from "@/components/PredictiveAnalysis";
 import VisualizationPanel from "@/components/VisualizationPanel";
-import { Sparkles, ArrowLeft, Home } from "lucide-react";
+import { Sparkles, ArrowLeft, Home, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -19,6 +19,7 @@ const DashboardPage = () => {
   const [currentStep, setCurrentStep] = useState("data-source");
   const [selectedDataset, setSelectedDataset] = useState(null);
   const [datasets, setDatasets] = useState([]);
+  const [showRecentDatasets, setShowRecentDatasets] = useState(true);
 
   useEffect(() => {
     loadDatasets();
