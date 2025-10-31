@@ -111,12 +111,6 @@ const PredictiveAnalysis = ({ dataset }) => {
     return typeof sample === 'number' || !isNaN(Number(sample));
   });
 
-  // Numeric columns only
-  const numericColumns = dataset.columns.filter((col) => {
-    const sample = dataset.data_preview[0]?.[col];
-    return typeof sample === 'number' || !isNaN(Number(sample));
-  });
-
   if (loading && Object.keys(predictions).length === 0) {
     return (
       <div className="flex items-center justify-center py-12" data-testid="predictive-analysis">
