@@ -213,7 +213,6 @@ const PredictiveAnalysis = ({ dataset }) => {
     </div>
   );
 };
-};
 
 // Separate component for model results
 const ModelResults = ({ prediction, maxDisplay }) => {
