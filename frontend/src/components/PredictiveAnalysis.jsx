@@ -396,6 +396,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
 
   const loadAnalysisState = async (stateId) => {
     try {
+      setLoading(true);
       const response = await axios.get(`${API}/analysis/load-state/${stateId}`);
       const loadedData = response.data.analysis_data;
       
@@ -404,16 +405,25 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         loadedData.correlation_heatmap = regenerateCorrelationHeatmap(loadedData.correlations);
       }
       
+      // If custom charts exist without plotly_data, regenerate them
+      if (loadedData.custom_charts && loadedData.custom_charts.length > 0) {
+        const hasPlotlyData = loadedData.custom_charts.some(c => c.plotly_data);
+        if (!hasPlotlyData) {
+          toast.info("Regenerating custom charts...");
+          const regeneratedCharts = await regenerateCustomCharts(loadedData.custom_charts);
+          loadedData.custom_charts = regeneratedCharts;
+        }
+      }
+      
       setAnalysisResults(loadedData);
       setChatMessages(response.data.chat_history || []);
       onAnalysisUpdate(loadedData);
       toast.success("Analysis state loaded successfully");
-      if (loadedData.custom_charts && loadedData.custom_charts.length > 0) {
-        toast.info("Custom charts were not saved. You can re-add them using the chat.");
-      }
       setShowLoadDialog(false);
     } catch (error) {
       toast.error("Failed to load analysis: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
