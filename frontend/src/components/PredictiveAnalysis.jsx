@@ -165,6 +165,31 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           role: "assistant", 
           content: "✓ Analysis refreshed successfully! Check the updated results above." 
         }]);
+      } else if (actionData.action === 'remove_section') {
+        // Remove section from analysis
+        const updatedResults = { ...analysisResults };
+        const sectionToRemove = actionData.section_to_remove;
+        
+        if (sectionToRemove === 'correlations') {
+          delete updatedResults.correlations;
+          delete updatedResults.correlation_heatmap;
+          toast.success("Correlation section removed!");
+          setChatMessages(prev => [...prev, { 
+            role: "assistant", 
+            content: "✓ Correlation section has been removed." 
+          }]);
+        } else if (sectionToRemove === 'custom_chart' && updatedResults.custom_charts) {
+          // Remove last custom chart
+          updatedResults.custom_charts.pop();
+          toast.success("Custom chart removed!");
+          setChatMessages(prev => [...prev, { 
+            role: "assistant", 
+            content: "✓ Last custom chart has been removed." 
+          }]);
+        }
+        
+        setAnalysisResults(updatedResults);
+        onAnalysisUpdate(updatedResults);
       } else if (actionData.action === 'add_chart') {
         // Add correlation or custom chart
         if (actionData.chart_data?.type === 'correlation') {
@@ -186,13 +211,17 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
             content: "✓ Correlation analysis has been added! Scroll up to the 'Key Correlations' section to see the results." 
           }]);
         } else {
-          // Generic custom chart
+          // Generic custom chart (pie, bar, line, etc.)
           const updatedResults = {
             ...analysisResults,
             custom_charts: [...(analysisResults.custom_charts || []), actionData.chart_data]
           };
           setAnalysisResults(updatedResults);
           onAnalysisUpdate(updatedResults);
+          
+          // Auto-expand custom charts section
+          setCollapsed(prev => ({ ...prev, custom_charts: false }));
+          
           toast.success("Chart added successfully!");
           setChatMessages(prev => [...prev, { 
             role: "assistant", 
