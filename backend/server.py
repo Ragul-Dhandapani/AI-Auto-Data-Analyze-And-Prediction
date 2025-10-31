@@ -979,10 +979,28 @@ async def analysis_chat_action(request: ChatRequest):
                     "message": "I'll remove the correlation analysis section.",
                     "section_to_remove": "correlations"
                 }
-            elif 'pie' in user_message or 'chart' in user_message:
+            elif 'pie chart' in user_message or 'pie' in user_message:
                 return {
                     "action": "remove_section",
-                    "message": "I'll remove the custom chart.",
+                    "message": "I'll remove the pie chart.",
+                    "section_to_remove": "custom_chart"
+                }
+            elif 'bar chart' in user_message or 'bar' in user_message:
+                return {
+                    "action": "remove_section",
+                    "message": "I'll remove the bar chart.",
+                    "section_to_remove": "custom_chart"
+                }
+            elif 'line chart' in user_message or 'line' in user_message:
+                return {
+                    "action": "remove_section",
+                    "message": "I'll remove the line chart.",
+                    "section_to_remove": "custom_chart"
+                }
+            elif 'chart' in user_message:
+                return {
+                    "action": "remove_section",
+                    "message": "I'll remove the last custom chart.",
                     "section_to_remove": "custom_chart"
                 }
             else:
