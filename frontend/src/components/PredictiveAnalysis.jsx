@@ -106,9 +106,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       loadPlotly().then((Plotly) => {
         // Filter charts with valid plotly_data
         const validCharts = analysisResults.auto_charts.filter(chart => 
-          chart.plotly_data && 
-          chart.plotly_data.data && 
-          chart.plotly_data.data.length > 0
+          chart && chart.plotly_data
         );
         
         validCharts.forEach((chart, idx) => {
