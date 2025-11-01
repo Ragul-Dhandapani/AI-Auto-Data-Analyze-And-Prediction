@@ -294,6 +294,55 @@ frontend:
           agent: "main"
           comment: "Implemented save/load functionality. Backend endpoints: POST /api/analysis/save-state, GET /api/analysis/load-state/{state_id}, GET /api/analysis/saved-states/{dataset_id}, DELETE /api/analysis/delete-state/{state_id}. Frontend has Save and Load buttons in header, modal dialogs for saving with custom names and loading from list of saved states. Chat history included in saved states."
 
+  - task: "Database connection support - MySQL and SQL Server"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added MySQL and SQL Server support to backend. Implemented test_mysql_connection, get_mysql_tables, test_sqlserver_connection, get_sqlserver_tables functions. Updated test_connection and list_tables endpoints to handle MySQL (port 3306) and SQL Server (port 1433). Updated load_table_data to support both database types. Installed pymysql and pyodbc libraries."
+
+  - task: "Connection string parsing support"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented parse_connection_string function to parse connection strings for all database types (PostgreSQL, MySQL, Oracle, SQL Server, MongoDB). Added /datasource/parse-connection-string endpoint. Supports both URL format (postgresql://user:pass@host:port/db) and key-value format (Server=host;Database=db;User Id=user;Password=pass) for SQL Server."
+
+frontend:
+  - task: "Database type dropdown expansion"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/DataSourceSelector.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Updated DataSourceSelector to include MySQL and SQL Server in database type dropdown. Added dynamic port placeholders based on database type (PostgreSQL: 5432, MySQL: 3306, Oracle: 1521, SQL Server: 1433, MongoDB: 27017)."
+
+  - task: "Connection string UI toggle"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/DataSourceSelector.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added 'Use Connection String' checkbox toggle in DataSourceSelector. When enabled, shows connection string input field with placeholder. Updated testConnection function to parse connection string via API before testing. Connection string format help text provided. Toggle resets connection tested state."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
