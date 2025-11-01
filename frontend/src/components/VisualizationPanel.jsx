@@ -51,13 +51,16 @@ const ChartComponent = ({ chart, index }) => {
                 ...chart.data.layout,
                 autosize: true,
                 height: 400,
+                margin: { l: 60, r: 40, t: 60, b: 60 },  // Better margins
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { family: 'Inter, sans-serif' }
               },
               { 
                 responsive: true, 
-                displayModeBar: false 
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d']
               }
             );
             setError(null);
