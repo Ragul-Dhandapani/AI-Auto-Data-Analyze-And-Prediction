@@ -116,6 +116,8 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
   const [chatLoading, setChatLoading] = useState(false);
   const [customCharts, setCustomCharts] = useState(chartsCache?.customCharts || []);
   const [showSkipped, setShowSkipped] = useState(false);
+  const [customChartsOpen, setCustomChartsOpen] = useState(true);
+  const [generatedChartsOpen, setGeneratedChartsOpen] = useState(true);
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
 
