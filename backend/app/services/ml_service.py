@@ -92,14 +92,30 @@ def train_multiple_models(
     best_model = None
     best_score = -float('inf')
     
-    for model_name, model in models.items():
+    for model_name, model_obj in models.items():
         try:
-            # Train model
-            model.fit(X_train, y_train)
+            # Handle LSTM special case
+            is_lstm = isinstance(model_obj, dict) and model_obj.get("is_lstm")
             
-            # Make predictions
-            y_pred_train = model.predict(X_train)
-            y_pred_test = model.predict(X_test)
+            if is_lstm:
+                model = model_obj["model"]
+                X_train_data = model_obj["X_train"]
+                X_test_data = model_obj["X_test"]
+                
+                # Train LSTM
+                model.fit(X_train_data, y_train, epochs=50, batch_size=32, verbose=0, validation_split=0.2)
+                
+                # Make predictions
+                y_pred_train = model.predict(X_train_data, verbose=0).flatten()
+                y_pred_test = model.predict(X_test_data, verbose=0).flatten()
+            else:
+                model = model_obj
+                # Train model
+                model.fit(X_train, y_train)
+                
+                # Make predictions
+                y_pred_train = model.predict(X_train)
+                y_pred_test = model.predict(X_test)
             
             # Calculate metrics
             r2_train = r2_score(y_train, y_pred_train)
@@ -115,7 +131,7 @@ def train_multiple_models(
             
             # Feature importance (if available)
             feature_importance_dict = {}
-            if hasattr(model, 'feature_importances_'):
+            if not is_lstm and hasattr(model, 'feature_importances_'):
                 importances = model.feature_importances_
                 # Sort by importance
                 feature_imp_pairs = sorted(zip(feature_cols, importances), key=lambda x: x[1], reverse=True)
