@@ -605,6 +605,10 @@ async def upload_file(file: UploadFile = File(...)):
         # For large datasets, only store sample data in preview
         preview_size = min(len(df), 100)
         
+        # Sanitize preview data (replace NaN, inf with None)
+        import math
+        preview_df = df.head(preview_size).replace([np.nan, np.inf, -np.inf], None)
+        
         upload_time = time.time() - start_time
         
         dataset_info = {
@@ -616,9 +620,9 @@ async def upload_file(file: UploadFile = File(...)):
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": df.columns.tolist(),
-            "data_preview": df.head(preview_size).to_dict('records'),
+            "data_preview": preview_df.to_dict('records'),
             "upload_time": upload_time,
-            "storage_method": "gridfs" if file_size > 5_000_000 else "document",  # Use GridFS for files > 5MB
+            "storage_method": "gridfs" if file_size > 5_000_000 else "document",
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
