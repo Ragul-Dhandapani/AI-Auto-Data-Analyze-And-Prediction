@@ -288,13 +288,17 @@ const TrainingMetadataPage = () => {
                             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
                               <p className="text-xs text-blue-700 font-semibold mb-1">Initial Score</p>
                               <p className="text-3xl font-bold text-blue-800">
-                                {selectedDataset.initial_score !== null ? selectedDataset.initial_score.toFixed(3) : 'N/A'}
+                                {(selectedDataset.initial_score !== null && selectedDataset.initial_score !== undefined) 
+                                  ? Number(selectedDataset.initial_score).toFixed(3) 
+                                  : 'N/A'}
                               </p>
                             </div>
                             <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
                               <p className="text-xs text-green-700 font-semibold mb-1">Current Score</p>
                               <p className="text-3xl font-bold text-green-800">
-                                {selectedDataset.current_score !== null ? selectedDataset.current_score.toFixed(3) : 'N/A'}
+                                {(selectedDataset.current_score !== null && selectedDataset.current_score !== undefined) 
+                                  ? Number(selectedDataset.current_score).toFixed(3) 
+                                  : 'N/A'}
                               </p>
                             </div>
                           </div>
