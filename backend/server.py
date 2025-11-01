@@ -1027,16 +1027,15 @@ async def list_datasets():
 async def download_dataset(dataset_id: str):
     """Download cleaned dataset as CSV"""
     try:
-        # Load cleaned data
-        data_doc = await db.dataset_data.find_one({"dataset_id": dataset_id}, {"_id": 0})
-        if not data_doc:
-            raise HTTPException(404, "Dataset data not found")
+        # Load original data and clean it on-the-fly
+        df = await get_dataset_dataframe(dataset_id)
         
-        df = pd.DataFrame(data_doc['data'])
+        # Clean the data
+        cleaned_df, _ = clean_data(df)
         
         # Convert to CSV
         csv_buffer = BytesIO()
-        df.to_csv(csv_buffer, index=False)
+        cleaned_df.to_csv(csv_buffer, index=False)
         csv_buffer.seek(0)
         
         # Get dataset name
