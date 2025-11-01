@@ -41,6 +41,38 @@ db = client[os.environ['DB_NAME']]
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 fs = AsyncIOMotorGridFSBucket(db)
 
+
+
+# Helper function to get dataset data from GridFS or regular collection
+async def get_dataset_dataframe(dataset_id: str):
+    """Retrieve dataset as DataFrame from GridFS or regular collection"""
+    # Get dataset metadata
+    dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+    if not dataset:
+        raise HTTPException(404, "Dataset not found")
+    
+    # Check storage method
+    if dataset.get('storage_method') == 'gridfs':
+        # Read from GridFS
+        grid_out = await fs.open_download_stream_by_name(f"dataset_{dataset_id}")
+        contents = await grid_out.read()
+        
+        # Parse based on file type
+        if dataset['original_name'].endswith('.csv'):
+            df = pd.read_csv(BytesIO(contents), low_memory=False)
+        elif dataset['original_name'].endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(BytesIO(contents))
+        else:
+            raise HTTPException(400, "Unsupported file format")
+    else:
+        # Read from regular collection
+        data_doc = await db.dataset_data.find_one({"dataset_id": dataset_id}, {"_id": 0})
+        if not data_doc:
+            raise HTTPException(404, "Dataset data not found")
+        df = pd.DataFrame(data_doc['data'])
+    
+    return df
+
 # LLM Setup
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
