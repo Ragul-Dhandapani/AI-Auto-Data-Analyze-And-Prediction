@@ -43,15 +43,23 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
+  const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
 
   // Use cached data if available
   useEffect(() => {
     if (analysisCache) {
       setAnalysisResults(analysisCache);
-    } else if (dataset && !analysisResults) {
+      hasRunAnalysisRef.current = true;
+    } else if (dataset && !analysisResults && !hasRunAnalysisRef.current && !loading) {
+      hasRunAnalysisRef.current = true;
       runHolisticAnalysis();
     }
   }, [dataset, analysisCache]);
+
+  // Reset ref when dataset changes
+  useEffect(() => {
+    hasRunAnalysisRef.current = !!analysisCache;
+  }, [dataset?.id]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
