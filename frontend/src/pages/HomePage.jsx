@@ -11,11 +11,14 @@ import {
   TrendingUp,
   Zap,
   Shield,
-  ArrowRight
+  ArrowRight,
+  Award
 } from "lucide-react";
+import TrainingMetadataDashboard from "@/components/TrainingMetadataDashboard";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [showMetadataDashboard, setShowMetadataDashboard] = useState(false);
 
   const features = [
     {
