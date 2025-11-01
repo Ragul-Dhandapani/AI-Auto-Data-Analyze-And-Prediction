@@ -574,10 +574,12 @@ Frontend displays:
 
 #### 5. Interactive Chat
 - Natural language queries
-- Custom chart generation
+- Custom chart generation (scatter, pie, bar, line)
 - Chart removal commands
 - Conversation history
 - Context-aware responses
+- Chat controls: Clear, New Chat, End Chat
+- Save reminder when closing chat with unsaved messages
 
 #### 6. Workspace Management
 - Save analysis states
