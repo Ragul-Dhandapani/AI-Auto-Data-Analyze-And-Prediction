@@ -666,10 +666,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
-      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length > 0 && collapsed.custom_charts && (
+      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length > 0 && collapsed.custom_charts && (
         <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('custom_charts')}>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">📈 Custom Analysis Charts ({analysisResults.custom_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length})</h3>
+            <h3 className="text-lg font-semibold">📈 Custom Analysis Charts ({analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length})</h3>
             <ChevronDown className="w-5 h-5" />
           </div>
         </Card>
