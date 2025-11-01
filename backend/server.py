@@ -2318,11 +2318,29 @@ async def save_analysis_state(request: SaveStateRequest):
 
 @api_router.get("/analysis/load-state/{state_id}")
 async def load_analysis_state(state_id: str):
-    """Load a saved analysis state"""
+    """Load a saved analysis state (handles both direct and GridFS storage)"""
     try:
         state = await db.analysis_states.find_one({"id": state_id}, {"_id": 0})
         if not state:
             raise HTTPException(404, "Analysis state not found")
+        
+        # If stored in GridFS, retrieve the data
+        if state.get("storage_type") == "gridfs":
+            gridfs_file_id = state.get("gridfs_file_id")
+            if gridfs_file_id:
+                # Download from GridFS
+                grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
+                data = await grid_out.read()
+                full_state_data = json.loads(data.decode('utf-8'))
+                
+                # Merge with metadata
+                state["analysis_data"] = full_state_data.get("analysis_data", {})
+                state["chat_history"] = full_state_data.get("chat_history", [])
+                
+                # Remove GridFS fields from response
+                state.pop("gridfs_file_id", None)
+                state.pop("storage_type", None)
+        
         return state
     except HTTPException:
         raise
