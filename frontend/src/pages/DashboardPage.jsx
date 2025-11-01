@@ -40,7 +40,20 @@ const DashboardPage = () => {
   const loadDatasets = async () => {
     try {
       const response = await axios.get(`${API}/datasets`);
-      setDatasets(response.data.datasets || []);
+      const loadedDatasets = response.data.datasets || [];
+      setDatasets(loadedDatasets);
+      
+      // Load saved states for each dataset
+      const statesMap = {};
+      for (const dataset of loadedDatasets) {
+        try {
+          const statesResponse = await axios.get(`${API}/analysis/saved-states/${dataset.id}`);
+          statesMap[dataset.id] = statesResponse.data.states || [];
+        } catch (error) {
+          statesMap[dataset.id] = [];
+        }
+      }
+      setDatasetSavedStates(statesMap);
     } catch (error) {
       console.error("Failed to load datasets", error);
     }
