@@ -95,6 +95,47 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def clean_data(df: pd.DataFrame) -> tuple:
+    """Clean data and return cleaning report"""
+    cleaning_report = []
+    original_rows = len(df)
+    
+    # 1. Remove duplicates
+    duplicates = df.duplicated().sum()
+    if duplicates > 0:
+        df = df.drop_duplicates()
+        cleaning_report.append({
+            "action": "Removed duplicate rows",
+            "details": f"Removed {duplicates} duplicate rows"
+        })
+    
+    # 2. Handle missing values in numeric columns
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    for col in numeric_cols:
+        missing_count = df[col].isnull().sum()
+        if missing_count > 0:
+            median_val = df[col].median()
+            df[col].fillna(median_val, inplace=True)
+            cleaning_report.append({
+                "action": f"Filled missing values in '{col}'",
+                "details": f"Filled {missing_count} missing values with median ({median_val:.2f})"
+            })
+    
+    # 3. Handle missing values in categorical columns
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns
+    for col in categorical_cols:
+        missing_count = df[col].isnull().sum()
+        if missing_count > 0:
+            mode_value = df[col].mode()[0] if len(df[col].mode()) > 0 else "Unknown"
+            df[col].fillna(mode_value, inplace=True)
+            cleaning_report.append({
+                "action": f"Filled missing values in '{col}'",
+                "details": f"Filled {missing_count} missing values with mode ('{mode_value}')"
+            })
+    
+    return df, cleaning_report
+
+
 def detect_outliers(df: pd.DataFrame, column: str) -> Dict[str, Any]:
     """Detect outliers using IQR method"""
     if not pd.api.types.is_numeric_dtype(df[column]):
