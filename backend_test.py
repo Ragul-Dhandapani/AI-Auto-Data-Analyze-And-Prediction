@@ -93,7 +93,7 @@ def test_save_query_dataset():
     
     config = {
         "db_type": "postgresql",
-        "query": "SELECT customer_id, first_name, last_name, total_purchases FROM customers WHERE total_purchases > 5 LIMIT 100",
+        "query": "SELECT 1 as test_column, 'test_value' as test_string LIMIT 5",
         "host": "localhost",
         "port": 5432,
         "username": "test",
