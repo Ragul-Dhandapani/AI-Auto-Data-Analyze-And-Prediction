@@ -71,6 +71,13 @@ async def get_datasets_compat():
     except Exception as e:
         return {"datasets": []}
 
+# Backward compatibility - training metadata endpoint
+@api_router.get("/training-metadata")
+async def get_training_metadata_compat():
+    """Backward compatibility for /api/training-metadata"""
+    from app.routes.training import get_training_metadata
+    return await get_training_metadata()
+
 # Include main router
 app.include_router(api_router)
 
