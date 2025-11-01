@@ -201,6 +201,13 @@ async def get_recent_datasets(limit: int = 10):
         raise HTTPException(500, f"Failed to fetch datasets: {str(e)}")
 
 
+# Alias for backward compatibility
+@router.get("/datasets")
+async def get_datasets_alias(limit: int = 10):
+    """Backward compatibility endpoint"""
+    return await get_recent_datasets(limit)
+
+
 @router.get("/{dataset_id}")
 async def get_dataset(dataset_id: str):
     """Get dataset by ID"""
