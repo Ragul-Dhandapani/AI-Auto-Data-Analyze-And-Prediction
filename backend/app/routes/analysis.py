@@ -109,11 +109,12 @@ async def run_analysis(request: Dict[str, Any]):
                 numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
                 categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
                 
-                llm = LlmChat(
-                    api_key=llm_key, 
-                    session_id="insights_generation",
-                    system_message="You are a data analyst expert. Provide clear, actionable insights about datasets."
-                )
+                # Initialize LLM chat
+                llm = LlmChat(api_key=llm_key)
+                
+                # Set system message
+                system_msg = "You are a data analyst expert. Provide clear, actionable insights about datasets in bullet points."
+                llm.set_system_message(system_msg)
                 
                 prompt = f"""Analyze this dataset and provide 4-5 key insights:
 
@@ -131,7 +132,9 @@ Provide actionable insights in bullet points about:
 3. Potential relationships between variables
 4. Recommendations for analysis"""
                 
-                insights_text = await llm.send_message(prompt)
+                # Send message and get response
+                response = llm.send_user_message(prompt)
+                insights_text = response if isinstance(response, str) else str(response)
                 
                 return {
                     "insights": insights_text,
@@ -141,6 +144,18 @@ Provide actionable insights in bullet points about:
                         "numeric_columns": len(numeric_cols),
                         "categorical_columns": len(categorical_cols),
                         "data_quality_score": 100 - (profile.get('missing_values_total', 0) / (len(df) * len(df.columns)) * 100)
+                    }
+                }
+            except Exception as e:
+                logger.error(f"AI insights generation failed: {str(e)}", exc_info=True)
+                return {
+                    "insights": f"Unable to generate AI insights at this time. You can still explore the data using profile statistics and visualizations.",
+                    "error": str(e),
+                    "summary": {
+                        "total_records": len(df),
+                        "total_columns": len(df.columns),
+                        "numeric_columns": len(numeric_cols),
+                        "categorical_columns": len(categorical_cols)
                     }
                 }
             except Exception as e:
