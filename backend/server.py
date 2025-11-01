@@ -1672,15 +1672,6 @@ async def delete_analysis_state(state_id: str):
         logging.error(f"Delete state error: {traceback.format_exc()}")
         raise HTTPException(500, f"Failed to delete state: {str(e)}")
 
-        
-        message = UserMessage(text=context)
-        response = await chat.send_message(message)
-        
-        return {"response": response}
-    except Exception as e:
-        logging.error(f"Chat error: {traceback.format_exc()}")
-        raise HTTPException(500, f"Chat failed: {str(e)}")
-
 app.include_router(api_router)
 
 logging.basicConfig(
