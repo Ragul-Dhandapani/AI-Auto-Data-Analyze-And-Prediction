@@ -36,12 +36,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [stateName, setStateName] = useState("");
-  const [savedStates, setSavedStates] = useState([]);
-  const [showLoadDialog, setShowLoadDialog] = useState(false);
-  const [showAutoLoadPrompt, setShowAutoLoadPrompt] = useState(false);
-  const [autoLoadStateId, setAutoLoadStateId] = useState(null);
   const [chatPosition, setChatPosition] = useState({ x: null, y: null });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
