@@ -182,35 +182,42 @@ const TrainingMetadataPage = () => {
                     </div>
 
                     {/* Model Performance Table */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold text-gray-700 mb-3">Model Performance Breakdown</h4>
-                      <div className="space-y-2">
-                        {Object.entries(dataset.model_scores).map(([modelName, scores], mIdx) => (
-                          <div key={mIdx} className="flex items-center justify-between bg-gray-50 p-3 rounded border">
-                            <div className="flex-1">
-                              <p className="text-sm font-semibold text-gray-800">{modelName}</p>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <div className="text-right">
-                                <p className="text-xs text-gray-500">Score</p>
-                                <p className="text-sm font-bold text-blue-600">
-                                  {(scores.current_score * 100).toFixed(1)}%
-                                </p>
-                              </div>
-                              {scores.improvement_pct !== undefined && (
-                                <div className="text-right">
-                                  <p className="text-xs text-gray-500">Improvement</p>
-                                  <p className={`text-sm font-bold flex items-center gap-1 ${scores.improvement_pct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    <ArrowUp className={`w-3 h-3 ${scores.improvement_pct < 0 ? 'rotate-180' : ''}`} />
-                                    {scores.improvement_pct >= 0 ? '+' : ''}{scores.improvement_pct.toFixed(1)}%
-                                  </p>
+                    {dataset.initial_scores && Object.keys(dataset.initial_scores).length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-bold text-gray-700 mb-3">Model Performance Breakdown</h4>
+                        <div className="space-y-2">
+                          {Object.entries(dataset.initial_scores).map(([modelName, initialScore], mIdx) => {
+                            const currentScore = dataset.current_scores?.[modelName] || initialScore;
+                            const improvementPct = dataset.improvement?.[modelName];
+                            
+                            return (
+                              <div key={mIdx} className="flex items-center justify-between bg-gray-50 p-3 rounded border">
+                                <div className="flex-1">
+                                  <p className="text-sm font-semibold text-gray-800">{modelName}</p>
                                 </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                                <div className="flex items-center gap-4">
+                                  <div className="text-right">
+                                    <p className="text-xs text-gray-500">Score</p>
+                                    <p className="text-sm font-bold text-blue-600">
+                                      {(currentScore * 100).toFixed(1)}%
+                                    </p>
+                                  </div>
+                                  {improvementPct !== undefined && (
+                                    <div className="text-right">
+                                      <p className="text-xs text-gray-500">Improvement</p>
+                                      <p className={`text-sm font-bold flex items-center gap-1 ${improvementPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        <ArrowUp className={`w-3 h-3 ${improvementPct < 0 ? 'rotate-180' : ''}`} />
+                                        {improvementPct >= 0 ? '+' : ''}{improvementPct.toFixed(1)}%
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Workspaces */}
                     {dataset.workspaces.length > 0 && (
