@@ -247,7 +247,7 @@ const DashboardPage = () => {
       <div className="pt-24 pb-12 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">Data Analysis Dashboard</h1>
+            <h1 className="text-4xl font-bold mb-2">Intelligent Data Analysis & Prediction Dashboard</h1>
             <p className="text-gray-600">Upload data, analyze, and get AI-powered insights</p>
           </div>
 
