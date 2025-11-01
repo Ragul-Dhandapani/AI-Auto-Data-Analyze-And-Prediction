@@ -81,7 +81,7 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> List[Dict[st
             if len(col_data) < 2:
                 continue
             fig = go.Figure(data=[go.Box(y=col_data, name=col)])
-            fig.update_layout(title=f"Box Plot: {col}", yaxis_title=col, width=700, height=400)
+            fig.update_layout(title=f"Box Plot: {col}", yaxis_title=col)
             chart = {
                 "type": "box",
                 "title": f"Box Plot: {col}",
@@ -100,7 +100,7 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> List[Dict[st
             if len(value_counts) == 0:
                 continue
             fig = go.Figure(data=[go.Bar(x=value_counts.index.astype(str), y=value_counts.values)])
-            fig.update_layout(title=f"Top Categories in {col}", xaxis_title=col, yaxis_title="Count", width=700, height=400)
+            fig.update_layout(title=f"Top Categories in {col}", xaxis_title=col, yaxis_title="Count")
             chart = {
                 "type": "bar",
                 "title": f"Top Categories in {col}",
@@ -121,7 +121,7 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> List[Dict[st
                     if len(temp_df) < 2:
                         continue
                     fig = go.Figure(data=[go.Scatter(x=temp_df[dt_col], y=temp_df[num_col], mode='lines+markers', name=num_col)])
-                    fig.update_layout(title=f"{num_col} Over Time", xaxis_title=dt_col, yaxis_title=num_col, width=700, height=400)
+                    fig.update_layout(title=f"{num_col} Over Time", xaxis_title=dt_col, yaxis_title=num_col)
                     chart = {
                         "type": "timeseries",
                         "title": f"{num_col} Over Time",
@@ -147,7 +147,7 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> List[Dict[st
                     corr = temp_df[numeric_cols[i]].corr(temp_df[numeric_cols[j]])
                     if abs(corr) > 0.3:
                         fig = px.scatter(temp_df, x=numeric_cols[i], y=numeric_cols[j], trendline="ols")
-                        fig.update_layout(title=f"{numeric_cols[i]} vs {numeric_cols[j]}", width=700, height=400)
+                        fig.update_layout(title=f"{numeric_cols[i]} vs {numeric_cols[j]}")
                         chart = {
                             "type": "scatter",
                             "title": f"{numeric_cols[i]} vs {numeric_cols[j]}",
