@@ -171,7 +171,7 @@ async def download_training_metadata_pdf(dataset_id: str):
                 if created_at != "Unknown":
                     try:
                         created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00')).strftime("%Y-%m-%d %H:%M")
-                    except:
+                    except (ValueError, TypeError):
                         pass
                 
                 workspace_data.append([
