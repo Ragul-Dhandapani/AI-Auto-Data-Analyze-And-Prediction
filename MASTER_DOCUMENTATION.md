@@ -450,6 +450,37 @@ Generate preview → Return metadata to frontend
 Frontend displays preview and column info
 ```
 
+#### 1b. Database Connection Flow
+```
+User selects DB Connection → Chooses DB type (PostgreSQL/MySQL/Oracle/SQL Server/MongoDB)
+                          ↓
+Enters connection details → Test Connection
+                          ↓
+Connection successful → List Tables
+                          ↓
+User selects table → Load Data
+                          ↓
+Backend: POST /api/datasource/load-table
+  1. Connect to external database
+  2. Execute query (SELECT * FROM table LIMIT 10000)
+  3. Load data with pandas
+  4. Profile data (rows, columns, types)
+  5. Size check:
+     • <10MB → Direct MongoDB storage
+     • ≥10MB → GridFS storage
+  6. Generate preview
+  7. Save to datasets collection (source_type: "database")
+                          ↓
+Frontend displays preview and column info
+```
+
+**Supported Databases:**
+- PostgreSQL (psycopg2-binary)
+- MySQL (pymysql)
+- Oracle (cx_Oracle)
+- SQL Server (pyodbc)
+- MongoDB (pymongo)
+
 #### 2. Holistic Analysis Flow
 ```
 User clicks Predictive Analysis → POST /api/analysis/holistic
