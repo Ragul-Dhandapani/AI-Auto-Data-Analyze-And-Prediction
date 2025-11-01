@@ -379,9 +379,29 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
 
   if (loading && !analysisResults) {
     return (
-      <div className="flex items-center justify-center py-12" data-testid="predictive-analysis">
+      <div className="flex flex-col items-center justify-center py-12 space-y-6" data-testid="predictive-analysis">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <span className="ml-3 text-lg">Running AI/ML analysis on entire dataset...</span>
+        <span className="text-lg">Running AI/ML analysis on entire dataset...</span>
+        
+        {/* Progress Bar */}
+        <div className="w-full max-w-md">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-600">Analysis Progress</span>
+            <span className="text-sm font-semibold text-blue-600">{Math.min(Math.round(progress), 100)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div 
+              className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${Math.min(progress, 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-2 text-center">
+            {progress < 30 ? "Loading data and preparing..." : 
+             progress < 60 ? "Running statistical analysis..." :
+             progress < 85 ? "Training ML models..." :
+             "Generating visualizations..."}
+          </p>
+        </div>
       </div>
     );
   }
