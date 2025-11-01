@@ -259,7 +259,9 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="postgresql">PostgreSQL</SelectItem>
+                  <SelectItem value="mysql">MySQL</SelectItem>
                   <SelectItem value="oracle">Oracle</SelectItem>
+                  <SelectItem value="sqlserver">SQL Server</SelectItem>
                   <SelectItem value="mongodb">MongoDB</SelectItem>
                 </SelectContent>
               </Select>
