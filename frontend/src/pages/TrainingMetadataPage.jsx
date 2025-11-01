@@ -15,6 +15,7 @@ const TrainingMetadataPage = () => {
   const [loading, setLoading] = useState(true);
   const [metadata, setMetadata] = useState([]);
   const [viewMode, setViewMode] = useState('dataset'); // 'dataset' or 'workspace'
+  const [selectedDatasetForWorkspace, setSelectedDatasetForWorkspace] = useState(null);
 
   useEffect(() => {
     fetchMetadata();
