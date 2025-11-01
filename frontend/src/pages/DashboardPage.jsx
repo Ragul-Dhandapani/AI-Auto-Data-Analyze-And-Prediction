@@ -307,7 +307,44 @@ const DashboardPage = () => {
               {datasets.length > 0 && (
                 <Card className="mt-8 p-6 bg-white/90 backdrop-blur-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold">Recent Datasets ({datasets.length})</h2>
+                    <div className="flex items-center gap-4">
+                      <h2 className="text-xl font-semibold">Recent Datasets ({datasets.length})</h2>
+                      {datasets.length > 0 && (
+                        <Button
+                          variant={isMultiSelectMode ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setIsMultiSelectMode(!isMultiSelectMode);
+                            if (isMultiSelectMode) {
+                              setSelectedDatasetIds(new Set());
+                            }
+                          }}
+                          data-testid="toggle-multi-select"
+                        >
+                          {isMultiSelectMode ? "Done" : "Select Multiple"}
+                        </Button>
+                      )}
+                      {isMultiSelectMode && selectedDatasetIds.size > 0 && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={selectAllDatasets}
+                          >
+                            {selectedDatasetIds.size === datasets.length ? "Deselect All" : "Select All"}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={bulkDeleteDatasets}
+                            data-testid="bulk-delete-btn"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete ({selectedDatasetIds.size})
+                          </Button>
+                        </>
+                      )}
+                    </div>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -329,65 +366,91 @@ const DashboardPage = () => {
                   </div>
                   
                   {showRecentDatasets && (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {datasets.map((dataset) => (
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[600px] overflow-y-auto pr-2">
+                      {datasets.map((dataset) => {
+                        const isSelected = selectedDatasetIds.has(dataset.id);
+                        return (
                         <div
                           key={dataset.id}
                           data-testid={`dataset-card-${dataset.id}`}
-                          className="relative p-4 border border-gray-200 rounded-xl hover:shadow-lg hover:border-blue-400 cursor-pointer transition-all bg-white group"
-                          onClick={() => handleDatasetSelect(dataset)}
+                          className={`relative p-4 border-2 rounded-xl transition-all bg-white ${
+                            isSelected 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-blue-400'
+                          } ${isMultiSelectMode ? 'cursor-pointer' : 'cursor-pointer hover:shadow-lg'} group`}
+                          onClick={(e) => {
+                            if (isMultiSelectMode) {
+                              toggleDatasetSelection(dataset.id);
+                            } else {
+                              handleDatasetSelect(dataset);
+                            }
+                          }}
                         >
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => deleteDataset(dataset.id, e)}
-                            data-testid={`delete-dataset-${dataset.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {isMultiSelectMode && (
+                            <div className="absolute top-2 left-2 z-10">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleDatasetSelection(dataset.id)}
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          )}
                           
-                          <h3 className="font-semibold text-lg mb-2 truncate pr-10">{dataset.name}</h3>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <p>Rows: {dataset.row_count.toLocaleString()}</p>
-                            <p>Columns: {dataset.column_count}</p>
+                          {!isMultiSelectMode && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                              onClick={(e) => deleteDataset(dataset.id, e)}
+                              data-testid={`delete-dataset-${dataset.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                          
+                          <h3 className={`font-semibold text-base mb-2 truncate ${isMultiSelectMode ? 'pl-6 pr-2' : 'pr-10'}`}>
+                            {dataset.name}
+                          </h3>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <p className="flex justify-between">
+                              <span>Rows:</span> 
+                              <span className="font-medium">{dataset.row_count.toLocaleString()}</span>
+                            </p>
+                            <p className="flex justify-between">
+                              <span>Columns:</span> 
+                              <span className="font-medium">{dataset.column_count}</span>
+                            </p>
                             {dataset.file_size && (
-                              <p className="text-xs text-gray-500">
-                                Size: {(dataset.file_size / 1024 / 1024).toFixed(2)} MB
-                              </p>
-                            )}
-                            {dataset.upload_time && (
-                              <p className="text-xs text-green-600 font-medium">
-                                Upload time: {dataset.upload_time.toFixed(1)}s
+                              <p className="flex justify-between text-gray-500">
+                                <span>Size:</span> 
+                                <span>{(dataset.file_size / 1024 / 1024).toFixed(2)} MB</span>
                               </p>
                             )}
                             {dataset.training_count && dataset.training_count > 0 && (
                               <div className="mt-2 pt-2 border-t border-green-200 bg-green-50 -mx-2 px-2 py-1 rounded">
                                 <p className="text-xs font-semibold text-green-700 flex items-center gap-1">
                                   <RefreshCw className="w-3 h-3" />
-                                  Trained {dataset.training_count} time{dataset.training_count > 1 ? 's' : ''}
+                                  Trained {dataset.training_count}x
                                 </p>
-                                {dataset.best_model_score && (
-                                  <p className="text-xs text-green-600 mt-1">
-                                    Best Score: {(dataset.best_model_score * 100).toFixed(1)}%
-                                  </p>
-                                )}
                               </div>
                             )}
-                            <p className="text-xs text-gray-400">
-                              {new Date(dataset.created_at).toLocaleString()}
+                            <p className="text-[10px] text-gray-400 pt-1">
+                              {new Date(dataset.created_at).toLocaleDateString()}
                             </p>
                             {datasetSavedStates[dataset.id] && datasetSavedStates[dataset.id].length > 0 && (
-                              <div className="mt-2 pt-2 border-t border-gray-200">
+                              <div className="mt-1 pt-1 border-t border-gray-200">
                                 <p className="text-xs font-semibold text-blue-600 flex items-center gap-1">
                                   <FolderOpen className="w-3 h-3" />
-                                  {datasetSavedStates[dataset.id].length} Saved Workspace(s)
+                                  {datasetSavedStates[dataset.id].length} Workspace(s)
                                 </p>
                               </div>
                             )}
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </Card>
