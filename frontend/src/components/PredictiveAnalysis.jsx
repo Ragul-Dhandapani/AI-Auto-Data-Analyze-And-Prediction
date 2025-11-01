@@ -29,6 +29,7 @@ const loadPlotly = () => {
 const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(analysisCache || null);
+  const [analysisTime, setAnalysisTime] = useState(null);  // Track analysis time
   const [collapsed, setCollapsed] = useState({});
   const [showChat, setShowChat] = useState(false);
   const [chatMinimized, setChatMinimized] = useState(false);
