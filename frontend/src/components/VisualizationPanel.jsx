@@ -101,20 +101,43 @@ const ChartComponent = ({ chart, index }) => {
   );
 };
 
-const VisualizationPanel = ({ dataset }) => {
+const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
   const [loading, setLoading] = useState(false);
-  const [charts, setCharts] = useState([]);
-  const [skippedCharts, setSkippedCharts] = useState([]);
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [charts, setCharts] = useState(chartsCache?.charts || []);
+  const [skippedCharts, setSkippedCharts] = useState(chartsCache?.skipped || []);
+  const [hasGenerated, setHasGenerated] = useState(!!chartsCache);
   const [progress, setProgress] = useState(0);  // Progress tracking
   const [showChat, setShowChat] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState(chartsCache?.chatMessages || []);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
-  const [customCharts, setCustomCharts] = useState([]);
+  const [customCharts, setCustomCharts] = useState(chartsCache?.customCharts || []);
   const [showSkipped, setShowSkipped] = useState(false);
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
+
+  // Update cache when data changes
+  useEffect(() => {
+    if (onChartsUpdate && (charts.length > 0 || customCharts.length > 0)) {
+      onChartsUpdate({
+        charts,
+        skipped: skippedCharts,
+        chatMessages,
+        customCharts
+      });
+    }
+  }, [charts, skippedCharts, chatMessages, customCharts]);
+
+  // Restore from cache when dataset changes
+  useEffect(() => {
+    if (chartsCache) {
+      setCharts(chartsCache.charts || []);
+      setSkippedCharts(chartsCache.skipped || []);
+      setChatMessages(chartsCache.chatMessages || []);
+      setCustomCharts(chartsCache.customCharts || []);
+      setHasGenerated(true);
+    }
+  }, [dataset?.id]);
 
   const generateCharts = async () => {
     setLoading(true);
