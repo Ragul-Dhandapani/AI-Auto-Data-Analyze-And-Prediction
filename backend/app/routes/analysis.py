@@ -105,13 +105,40 @@ Provide concise, actionable insights."""
             except:
                 pass
         
+        # Get dataset info for training metadata
+        dataset = await db.datasets.find_one({"id": request.dataset_id}, {"_id": 0})
+        training_count = dataset.get("training_count", 1)
+        last_trained_at = dataset.get("updated_at", datetime.now(timezone.utc).isoformat())
+        
+        # Build volume analysis from profile data
+        volume_analysis = {
+            "total_records": len(df),
+            "by_dimensions": []
+        }
+        
+        # Add categorical breakdown for volume analysis
+        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        for col in categorical_cols[:3]:  # Top 3 categorical columns
+            value_counts = df[col].value_counts().to_dict()
+            volume_analysis["by_dimensions"].append({
+                "dimension": col,
+                "breakdown": value_counts
+            })
+        
         return {
             "profile": profile,
             "models": models_result.get("models", []),
+            "ml_models": models_result.get("models", []),  # Frontend expects ml_models
             "auto_charts": auto_charts,
             "correlations": correlations,
             "insights": insights,
-            "training_info": models_result.get("training_info", {})
+            "training_info": models_result.get("training_info", {}),
+            "volume_analysis": volume_analysis,  # Frontend expects volume_analysis
+            "training_metadata": {
+                "training_count": training_count,
+                "last_trained_at": last_trained_at,
+                "dataset_size": len(df)
+            }
         }
         
     except HTTPException:
