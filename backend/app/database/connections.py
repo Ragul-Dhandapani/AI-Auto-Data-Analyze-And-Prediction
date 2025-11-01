@@ -5,9 +5,17 @@ Supports PostgreSQL, MySQL, Oracle, SQL Server
 import cx_Oracle
 import psycopg2
 import pymysql
-import pyodbc
 import pandas as pd
 from typing import List, Dict
+
+# Try to import pyodbc (optional - SQL Server support)
+try:
+    import pyodbc
+    HAS_PYODBC = True
+except ImportError:
+    HAS_PYODBC = False
+    import logging
+    logging.warning("pyodbc not available, SQL Server connections will not work")
 
 
 def test_oracle_connection(config: dict) -> dict:
