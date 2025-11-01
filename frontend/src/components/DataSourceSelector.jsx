@@ -186,15 +186,35 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
       return;
     }
 
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("source_type", dbConfig.source_type);
-    formData.append("config", JSON.stringify(dbConfig));
-    formData.append("table_name", selectedTable);
+    if (!connectionTested) {
+      toast.error("Please test the connection first");
+      return;
+    }
 
+    setLoading(true);
+    
     try {
-      const response = await axios.post(`${API}/datasource/load-table`, formData);
-      toast.success("Table loaded successfully!");
+      const requestBody = {
+        source_type: dbConfig.source_type,
+        config: {
+          host: dbConfig.host,
+          port: dbConfig.port || (dbConfig.source_type === 'postgresql' ? 5432 : dbConfig.source_type === 'mysql' ? 3306 : 1521),
+          database: dbConfig.database,
+          username: dbConfig.username,
+          password: dbConfig.password,
+          service_name: dbConfig.service_name // For Oracle
+        }
+      };
+
+      const response = await axios.post(
+        `${API}/datasource/load-table?table_name=${encodeURIComponent(selectedTable)}`,
+        requestBody
+      );
+      
+      toast.success(`Table loaded successfully! (${response.data.row_count} rows)`, {
+        description: response.data.storage_type === 'gridfs' ? 'Stored in GridFS' : 'Stored directly'
+      });
+      
       onDatasetLoaded(response.data);
     } catch (error) {
       console.error("Table load error:", error.response?.data);
