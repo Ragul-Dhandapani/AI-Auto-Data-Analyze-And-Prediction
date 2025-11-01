@@ -967,14 +967,15 @@ async def run_analysis(request: AnalysisRequest):
         
         elif request.analysis_type == 'clean':
             cleaned_df, report = clean_data(df)
-            # Update stored data
-            await db.dataset_data.update_one(
-                {"dataset_id": request.dataset_id},
-                {"$set": {"data": cleaned_df.to_dict('records')}}
+            # Don't store cleaned data (can be too large), just mark as cleaned
+            await db.datasets.update_one(
+                {"id": request.dataset_id},
+                {"$set": {"cleaned": True, "last_cleaned": datetime.now(timezone.utc).isoformat()}}
             )
             result = {
                 "cleaning_report": report,
-                "new_row_count": len(cleaned_df)
+                "new_row_count": len(cleaned_df),
+                "cleaned_data_available": True
             }
         
         elif request.analysis_type == 'insights':
