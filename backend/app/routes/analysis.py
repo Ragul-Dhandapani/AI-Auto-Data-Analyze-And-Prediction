@@ -100,24 +100,58 @@ async def run_analysis(request: Dict[str, Any]):
 
 async def load_dataframe(dataset_id: str) -> pd.DataFrame:
     """Helper function to load DataFrame from dataset"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
     if not dataset:
         raise HTTPException(404, "Dataset not found")
+    
+    logger.info(f"Loading dataset {dataset_id}, storage_type: {dataset.get('storage_type', 'direct')}")
     
     # Load data based on storage type
     if dataset.get("storage_type") == "gridfs":
         gridfs_file_id = dataset.get("gridfs_file_id")
         if gridfs_file_id:
-            grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
-            data = await grid_out.read()
-            if dataset["name"].endswith('.csv'):
-                df = pd.read_csv(io.BytesIO(data))
-            else:
-                df = pd.read_excel(io.BytesIO(data))
+            try:
+                grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
+                data = await grid_out.read()
+                
+                logger.info(f"GridFS data loaded, size: {len(data)} bytes")
+                
+                if dataset["name"].endswith('.csv'):
+                    df = pd.read_csv(io.BytesIO(data))
+                else:
+                    df = pd.read_excel(io.BytesIO(data))
+                
+                logger.info(f"DataFrame loaded from GridFS: {len(df)} rows, {len(df.columns)} columns")
+            except Exception as e:
+                logger.error(f"GridFS loading failed: {str(e)}")
+                raise HTTPException(500, f"Failed to load data from GridFS: {str(e)}")
         else:
             raise HTTPException(500, "GridFS file ID not found")
     else:
-        df = pd.DataFrame(dataset.get("data", []))
+        # Direct storage
+        data = dataset.get("data")
+        if data is None:
+            logger.error(f"Dataset {dataset_id} has no 'data' field")
+            raise HTTPException(500, "Dataset has no data field")
+        
+        if not isinstance(data, list):
+            logger.error(f"Dataset data is not a list: {type(data)}")
+            raise HTTPException(500, "Dataset data format invalid")
+        
+        if len(data) == 0:
+            logger.warning(f"Dataset {dataset_id} has empty data array")
+            raise HTTPException(400, "Dataset is empty")
+        
+        df = pd.DataFrame(data)
+        logger.info(f"DataFrame loaded from direct storage: {len(df)} rows, {len(df.columns)} columns")
+    
+    # Validate DataFrame is not empty
+    if df.empty:
+        logger.error(f"DataFrame is empty after loading dataset {dataset_id}")
+        raise HTTPException(400, "Loaded DataFrame is empty")
     
     return df
 
