@@ -39,23 +39,52 @@ async def get_training_metadata():
             # Get model scores (from latest workspace if available)
             initial_scores = {}
             current_scores = {}
+            initial_score = None  # Single score for frontend compatibility
+            current_score = None  # Single score for frontend compatibility
             
             if dataset_states:
+                # Sort states by creation date
+                sorted_states = sorted(
+                    dataset_states,
+                    key=lambda x: x.get("created_at", ""),
+                    reverse=False  # Oldest first
+                )
+                
+                # Get initial state (oldest)
+                if len(sorted_states) > 0:
+                    first_state = sorted_states[0]
+                    first_analysis = first_state.get("analysis_data", {})
+                    first_models = first_analysis.get("models", []) or first_analysis.get("ml_models", [])
+                    
+                    if first_models:
+                        # Get best model from first training
+                        best_first = max(first_models, key=lambda x: x.get("r2_score", 0))
+                        initial_score = best_first.get("r2_score", 0)
+                        
+                        for model in first_models:
+                            model_name = model.get("model_name")
+                            r2_score = model.get("r2_score", 0)
+                            initial_scores[model_name] = r2_score
+                
                 # Get latest state
-                latest_state = sorted(
-                    dataset_states, 
-                    key=lambda x: x.get("created_at", ""), 
-                    reverse=True
-                )[0]
+                latest_state = sorted_states[-1]  # Most recent
+                latest_analysis = latest_state.get("analysis_data", {})
+                latest_models = latest_analysis.get("models", []) or latest_analysis.get("ml_models", [])
                 
-                # Extract model scores
-                analysis_data = latest_state.get("analysis_data", {})
-                models = analysis_data.get("models", [])
-                
-                for model in models:
-                    model_name = model.get("model_name")
-                    r2_score = model.get("r2_score", 0)
-                    current_scores[model_name] = r2_score
+                if latest_models:
+                    # Get best model from latest training
+                    best_latest = max(latest_models, key=lambda x: x.get("r2_score", 0))
+                    current_score = best_latest.get("r2_score", 0)
+                    
+                    for model in latest_models:
+                        model_name = model.get("model_name")
+                        r2_score = model.get("r2_score", 0)
+                        current_scores[model_name] = r2_score
+            
+            # Calculate improvement percentage
+            improvement_percentage = 0
+            if initial_score and current_score and initial_score > 0:
+                improvement_percentage = ((current_score - initial_score) / initial_score) * 100
             
             metadata.append({
                 "dataset_id": dataset_id,
@@ -64,6 +93,9 @@ async def get_training_metadata():
                 "last_trained": last_trained,
                 "initial_scores": initial_scores,
                 "current_scores": current_scores,
+                "initial_score": initial_score if initial_score is not None else 0,  # Frontend expects this
+                "current_score": current_score if current_score is not None else 0,  # Frontend expects this
+                "improvement_percentage": improvement_percentage,  # Frontend expects this
                 "improvement": {
                     model: ((current_scores.get(model, 0) - initial_scores.get(model, 0)) / initial_scores.get(model, 1)) * 100
                     if initial_scores.get(model, 0) > 0 else 0
