@@ -114,11 +114,27 @@ const VisualizationPanel = ({ dataset }) => {
     generateCharts();
   };
 
-  if (loading && charts.length === 0) {
+  // Filter charts to only show those with valid data
+  const validCharts = charts.filter(chart => 
+    chart.data && 
+    chart.data.data && 
+    Array.isArray(chart.data.data) &&
+    chart.data.data.length > 0
+  );
+
+  if (loading && validCharts.length === 0) {
     return (
       <div className="flex items-center justify-center py-12" data-testid="visualization-panel">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <span className="ml-3 text-lg">Generating smart visualizations...</span>
+        <span className="ml-3 text-lg">Generating comprehensive visualizations...</span>
+      </div>
+    );
+  }
+
+  if (validCharts.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12" data-testid="visualization-panel">
+        <p className="text-gray-600">No visualizations available. Please select a dataset.</p>
       </div>
     );
   }
@@ -130,14 +146,14 @@ const VisualizationPanel = ({ dataset }) => {
           <div>
             <h3 className="text-xl font-semibold flex items-center gap-2">
               <BarChart3 className="w-6 h-6 text-blue-600" />
-              Smart Data Visualizations
+              Data Visualization & Insights
             </h3>
             <p className="text-sm text-gray-600 mt-2">
-              AI-generated charts automatically created based on your data characteristics. 
-              {charts.length > 0 && ` Showing ${charts.length} visualizations.`}
+              Comprehensive charts automatically generated based on your data characteristics. 
+              {validCharts.length > 0 && ` Showing ${validCharts.length} detailed visualizations with insights.`}
             </p>
           </div>
-          {charts.length > 0 && (
+          {validCharts.length > 0 && (
             <Button 
               data-testid="refresh-charts-btn"
               onClick={refreshCharts}
