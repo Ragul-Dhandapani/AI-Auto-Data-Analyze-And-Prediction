@@ -179,6 +179,9 @@ def get_mysql_tables(config: dict) -> List[str]:
 
 def get_sqlserver_tables(config: dict) -> List[str]:
     """List tables from SQL Server database"""
+    if not HAS_PYODBC:
+        raise Exception("SQL Server support not available (pyodbc not installed)")
+    
     try:
         conn_str = (
             f"DRIVER={{ODBC Driver 17 for SQL Server}};"
