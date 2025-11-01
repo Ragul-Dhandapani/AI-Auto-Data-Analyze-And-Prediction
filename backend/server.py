@@ -1447,6 +1447,29 @@ async def holistic_analysis(request: HolisticRequest):
                     }
                 }
             )
+            
+            # Store training history for this session
+            training_history_entry = {
+                "dataset_id": request.dataset_id,
+                "dataset_name": dataset.get("name", "Unknown"),
+                "training_number": training_count,
+                "trained_at": datetime.now(timezone.utc).isoformat(),
+                "models": [
+                    {
+                        "model_name": model.get("model_name"),
+                        "target_column": model.get("target_column"),
+                        "r2_score": float(model.get("r2_score", 0)),
+                        "rmse": float(model.get("rmse", 0)) if model.get("rmse") else None,
+                        "confidence": model.get("confidence", "Unknown")
+                    }
+                    for model in results["ml_models"]
+                ],
+                "best_model": best_model["model_name"],
+                "best_score": float(best_score)
+            }
+            
+            # Insert training history
+            await db.training_history.insert_one(training_history_entry)
         
         # Generate AI Summary
         try:
