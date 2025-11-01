@@ -154,3 +154,4 @@ zipp==3.23.0
 xgboost
 scikit-learn
 tensorflow
+reportlab
