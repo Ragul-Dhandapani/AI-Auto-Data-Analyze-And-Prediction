@@ -180,6 +180,7 @@ backend/
 │    data: [...] or null,  // If <10MB          │
 │    storage_type: \"direct\" | \"gridfs\",         │
 │    gridfs_file_id: ObjectId or null,          │
+│    source_type: \"file\",                        │
 │    created_at: ISOString                       │
 │  }                                             │
 └────┬───────────────────────────────────────────┘
@@ -193,6 +194,117 @@ backend/
 │  • Enable \"Data Profiler\" tab                  │
 └────────────────────────────────────────────────┘
 ```
+
+### 1b. Database Connection Flow
+
+```
+┌─────────┐
+│  User   │ Selects \"Database Connection\" tab
+└────┬────┘
+     │
+     ▼
+┌────────────────────────────────────────────────┐
+│  Frontend: DataSourceSelector                  │
+│  • Select DB type (PostgreSQL/MySQL/Oracle/    │
+│    SQL Server/MongoDB)                         │
+│  • Choose connection method:                   │
+│    - Connection String (URL)                   │
+│    - Individual Parameters                     │
+└────┬───────────────────────────────────────────┘
+     │
+     ├─→ Option A: Test Connection
+     │   POST /api/datasource/test-connection
+     │   ↓
+     │   Backend: database/connections.py
+     │   • Parse credentials                      
+     │   • Attempt connection                     
+     │   • Return success/failure                 
+     │
+     └─→ Option B: Parse Connection String
+         POST /api/datasource/parse-connection-string
+         ↓
+         Backend extracts: host, port, user, pass, db
+         ↓
+         Returns parsed config to frontend
+         │
+         ▼
+┌────────────────────────────────────────────────┐
+│  User clicks \"List Tables\"                     │
+│  POST /api/datasource/list-tables              │
+└────┬───────────────────────────────────────────┘
+     │
+     ▼
+┌────────────────────────────────────────────────┐
+│  Backend: routes/datasource.py                 │
+│  1. Establish connection to external DB        │
+│  2. Query table/collection list:               │
+│     • PostgreSQL: information_schema           │
+│     • MySQL: information_schema                │
+│     • Oracle: all_tables                       │
+│     • SQL Server: sys.tables                   │
+│     • MongoDB: db.list_collection_names()      │
+│  3. Return table names list                    │
+└────┬───────────────────────────────────────────┘
+     │
+     ▼
+┌────────────────────────────────────────────────┐
+│  Frontend: Display table list                  │
+│  • User selects table                          │
+│  • Clicks \"Load Data\"                          │
+└────┬───────────────────────────────────────────┘
+     │ POST /api/datasource/load-table
+     │ { db_config, table_name }
+     ▼
+┌────────────────────────────────────────────────┐
+│  Backend: routes/datasource.py                 │
+│  1. Connect to external database               │
+│  2. Execute query:                             │
+│     • SQL: SELECT * FROM table LIMIT 10000    │
+│     • MongoDB: db.collection.find().limit()    │
+│  3. Load data with pandas                      │
+│  4. Profile data (rows, columns, types)        │
+│  5. Size check:                                │
+│     • <10MB → Direct MongoDB storage          │
+│     • ≥10MB → GridFS storage                  │
+│  6. Generate preview (first 10 rows)           │
+│  7. Save to datasets collection                │
+└────┬───────────────────────────────────────────┘
+     │
+     ▼
+┌────────────────────────────────────────────────┐
+│  MongoDB: datasets collection                  │
+│  {                                             │
+│    id: \"uuid\",                                 │
+│    name: \"table_name\",                         │
+│    row_count: 1000,                            │
+│    column_count: 10,                           │
+│    columns: [\"col1\", \"col2\", ...],             │
+│    data: [...] or null,  // If <10MB          │
+│    storage_type: \"direct\" | \"gridfs\",         │
+│    gridfs_file_id: ObjectId or null,          │
+│    source_type: \"database\",                    │
+│    db_type: \"postgresql\" | \"mysql\" | etc,     │
+│    created_at: ISOString                       │
+│  }                                             │
+└────┬───────────────────────────────────────────┘
+     │
+     ▼
+┌────────────────────────────────────────────────┐
+│  Frontend: Display preview & metadata          │
+│  • Show row/column counts                      │
+│  • Display column names and types              │
+│  • Preview first rows in table                 │
+│  • Enable \"Data Profiler\" tab                  │
+│  • Note: Data loaded from [DB_TYPE]            │
+└────────────────────────────────────────────────┘
+```
+
+**Supported Database Types:**
+- ✅ PostgreSQL (psycopg2-binary)
+- ✅ MySQL (pymysql)
+- ✅ Oracle (cx_Oracle)
+- ✅ SQL Server (pyodbc)
+- ✅ MongoDB (pymongo)
 
 ### 2. Holistic Analysis Flow
 
