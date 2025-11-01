@@ -308,6 +308,14 @@ const DashboardPage = () => {
                             <p className="text-xs text-gray-400">
                               {new Date(dataset.created_at).toLocaleString()}
                             </p>
+                            {datasetSavedStates[dataset.id] && datasetSavedStates[dataset.id].length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-gray-200">
+                                <p className="text-xs font-semibold text-blue-600 flex items-center gap-1">
+                                  <FolderOpen className="w-3 h-3" />
+                                  {datasetSavedStates[dataset.id].length} Saved Workspace(s)
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
