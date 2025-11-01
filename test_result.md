@@ -378,15 +378,18 @@ frontend:
 frontend:
   - task: "Database type dropdown expansion"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/DataSourceSelector.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Updated DataSourceSelector to include MySQL and SQL Server in database type dropdown. Added dynamic port placeholders based on database type (PostgreSQL: 5432, MySQL: 3306, Oracle: 1521, SQL Server: 1433, MongoDB: 27017)."
+        - working: true
+          agent: "testing"
+          comment: "✅ DATABASE DROPDOWN WORKING: Verified database type dropdown includes all 5 database types (PostgreSQL, MySQL, Oracle, SQL Server, MongoDB) with proper dynamic port placeholders. Database connection UI working correctly."
 
   - task: "Connection string UI toggle"
     implemented: true
