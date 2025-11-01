@@ -122,15 +122,18 @@ backend:
   
   - task: "Scatter plot support in chat"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added scatter plot detection and generation in chat-action endpoint. Detects 'scatter' and 'scatter plot' keywords, extracts mentioned column names (x_col, y_col), generates Plotly scatter plot with correlation calculation, returns proper chart_data with type='scatter' and plotly_data."
+        - working: true
+          agent: "testing"
+          comment: "✅ SCATTER PLOT SUPPORT FULLY WORKING: Tested chat-action endpoint with 'create a scatter plot of age vs salary' request. Verified: 1) Correct response structure with action='add_chart' 2) chart_data.type='scatter' 3) Valid Plotly data with scatter traces 4) Proper title 'Scatter Plot: age vs salary' 5) Meaningful description including correlation value (0.993) 6) All required fields present (type, title, plotly_data, description). Scatter plot generation via chat working perfectly."
 
 backend:
   - task: "Fix IndentationError at line 905"
