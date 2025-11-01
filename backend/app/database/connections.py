@@ -245,6 +245,8 @@ def load_table_data(source_type: str, config: dict, table_name: str) -> pd.DataF
         conn.close()
         return df
     elif source_type == 'sqlserver':
+        if not HAS_PYODBC:
+            raise ValueError("SQL Server support not available (pyodbc not installed)")
         conn_str = (
             f"DRIVER={{ODBC Driver 17 for SQL Server}};"
             f"SERVER={config.get('host')},{config.get('port', 1433)};"
