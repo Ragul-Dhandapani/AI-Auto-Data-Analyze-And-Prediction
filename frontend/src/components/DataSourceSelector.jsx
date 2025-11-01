@@ -394,6 +394,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
                 />
               </div>
             </div>
+            </>
             )}
 
             <Button 
