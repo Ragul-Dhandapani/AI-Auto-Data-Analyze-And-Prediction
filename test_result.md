@@ -281,11 +281,11 @@ frontend:
   
   - task: "Support custom chart types (pie, bar, line) via chat"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/app/services/chat_service.py"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -296,6 +296,9 @@ frontend:
         - working: false
           agent: "testing"
           comment: "❌ CHART REMOVAL BROKEN: After refactoring, chart removal not working. 'remove correlation' triggers correlation generation instead of removal due to keyword detection order issue in chat_service.py process_chat_message(). The function checks for 'correlation' keyword before 'remove' keyword, so 'remove correlation' matches correlation handler first. Need to reorder keyword detection to check for 'remove' first, or improve logic to handle removal requests properly. Also handle_remove_request() returns 'section_type' but tests expect 'section_to_remove'."
+        - working: true
+          agent: "testing"
+          comment: "✅ CHART REMOVAL FUNCTIONALITY FIXED: Verified all removal issues resolved. Tested keyword detection order and response fields: 1) KEYWORD DETECTION ORDER: 'remove correlation' now correctly triggers removal action (not correlation generation) - removal check moved to first position in process_chat_message() 2) RESPONSE FIELD FIX: All removal requests now return 'section_to_remove' field (not 'section_type') - tested correlation, pie chart, and bar chart removal 3) CUSTOM CHART GENERATION: All chart types (pie, bar, line) still working correctly 4) SCATTER PLOT SUPPORT: Working correctly. All fixes successful - custom chart generation and removal via chat working perfectly."
   
   - task: "Add ML model tabs (Linear Regression, Random Forest, XGBoost, Decision Tree)"
     implemented: true
