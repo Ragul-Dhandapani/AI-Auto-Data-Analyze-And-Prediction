@@ -224,7 +224,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     try {
       // Prepare simplified analysis data (exclude large Plotly data)
       const simplifiedAnalysis = analysisResults ? {
-        has_correlations: !!analysisResults.correlations,
+        has_correlations: !!(analysisResults.correlations && analysisResults.correlations.correlations),
         has_ml_models: !!analysisResults.ml_models,
         has_custom_charts: !!analysisResults.custom_charts,
         custom_charts_count: analysisResults.custom_charts?.length || 0,
