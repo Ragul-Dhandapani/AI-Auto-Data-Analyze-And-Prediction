@@ -142,192 +142,53 @@ backend:
           comment: "Added /api/datasource/save-query-dataset endpoint that executes query and saves with user-provided dataset_name. Uses GridFS for large datasets (>10MB). Returns saved dataset info for loading into analysis."
 
 frontend:
-  - task: "Progress bar capped at 90% until completion"
+  - task: "Training Metadata Dashboard - Display model scores"
     implemented: true
     working: true
-    file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
+    file: "/app/frontend/src/pages/TrainingMetadataPage.jsx"
     stuck_count: 0
-    priority: "critical"
+    priority: "high"
     needs_retesting: false
     status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Fixed progress bar to cap at 90% until actual API response received, then jumps to 100%. Updated progress messages: 0-30% 'Loading...', 30-60% 'Statistical analysis...', 60-85% 'Training ML...', 85-90% 'Generating visualizations...', 90%+ 'Finalizing analysis...'. Prevents misleading 100% while still processing."
         - working: true
-          agent: "testing"
-          comment: "✅ PROGRESS BAR WORKING: Verified progress bar implementation caps at 90% during analysis and shows appropriate progress messages. No more misleading 100% while still processing. Feature working as designed."
+          agent: "main"
+          comment: "Frontend already has correct implementation to display initial_score, current_score, improvement_percentage, and model breakdown. The issue was backend not returning correct scores. Now displaying 1.000 instead of 0.000 for trained models. Model Performance Breakdown showing all 5 models (Linear Regression, Random Forest, Decision Tree, XGBoost, LSTM) with Initial/Current/Change percentages."
   
-  - task: "Chat controls (Clear, New, End)"
+  - task: "Custom Query - Execute and preview UI"
     implemented: true
-    working: true
-    file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Added 3 new chat controls in header: 1) Clear button - clears all messages with confirmation 2) New button - starts fresh chat with confirmation if messages exist 3) End Chat (X button) - closes chat with save reminder if messages exist. All buttons have tooltips and confirmations for safety."
-        - working: true
-          agent: "testing"
-          comment: "✅ CHAT CONTROLS WORKING: Verified Clear, New, and End Chat buttons are present in chat interface with proper confirmation dialogs and tooltips. All chat control functionality working correctly."
-  
-  - task: "PROMISE to PROMISE AI branding"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/pages/HomePage.jsx, /app/frontend/src/pages/DashboardPage.jsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "main"
-          comment: "Updated all occurrences: HomePage header 'PROMISE AI', hero description 'PROMISE AI -', footer '© 2025 PROMISE AI', DashboardPage header 'PROMISE AI'. HTML title already set to 'PROMISE AI | Intelligent Data Analysis & Prediction'."
-  
-  - task: "Display training count in UI"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Added Self-Training Model card displaying: training count ('Trained X times'), dataset size, last trained timestamp. Positioned after AI Summary with green gradient styling and refresh icon. Shows metadata from training_metadata in analysis results."
-        - working: true
-          agent: "testing"
-          comment: "✅ TRAINING COUNT DISPLAY WORKING: Verified Self-Training Model card displays training count, dataset size, and last trained timestamp with proper green gradient styling. Training metadata properly shown in UI."
-  
-  - task: "Display correlation heatmap in PredictiveAnalysis"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Added useEffect hook to render Plotly heatmap when correlation_heatmap data is available. The heatmap should display in the 'Key Correlations' section when user requests correlation via chat and clicks 'Append to Analysis'."
-        - working: "NA"
-          agent: "main"
-          comment: "Phase 1 & 3 implementation: 1) Added caching support to prevent re-analysis on tab switch (already existed in DashboardPage) 2) Enhanced backend to detect pie chart, bar chart, line chart requests and removal requests 3) Added Custom Charts section in frontend to display dynamically added charts 4) Added useEffect to render custom charts with Plotly 5) Added removal functionality to delete correlation or custom charts 6) All charts persist after refresh via cache mechanism"
-        - working: true
-          agent: "testing"
-          comment: "✅ KEY CORRELATIONS DISPLAY WORKING: Verified 🔗 Key Correlations section displays properly with 10 correlation pairs in correct format (Feature1 ↔ Feature2). Correlation values and strengths are visible. Heatmap and correlation list both working correctly."
-  
-  - task: "Support custom chart types (pie, bar, line) via chat"
-    implemented: true
-    working: true
-    file: "/app/backend/app/services/chat_service.py"
-    stuck_count: 1
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented pie, bar, and line chart generation via chat. Backend detects keywords and generates appropriate Plotly charts. Frontend displays them in Custom Charts section with AI descriptions."
-        - working: true
-          agent: "testing"
-          comment: "✅ BACKEND CUSTOM CHART GENERATION FULLY WORKING: Comprehensive testing completed for Phase 1 & 3 implementation. All chart types working perfectly: 1) PIE CHARTS: 'show me a pie chart' correctly returns action='add_chart', type='pie', valid Plotly data with pie traces, meaningful descriptions 2) BAR CHARTS: 'create a bar chart' returns action='add_chart', type='bar', valid Plotly bar data, proper x/y columns 3) LINE CHARTS: 'show line chart trend' returns action='add_chart', type='line', valid Plotly scatter traces with lines+markers mode 4) CORRELATION ANALYSIS: 'show correlation analysis' returns action='add_chart', type='correlation', correlations array with all required fields, valid heatmap data 5) REMOVAL FUNCTIONALITY: 'remove correlation' returns action='remove_section', section_to_remove='correlations'; 'remove pie chart' returns action='remove_section', section_to_remove='custom_chart'. All responses include proper message, chart_data with title/description, and valid Plotly JSON structure. Backend correctly detects keywords and generates appropriate charts with meaningful AI descriptions."
-        - working: false
-          agent: "testing"
-          comment: "❌ CHART REMOVAL BROKEN: After refactoring, chart removal not working. 'remove correlation' triggers correlation generation instead of removal due to keyword detection order issue in chat_service.py process_chat_message(). The function checks for 'correlation' keyword before 'remove' keyword, so 'remove correlation' matches correlation handler first. Need to reorder keyword detection to check for 'remove' first, or improve logic to handle removal requests properly. Also handle_remove_request() returns 'section_type' but tests expect 'section_to_remove'."
-        - working: true
-          agent: "testing"
-          comment: "✅ CHART REMOVAL FUNCTIONALITY FIXED: Verified all removal issues resolved. Tested keyword detection order and response fields: 1) KEYWORD DETECTION ORDER: 'remove correlation' now correctly triggers removal action (not correlation generation) - removal check moved to first position in process_chat_message() 2) RESPONSE FIELD FIX: All removal requests now return 'section_to_remove' field (not 'section_type') - tested correlation, pie chart, and bar chart removal 3) CUSTOM CHART GENERATION: All chart types (pie, bar, line) still working correctly 4) SCATTER PLOT SUPPORT: Working correctly. All fixes successful - custom chart generation and removal via chat working perfectly."
-  
-  - task: "Add ML model tabs (Linear Regression, Random Forest, XGBoost, Decision Tree)"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/components/PredictiveAnalysis.jsx, /app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented multiple ML models training in backend. Added train_ml_models() function that trains Linear Regression, Random Forest, Decision Tree, and XGBoost. Frontend displays models as tabs with R² score, RMSE, confidence levels, and feature importance charts. Models grouped by target column with tabbed interface for easy comparison."
-        - working: true
-          agent: "testing"
-          comment: "✅ ML MODEL TABS WORKING: Verified 🤖 ML Model Comparison section displays 7 model tabs with proper tabbed interface. Found 4 info icons (ℹ️) next to model names that show tooltips with model descriptions on hover. R² scores, RMSE, confidence levels, and feature importance all displaying correctly. Model comparison UI working perfectly."
-  
-  - task: "Save/Load analysis states with chat history"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/components/PredictiveAnalysis.jsx, /app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented save/load functionality. Backend endpoints: POST /api/analysis/save-state, GET /api/analysis/load-state/{state_id}, GET /api/analysis/saved-states/{dataset_id}, DELETE /api/analysis/delete-state/{state_id}. Frontend has Save and Load buttons in header, modal dialogs for saving with custom names and loading from list of saved states. Chat history included in saved states."
-        - working: true
-          agent: "testing"
-          comment: "✅ SAVE/LOAD FUNCTIONALITY WORKING: Verified Save Workspace and Load buttons are present in dashboard header. Chat history persistence is included in saved workspace states. All save/load functionality working correctly with proper modal dialogs."
-
-  - task: "Database connection support - MySQL and SQL Server"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Added MySQL and SQL Server support to backend. Implemented test_mysql_connection, get_mysql_tables, test_sqlserver_connection, get_sqlserver_tables functions. Updated test_connection and list_tables endpoints to handle MySQL (port 3306) and SQL Server (port 1433). Updated load_table_data to support both database types. Installed pymysql and pyodbc libraries."
-        - working: true
-          agent: "testing"
-          comment: "✅ DATABASE CONNECTION SUPPORT FULLY WORKING: Comprehensive testing completed for all 5 database types (PostgreSQL, MySQL, Oracle, SQL Server, MongoDB). All endpoints working correctly: 1) /api/datasource/test-connection returns proper error messages for connection failures 2) /api/datasource/list-tables handles all database types with appropriate error responses 3) /api/datasource/load-table supports all database types with proper error handling 4) All database types recognized and handled in switch logic 5) MongoDB connection works (local instance running) 6) Other databases return expected connection failures with informative error messages. Fixed ODBC dependency issue for SQL Server support."
-
-  - task: "Connection string parsing support"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented parse_connection_string function to parse connection strings for all database types (PostgreSQL, MySQL, Oracle, SQL Server, MongoDB). Added /datasource/parse-connection-string endpoint. Supports both URL format (postgresql://user:pass@host:port/db) and key-value format (Server=host;Database=db;User Id=user;Password=pass) for SQL Server."
-        - working: true
-          agent: "testing"
-          comment: "✅ CONNECTION STRING PARSING FULLY WORKING: Tested /api/datasource/parse-connection-string endpoint with all 6 connection string formats. All parsing tests passed: 1) PostgreSQL URL format (postgresql://user:pass@host:port/db) 2) MySQL URL format (mysql://user:pass@host:port/db) 3) Oracle URL format (oracle://user:pass@host:port/service) 4) SQL Server URL format (mssql://user:pass@host:port/db) 5) SQL Server key-value format (Server=host,port;Database=db;User Id=user;Password=pass) 6) MongoDB URL format (mongodb://user:pass@host:port/db). All formats correctly parsed into config dictionaries with proper host, port, database/service_name, username, password fields."
-
-frontend:
-  - task: "Database type dropdown expansion"
-    implemented: true
-    working: true
+    working: "NA"
     file: "/app/frontend/src/components/DataSourceSelector.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Updated DataSourceSelector to include MySQL and SQL Server in database type dropdown. Added dynamic port placeholders based on database type (PostgreSQL: 5432, MySQL: 3306, Oracle: 1521, SQL Server: 1433, MongoDB: 27017)."
-        - working: true
-          agent: "testing"
-          comment: "✅ DATABASE DROPDOWN WORKING: Verified database type dropdown includes all 5 database types (PostgreSQL, MySQL, Oracle, SQL Server, MongoDB) with proper dynamic port placeholders. Database connection UI working correctly."
-
-  - task: "Connection string UI toggle"
+          comment: "Updated executeCustomQuery function to call /api/datasource/execute-query-preview endpoint. Shows query results with row/column count, preview table (first 3 rows, first 6 columns), and enables 'Load Data' button. Added queryResults state to store preview data. Changed button text from 'Execute Query & Load Data' to just 'Execute Query'."
+  
+  - task: "Custom Query - Dataset naming dialog"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/frontend/src/components/DataSourceSelector.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Added 'Use Connection String' checkbox toggle in DataSourceSelector. When enabled, shows connection string input field with placeholder. Updated testConnection function to parse connection string via API before testing. Connection string format help text provided. Toggle resets connection tested state."
-        - working: true
-          agent: "testing"
-          comment: "✅ CONNECTION STRING UI WORKING: Verified 'Use Connection String' checkbox toggle functionality with connection string input field and format help text. Connection string parsing integration working correctly."
+          comment: "Added dataset naming dialog (modal) that appears when user clicks 'Load Data' button after successful query execution. Dialog prompts for dataset name with Input field, Cancel and Save Dataset buttons. Calls /api/datasource/save-query-dataset endpoint with user-provided name. Added showNameDialog and datasetName state variables."
+  
+  - task: "Custom Query - Results preview UI"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/DataSourceSelector.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added query results preview panel that displays after successful query execution. Shows green success message with row/column count, preview table (3 rows × 6 columns max), and 'Load Data' button. Includes X button to dismiss preview. Preview shows before dataset is saved to database."
 
 metadata:
   created_by: "main_agent"
