@@ -105,12 +105,28 @@ async def download_training_metadata_pdf(dataset_id: str):
         
         # Dataset Information
         elements.append(Paragraph("Dataset Information", heading_style))
+        
+        # Get last trained date from saved_states
+        last_trained = "N/A"
+        if saved_states:
+            sorted_by_date = sorted(saved_states, key=lambda x: x.get("created_at", ""), reverse=True)
+            if sorted_by_date:
+                last_trained_iso = sorted_by_date[0].get("created_at")
+                if last_trained_iso:
+                    try:
+                        last_trained_dt = datetime.fromisoformat(last_trained_iso.replace('Z', '+00:00'))
+                        last_trained = last_trained_dt.strftime("%m/%d/%Y, %H:%M:%S")
+                    except:
+                        last_trained = "N/A"
+        
         dataset_info = [
             ["Dataset Name:", dataset_name],
+            ["Dataset ID:", dataset.get("id", "N/A")],
             ["Total Records:", f"{row_count:,}"],
             ["Total Columns:", str(column_count)],
-            ["Training Count:", str(training_count)],
-            ["Report Generated:", datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            ["Total Trainings:", f"{training_count} times"],
+            ["Last Trained:", last_trained],
+            ["Report Generated:", datetime.now().strftime("%m/%d/%Y, %H:%M:%S")]
         ]
         
         dataset_table = Table(dataset_info, colWidths=[2*inch, 4*inch])
