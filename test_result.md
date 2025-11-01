@@ -317,15 +317,18 @@ frontend:
   
   - task: "Add ML model tabs (Linear Regression, Random Forest, XGBoost, Decision Tree)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/PredictiveAnalysis.jsx, /app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Implemented multiple ML models training in backend. Added train_ml_models() function that trains Linear Regression, Random Forest, Decision Tree, and XGBoost. Frontend displays models as tabs with R² score, RMSE, confidence levels, and feature importance charts. Models grouped by target column with tabbed interface for easy comparison."
+        - working: true
+          agent: "testing"
+          comment: "✅ ML MODEL TABS WORKING: Verified 🤖 ML Model Comparison section displays 7 model tabs with proper tabbed interface. Found 4 info icons (ℹ️) next to model names that show tooltips with model descriptions on hover. R² scores, RMSE, confidence levels, and feature importance all displaying correctly. Model comparison UI working perfectly."
   
   - task: "Save/Load analysis states with chat history"
     implemented: true
