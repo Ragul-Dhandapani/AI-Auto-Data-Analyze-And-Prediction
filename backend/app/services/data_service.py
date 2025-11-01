@@ -73,10 +73,16 @@ def generate_data_profile(df: pd.DataFrame) -> Dict[str, Any]:
         "categorical_summary": {}
     }
     
-    # Numeric summary
+    # Numeric summary (exclude boolean)
     numeric_cols = df.select_dtypes(include=[np.number]).columns
+    # Filter out boolean columns
+    numeric_cols = [col for col in numeric_cols if df[col].dtype != 'bool']
     if len(numeric_cols) > 0:
-        profile["numeric_summary"] = df[numeric_cols].describe().to_dict()
+        try:
+            profile["numeric_summary"] = df[numeric_cols].describe().to_dict()
+        except Exception as e:
+            logging.warning(f"Failed to generate numeric summary: {str(e)}")
+            profile["numeric_summary"] = {}
     
     # Categorical summary
     categorical_cols = df.select_dtypes(include=['object', 'category']).columns
