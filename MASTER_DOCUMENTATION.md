@@ -603,11 +603,16 @@ Frontend displays:
 - Supports files up to 16TB
 - Backward compatible
 
-#### Chart Validation
-- Prevents empty charts
+#### Chart Validation & Overflow Fix
+- Prevents empty charts with multi-layer validation
 - Validates plotly_data structure
 - Filters invalid charts
 - Tracks skipped charts
+- **PERMANENT FIX for chart overflow issues:**
+  - Charts use responsive containers (no fixed widths)
+  - PlotlyChart.jsx enforces container boundaries
+  - Backend removes fixed width/height from layouts
+  - All charts fit within UI containers perfectly
 
 #### Boolean Column Handling
 - Excludes from numeric operations
