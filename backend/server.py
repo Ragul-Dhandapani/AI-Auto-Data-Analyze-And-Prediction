@@ -817,12 +817,8 @@ async def holistic_analysis(request: HolisticRequest):
         if not dataset:
             raise HTTPException(404, "Dataset not found")
         
-        # Load data
-        data_doc = await db.dataset_data.find_one({"dataset_id": request.dataset_id}, {"_id": 0})
-        if not data_doc:
-            raise HTTPException(404, "Dataset data not found")
-            
-        df = pd.DataFrame(data_doc['data'])
+        # Load data using helper function
+        df = await get_dataset_dataframe(request.dataset_id)
         
         # Initialize results
         results = {
