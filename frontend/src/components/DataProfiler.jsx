@@ -20,7 +20,8 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
     cleaning: false,
     insights: false,
     columns: false,
-    preview: false
+    preview: false,
+    missing_details: true  // Collapsed by default
   });
 
   useEffect(() => {
