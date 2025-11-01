@@ -273,11 +273,12 @@ frontend/
 - Workspace save/load
 
 #### **TrainingMetadataPage.jsx**
-- Modern dropdown navigation
-- Dataset selection
-- Multi-select workspaces
-- Model performance comparison
-- PDF download (complete & filtered)
+- Modern dropdown navigation with react-select
+- Dataset selection dropdown
+- Multi-select workspaces dropdown
+- Model performance comparison (Initial vs Current scores)
+- Improvement percentage display
+- PDF download (complete & filtered reports)
 
 ---
 
