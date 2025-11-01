@@ -28,19 +28,23 @@ def generate_data_profile(df: pd.DataFrame) -> Dict[str, Any]:
             "missing_percentage": float(df[col].isnull().sum() / len(df) * 100)
         }
         
-        # Numeric column statistics
-        if pd.api.types.is_numeric_dtype(df[col]):
-            col_info["statistics"] = {
-                "mean": float(df[col].mean()) if not df[col].isna().all() else None,
-                "median": float(df[col].median()) if not df[col].isna().all() else None,
-                "std": float(df[col].std()) if not df[col].isna().all() else None,
-                "min": float(df[col].min()) if not df[col].isna().all() else None,
-                "max": float(df[col].max()) if not df[col].isna().all() else None,
-                "q25": float(df[col].quantile(0.25)) if not df[col].isna().all() else None,
-                "q75": float(df[col].quantile(0.75)) if not df[col].isna().all() else None
-            }
+        # Numeric column statistics (excluding boolean)
+        if pd.api.types.is_numeric_dtype(df[col]) and df[col].dtype != 'bool':
+            try:
+                col_info["statistics"] = {
+                    "mean": float(df[col].mean()) if not df[col].isna().all() else None,
+                    "median": float(df[col].median()) if not df[col].isna().all() else None,
+                    "std": float(df[col].std()) if not df[col].isna().all() else None,
+                    "min": float(df[col].min()) if not df[col].isna().all() else None,
+                    "max": float(df[col].max()) if not df[col].isna().all() else None,
+                    "q25": float(df[col].quantile(0.25)) if not df[col].isna().all() else None,
+                    "q75": float(df[col].quantile(0.75)) if not df[col].isna().all() else None
+                }
+            except Exception as e:
+                logging.warning(f"Failed to calculate statistics for {col}: {str(e)}")
+                col_info["statistics"] = {"error": "Unable to calculate statistics"}
         else:
-            # Categorical column info
+            # Categorical column info (including boolean)
             col_info["top_values"] = df[col].value_counts().head(5).to_dict()
         
         columns.append(col_info)
