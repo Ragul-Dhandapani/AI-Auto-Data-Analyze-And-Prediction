@@ -155,21 +155,27 @@ const TrainingMetadataPage = () => {
                       <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
                         <p className="text-xs text-blue-700 font-semibold mb-1">Initial Score</p>
                         <p className="text-3xl font-bold text-blue-800">
-                          {dataset.initial_score !== null ? dataset.initial_score.toFixed(3) : 'N/A'}
+                          {(dataset.initial_score !== null && dataset.initial_score !== undefined) 
+                            ? Number(dataset.initial_score).toFixed(3) 
+                            : 'N/A'}
                         </p>
                       </div>
                       <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
                         <p className="text-xs text-green-700 font-semibold mb-1">
-                          {dataset.improvement_percentage !== null ? 'Improvement' : 'Current Score'}
+                          {(dataset.improvement_percentage !== null && dataset.improvement_percentage !== undefined) 
+                            ? 'Improvement' 
+                            : 'Current Score'}
                         </p>
                         <p className="text-3xl font-bold text-green-800 flex items-center gap-2">
-                          {dataset.improvement_percentage !== null ? (
+                          {(dataset.improvement_percentage !== null && dataset.improvement_percentage !== undefined) ? (
                             <>
-                              {Math.abs(dataset.improvement_percentage).toFixed(1)}%
+                              {Math.abs(Number(dataset.improvement_percentage)).toFixed(1)}%
                               {dataset.improvement_percentage >= 0 && <TrendingUp className="w-5 h-5 text-green-600" />}
                             </>
                           ) : (
-                            dataset.current_score !== null ? dataset.current_score.toFixed(3) : 'N/A'
+                            (dataset.current_score !== null && dataset.current_score !== undefined) 
+                              ? Number(dataset.current_score).toFixed(3) 
+                              : 'N/A'
                           )}
                         </p>
                       </div>
