@@ -388,9 +388,6 @@ metadata:
 test_plan:
   current_focus:
     - "Health endpoint routing issue"
-    - "Correlation calculation via chat"
-    - "Support custom chart types (pie, bar, line) via chat"
-    - "Chart removal functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
