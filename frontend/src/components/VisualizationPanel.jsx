@@ -217,23 +217,26 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  // Render custom charts from chat
+  // Render custom charts from chat when expanded
   useEffect(() => {
-    if (customCharts.length > 0) {
-      loadPlotly().then((Plotly) => {
-        customCharts.forEach((chart, idx) => {
-          const chartDiv = document.getElementById(`viz-custom-chart-${idx}`);
-          if (chartDiv && chart.plotly_data) {
-            Plotly.newPlot(`viz-custom-chart-${idx}`, chart.plotly_data.data, chart.plotly_data.layout, {
-              responsive: true,
-              displayModeBar: true,
-              modeBarButtonsToRemove: ['lasso2d', 'select2d']
-            });
-          }
+    if (customCharts.length > 0 && customChartsOpen) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        loadPlotly().then((Plotly) => {
+          customCharts.forEach((chart, idx) => {
+            const chartDiv = document.getElementById(`viz-custom-chart-${idx}`);
+            if (chartDiv && chart.plotly_data) {
+              Plotly.newPlot(`viz-custom-chart-${idx}`, chart.plotly_data.data, chart.plotly_data.layout, {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d']
+              });
+            }
+          });
         });
-      });
+      }, 100);
     }
-  }, [customCharts]);
+  }, [customCharts, customChartsOpen]);
 
   const refreshCharts = () => {
     setHasGenerated(false);
