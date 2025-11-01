@@ -266,11 +266,11 @@ frontend:
   
   - task: "Support custom chart types (pie, bar, line) via chat"
     implemented: true
-    working: true
-    file: "/app/frontend/src/components/PredictiveAnalysis.jsx, /app/backend/server.py"
-    stuck_count: 0
+    working: false
+    file: "/app/backend/app/services/chat_service.py"
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
@@ -278,6 +278,9 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ BACKEND CUSTOM CHART GENERATION FULLY WORKING: Comprehensive testing completed for Phase 1 & 3 implementation. All chart types working perfectly: 1) PIE CHARTS: 'show me a pie chart' correctly returns action='add_chart', type='pie', valid Plotly data with pie traces, meaningful descriptions 2) BAR CHARTS: 'create a bar chart' returns action='add_chart', type='bar', valid Plotly bar data, proper x/y columns 3) LINE CHARTS: 'show line chart trend' returns action='add_chart', type='line', valid Plotly scatter traces with lines+markers mode 4) CORRELATION ANALYSIS: 'show correlation analysis' returns action='add_chart', type='correlation', correlations array with all required fields, valid heatmap data 5) REMOVAL FUNCTIONALITY: 'remove correlation' returns action='remove_section', section_to_remove='correlations'; 'remove pie chart' returns action='remove_section', section_to_remove='custom_chart'. All responses include proper message, chart_data with title/description, and valid Plotly JSON structure. Backend correctly detects keywords and generates appropriate charts with meaningful AI descriptions."
+        - working: false
+          agent: "testing"
+          comment: "❌ CHART REMOVAL BROKEN: After refactoring, chart removal not working. 'remove correlation' triggers correlation generation instead of removal due to keyword detection order issue in chat_service.py process_chat_message(). The function checks for 'correlation' keyword before 'remove' keyword, so 'remove correlation' matches correlation handler first. Need to reorder keyword detection to check for 'remove' first, or improve logic to handle removal requests properly. Also handle_remove_request() returns 'section_type' but tests expect 'section_to_remove'."
   
   - task: "Add ML model tabs (Linear Regression, Random Forest, XGBoost, Decision Tree)"
     implemented: true
