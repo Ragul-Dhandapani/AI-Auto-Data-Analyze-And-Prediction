@@ -175,14 +175,24 @@ async def holistic_analysis(request: HolisticRequest):
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         models_result = {"models": [], "message": "No numeric columns for ML training"}
         
+        logging.info(f"Holistic analysis: Found {len(numeric_cols)} numeric columns")
+        
         if len(numeric_cols) >= 2:
             # Suggest best target column
             target_col = suggest_best_target_column(df)
+            logging.info(f"Suggested target column: {target_col}")
+            
             if target_col:
                 try:
+                    logging.info(f"Starting ML training for target: {target_col}")
                     models_result = train_multiple_models(df, target_col)
+                    logging.info(f"ML training completed: {len(models_result.get('models', []))} models trained")
                 except Exception as e:
+                    logging.error(f"ML training failed: {str(e)}", exc_info=True)
                     models_result = {"models": [], "error": str(e)}
+            else:
+                logging.warning("No suitable target column suggested")
+                models_result = {"models": [], "message": "No suitable target column found"}
         
         # 3. Generate Auto Charts
         auto_charts = generate_auto_charts(df, max_charts=15)
