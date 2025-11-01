@@ -538,13 +538,16 @@ async def list_tables(request: DataSourceTest):
 
 @api_router.post("/datasource/upload-file")
 async def upload_file(file: UploadFile = File(...)):
-    """Upload and preview data file"""
+    """Upload and preview data file using GridFS for large files"""
     try:
-        # Read file in chunks for large files
+        import time
+        start_time = time.time()
+        
+        # Read file
         contents = await file.read()
         file_size = len(contents)
         
-        # Detect file type and read
+        # Detect file type and read for metadata
         if file.filename.endswith('.csv'):
             df = pd.read_csv(BytesIO(contents), low_memory=False)
         elif file.filename.endswith(('.xlsx', '.xls')):
@@ -570,6 +573,8 @@ async def upload_file(file: UploadFile = File(...)):
         # For large datasets, only store sample data in preview
         preview_size = min(len(df), 100)
         
+        upload_time = time.time() - start_time
+        
         dataset_info = {
             "id": dataset_id,
             "name": unique_name,
@@ -580,18 +585,30 @@ async def upload_file(file: UploadFile = File(...)):
             "column_count": len(df.columns),
             "columns": df.columns.tolist(),
             "data_preview": df.head(preview_size).to_dict('records'),
+            "upload_time": upload_time,
+            "storage_method": "gridfs" if file_size > 5_000_000 else "document",  # Use GridFS for files > 5MB
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
         # Store in MongoDB
-        result = await db.datasets.insert_one(dataset_info)
+        await db.datasets.insert_one(dataset_info)
         
-        # Store actual data (for large files, consider using GridFS)
-        data_records = df.to_dict('records')
-        await db.dataset_data.insert_one({
-            "dataset_id": dataset_id,
-            "data": data_records
-        })
+        # Store actual data using GridFS for large files
+        if file_size > 5_000_000:  # 5MB threshold
+            # Store raw file in GridFS
+            file_id = await fs.upload_from_stream(
+                f"dataset_{dataset_id}",
+                contents,
+                metadata={"dataset_id": dataset_id, "filename": unique_name}
+            )
+            logging.info(f"Stored large file in GridFS with ID: {file_id}")
+        else:
+            # Store as regular document for smaller files
+            data_records = df.to_dict('records')
+            await db.dataset_data.insert_one({
+                "dataset_id": dataset_id,
+                "data": data_records
+            })
         
         # Return without MongoDB ObjectId
         return {k: v for k, v in dataset_info.items() if k != '_id'}
