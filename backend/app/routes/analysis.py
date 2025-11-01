@@ -148,14 +148,23 @@ Provide actionable insights in bullet points about:
                 }
             except Exception as e:
                 logger.error(f"AI insights generation failed: {str(e)}", exc_info=True)
+                # Safe fallback that doesn't rely on undefined variables
+                try:
+                    profile = generate_data_profile(df)
+                    numeric_count = len(df.select_dtypes(include=[np.number]).columns)
+                    categorical_count = len(df.select_dtypes(include=['object', 'category']).columns)
+                except:
+                    numeric_count = 0
+                    categorical_count = 0
+                
                 return {
                     "insights": f"Unable to generate AI insights at this time. You can still explore the data using profile statistics and visualizations.",
                     "error": str(e),
                     "summary": {
                         "total_records": len(df),
                         "total_columns": len(df.columns),
-                        "numeric_columns": len(numeric_cols),
-                        "categorical_columns": len(categorical_cols)
+                        "numeric_columns": numeric_count,
+                        "categorical_columns": categorical_count
                     }
                 }
             except Exception as e:
