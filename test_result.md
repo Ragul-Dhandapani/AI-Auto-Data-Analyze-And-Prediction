@@ -393,15 +393,18 @@ frontend:
 
   - task: "Connection string UI toggle"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/DataSourceSelector.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added 'Use Connection String' checkbox toggle in DataSourceSelector. When enabled, shows connection string input field with placeholder. Updated testConnection function to parse connection string via API before testing. Connection string format help text provided. Toggle resets connection tested state."
+        - working: true
+          agent: "testing"
+          comment: "✅ CONNECTION STRING UI WORKING: Verified 'Use Connection String' checkbox toggle functionality with connection string input field and format help text. Connection string parsing integration working correctly."
 
 metadata:
   created_by: "main_agent"
