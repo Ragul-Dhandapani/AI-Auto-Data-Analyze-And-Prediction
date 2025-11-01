@@ -49,7 +49,17 @@ const PlotlyChart = ({ data, layout, config }) => {
     };
   }, [data, layout, config]);
 
-  return <div ref={chartRef} className="w-full" style={{ minHeight: '400px', maxHeight: '450px' }} />;
+  return (
+    <div 
+      ref={chartRef} 
+      className="w-full overflow-hidden" 
+      style={{ 
+        minHeight: '400px', 
+        maxHeight: '450px',
+        maxWidth: '100%'
+      }} 
+    />
+  );
 };
 
 export default PlotlyChart;
