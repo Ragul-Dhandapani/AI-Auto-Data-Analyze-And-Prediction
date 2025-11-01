@@ -900,6 +900,96 @@ def train_ml_models(df, target_col, feature_cols):
             y_pred_lstm = model.predict(X_test_lstm, verbose=0).flatten()
             
             # Calculate metrics
+
+
+def generate_auto_charts(df, max_charts=15):
+    """Generate up to 15 intelligent charts based on data analysis"""
+    import plotly.graph_objects as go
+    import plotly.express as px
+    
+    charts = []
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+    datetime_cols = df.select_dtypes(include=['datetime64']).columns.tolist()
+    
+    # 1-3: Distribution charts for top 3 numeric columns
+    for col in numeric_cols[:3]:
+        try:
+            fig = go.Figure(data=[go.Histogram(x=df[col].dropna(), nbinsx=30, name=col)])
+            fig.update_layout(title=f"Distribution of {col}", xaxis_title=col, yaxis_title="Frequency", width=700, height=400)
+            charts.append({
+                "type": "histogram",
+                "title": f"Distribution of {col}",
+                "plotly_data": json.loads(fig.to_json()),
+                "description": f"Shows frequency distribution of {col}. Mean: {df[col].mean():.2f}, Std: {df[col].std():.2f}"
+            })
+        except: pass
+    
+    # 4-6: Box plots for numeric columns (detect outliers)
+    for col in numeric_cols[:3]:
+        try:
+            fig = go.Figure(data=[go.Box(y=df[col].dropna(), name=col)])
+            fig.update_layout(title=f"Box Plot: {col}", yaxis_title=col, width=700, height=400)
+            charts.append({
+                "type": "box",
+                "title": f"Box Plot: {col}",
+                "plotly_data": json.loads(fig.to_json()),
+                "description": f"Identifies outliers and spread in {col}. Median: {df[col].median():.2f}"
+            })
+        except: pass
+    
+    # 7-9: Categorical distribution (top 3 categorical columns)
+    for col in categorical_cols[:3]:
+        try:
+            value_counts = df[col].value_counts().head(10)
+            fig = go.Figure(data=[go.Bar(x=value_counts.index, y=value_counts.values)])
+            fig.update_layout(title=f"Top Categories in {col}", xaxis_title=col, yaxis_title="Count", width=700, height=400)
+            charts.append({
+                "type": "bar",
+                "title": f"Top Categories in {col}",
+                "plotly_data": json.loads(fig.to_json()),
+                "description": f"Top {len(value_counts)} categories in {col}. Most common: {value_counts.index[0]} ({value_counts.values[0]} occurrences)"
+            })
+        except: pass
+    
+    # 10-12: Time series trends (if datetime columns exist)
+    if datetime_cols:
+        for dt_col in datetime_cols[:1]:
+            for num_col in numeric_cols[:2]:
+                try:
+                    temp_df = df[[dt_col, num_col]].dropna().sort_values(dt_col)
+                    fig = go.Figure(data=[go.Scatter(x=temp_df[dt_col], y=temp_df[num_col], mode='lines+markers', name=num_col)])
+                    fig.update_layout(title=f"{num_col} Over Time", xaxis_title=dt_col, yaxis_title=num_col, width=700, height=400)
+                    charts.append({
+                        "type": "timeseries",
+                        "title": f"{num_col} Over Time",
+                        "plotly_data": json.loads(fig.to_json()),
+                        "description": f"Time series showing {num_col} trends. Peak: {temp_df[num_col].max():.2f}, Low: {temp_df[num_col].min():.2f}"
+                    })
+                except: pass
+    
+    # 13-15: Scatter plots for correlation (top 3 pairs)
+    if len(numeric_cols) >= 2:
+        pairs_added = 0
+        for i in range(len(numeric_cols)):
+            for j in range(i+1, len(numeric_cols)):
+                if pairs_added >= 3: break
+                try:
+                    corr = df[numeric_cols[i]].corr(df[numeric_cols[j]])
+                    if abs(corr) > 0.3:  # Only significant correlations
+                        fig = px.scatter(df, x=numeric_cols[i], y=numeric_cols[j], trendline="ols")
+                        fig.update_layout(title=f"{numeric_cols[i]} vs {numeric_cols[j]}", width=700, height=400)
+                        charts.append({
+                            "type": "scatter",
+                            "title": f"{numeric_cols[i]} vs {numeric_cols[j]}",
+                            "plotly_data": json.loads(fig.to_json()),
+                            "description": f"Correlation: {corr:.2f}. {'Strong' if abs(corr) > 0.7 else 'Moderate'} {'positive' if corr > 0 else 'negative'} relationship."
+                        })
+                        pairs_added += 1
+                except: pass
+    
+    return charts[:max_charts]
+
             mse = mean_squared_error(y_test, y_pred_lstm)
             r2 = r2_score(y_test, y_pred_lstm)
             rmse = np.sqrt(mse)
