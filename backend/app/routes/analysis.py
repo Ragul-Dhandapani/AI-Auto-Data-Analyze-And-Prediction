@@ -131,7 +131,7 @@ Provide actionable insights in bullet points about:
 3. Potential relationships between variables
 4. Recommendations for analysis"""
                 
-                insights_text = llm.send_user_message(prompt)
+                insights_text = llm.send_message(prompt)
                 
                 return {
                     "insights": insights_text,
