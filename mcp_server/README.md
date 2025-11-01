@@ -2,32 +2,21 @@
 
 Model Context Protocol server for PROMISE AI - Provides data analysis and ML capabilities to AI agents.
 
-## Available Tools
+## Features
 
-### 1. upload_dataset
-Upload a CSV dataset for analysis
-- **Input:** `csv_base64` (base64 encoded CSV), `dataset_name`
-- **Output:** Dataset ID and metadata
+- **Dataset Management**: Upload and manage datasets
+- **Holistic Analysis**: Comprehensive ML analysis with auto-charts
+- **Visualizations**: Generate 15+ intelligent charts
+- **Workspace Management**: Save and load analysis states
+- **ML Models**: RandomForest, LinearRegression with auto-training
+- **AI Insights**: LLM-powered insights generation
 
-### 2. analyze_data
-Get comprehensive data profiling and statistics
-- **Input:** `dataset_id` or `data_base64`
-- **Output:** Column statistics, missing values, data types
+## Tools Available
 
-### 3. predict_with_ml
-Run predictive analysis using ML models
-- **Input:** `dataset_id`, `target_column`, `model_type` (random_forest, gradient_boosting, linear_regression, decision_tree)
-- **Output:** Model performance metrics and predictions
-
-### 4. generate_insights
-Get AI-powered insights and recommendations
-- **Input:** `dataset_id`, optional `focus_area`
-- **Output:** Natural language insights
-
-### 5. clean_data
-Automatically clean data
-- **Input:** `dataset_id`
-- **Output:** Cleaning report
+1. `upload_dataset` - Upload CSV data
+2. `holistic_analysis` - Run comprehensive analysis
+3. `generate_visualizations` - Create charts
+4. `save_workspace` - Save analysis state
 
 ## Installation
 
