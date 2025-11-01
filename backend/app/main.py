@@ -59,6 +59,18 @@ async def root():
         }
     }
 
+# Backward compatibility - datasets endpoint
+@api_router.get("/datasets")
+async def get_datasets_compat():
+    """Backward compatibility for /api/datasets"""
+    from app.database.mongodb import db
+    try:
+        cursor = db.datasets.find({}, {"_id": 0}).sort("created_at", -1).limit(10)
+        datasets = await cursor.to_list(length=10)
+        return datasets
+    except Exception as e:
+        return []
+
 # Include main router
 app.include_router(api_router)
 
