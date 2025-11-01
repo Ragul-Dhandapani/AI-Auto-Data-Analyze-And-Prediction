@@ -241,8 +241,8 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
                 return (
                   <div key={idx} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-gray-800">{col.column_name}</span>
-                      <span className="text-sm bg-orange-100 text-orange-700 px-2 py-1 rounded">{col.data_type}</span>
+                      <span className="font-semibold text-gray-800">{col.name}</span>
+                      <span className="text-sm bg-orange-100 text-orange-700 px-2 py-1 rounded">{col.dtype}</span>
                     </div>
                     <div className="flex items-center gap-4">
                       <div>
