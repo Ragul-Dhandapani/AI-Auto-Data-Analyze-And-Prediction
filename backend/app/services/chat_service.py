@@ -209,17 +209,30 @@ def handle_correlation_request(df: pd.DataFrame) -> Dict[str, Any]:
     ))
     fig.update_layout(title="Correlation Heatmap", width=700, height=600)
     
-    # Find strong correlations
-    strong_corrs = []
+    # Build correlations array with proper structure
+    correlations = []
     for i in range(len(numeric_cols)):
         for j in range(i+1, len(numeric_cols)):
             corr_val = corr_matrix.iloc[i, j]
-            if abs(corr_val) > 0.5:
-                strong_corrs.append(f"{numeric_cols[i]} & {numeric_cols[j]}: {corr_val:.2f}")
+            if abs(corr_val) > 0.1:  # Only include significant correlations
+                strength = "Strong" if abs(corr_val) > 0.7 else "Moderate" if abs(corr_val) > 0.4 else "Weak"
+                interpretation = "positive" if corr_val > 0 else "negative"
+                correlations.append({
+                    "feature1": numeric_cols[i],
+                    "feature2": numeric_cols[j],
+                    "value": round(corr_val, 3),
+                    "strength": strength,
+                    "interpretation": f"{strength} {interpretation} correlation"
+                })
     
+    # Sort by absolute value
+    correlations.sort(key=lambda x: abs(x['value']), reverse=True)
+    
+    # Build description
     description = "Correlation heatmap showing relationships between numeric features."
-    if strong_corrs:
-        description += f" Strong correlations: {', '.join(strong_corrs[:3])}"
+    if correlations:
+        top_corrs = [f"{c['feature1']} & {c['feature2']}: {c['value']:.2f}" for c in correlations[:3]]
+        description += f" Strong correlations: {', '.join(top_corrs)}"
     
     return {
         "action": "add_chart",
@@ -229,7 +242,7 @@ def handle_correlation_request(df: pd.DataFrame) -> Dict[str, Any]:
             "title": "Correlation Heatmap",
             "plotly_data": json.loads(fig.to_json()),
             "description": description,
-            "correlations": corr_matrix.to_dict()
+            "correlations": correlations  # Now returns array format
         }
     }
 
