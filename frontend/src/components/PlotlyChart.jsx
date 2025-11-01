@@ -18,25 +18,42 @@ const PlotlyChart = ({ data, layout, config }) => {
       }
 
       if (chartRef.current && window.Plotly) {
+        const defaultLayout = {
+          autosize: true,
+          responsive: true,
+          margin: { l: 60, r: 40, t: 60, b: 60 },
+          ...layout
+        };
+        
+        const defaultConfig = {
+          responsive: true,
+          displayModeBar: true,
+          displaylogo: false,
+          modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+          ...config
+        };
+        
         window.Plotly.newPlot(
           chartRef.current,
           data,
-          {
-            ...layout,
-            autosize: true,
-            responsive: true,
-            margin: { l: 60, r: 40, t: 60, b: 60 }  // Better margins for axis labels
-          },
-          { 
-            ...config,
-            responsive: true,
-            displayModeBar: true,
-            displaylogo: false,
-            modeBarButtonsToRemove: ['lasso2d', 'select2d']
-          }
+          defaultLayout,
+          defaultConfig
         );
         
         plotlyRef.current = chartRef.current;
+        
+        // Add resize observer to handle container changes
+        const resizeObserver = new ResizeObserver(() => {
+          if (chartRef.current && window.Plotly) {
+            window.Plotly.Plots.resize(chartRef.current);
+          }
+        });
+        
+        resizeObserver.observe(chartRef.current);
+        
+        return () => {
+          resizeObserver.disconnect();
+        };
       }
     };
 
