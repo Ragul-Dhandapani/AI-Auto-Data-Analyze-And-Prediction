@@ -195,6 +195,18 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Added query results preview panel that displays after successful query execution. Shows green success message with row/column count, preview table (3 rows × 6 columns max), and 'Load Data' button. Includes X button to dismiss preview. Preview shows before dataset is saved to database."
+  
+  - task: "ML Model Comparison Table for Multiple Targets"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added 'All Models Comparison' table that displays when multiple target variables are detected (multiple key correlations). Table shows all trained models sorted by R² score (best to worst) with columns: Rank, Model, Target Variable, R² Score, RMSE, Confidence, Train Samples. Top model highlighted with 🏆 badge and yellow background. Includes tip about interpreting R² and RMSE. Appears above the existing per-target model tabs."
 
 metadata:
   created_by: "main_agent"
