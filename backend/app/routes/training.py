@@ -6,6 +6,9 @@ from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 
 from app.database.mongodb import db
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/training", tags=["training"])
 
