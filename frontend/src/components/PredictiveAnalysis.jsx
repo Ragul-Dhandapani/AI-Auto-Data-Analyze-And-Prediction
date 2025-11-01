@@ -828,21 +828,61 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           <div className="chat-header p-4 border-b flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-xl cursor-grab active:cursor-grabbing">
             <h3 className="font-semibold">Analysis Assistant</h3>
             <div className="flex gap-2">
+              {chatMessages.length > 0 && (
+                <Button
+                  onClick={() => {
+                    if (confirm('Clear all chat messages?')) {
+                      setChatMessages([]);
+                      toast.success('Chat cleared');
+                    }
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20 text-xs"
+                  title="Clear Chat"
+                >
+                  Clear
+                </Button>
+              )}
+              <Button
+                onClick={() => {
+                  if (chatMessages.length > 0 && confirm('Start a new chat? Current messages will be cleared.')) {
+                    setChatMessages([]);
+                    toast.info('New chat started');
+                  } else if (chatMessages.length === 0) {
+                    toast.info('Already in a new chat');
+                  }
+                }}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 text-xs"
+                title="New Chat"
+              >
+                New
+              </Button>
               <Button
                 onClick={() => setChatMinimized(true)}
                 variant="ghost"
                 size="sm"
                 className="text-white hover:bg-white/20"
                 data-testid="minimize-chat-btn"
+                title="Minimize"
               >
                 <ChevronDown className="w-4 h-4" />
               </Button>
               <Button
-                onClick={() => setShowChat(false)}
+                onClick={() => {
+                  if (chatMessages.length > 0 && confirm('End chat and close? Messages will be saved with workspace.')) {
+                    setShowChat(false);
+                  } else {
+                    setShowChat(false);
+                  }
+                }}
                 variant="ghost"
                 size="sm"
                 className="text-white hover:bg-white/20"
                 data-testid="close-chat-btn"
+                title="End Chat"
               >
                 <X className="w-4 h-4" />
               </Button>
