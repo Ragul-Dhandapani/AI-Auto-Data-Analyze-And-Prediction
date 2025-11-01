@@ -279,31 +279,51 @@ const TrainingMetadataPage = () => {
                     </div>
                   </div>
 
-                  {/* Key Metrics - Initial Score & Improvement */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+                  {/* Key Metrics - 4 Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-5 h-5 text-blue-600" />
-                        <span className="text-sm font-semibold text-blue-700">Initial Score</span>
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                        <span className="text-xs font-semibold text-blue-700">Initial Score</span>
                       </div>
-                      <p className="text-4xl font-bold text-blue-800">
+                      <p className="text-3xl font-bold text-blue-800">
                         {displayData.initial_score !== null && displayData.initial_score !== undefined
                           ? Number(displayData.initial_score).toFixed(3)
                           : 'N/A'}
                       </p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-lg border border-green-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-5 h-5 text-green-600" />
-                        <span className="text-sm font-semibold text-green-700">Improvement</span>
+                        <TrendingUp className="w-4 h-4 text-green-600" />
+                        <span className="text-xs font-semibold text-green-700">Current Score</span>
                       </div>
-                      <p className="text-4xl font-bold text-green-800">
+                      <p className="text-3xl font-bold text-green-800">
+                        {displayData.current_score !== null && displayData.current_score !== undefined
+                          ? Number(displayData.current_score).toFixed(3)
+                          : 'N/A'}
+                      </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-purple-600" />
+                        <span className="text-xs font-semibold text-purple-700">Workspaces</span>
+                      </div>
+                      <p className="text-3xl font-bold text-purple-800">{displayData.training_count}</p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-5 rounded-lg border border-orange-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Database className="w-4 h-4 text-orange-600" />
+                        <span className="text-xs font-semibold text-orange-700">Improvement</span>
+                      </div>
+                      <p className="text-3xl font-bold text-orange-800">
                         {displayData.improvement_percentage !== null && displayData.improvement_percentage !== undefined
                           ? `${displayData.improvement_percentage >= 0 ? '+' : ''}${Number(displayData.improvement_percentage).toFixed(1)}%`
                           : 'N/A'}
                       </p>
-                      <div className="mt-2 text-xs text-green-700">
+                      <div className="mt-2 text-xs text-orange-700">
                         {displayData.training_count > 0 && `Trained ${displayData.training_count} times`}
                       </div>
                     </div>
