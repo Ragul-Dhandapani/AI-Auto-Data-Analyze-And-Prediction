@@ -127,9 +127,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     const startTime = Date.now();
     toast.info("Running comprehensive AI/ML analysis...");
     
-    // Simulate progress for better UX
+    // Simulate progress for better UX - cap at 90% until response received
     progressIntervalRef.current = setInterval(() => {
       setProgress(prev => {
+        if (prev >= 90) return 90; // Cap at 90% until actual completion
         // Slow down as we approach 90%
         if (prev < 30) return prev + 3;
         if (prev < 60) return prev + 2;
