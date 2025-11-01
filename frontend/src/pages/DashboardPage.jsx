@@ -312,6 +312,19 @@ const DashboardPage = () => {
                                 Upload time: {dataset.upload_time.toFixed(1)}s
                               </p>
                             )}
+                            {dataset.training_count && dataset.training_count > 0 && (
+                              <div className="mt-2 pt-2 border-t border-green-200 bg-green-50 -mx-2 px-2 py-1 rounded">
+                                <p className="text-xs font-semibold text-green-700 flex items-center gap-1">
+                                  <RefreshCw className="w-3 h-3" />
+                                  Trained {dataset.training_count} time{dataset.training_count > 1 ? 's' : ''}
+                                </p>
+                                {dataset.best_model_score && (
+                                  <p className="text-xs text-green-600 mt-1">
+                                    Best Score: {(dataset.best_model_score * 100).toFixed(1)}%
+                                  </p>
+                                )}
+                              </div>
+                            )}
                             <p className="text-xs text-gray-400">
                               {new Date(dataset.created_at).toLocaleString()}
                             </p>
