@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix 8 critical issues: 1) Progress bar showing 100% but still loading for minutes 2) Add Clear Chat button 3) Chat history persistence in saved workspaces 4) New Chat & End Chat options 5) Change PROMISE to PROMISE AI 6) Self-training algorithm with training count display 7) Improve AI insights display 8) Fix chat to create charts (not Python code) for scatter plots"
+user_problem_statement: "Implement 3 features: 1) Fix Training Metadata Dashboard - showing correct model scores instead of 0.000 2) Custom Query Dataset Naming - execute query, show preview, enable Load Data button, prompt for name before saving 3) ML Model Comparison for multiple key correlation analysis in Predictive Analysis"
 
 backend:
   - task: "Health endpoint routing issue"
