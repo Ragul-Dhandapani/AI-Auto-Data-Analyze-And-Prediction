@@ -19,6 +19,9 @@ from app.services.ml_service import train_multiple_models, suggest_best_target_c
 from app.services.visualization_service import generate_auto_charts
 from app.services.chat_service import process_chat_message
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
