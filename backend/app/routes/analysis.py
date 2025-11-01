@@ -282,8 +282,11 @@ async def holistic_analysis(request: HolisticRequest):
         if llm_key:
             try:
                 from emergentintegrations.llm.chat import LlmChat
-                llm = LlmChat(api_key=llm_key)
-                llm.set_system_message("You are a data analyst expert. Provide clear, actionable insights about datasets.")
+                llm = LlmChat(
+                    api_key=llm_key,
+                    session_id="holistic_insights",
+                    system_message="You are a data analyst expert. Provide clear, actionable insights about datasets."
+                )
                 
                 summary = {
                     "rows": len(df),
@@ -297,7 +300,7 @@ Dataset: {summary}
 
 Provide concise, actionable insights."""
                 
-                response = llm.send_user_message(prompt)
+                response = await llm.send_message(prompt)
                 insights = response if isinstance(response, str) else str(response)
             except Exception as e:
                 logging.error(f"Holistic insights generation failed: {str(e)}")
