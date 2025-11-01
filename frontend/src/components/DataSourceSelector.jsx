@@ -270,19 +270,64 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
             service_name: dbConfig.service_name
           };
 
-      const response = await axios.post(`${API}/datasource/execute-query`, queryConfig);
+      // Execute query to validate and get preview
+      const response = await axios.post(`${API}/datasource/execute-query-preview`, queryConfig);
       
-      toast.success(`Query executed successfully! Loaded ${response.data.row_count} rows`, {
-        description: response.data.size_mb ? `Size: ${response.data.size_mb} MB` : undefined
+      // Store results for loading later
+      setQueryResults({
+        row_count: response.data.row_count,
+        column_count: response.data.column_count,
+        columns: response.data.columns,
+        preview: response.data.data_preview,
+        queryConfig: queryConfig
       });
       
-      onDatasetLoaded(response.data);
+      toast.success(`Query executed successfully! Found ${response.data.row_count} rows`, {
+        description: `Click "Load Data" to save this dataset`
+      });
       
-      // Clear query after successful execution
-      setCustomQuery("");
     } catch (error) {
       console.error("Query execution error:", error);
       toast.error("Query execution failed: " + (error.response?.data?.detail || error.message));
+      setQueryResults(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const loadQueryResults = () => {
+    // Prompt user for dataset name
+    setShowNameDialog(true);
+  };
+  
+  const saveQueryDataset = async () => {
+    if (!datasetName.trim()) {
+      toast.error("Please enter a dataset name");
+      return;
+    }
+    
+    setLoading(true);
+    setShowNameDialog(false);
+    
+    try {
+      // Call backend to save the query results with the custom name
+      const response = await axios.post(`${API}/datasource/save-query-dataset`, {
+        ...queryResults.queryConfig,
+        dataset_name: datasetName.trim()
+      });
+      
+      toast.success(`Dataset "${datasetName}" loaded successfully!`);
+      
+      onDatasetLoaded(response.data);
+      
+      // Clear state
+      setCustomQuery("");
+      setQueryResults(null);
+      setDatasetName("");
+      
+    } catch (error) {
+      console.error("Save dataset error:", error);
+      toast.error("Failed to save dataset: " + (error.response?.data?.detail || error.message));
     } finally {
       setLoading(false);
     }
