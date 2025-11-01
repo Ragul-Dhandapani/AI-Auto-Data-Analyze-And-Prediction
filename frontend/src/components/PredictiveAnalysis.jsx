@@ -93,6 +93,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
 
   const runHolisticAnalysis = async () => {
     setLoading(true);
+    const startTime = Date.now();
     toast.info("Running comprehensive AI/ML analysis...");
     
     try {
@@ -100,9 +101,13 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         dataset_id: dataset.id
       });
 
+      const endTime = Date.now();
+      const timeTaken = ((endTime - startTime) / 1000).toFixed(1); // in seconds
+      setAnalysisTime(timeTaken);
+
       setAnalysisResults(response.data);
       onAnalysisUpdate(response.data); // Cache the results
-      toast.success("Comprehensive analysis complete!");
+      toast.success(`Analysis complete in ${timeTaken}s!`);
     } catch (error) {
       const errorMsg = error.response?.data?.detail || error.message || "Unknown error";
       console.error("Analysis error:", error);
