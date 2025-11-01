@@ -306,7 +306,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           // Add correlations to the analysis results
           const updatedResults = {
             ...analysisResults,
-            correlations: actionData.chart_data.correlations || [],
+            correlations: {
+              correlations: actionData.chart_data.correlations || [],
+              matrix: actionData.chart_data.matrix || null
+            },
             correlation_heatmap: actionData.chart_data.heatmap || null
           };
           setAnalysisResults(updatedResults);
