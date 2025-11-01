@@ -80,18 +80,65 @@ const DashboardPage = () => {
   };
 
   const deleteDataset = async (datasetId, event) => {
-    event.stopPropagation(); // Prevent card click
-    
-    if (!confirm("Are you sure you want to delete this dataset?")) {
+    event?.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this dataset?")) {
+      try {
+        await axios.delete(`${API}/datasets/${datasetId}`);
+        loadDatasets();
+        toast.success("Dataset deleted successfully");
+        if (selectedDataset?.id === datasetId) {
+          setSelectedDataset(null);
+          setCurrentStep("data-source");
+        }
+      } catch (error) {
+        toast.error("Failed to delete dataset: " + (error.response?.data?.detail || "Not Found"));
+      }
+    }
+  };
+
+  const toggleDatasetSelection = (datasetId) => {
+    const newSelection = new Set(selectedDatasetIds);
+    if (newSelection.has(datasetId)) {
+      newSelection.delete(datasetId);
+    } else {
+      newSelection.add(datasetId);
+    }
+    setSelectedDatasetIds(newSelection);
+  };
+
+  const selectAllDatasets = () => {
+    if (selectedDatasetIds.size === datasets.length) {
+      setSelectedDatasetIds(new Set());
+    } else {
+      setSelectedDatasetIds(new Set(datasets.map(d => d.id)));
+    }
+  };
+
+  const bulkDeleteDatasets = async () => {
+    if (selectedDatasetIds.size === 0) {
+      toast.error("No datasets selected");
       return;
     }
-
-    try {
-      await axios.delete(`${API}/datasets/${datasetId}`);
-      toast.success("Dataset deleted successfully!");
-      loadDatasets();
-    } catch (error) {
-      toast.error("Failed to delete dataset: " + (error.response?.data?.detail || error.message));
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedDatasetIds.size} dataset(s)?`)) {
+      try {
+        const deletePromises = Array.from(selectedDatasetIds).map(id => 
+          axios.delete(`${API}/datasets/${id}`)
+        );
+        await Promise.all(deletePromises);
+        
+        toast.success(`${selectedDatasetIds.size} dataset(s) deleted successfully`);
+        setSelectedDatasetIds(new Set());
+        setIsMultiSelectMode(false);
+        loadDatasets();
+        
+        if (selectedDataset && selectedDatasetIds.has(selectedDataset.id)) {
+          setSelectedDataset(null);
+          setCurrentStep("data-source");
+        }
+      } catch (error) {
+        toast.error("Failed to delete some datasets");
+      }
     }
   };
 
