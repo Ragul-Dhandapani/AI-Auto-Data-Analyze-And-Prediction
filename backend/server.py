@@ -902,31 +902,6 @@ def generate_auto_charts(df, max_charts=15):
     
     return charts[:max_charts]
 
-            mse = mean_squared_error(y_test, y_pred_lstm)
-            r2 = r2_score(y_test, y_pred_lstm)
-            rmse = np.sqrt(mse)
-            confidence = "High" if r2 > 0.7 else "Medium" if r2 > 0.5 else "Low"
-            
-            models_results.append({
-                "model_name": "LSTM Neural Network",
-                "target_column": target_col,
-                "r2_score": float(r2),
-                "rmse": float(rmse),
-                "mse": float(mse),
-                "confidence": confidence,
-                "feature_importance": {},
-                "predictions_sample": {
-                    "actual": y_test.head(10).tolist(),
-                    "predicted": y_pred_lstm[:10].tolist()
-                }
-            })
-        except Exception as e:
-            logging.error(f"Error training LSTM: {str(e)}")
-    except Exception as e:
-        logging.error(f"ML training error: {str(e)}")
-    
-    return models_results
-
 
 @api_router.post("/analysis/holistic")
 async def holistic_analysis(request: HolisticRequest):
