@@ -30,6 +30,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(analysisCache || null);
   const [analysisTime, setAnalysisTime] = useState(null);  // Track analysis time
+  const [progress, setProgress] = useState(0);  // Track progress percentage
   const [collapsed, setCollapsed] = useState({});
   const [showChat, setShowChat] = useState(false);
   const [chatMinimized, setChatMinimized] = useState(false);
@@ -41,6 +42,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const chatEndRef = useRef(null);
+  const progressIntervalRef = useRef(null);
 
   // Use cached data if available
   useEffect(() => {
