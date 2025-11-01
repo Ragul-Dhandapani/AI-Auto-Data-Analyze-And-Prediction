@@ -652,7 +652,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           
           <div className="space-y-6">
             {analysisResults.custom_charts
-              .filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0)
+              .filter(chart => chart && chart.plotly_data)
               .map((chart, idx) => (
               <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
                 <h4 className="font-semibold mb-2">{chart.title}</h4>
