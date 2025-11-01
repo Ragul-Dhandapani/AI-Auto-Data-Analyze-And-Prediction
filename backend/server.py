@@ -2363,11 +2363,25 @@ async def get_saved_states(dataset_id: str):
 
 @api_router.delete("/analysis/delete-state/{state_id}")
 async def delete_analysis_state(state_id: str):
-    """Delete a saved analysis state"""
+    """Delete a saved analysis state (cleans up GridFS files if needed)"""
     try:
+        # Get the state first to check if it uses GridFS
+        state = await db.analysis_states.find_one({"id": state_id}, {"_id": 0})
+        if not state:
+            raise HTTPException(404, "Analysis state not found")
+        
+        # If it's stored in GridFS, delete the file
+        if state.get("storage_type") == "gridfs" and state.get("gridfs_file_id"):
+            try:
+                await fs.delete(ObjectId(state["gridfs_file_id"]))
+            except Exception as e:
+                logging.warning(f"Failed to delete GridFS file: {str(e)}")
+        
+        # Delete the metadata document
         result = await db.analysis_states.delete_one({"id": state_id})
         if result.deleted_count == 0:
             raise HTTPException(404, "Analysis state not found")
+        
         return {"message": "Analysis state deleted successfully"}
     except HTTPException:
         raise
