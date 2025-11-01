@@ -1007,6 +1007,10 @@ async def holistic_analysis(request: HolisticRequest):
         
         # Generate AI Summary
         try:
+            # Generate auto charts
+            auto_charts = generate_auto_charts(df, max_charts=15)
+            results["auto_charts"] = auto_charts
+            
             summary_context = f"""Dataset Analysis Summary:
 - Total Records: {len(df)}
 - Columns: {len(df.columns)}
