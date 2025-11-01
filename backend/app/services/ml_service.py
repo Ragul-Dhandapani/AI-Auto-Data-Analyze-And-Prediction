@@ -78,8 +78,13 @@ def train_multiple_models(
             # Calculate metrics
             r2_train = r2_score(y_train, y_pred_train)
             r2_test = r2_score(y_test, y_pred_test)
-            rmse_train = mean_squared_error(y_train, y_pred_train, squared=False)
-            rmse_test = mean_squared_error(y_test, y_pred_test, squared=False)
+            
+            # RMSE calculation (compatible with older scikit-learn versions)
+            mse_train = mean_squared_error(y_train, y_pred_train)
+            mse_test = mean_squared_error(y_test, y_pred_test)
+            rmse_train = np.sqrt(mse_train)
+            rmse_test = np.sqrt(mse_test)
+            
             mae_test = mean_absolute_error(y_test, y_pred_test)
             
             # Feature importance (if available)
