@@ -267,7 +267,11 @@ async def holistic_analysis(request: HolisticRequest):
         if llm_key:
             try:
                 from emergentintegrations.llm.chat import LlmChat
-                llm = LlmChat(api_key=llm_key, model="gpt-4o-mini")
+                llm = LlmChat(
+                    api_key=llm_key, 
+                    session_id="holistic_insights",
+                    system_message="You are a data analyst expert. Provide clear, actionable insights about datasets."
+                )
                 
                 summary = {
                     "rows": len(df),
