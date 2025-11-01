@@ -235,3 +235,46 @@ async def get_dataset(dataset_id: str):
         raise
     except Exception as e:
         raise HTTPException(500, f"Failed to fetch dataset: {str(e)}")
+
+
+
+@router.delete("/datasets/{dataset_id}")
+async def delete_dataset(dataset_id: str):
+    """Delete a dataset and its associated workspaces"""
+    try:
+        # Find dataset
+        dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+        if not dataset:
+            raise HTTPException(404, "Dataset not found")
+        
+        # Delete GridFS file if exists
+        if dataset.get("storage_type") == "gridfs":
+            from bson import ObjectId
+            gridfs_file_id = dataset.get("gridfs_file_id")
+            if gridfs_file_id:
+                try:
+                    await fs.delete(ObjectId(gridfs_file_id))
+                except Exception as e:
+                    print(f"Warning: Failed to delete GridFS file: {str(e)}")
+        
+        # Delete all saved workspaces for this dataset
+        workspaces_result = await db.saved_states.delete_many({"dataset_id": dataset_id})
+        print(f"Deleted {workspaces_result.deleted_count} workspaces for dataset {dataset_id}")
+        
+        # Delete the dataset itself
+        result = await db.datasets.delete_one({"id": dataset_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(404, "Dataset not found")
+        
+        return {
+            "success": True,
+            "message": "Dataset and associated workspaces deleted successfully",
+            "workspaces_deleted": workspaces_result.deleted_count
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Failed to delete dataset: {str(e)}")
+
