@@ -1323,6 +1323,51 @@ async def analysis_chat_action(request: ChatRequest):
             else:
                 return {"response": "Need at least one numeric column for line chart."}
         
+
+        # Detect histogram request
+        if 'histogram' in user_message and ('chart' in user_message or 'distribution' in user_message):
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            
+            if len(numeric_cols) >= 1:
+                import plotly.graph_objects as go
+                
+                # Use first numeric column or mentioned one
+                target_col = numeric_cols[0]
+                for col in numeric_cols:
+                    if col.lower() in user_message:
+                        target_col = col
+                        break
+                
+                fig = go.Figure(data=[go.Histogram(
+                    x=df[target_col].dropna().values,
+                    nbinsx=30,
+                    name=target_col,
+                    marker_color='rgb(99, 110, 250)'
+                )])
+                fig.update_layout(
+                    title=f"Distribution of {target_col}",
+                    xaxis_title=target_col,
+                    yaxis_title="Frequency",
+                    width=800,
+                    height=500,
+                    showlegend=False
+                )
+                
+                return {
+                    "action": "add_chart",
+                    "message": f"I've created a histogram showing the distribution of {target_col}.",
+                    "chart_data": {
+                        "type": "histogram",
+                        "title": f"Distribution of {target_col}",
+                        "column": target_col,
+                        "plotly_data": json.loads(fig.to_json()),
+                        "description": f"This histogram shows the frequency distribution of {target_col} values across {len(df[target_col].dropna())} records."
+                    }
+                }
+            else:
+                return {"response": "Need at least one numeric column for histogram."}
+        
+
         # Default: use AI for general responses
         context = f"""Dataset: {dataset['name']}
 Rows: {dataset['row_count']}, Columns: {dataset['column_count']}
