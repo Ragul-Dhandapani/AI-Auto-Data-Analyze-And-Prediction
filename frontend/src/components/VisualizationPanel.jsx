@@ -137,6 +137,10 @@ const VisualizationPanel = ({ dataset }) => {
         dataset_id: dataset.id,
         analysis_type: "visualize"
       });
+      
+      // Complete progress
+      setProgress(100);
+      
       setCharts(response.data.charts || []);
       setSkippedCharts(response.data.skipped || []);
       setHasGenerated(true);
@@ -149,9 +153,22 @@ const VisualizationPanel = ({ dataset }) => {
     } catch (error) {
       toast.error("Chart generation failed: " + (error.response?.data?.detail || error.message));
     } finally {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
       setLoading(false);
+      setTimeout(() => setProgress(0), 1000); // Reset progress after 1s
     }
   };
+
+  // Cleanup progress interval on unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Auto-generate charts only once on mount
   useEffect(() => {
