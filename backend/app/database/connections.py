@@ -225,59 +225,74 @@ def get_sqlserver_tables(config: dict) -> List[str]:
 
 
 def load_table_data(source_type: str, config: dict, table_name: str) -> pd.DataFrame:
-    """Load data from database table"""
-    if source_type == 'oracle':
-        dsn = cx_Oracle.makedsn(
-            config.get('host'),
-            config.get('port', 1521),
-            service_name=config.get('service_name')
-        )
-        conn = cx_Oracle.connect(
-            user=config.get('username'),
-            password=config.get('password'),
-            dsn=dsn
-        )
-        df = pd.read_sql(f"SELECT * FROM {table_name}", conn)
-        conn.close()
-        return df
-    elif source_type == 'postgresql':
-        conn = psycopg2.connect(
-            host=config.get('host'),
-            port=config.get('port', 5432),
-            database=config.get('database'),
-            user=config.get('username'),
-            password=config.get('password')
-        )
-        df = pd.read_sql(f"SELECT * FROM {table_name}", conn)
-        conn.close()
-        return df
-    elif source_type == 'mysql':
-        conn = pymysql.connect(
-            host=config.get('host'),
-            port=int(config.get('port', 3306)),
-            database=config.get('database'),
-            user=config.get('username'),
-            password=config.get('password')
-        )
-        df = pd.read_sql(f"SELECT * FROM {table_name}", conn)
-        conn.close()
-        return df
-    elif source_type == 'sqlserver':
-        if not HAS_PYODBC:
-            raise ValueError("SQL Server support not available (pyodbc not installed)")
-        conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={config.get('host')},{config.get('port', 1433)};"
-            f"DATABASE={config.get('database')};"
-            f"UID={config.get('username')};"
-            f"PWD={config.get('password')}"
-        )
-        conn = pyodbc.connect(conn_str)
-        df = pd.read_sql(f"SELECT * FROM {table_name}", conn)
-        conn.close()
-        return df
-    else:
-        raise ValueError(f"Unsupported source type: {source_type}")
+    """Load data from database table with timeout and error handling"""
+    try:
+        if source_type == 'oracle':
+            dsn = cx_Oracle.makedsn(
+                config.get('host'),
+                config.get('port', 1521),
+                service_name=config.get('service_name')
+            )
+            conn = cx_Oracle.connect(
+                user=config.get('username'),
+                password=config.get('password'),
+                dsn=dsn
+            )
+            # Limit to 10000 rows for safety
+            df = pd.read_sql(f"SELECT * FROM {table_name} WHERE ROWNUM <= 10000", conn)
+            conn.close()
+            return df
+            
+        elif source_type == 'postgresql':
+            conn = psycopg2.connect(
+                host=config.get('host'),
+                port=config.get('port', 5432),
+                database=config.get('database'),
+                user=config.get('username'),
+                password=config.get('password'),
+                connect_timeout=10
+            )
+            # Limit to 10000 rows for safety
+            df = pd.read_sql(f"SELECT * FROM {table_name} LIMIT 10000", conn)
+            conn.close()
+            return df
+            
+        elif source_type == 'mysql':
+            conn = pymysql.connect(
+                host=config.get('host'),
+                port=int(config.get('port', 3306)),
+                database=config.get('database'),
+                user=config.get('username'),
+                password=config.get('password'),
+                connect_timeout=10
+            )
+            # Limit to 10000 rows for safety
+            df = pd.read_sql(f"SELECT * FROM {table_name} LIMIT 10000", conn)
+            conn.close()
+            return df
+            
+        elif source_type == 'sqlserver':
+            if not HAS_PYODBC:
+                raise ValueError("SQL Server support not available (pyodbc not installed)")
+            conn_str = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                f"DATABASE={config.get('database')};"
+                f"UID={config.get('username')};"
+                f"PWD={config.get('password')};"
+                f"Connection Timeout=10;"
+            )
+            conn = pyodbc.connect(conn_str)
+            # Limit to 10000 rows for safety
+            df = pd.read_sql(f"SELECT TOP 10000 * FROM {table_name}", conn)
+            conn.close()
+            return df
+            
+        else:
+            raise ValueError(f"Unsupported source type: {source_type}")
+            
+    except Exception as e:
+        raise Exception(f"Failed to load table '{table_name}': {str(e)}")
 
 
 def parse_connection_string(source_type: str, conn_str: str) -> dict:
