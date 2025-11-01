@@ -505,6 +505,187 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
             )}
           </div>
         </TabsContent>
+
+        <TabsContent value="custom-query">
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <h3 className="font-semibold text-blue-900 mb-2">💡 Custom SQL Query</h3>
+              <p className="text-sm text-blue-800">
+                Write complex SQL queries including JOINs, WHERE clauses, aggregations, etc.
+                Query results will be loaded for full analysis.
+              </p>
+            </div>
+
+            <div>
+              <Label>Database Type</Label>
+              <Select 
+                value={dbConfig.source_type} 
+                onValueChange={(value) => {
+                  setDbConfig({...dbConfig, source_type: value});
+                  setConnectionTested(false);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="postgresql">PostgreSQL</SelectItem>
+                  <SelectItem value="mysql">MySQL</SelectItem>
+                  <SelectItem value="oracle">Oracle</SelectItem>
+                  <SelectItem value="sqlserver">SQL Server</SelectItem>
+                  <SelectItem value="mongodb">MongoDB (Collection Name)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="query-use-connection-string"
+                checked={useConnectionString}
+                onChange={(e) => {
+                  setUseConnectionString(e.target.checked);
+                  setConnectionTested(false);
+                }}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="query-use-connection-string" className="cursor-pointer">
+                Use Connection String
+              </Label>
+            </div>
+
+            {useConnectionString ? (
+              <div>
+                <Label>Connection String</Label>
+                <Input 
+                  value={connectionString}
+                  onChange={(e) => {
+                    setConnectionString(e.target.value);
+                    setConnectionTested(false);
+                  }}
+                  placeholder="postgresql://user:password@host:port/database"
+                  className="font-mono"
+                />
+              </div>
+            ) : (
+              <>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Host</Label>
+                <Input 
+                  value={dbConfig.host}
+                  onChange={(e) => {
+                    setDbConfig({...dbConfig, host: e.target.value});
+                    setConnectionTested(false);
+                  }}
+                  placeholder="localhost"
+                />
+              </div>
+              <div>
+                <Label>Port</Label>
+                <Input 
+                  value={dbConfig.port}
+                  onChange={(e) => {
+                    setDbConfig({...dbConfig, port: e.target.value});
+                    setConnectionTested(false);
+                  }}
+                  placeholder={getDefaultPort()}
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Username</Label>
+                <Input 
+                  value={dbConfig.username}
+                  onChange={(e) => {
+                    setDbConfig({...dbConfig, username: e.target.value});
+                    setConnectionTested(false);
+                  }}
+                  placeholder="username"
+                />
+              </div>
+              <div>
+                <Label>Password</Label>
+                <Input 
+                  type="password"
+                  value={dbConfig.password}
+                  onChange={(e) => {
+                    setDbConfig({...dbConfig, password: e.target.value});
+                    setConnectionTested(false);
+                  }}
+                  placeholder="password"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>{dbConfig.source_type === 'oracle' ? 'Service Name' : 'Database'}</Label>
+              <Input 
+                value={dbConfig.source_type === 'oracle' ? dbConfig.service_name : dbConfig.database}
+                onChange={(e) => {
+                  if (dbConfig.source_type === 'oracle') {
+                    setDbConfig({...dbConfig, service_name: e.target.value});
+                  } else {
+                    setDbConfig({...dbConfig, database: e.target.value});
+                  }
+                  setConnectionTested(false);
+                }}
+                placeholder={dbConfig.source_type === 'oracle' ? 'XEPDB1' : 'database_name'}
+              />
+            </div>
+              </>
+            )}
+
+            <Button
+              onClick={testConnection}
+              disabled={loading}
+              variant="outline"
+              className="w-full"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Testing...</>
+              ) : connectionTested ? (
+                <><Check className="w-4 h-4 mr-2 text-green-600" /> Connected</>
+              ) : (
+                <><Database className="w-4 h-4 mr-2" /> Test Connection</>
+              )}
+            </Button>
+
+            {connectionTested && (
+              <div className="space-y-4">
+                <div>
+                  <Label>SQL Query</Label>
+                  <textarea
+                    value={customQuery}
+                    onChange={(e) => setCustomQuery(e.target.value)}
+                    placeholder={`Example:\nSELECT e.name, e.salary, d.department_name\nFROM employees e\nJOIN departments d ON e.dept_id = d.id\nWHERE e.salary > 50000\nORDER BY e.salary DESC\nLIMIT 1000`}
+                    className="w-full h-40 p-3 border rounded-md font-mono text-sm"
+                    style={{ resize: 'vertical' }}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {dbConfig.source_type === 'mongodb' 
+                      ? 'For MongoDB, enter collection name (SQL not applicable)'
+                      : 'Enter your SQL query. Results limited to 10,000 rows.'}
+                  </p>
+                </div>
+
+                <Button
+                  onClick={executeCustomQuery}
+                  disabled={loading || !customQuery.trim()}
+                  className="w-full"
+                >
+                  {loading ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Executing Query...</>
+                  ) : (
+                    <><Code className="w-4 h-4 mr-2" /> Execute Query & Load Data</>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
     </Card>
   );
