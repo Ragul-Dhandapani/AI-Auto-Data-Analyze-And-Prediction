@@ -19,8 +19,11 @@ def process_chat_message(
     
     message_lower = message.lower()
     
+    # IMPORTANT: Check for removal first to avoid false positives
+    if any(keyword in message_lower for keyword in ['remove', 'delete']):
+        return handle_remove_request(message)
     # Detect chart requests
-    if any(keyword in message_lower for keyword in ['pie chart', 'pie']):
+    elif any(keyword in message_lower for keyword in ['pie chart', 'pie']):
         return handle_pie_chart_request(df, message)
     elif any(keyword in message_lower for keyword in ['bar chart', 'bar', 'distribution']):
         return handle_bar_chart_request(df, message)
@@ -30,8 +33,6 @@ def process_chat_message(
         return handle_scatter_chart_request(df, message)
     elif any(keyword in message_lower for keyword in ['correlation', 'correlations']):
         return handle_correlation_request(df)
-    elif any(keyword in message_lower for keyword in ['remove', 'delete']):
-        return handle_remove_request(message)
     else:
         # General conversation - use LLM
         return handle_general_query(df, message, conversation_history, llm_key)
