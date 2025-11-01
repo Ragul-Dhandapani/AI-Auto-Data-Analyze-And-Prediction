@@ -1049,6 +1049,13 @@ Key Findings:
             results["ai_summary"] = "AI summary generation failed. Please review the detailed analysis above."
             logging.error(f"AI summary error: {str(e)}")
         
+        # Add training metadata
+        results["training_metadata"] = {
+            "training_count": training_count,
+            "last_trained_at": datetime.now(timezone.utc).isoformat(),
+            "dataset_size": len(df)
+        }
+        
         return results
         
     except Exception as e:
