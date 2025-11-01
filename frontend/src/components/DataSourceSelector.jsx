@@ -373,6 +373,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
                 />
               </div>
             </div>
+            )}
 
             <Button 
               data-testid="test-connection-btn"
