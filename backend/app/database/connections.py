@@ -48,13 +48,22 @@ def test_postgresql_connection(config: dict) -> dict:
             port=config.get('port', 5432),
             database=config.get('database'),
             user=config.get('username'),
-            password=config.get('password')
+            password=config.get('password'),
+            connect_timeout=10  # 10 second timeout
         )
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
         cursor.close()
         conn.close()
         return {"success": True, "message": "Connection successful"}
+    except psycopg2.OperationalError as e:
+        error_msg = str(e)
+        if "timeout" in error_msg.lower():
+            return {"success": False, "message": "Connection timeout - check network connectivity and security groups"}
+        elif "authentication" in error_msg.lower():
+            return {"success": False, "message": "Authentication failed - check username and password"}
+        else:
+            return {"success": False, "message": f"Connection error: {error_msg}"}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
