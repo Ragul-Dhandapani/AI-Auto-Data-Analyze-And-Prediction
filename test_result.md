@@ -362,11 +362,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Database connection support - MySQL and SQL Server"
-    - "Connection string parsing support"
-    - "Database type dropdown expansion"
-    - "Connection string UI toggle"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
