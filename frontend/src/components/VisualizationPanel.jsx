@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, BarChart3 } from "lucide-react";
+import { Loader2, BarChart3, MessageSquare, X, Send, ChevronDown, AlertCircle } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -25,7 +27,7 @@ const loadPlotly = () => {
 };
 
 const ChartComponent = ({ chart, index }) => {
-  const chartId = `plotly-chart-${index}`;
+  const chartId = `viz-plotly-chart-${index}`;
   
   useEffect(() => {
     const renderChart = async () => {
@@ -80,7 +82,15 @@ const ChartComponent = ({ chart, index }) => {
 const VisualizationPanel = ({ dataset }) => {
   const [loading, setLoading] = useState(false);
   const [charts, setCharts] = useState([]);
+  const [skippedCharts, setSkippedCharts] = useState([]);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [customCharts, setCustomCharts] = useState([]);
+  const [showSkipped, setShowSkipped] = useState(false);
+  const chatEndRef = useRef(null);
 
   const generateCharts = async () => {
     setLoading(true);
@@ -90,9 +100,13 @@ const VisualizationPanel = ({ dataset }) => {
         analysis_type: "visualize"
       });
       setCharts(response.data.charts || []);
+      setSkippedCharts(response.data.skipped || []);
       setHasGenerated(true);
       if (response.data.charts?.length > 0) {
         toast.success(`Generated ${response.data.charts.length} visualizations!`);
+      }
+      if (response.data.skipped?.length > 0) {
+        toast.info(`${response.data.skipped.length} charts skipped due to data issues`);
       }
     } catch (error) {
       toast.error("Chart generation failed: " + (error.response?.data?.detail || error.message));
@@ -108,10 +122,73 @@ const VisualizationPanel = ({ dataset }) => {
     }
   }, [dataset, hasGenerated]);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  // Render custom charts from chat
+  useEffect(() => {
+    if (customCharts.length > 0) {
+      loadPlotly().then((Plotly) => {
+        customCharts.forEach((chart, idx) => {
+          const chartDiv = document.getElementById(`viz-custom-chart-${idx}`);
+          if (chartDiv && chart.plotly_data) {
+            Plotly.newPlot(`viz-custom-chart-${idx}`, chart.plotly_data.data, chart.plotly_data.layout, {
+              responsive: true,
+              displayModeBar: true,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d']
+            });
+          }
+        });
+      });
+    }
+  }, [customCharts]);
+
   const refreshCharts = () => {
     setHasGenerated(false);
     setCharts([]);
+    setSkippedCharts([]);
     generateCharts();
+  };
+
+  const handleChatSend = async () => {
+    if (!chatInput.trim()) return;
+
+    const userMsg = { role: 'user', content: chatInput };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput("");
+    setChatLoading(true);
+
+    try {
+      const response = await axios.post(`${API}/analysis/chat-action`, {
+        dataset_id: dataset.id,
+        message: chatInput,
+        conversation_history: chatMessages
+      });
+
+      const assistantMsg = { role: 'assistant', content: response.data.message || response.data.response };
+      setChatMessages(prev => [...prev, assistantMsg]);
+
+      // Handle chart additions
+      if (response.data.action === 'add_chart' && response.data.chart_data) {
+        setCustomCharts(prev => [...prev, response.data.chart_data]);
+        toast.success("Chart added!");
+      }
+
+      // Handle chart removal
+      if (response.data.action === 'remove_section') {
+        if (response.data.section_to_remove === 'custom_chart' && customCharts.length > 0) {
+          setCustomCharts(prev => prev.slice(0, -1));
+          toast.success("Chart removed!");
+        }
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.detail || error.message;
+      setChatMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errorMsg}` }]);
+      toast.error("Chat failed");
+    } finally {
+      setChatLoading(false);
+    }
   };
 
   // Filter charts to only show those with valid data
@@ -120,6 +197,12 @@ const VisualizationPanel = ({ dataset }) => {
     chart.data.data && 
     Array.isArray(chart.data.data) &&
     chart.data.data.length > 0
+  );
+
+  const validCustomCharts = customCharts.filter(chart =>
+    chart.plotly_data &&
+    chart.plotly_data.data &&
+    chart.plotly_data.data.length > 0
   );
 
   if (loading && validCharts.length === 0) {
@@ -131,7 +214,7 @@ const VisualizationPanel = ({ dataset }) => {
     );
   }
 
-  if (validCharts.length === 0) {
+  if (validCharts.length === 0 && !loading) {
     return (
       <div className="flex items-center justify-center py-12" data-testid="visualization-panel">
         <p className="text-gray-600">No visualizations available. Please select a dataset.</p>
@@ -150,31 +233,174 @@ const VisualizationPanel = ({ dataset }) => {
             </h3>
             <p className="text-sm text-gray-600 mt-2">
               Comprehensive charts automatically generated based on your data characteristics. 
-              {validCharts.length > 0 && ` Showing ${validCharts.length} detailed visualizations with insights.`}
+              {validCharts.length > 0 && ` Showing ${validCharts.length} visualizations.`}
+              {skippedCharts.length > 0 && ` (${skippedCharts.length} skipped)`}
             </p>
           </div>
-          {validCharts.length > 0 && (
+          <div className="flex gap-2">
             <Button 
-              data-testid="refresh-charts-btn"
-              onClick={refreshCharts}
-              disabled={loading}
+              onClick={() => setShowChat(!showChat)}
               variant="outline"
+              size="sm"
             >
-              {loading ? (
-                <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Refreshing...</>
-              ) : (
-                <><BarChart3 className="w-4 h-4 mr-2" /> Refresh Charts</>
-              )}
+              <MessageSquare className="w-4 h-4 mr-2" />
+              {showChat ? 'Hide' : 'Chat'}
             </Button>
-          )}
+            {validCharts.length > 0 && (
+              <Button 
+                data-testid="refresh-charts-btn"
+                onClick={refreshCharts}
+                disabled={loading}
+                variant="outline"
+                size="sm"
+              >
+                {loading ? (
+                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Refreshing...</>
+                ) : (
+                  <><BarChart3 className="w-4 h-4 mr-2" /> Refresh</>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
 
+      {/* Skipped Charts Section */}
+      {skippedCharts.length > 0 && (
+        <Collapsible open={showSkipped} onOpenChange={setShowSkipped}>
+          <Card className="p-4 bg-amber-50 border-amber-200">
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                  <span className="font-semibold text-amber-800">
+                    {skippedCharts.length} Charts Skipped
+                  </span>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showSkipped ? 'rotate-180' : ''}`} />
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3">
+              <ul className="space-y-1 text-sm text-amber-800">
+                {skippedCharts.map((reason, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-amber-600">•</span>
+                    <span>{reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
+
+      {/* Custom Charts from Chat */}
+      {validCustomCharts.length > 0 && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">📈 Custom Charts (from Chat)</h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            {validCustomCharts.map((chart, idx) => (
+              <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                <h4 className="font-semibold mb-2">{chart.title}</h4>
+                {chart.description && (
+                  <p className="text-sm text-gray-600 italic mb-3">{chart.description}</p>
+                )}
+                <div id={`viz-custom-chart-${idx}`} style={{ width: '100%', height: '500px' }}></div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Generated Visualizations */}
       <div className="grid md:grid-cols-2 gap-6">
         {validCharts.map((chart, idx) => (
           <ChartComponent key={`${dataset.id}-${idx}`} chart={chart} index={idx} />
         ))}
       </div>
+
+      {/* Chat Panel */}
+      {showChat && (
+        <div className="fixed right-6 bottom-6 w-96 h-[600px] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50">
+          <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-xl">
+            <h3 className="font-semibold">Visualization Assistant</h3>
+            <div className="flex gap-2">
+              {chatMessages.length > 0 && (
+                <Button
+                  onClick={() => {
+                    if (confirm('Clear all chat messages?')) {
+                      setChatMessages([]);
+                      toast.success('Chat cleared');
+                    }
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20 text-xs"
+                >
+                  Clear
+                </Button>
+              )}
+              <Button
+                onClick={() => setShowChat(false)}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {chatMessages.length === 0 && (
+              <div className="text-center text-gray-500 mt-8">
+                <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <p className="text-sm">Ask me to create custom charts!</p>
+                <ul className="text-xs mt-2 space-y-1">
+                  <li>• "Create a scatter plot"</li>
+                  <li>• "Show me a pie chart"</li>
+                  <li>• "Generate a bar chart"</li>
+                </ul>
+              </div>
+            )}
+            {chatMessages.map((msg, idx) => (
+              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] ${
+                  msg.role === 'user' 
+                    ? 'bg-blue-600 text-white p-3 rounded-lg' 
+                    : 'bg-gray-100 text-gray-800 p-3 rounded-lg'
+                }`}>
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              </div>
+            ))}
+            {chatLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 p-3 rounded-lg">
+                  <Loader2 className="w-4 h-4 animate-spin text-gray-600" />
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+          
+          <div className="p-4 border-t">
+            <div className="flex gap-2">
+              <Input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleChatSend()}
+                placeholder="Ask for custom charts..."
+                disabled={chatLoading}
+                className="flex-1"
+              />
+              <Button onClick={handleChatSend} disabled={chatLoading || !chatInput.trim()}>
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
