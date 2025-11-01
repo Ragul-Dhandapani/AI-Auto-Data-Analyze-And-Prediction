@@ -1516,8 +1516,8 @@ async def run_analysis(request: AnalysisRequest):
             result = predict_with_ml(df, target_col, model_type)
         
         elif request.analysis_type == 'visualize':
-            charts = generate_chart_recommendations(df)
-            result = {"charts": charts}
+            result = generate_chart_recommendations(df)
+            # result is now {"charts": [...], "skipped": [...]}
         
         else:
             raise HTTPException(400, f"Unknown analysis type: {request.analysis_type}")
