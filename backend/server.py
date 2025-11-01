@@ -2125,6 +2125,106 @@ async def delete_analysis_state(state_id: str):
         logging.error(f"Delete state error: {traceback.format_exc()}")
         raise HTTPException(500, f"Failed to delete state: {str(e)}")
 
+@api_router.get("/training-metadata")
+async def get_training_metadata():
+    """Get comprehensive training metadata for all datasets"""
+    try:
+        # Get all datasets
+        datasets_cursor = db.datasets.find({}, {"_id": 0})
+        datasets = await datasets_cursor.to_list(length=None)
+        
+        # Get all saved states
+        states_cursor = db.saved_states.find({}, {"_id": 0})
+        saved_states = await states_cursor.to_list(length=None)
+        
+        # Get all training history
+        history_cursor = db.training_history.find({}, {"_id": 0}).sort("trained_at", -1)
+        training_history = await history_cursor.to_list(length=None)
+        
+        # Organize data by dataset
+        metadata = []
+        
+        for dataset in datasets:
+            dataset_id = dataset["id"]
+            
+            # Get workspaces for this dataset
+            dataset_states = [s for s in saved_states if s.get("dataset_id") == dataset_id]
+            
+            # Get training history for this dataset
+            dataset_history = [h for h in training_history if h.get("dataset_id") == dataset_id]
+            
+            # Calculate improvements
+            initial_score = None
+            current_score = None
+            improvement = None
+            
+            if len(dataset_history) > 0:
+                # Initial score (first training)
+                initial_score = dataset_history[-1].get("best_score", 0) if len(dataset_history) > 0 else None
+                # Current score (latest training)
+                current_score = dataset_history[0].get("best_score", 0) if len(dataset_history) > 0 else None
+                
+                if initial_score is not None and current_score is not None and initial_score > 0:
+                    improvement = ((current_score - initial_score) / initial_score) * 100
+            
+            # Model-wise scores (latest training)
+            model_scores = {}
+            if len(dataset_history) > 0:
+                latest_training = dataset_history[0]
+                for model in latest_training.get("models", []):
+                    model_scores[model["model_name"]] = {
+                        "current_score": model["r2_score"],
+                        "confidence": model.get("confidence", "Unknown")
+                    }
+                
+                # Get initial scores for each model
+                if len(dataset_history) > 1:
+                    initial_training = dataset_history[-1]
+                    for model in initial_training.get("models", []):
+                        model_name = model["model_name"]
+                        if model_name in model_scores:
+                            model_scores[model_name]["initial_score"] = model["r2_score"]
+                            initial = model["r2_score"]
+                            current = model_scores[model_name]["current_score"]
+                            if initial > 0:
+                                model_scores[model_name]["improvement_pct"] = ((current - initial) / initial) * 100
+            
+            metadata.append({
+                "dataset_id": dataset_id,
+                "dataset_name": dataset.get("name", "Unknown"),
+                "training_count": dataset.get("training_count", 0),
+                "last_trained_at": dataset.get("last_trained_at"),
+                "initial_score": initial_score,
+                "current_score": current_score,
+                "improvement_percentage": improvement,
+                "best_model_name": dataset.get("best_model_name"),
+                "workspaces": [
+                    {
+                        "workspace_name": state.get("state_name"),
+                        "saved_at": state.get("saved_at"),
+                        "workspace_id": state.get("state_id")
+                    }
+                    for state in dataset_states
+                ],
+                "model_scores": model_scores,
+                "training_history": [
+                    {
+                        "training_number": h.get("training_number"),
+                        "trained_at": h.get("trained_at"),
+                        "best_score": h.get("best_score"),
+                        "best_model": h.get("best_model"),
+                        "models": h.get("models", [])
+                    }
+                    for h in dataset_history
+                ]
+            })
+        
+        return {"metadata": metadata}
+    
+    except Exception as e:
+        logging.error(f"Training metadata error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Failed to fetch training metadata: {str(e)}")
+
 app.include_router(api_router)
 
 logging.basicConfig(
