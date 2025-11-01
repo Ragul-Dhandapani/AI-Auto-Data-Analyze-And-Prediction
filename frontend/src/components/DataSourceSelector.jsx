@@ -761,14 +761,114 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
                   {loading ? (
                     <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Executing Query...</>
                   ) : (
-                    <><Code className="w-4 h-4 mr-2" /> Execute Query & Load Data</>
+                    <><Code className="w-4 h-4 mr-2" /> Execute Query</>
                   )}
                 </Button>
+                
+                {/* Query Results Preview */}
+                {queryResults && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-semibold text-green-900">✓ Query Executed Successfully</h4>
+                        <p className="text-sm text-green-700 mt-1">
+                          Found {queryResults.row_count} rows × {queryResults.column_count} columns
+                        </p>
+                      </div>
+                      <X 
+                        className="w-5 h-5 text-green-600 cursor-pointer hover:text-green-800" 
+                        onClick={() => setQueryResults(null)}
+                      />
+                    </div>
+                    
+                    {queryResults.preview && queryResults.preview.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs text-green-700 mb-2">Preview (first 3 rows):</p>
+                        <div className="bg-white p-2 rounded border border-green-300 overflow-x-auto">
+                          <table className="text-xs w-full">
+                            <thead>
+                              <tr className="border-b">
+                                {queryResults.columns.slice(0, 6).map((col, idx) => (
+                                  <th key={idx} className="text-left p-1 font-semibold">{col}</th>
+                                ))}
+                                {queryResults.columns.length > 6 && <th className="text-left p-1">...</th>}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {queryResults.preview.slice(0, 3).map((row, rowIdx) => (
+                                <tr key={rowIdx} className="border-b">
+                                  {queryResults.columns.slice(0, 6).map((col, colIdx) => (
+                                    <td key={colIdx} className="p-1">{String(row[col]).substring(0, 30)}</td>
+                                  ))}
+                                  {queryResults.columns.length > 6 && <td className="p-1">...</td>}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <Button
+                      onClick={loadQueryResults}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                    >
+                      <Database className="w-4 h-4 mr-2" /> Load Data
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </TabsContent>
       </Tabs>
+      
+      {/* Dataset Naming Dialog */}
+      {showNameDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Name Your Dataset</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Give this query result a meaningful name for easy identification in analysis.
+            </p>
+            <Input
+              value={datasetName}
+              onChange={(e) => setDatasetName(e.target.value)}
+              placeholder="e.g., Customer Orders Analysis"
+              className="mb-4"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && datasetName.trim()) {
+                  saveQueryDataset();
+                }
+              }}
+            />
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  setShowNameDialog(false);
+                  setDatasetName("");
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={saveQueryDataset}
+                disabled={!datasetName.trim() || loading}
+                className="flex-1"
+              >
+                {loading ? (
+                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Saving...</>
+                ) : (
+                  'Save Dataset'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 };
