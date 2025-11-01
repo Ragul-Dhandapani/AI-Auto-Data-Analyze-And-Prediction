@@ -20,6 +20,8 @@ const DashboardPage = () => {
   const [selectedDataset, setSelectedDataset] = useState(null);
   const [datasets, setDatasets] = useState([]);
   const [showRecentDatasets, setShowRecentDatasets] = useState(true);
+  const [selectedDatasetIds, setSelectedDatasetIds] = useState(new Set());
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [datasetSavedStates, setDatasetSavedStates] = useState({}); // Track saved states per dataset
   
   // Lift analysis state to prevent re-analysis on tab switch
