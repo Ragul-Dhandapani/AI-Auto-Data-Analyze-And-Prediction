@@ -82,6 +82,23 @@ def train_multiple_models(
             rmse_test = mean_squared_error(y_test, y_pred_test, squared=False)
             mae_test = mean_absolute_error(y_test, y_pred_test)
             
+            # Feature importance (if available)
+            feature_importance_dict = {}
+            if hasattr(model, 'feature_importances_'):
+                importances = model.feature_importances_
+                # Sort by importance
+                feature_imp_pairs = sorted(zip(feature_cols, importances), key=lambda x: x[1], reverse=True)
+                # Convert to dict for frontend
+                feature_importance_dict = {feat: float(imp) for feat, imp in feature_imp_pairs[:10]}
+            
+            # Calculate confidence level based on R² score
+            if r2_test >= 0.7:
+                confidence = "High"
+            elif r2_test >= 0.5:
+                confidence = "Medium"
+            else:
+                confidence = "Low"
+            
             model_result = {
                 "model_name": model_name,
                 "r2_score": float(r2_test),
@@ -89,21 +106,14 @@ def train_multiple_models(
                 "rmse": float(rmse_test),
                 "rmse_train": float(rmse_train),
                 "mae": float(mae_test),
+                "confidence": confidence,  # Frontend expects this
+                "feature_importance": feature_importance_dict,  # Frontend expects dict
                 "features_used": feature_cols,
                 "target": target_column,
+                "target_column": target_column,  # Frontend expects this
                 "n_train_samples": len(X_train),
                 "n_test_samples": len(X_test)
             }
-            
-            # Feature importance (if available)
-            if hasattr(model, 'feature_importances_'):
-                importances = model.feature_importances_
-                feature_importance = [
-                    {"feature": feat, "importance": float(imp)}
-                    for feat, imp in zip(feature_cols, importances)
-                ]
-                feature_importance.sort(key=lambda x: x["importance"], reverse=True)
-                model_result["feature_importance"] = feature_importance[:10]
             
             results.append(model_result)
             
