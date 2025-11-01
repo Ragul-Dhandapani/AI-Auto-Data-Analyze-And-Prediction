@@ -594,7 +594,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       )}
 
       {/* Correlations */}
-      {analysisResults.correlations && analysisResults.correlations.length > 0 && !collapsed.correlations && (
+      {analysisResults.correlations && 
+       analysisResults.correlations.correlations && 
+       analysisResults.correlations.correlations.length > 0 && 
+       !collapsed.correlations && (
         <Card className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -618,14 +621,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           
           {/* Correlation List */}
           <div className="space-y-3">
-            {analysisResults.correlations.map((corr, idx) => (
+            {analysisResults.correlations.correlations.map((corr, idx) => (
               <div key={idx} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
                 <div className="flex-1">
                   <p className="font-medium">{String(corr.feature1)} ↔ {String(corr.feature2)}</p>
-                  <p className="text-sm text-gray-600">{String(corr.interpretation)}</p>
+                  <p className="text-sm text-gray-600">{String(corr.interpretation || corr.direction)}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-purple-600">{Number(corr.value).toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-purple-600">{Number(corr.value || corr.correlation).toFixed(2)}</div>
                   <div className="text-xs text-gray-500">{String(corr.strength)}</div>
                 </div>
               </div>
@@ -634,10 +637,13 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
-      {analysisResults.correlations && analysisResults.correlations.length > 0 && collapsed.correlations && (
+      {analysisResults.correlations && 
+       analysisResults.correlations.correlations && 
+       analysisResults.correlations.correlations.length > 0 && 
+       collapsed.correlations && (
         <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('correlations')}>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">🔗 Key Correlations ({analysisResults.correlations.length} found)</h3>
+            <h3 className="text-lg font-semibold">🔗 Key Correlations ({analysisResults.correlations.correlations.length} found)</h3>
             <ChevronDown className="w-5 h-5" />
           </div>
         </Card>
