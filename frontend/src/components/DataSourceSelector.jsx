@@ -269,6 +269,41 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
               </Select>
             </div>
 
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="use-connection-string"
+                checked={useConnectionString}
+                onChange={(e) => {
+                  setUseConnectionString(e.target.checked);
+                  setConnectionTested(false);
+                }}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="use-connection-string" className="cursor-pointer">
+                Use Connection String
+              </Label>
+            </div>
+
+            {useConnectionString ? (
+              <div>
+                <Label>Connection String</Label>
+                <Input 
+                  data-testid="connection-string-input"
+                  value={connectionString}
+                  onChange={(e) => {
+                    setConnectionString(e.target.value);
+                    setConnectionTested(false);
+                  }}
+                  placeholder="postgresql://user:password@host:port/database"
+                  className="font-mono"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter a connection string in the format appropriate for your database type
+                </p>
+              </div>
+            ) : (
+              <>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label>Host</Label>
