@@ -296,9 +296,15 @@ Provide concise, actionable insights."""
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
         for col in categorical_cols[:3]:  # Top 3 categorical columns
             value_counts = df[col].value_counts().to_dict()
+            # Calculate insights
+            total = sum(value_counts.values())
+            top_category = max(value_counts, key=value_counts.get)
+            top_percentage = (value_counts[top_category] / total * 100)
+            
             volume_analysis["by_dimensions"].append({
                 "dimension": col,
-                "breakdown": value_counts
+                "breakdown": value_counts,
+                "insights": f"Most common: {top_category} ({top_percentage:.1f}%). Total unique values: {len(value_counts)}"
             })
         
         return {
