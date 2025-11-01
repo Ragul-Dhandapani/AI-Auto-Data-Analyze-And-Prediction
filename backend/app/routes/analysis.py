@@ -25,7 +25,7 @@ router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 @router.post("/run")
 async def run_analysis(request: Dict[str, Any]):
-    """Run specific analysis type (profile or clean) - for DataProfiler component"""
+    """Run specific analysis type (profile, clean, or visualize) - for DataProfiler and VisualizationPanel components"""
     try:
         dataset_id = request.get("dataset_id")
         analysis_type = request.get("analysis_type", "profile")
@@ -60,6 +60,33 @@ async def run_analysis(request: Dict[str, Any]):
                 "cleaning_report": cleaning_report,
                 "rows_before": len(df),
                 "rows_after": len(cleaned_df)
+            }
+        
+        elif analysis_type == "visualize":
+            # Generate auto charts for visualization panel
+            auto_charts = generate_auto_charts(df, max_charts=15)
+            
+            # Convert to frontend format with proper structure
+            charts = []
+            skipped = []
+            
+            for chart in auto_charts:
+                if chart and chart.get("plotly_data"):
+                    charts.append({
+                        "title": chart.get("title", "Chart"),
+                        "description": chart.get("description", ""),
+                        "type": chart.get("type", "unknown"),
+                        "data": chart.get("plotly_data")  # Frontend expects 'data' field
+                    })
+                else:
+                    skipped.append({
+                        "title": chart.get("title", "Chart"),
+                        "reason": "Missing or invalid plotly data"
+                    })
+            
+            return {
+                "charts": charts,
+                "skipped": skipped
             }
         
         else:
