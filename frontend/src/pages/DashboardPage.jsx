@@ -211,7 +211,8 @@ const DashboardPage = () => {
                 )}
               </>
             )}
-            <div className="text-sm text-gray-600">
+          </div>
+          <div className="text-sm text-gray-600">
             {selectedDataset && (
               <span data-testid="current-dataset-name">
                 Current: <strong>{selectedDataset.name}</strong>
