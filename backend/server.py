@@ -912,6 +912,18 @@ async def holistic_analysis(request: HolisticRequest):
         if not dataset:
             raise HTTPException(404, "Dataset not found")
         
+        # Update training counter
+        training_count = dataset.get("training_count", 0) + 1
+        await db.datasets.update_one(
+            {"id": request.dataset_id},
+            {
+                "$set": {
+                    "training_count": training_count,
+                    "last_trained_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
         # Load data using helper function
         df = await get_dataset_dataframe(request.dataset_id)
         
