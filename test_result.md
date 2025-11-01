@@ -204,8 +204,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Custom Query - Preview endpoint"
-    - "Custom Query - Save named dataset endpoint"
     - "Custom Query - Execute and preview UI"
     - "Custom Query - Dataset naming dialog"
     - "Custom Query - Results preview UI"
