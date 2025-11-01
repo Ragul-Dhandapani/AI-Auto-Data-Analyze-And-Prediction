@@ -749,6 +749,90 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
             </Button>
           </div>
           
+          {/* Model Comparison Table - Show when multiple targets exist */}
+          {(() => {
+            const uniqueTargets = [...new Set(analysisResults.ml_models.map(m => m.target_column))];
+            
+            if (uniqueTargets.length > 1) {
+              return (
+                <div className="mb-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                  <h4 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    All Models Comparison ({uniqueTargets.length} Target Variables)
+                  </h4>
+                  <p className="text-sm text-green-700 mb-4">
+                    Found {analysisResults.correlations?.correlations?.length || 0} key correlations. Compare all trained models below:
+                  </p>
+                  
+                  <div className="overflow-x-auto bg-white rounded-lg border border-green-300">
+                    <table className="w-full text-sm">
+                      <thead className="bg-green-100">
+                        <tr>
+                          <th className="text-left p-3 font-semibold text-green-900">Rank</th>
+                          <th className="text-left p-3 font-semibold text-green-900">Model</th>
+                          <th className="text-left p-3 font-semibold text-green-900">Target Variable</th>
+                          <th className="text-right p-3 font-semibold text-green-900">R² Score</th>
+                          <th className="text-right p-3 font-semibold text-green-900">RMSE</th>
+                          <th className="text-center p-3 font-semibold text-green-900">Confidence</th>
+                          <th className="text-right p-3 font-semibold text-green-900">Train Samples</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...analysisResults.ml_models]
+                          .sort((a, b) => b.r2_score - a.r2_score)
+                          .map((model, idx) => (
+                            <tr key={idx} className={`border-t ${idx === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}`}>
+                              <td className="p-3">
+                                {idx === 0 ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-bold">
+                                    🏆 #{idx + 1}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-600 font-semibold">#{idx + 1}</span>
+                                )}
+                              </td>
+                              <td className="p-3 font-medium text-gray-900">{model.model_name}</td>
+                              <td className="p-3 text-gray-700">
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                                  {model.target_column}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right">
+                                <span className={`font-bold ${
+                                  model.r2_score >= 0.7 ? 'text-green-600' : 
+                                  model.r2_score >= 0.5 ? 'text-yellow-600' : 'text-red-600'
+                                }`}>
+                                  {model.r2_score.toFixed(3)}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right text-gray-700">{model.rmse.toFixed(3)}</td>
+                              <td className="p-3 text-center">
+                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                  model.confidence === 'High' ? 'bg-green-100 text-green-800' : 
+                                  model.confidence === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {model.confidence}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right text-gray-600">{model.n_train_samples}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <div className="mt-3 text-xs text-green-700">
+                    💡 <strong>Tip:</strong> The model with the highest R² score (closest to 1.0) and lowest RMSE typically performs best. 
+                    Top-ranked model is highlighted with 🏆.
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+          
           {/* Group models by target column */}
           {(() => {
             const modelsByTarget = {};
