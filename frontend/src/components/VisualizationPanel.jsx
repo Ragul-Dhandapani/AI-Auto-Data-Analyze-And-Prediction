@@ -106,6 +106,7 @@ const VisualizationPanel = ({ dataset }) => {
   const [charts, setCharts] = useState([]);
   const [skippedCharts, setSkippedCharts] = useState([]);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [progress, setProgress] = useState(0);  // Progress tracking
   const [showChat, setShowChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
@@ -113,9 +114,24 @@ const VisualizationPanel = ({ dataset }) => {
   const [customCharts, setCustomCharts] = useState([]);
   const [showSkipped, setShowSkipped] = useState(false);
   const chatEndRef = useRef(null);
+  const progressIntervalRef = useRef(null);
 
   const generateCharts = async () => {
     setLoading(true);
+    setProgress(0);
+    
+    // Simulate progress for better UX - cap at 90% until response received
+    progressIntervalRef.current = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) return 90; // Cap at 90% until actual completion
+        // Slow down as we approach 90%
+        if (prev < 30) return prev + 3;
+        if (prev < 60) return prev + 2;
+        if (prev < 85) return prev + 1;
+        return prev + 0.5; // Very slow after 85%
+      });
+    }, 500);
+    
     try {
       const response = await axios.post(`${API}/analysis/run`, {
         dataset_id: dataset.id,
