@@ -198,9 +198,8 @@ const VisualizationPanel = ({ dataset }) => {
   );
 
   const validCustomCharts = customCharts.filter(chart =>
-    chart.plotly_data &&
-    chart.plotly_data.data &&
-    chart.plotly_data.data.length > 0
+    chart && 
+    chart.plotly_data
   );
 
   if (loading && validCharts.length === 0) {
