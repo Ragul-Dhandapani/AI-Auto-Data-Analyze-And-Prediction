@@ -398,30 +398,53 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
         </Collapsible>
       )}
 
-      {/* Custom Charts from Chat */}
+      {/* Custom Charts from Chat - Collapsible */}
       {validCustomCharts.length > 0 && (
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">📈 Custom Charts (from Chat)</h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            {validCustomCharts.map((chart, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
-                <h4 className="font-semibold mb-2">{chart.title}</h4>
-                {chart.description && (
-                  <p className="text-sm text-gray-600 italic mb-3">{chart.description}</p>
-                )}
-                <div id={`viz-custom-chart-${idx}`} style={{ width: '100%', height: '500px' }}></div>
+        <Collapsible defaultOpen={true}>
+          <Card className="p-6">
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between cursor-pointer hover:opacity-80">
+                <h3 className="text-lg font-semibold">📈 Custom Charts (from Chat) ({validCustomCharts.length})</h3>
+                <ChevronDown className="w-5 h-5" />
               </div>
-            ))}
-          </div>
-        </Card>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4">
+              <div className="grid md:grid-cols-2 gap-6">
+                {validCustomCharts.map((chart, idx) => (
+                  <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-semibold mb-2">{chart.title}</h4>
+                    {chart.description && (
+                      <p className="text-sm text-gray-600 italic mb-3">{chart.description}</p>
+                    )}
+                    <div id={`viz-custom-chart-${idx}`} className="w-full" style={{ minHeight: '400px', maxHeight: '500px' }}></div>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
-      {/* Generated Visualizations */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {validCharts.map((chart, idx) => (
-          <ChartComponent key={`${dataset.id}-${idx}`} chart={chart} index={idx} />
-        ))}
-      </div>
+      {/* Generated Visualizations - Collapsible */}
+      {validCharts.length > 0 && (
+        <Collapsible defaultOpen={true}>
+          <Card className="p-6">
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between cursor-pointer hover:opacity-80">
+                <h3 className="text-lg font-semibold">📊 Generated Visualizations ({validCharts.length})</h3>
+                <ChevronDown className="w-5 h-5" />
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4">
+              <div className="grid md:grid-cols-2 gap-6">
+                {validCharts.map((chart, idx) => (
+                  <ChartComponent key={`${dataset.id}-${idx}`} chart={chart} index={idx} />
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
       {/* Chat Panel */}
       {showChat && (
