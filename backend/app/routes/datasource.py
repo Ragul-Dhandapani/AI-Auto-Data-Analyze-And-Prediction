@@ -9,6 +9,8 @@ import uuid
 from datetime import datetime, timezone
 import io
 import os
+import psycopg2
+import pymysql
 
 from app.models.pydantic_models import DataSourceConfig, DataSourceTest
 from app.database.mongodb import db, fs
