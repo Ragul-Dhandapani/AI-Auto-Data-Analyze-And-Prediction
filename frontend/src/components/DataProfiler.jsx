@@ -225,7 +225,11 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">Missing Values Details</h3>
-              <p className="text-sm text-gray-600 italic mt-1">Columns with missing data and their impact</p>
+              <p className="text-sm text-gray-600 italic mt-1">
+                Shows columns with incomplete data (null, NaN, empty, or undefined values).
+                <br />
+                Missing data can affect analysis accuracy and model performance - consider cleaning or imputing these values.
+              </p>
             </div>
             <Button onClick={() => toggleSection('missing_details')} variant="ghost" size="sm">
               <ChevronUp className="w-4 h-4" />
