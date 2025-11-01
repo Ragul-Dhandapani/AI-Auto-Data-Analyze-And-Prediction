@@ -196,11 +196,11 @@ backend:
 backend:
   - task: "Correlation calculation via chat"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/app/services/chat_service.py"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: true
           agent: "main"
@@ -211,6 +211,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "❌ CORRELATION STRUCTURE MISMATCH: After refactoring, correlation response returns correlations as dictionary instead of expected array format. Current response has correlations: {age: {age: 1, salary: 0.98}, ...} but tests expect correlations: [{feature1: 'age', feature2: 'salary', value: 0.98, strength: 'Strong', interpretation: '...'}]. Need to update chat_service.py handle_correlation_request() to return array format for consistency with existing tests."
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRELATION ARRAY FORMAT FIXED: Verified correlation response now returns proper array format with all required fields. Tested with 'show correlation analysis' request and confirmed: 1) correlations field is array (not dictionary) 2) Each correlation object has feature1, feature2, value, strength, interpretation fields 3) Only significant correlations included (abs > 0.1) 4) Correlations sorted by absolute value 5) Strong correlations detected (age↔salary: 0.993). Fix successful - correlation calculation working correctly."
 
 frontend:
   - task: "Progress bar capped at 90% until completion"
