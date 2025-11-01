@@ -408,12 +408,12 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
 
       {/* Custom Charts from Chat - Collapsible */}
       {validCustomCharts.length > 0 && (
-        <Collapsible defaultOpen={true}>
+        <Collapsible open={customChartsOpen} onOpenChange={setCustomChartsOpen}>
           <Card className="p-6">
             <CollapsibleTrigger className="w-full">
               <div className="flex items-center justify-between cursor-pointer hover:opacity-80">
                 <h3 className="text-lg font-semibold">📈 Custom Charts (from Chat) ({validCustomCharts.length})</h3>
-                <ChevronDown className="w-5 h-5" />
+                <ChevronDown className={`w-5 h-5 transition-transform ${customChartsOpen ? 'rotate-180' : ''}`} />
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4">
