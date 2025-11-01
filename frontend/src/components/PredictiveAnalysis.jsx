@@ -112,6 +112,15 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     }
   }, [analysisResults?.auto_charts]);
 
+  // Cleanup progress interval on unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
+
   const runHolisticAnalysis = async () => {
     setLoading(true);
     setProgress(0);
