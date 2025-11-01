@@ -68,6 +68,10 @@ def train_multiple_models(
             import tensorflow as tf
             from tensorflow import keras
             
+            # Suppress TensorFlow warnings
+            import os as tf_os
+            tf_os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+            
             # Simple LSTM implementation
             lstm_model = keras.Sequential([
                 keras.layers.LSTM(50, activation='relu', input_shape=(X_train.shape[1], 1)),
@@ -85,8 +89,11 @@ def train_multiple_models(
                 "X_test": X_test_lstm,
                 "is_lstm": True
             }
-        except:
-            logging.warning("LSTM not available - TensorFlow not installed or compatible")
+            logging.info("LSTM model added to training pipeline")
+        except Exception as e:
+            logging.warning(f"LSTM not available - {str(e)}")
+    else:
+        logging.info(f"Dataset too small for LSTM training (need 50+ rows, have {len(X_train)})")
     
     results = []
     best_model = None
