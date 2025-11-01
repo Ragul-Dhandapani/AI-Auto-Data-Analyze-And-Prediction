@@ -952,20 +952,23 @@ async def run_analysis(request: AnalysisRequest):
 @api_router.get("/datasets")
 async def list_datasets():
     """List all datasets"""
+    import math
     datasets = await db.datasets.find({}, {"_id": 0}).to_list(100)
     
-    # Clean up any invalid float values
-    for dataset in datasets:
-        if 'upload_time' in dataset:
-            try:
-                # Convert to float and check if valid
-                upload_time = float(dataset['upload_time'])
-                if not (float('-inf') < upload_time < float('inf')):
-                    dataset['upload_time'] = None
-            except (ValueError, TypeError):
-                dataset['upload_time'] = None
+    # Clean up any invalid values
+    def sanitize_value(value):
+        if isinstance(value, float):
+            if math.isnan(value) or math.isinf(value):
+                return None
+            return value
+        elif isinstance(value, dict):
+            return {k: sanitize_value(v) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [sanitize_value(v) for v in value]
+        return value
     
-    return {"datasets": datasets}
+    sanitized_datasets = [sanitize_value(dataset) for dataset in datasets]
+    return {"datasets": sanitized_datasets}
 
 @api_router.get("/datasets/{dataset_id}/download")
 async def download_dataset(dataset_id: str):
