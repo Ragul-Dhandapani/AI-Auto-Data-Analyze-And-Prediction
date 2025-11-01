@@ -271,7 +271,7 @@ def handle_remove_request(message: str) -> Dict[str, Any]:
     return {
         "action": "remove_section",
         "message": f"Removing {chart_type} chart",
-        "section_type": chart_type
+        "section_to_remove": chart_type  # Fixed: was section_type, now section_to_remove
     }
 
 
