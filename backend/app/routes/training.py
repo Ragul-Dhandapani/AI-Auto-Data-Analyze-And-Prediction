@@ -5,7 +5,9 @@ Handles training history and metadata
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 
-from app.database.mongodb import db
+from app.database.mongodb import db, fs
+from datetime import datetime, timezone
+from bson import ObjectId
 import logging
 
 logger = logging.getLogger(__name__)
