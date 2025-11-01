@@ -213,6 +213,64 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
             <h3 className="text-lg font-semibold">Summary Statistics</h3>
             <ChevronDown className="w-5 h-5" />
           </div>
+
+
+      {/* Missing Values Details */}
+      {profileData && profileData.missing_values_total > 0 && !collapsedSections.missing_details && (
+        <Card className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">Missing Values Details</h3>
+              <p className="text-sm text-gray-600 italic mt-1">Columns with missing data and their impact</p>
+            </div>
+            <Button onClick={() => toggleSection('missing_details')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="space-y-3">
+            {profileData.columns_info && profileData.columns_info
+              .filter(col => col.missing_count > 0)
+              .sort((a, b) => b.missing_count - a.missing_count)
+              .map((col, idx) => {
+                const missingPercent = ((col.missing_count / profileData.row_count) * 100).toFixed(1);
+                return (
+                  <div key={idx} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-gray-800">{col.column_name}</span>
+                      <span className="text-sm bg-orange-100 text-orange-700 px-2 py-1 rounded">{col.data_type}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <span className="text-2xl font-bold text-orange-600">{col.missing_count.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600 ml-2">missing values</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-orange-500" 
+                            style={{ width: `${missingPercent}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold text-orange-600">{missingPercent}%</span>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </Card>
+      )}
+
+      {profileData && profileData.missing_values_total > 0 && collapsedSections.missing_details && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('missing_details')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Missing Values Details ({profileData.columns_info.filter(c => c.missing_count > 0).length} columns affected)</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
         </Card>
       )}
 
