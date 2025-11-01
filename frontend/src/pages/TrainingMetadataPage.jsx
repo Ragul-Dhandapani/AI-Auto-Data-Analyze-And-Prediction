@@ -25,7 +25,12 @@ const TrainingMetadataPage = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API}/training-metadata`);
-      setMetadata(response.data.metadata || []);
+      const data = response.data.metadata || [];
+      setMetadata(data);
+      // Auto-select first dataset for workspace view
+      if (data.length > 0) {
+        setSelectedDatasetForWorkspace(data[0].dataset_id);
+      }
     } catch (error) {
       toast.error('Failed to fetch training metadata');
       console.error(error);
