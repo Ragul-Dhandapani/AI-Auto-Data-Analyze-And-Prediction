@@ -736,13 +736,18 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
                       };
                       
                       return (
-                        <TabsTrigger key={model.model_name} value={model.model_name}>
+                        <TabsTrigger key={model.model_name} value={model.model_name} className="relative">
                           <div className="flex items-center gap-1">
                             <span>{model.model_name}</span>
-                            <div className="group relative">
+                            <div className="group relative inline-block">
                               <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                              <div className="hidden group-hover:block absolute bottom-full right-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg z-50">
-                                <strong>{model.model_name}:</strong> {modelDescriptions[model.model_name] || "Advanced ML model for predictive analysis."}
+                              <div className="invisible group-hover:visible absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-80 max-w-md p-4 bg-gray-900 text-white text-xs rounded-lg shadow-2xl z-[100] whitespace-normal break-words">
+                                <div className="font-bold text-sm mb-2 text-blue-300">{model.model_name}</div>
+                                <p className="leading-relaxed">{modelDescriptions[model.model_name] || "Advanced ML model for predictive analysis."}</p>
+                                {/* Tooltip arrow */}
+                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                  <div className="border-8 border-transparent border-t-gray-900"></div>
+                                </div>
                               </div>
                             </div>
                           </div>
