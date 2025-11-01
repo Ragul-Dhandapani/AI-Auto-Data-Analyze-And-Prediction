@@ -481,6 +481,22 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
                 </Button>
               )}
               <Button
+                onClick={() => {
+                  if (chatMessages.length > 0 && confirm('Start a new chat? Current messages will be cleared.')) {
+                    setChatMessages([]);
+                    toast.info('New chat started');
+                  } else if (chatMessages.length === 0) {
+                    toast.info('Already in a new chat');
+                  }
+                }}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 text-xs"
+                title="New Chat"
+              >
+                New
+              </Button>
+              <Button
                 onClick={() => setShowChat(false)}
                 variant="ghost"
                 size="sm"
