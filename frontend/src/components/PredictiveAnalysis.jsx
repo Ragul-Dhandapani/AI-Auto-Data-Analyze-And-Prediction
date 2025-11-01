@@ -95,10 +95,27 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           const chartDiv = document.getElementById(`custom-chart-${idx}`);
           if (chartDiv && chart.plotly_data) {
             const plotlyData = chart.plotly_data;
-            Plotly.newPlot(`custom-chart-${idx}`, plotlyData.data, plotlyData.layout, {
+            
+            // Force layout to respect container
+            const enhancedLayout = {
+              ...plotlyData.layout,
+              autosize: true,
+              width: null,
+              height: null,
+              margin: { l: 50, r: 30, t: 50, b: 50 },
+              modebar: { orientation: 'v' }
+            };
+            
+            Plotly.newPlot(`custom-chart-${idx}`, plotlyData.data, enhancedLayout, {
               responsive: true,
               displayModeBar: true,
-              modeBarButtonsToRemove: ['lasso2d', 'select2d']
+              displaylogo: false,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d', 'pan2d', 'zoom2d']
+            }).then(() => {
+              const container = document.getElementById(`custom-chart-${idx}`);
+              if (container) {
+                Plotly.Plots.resize(container);
+              }
             });
           }
         });
