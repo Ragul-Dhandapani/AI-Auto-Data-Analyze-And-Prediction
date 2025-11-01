@@ -275,9 +275,6 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
         </Card>
       )}
 
-        </Card>
-      )}
-
       {/* Action Buttons */}
       <div className="flex gap-3 flex-wrap">
         <Button 
