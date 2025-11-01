@@ -1,6 +1,6 @@
-# AutoPredict MCP Server
+# PROMISE AI MCP Server
 
-This MCP server provides data analysis and prediction capabilities that can be integrated with AI agents like Claude Desktop, VS Code, or any MCP-compatible client.
+Model Context Protocol server for PROMISE AI - Provides data analysis and ML capabilities to AI agents.
 
 ## Available Tools
 
