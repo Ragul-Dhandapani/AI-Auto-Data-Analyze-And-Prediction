@@ -68,6 +68,12 @@ const DashboardPage = () => {
   const handleDatasetSelect = (dataset) => {
     setSelectedDataset(dataset);
     setCurrentStep("analysis");
+    // Update savedStates for the Load button
+    if (datasetSavedStates[dataset.id]) {
+      setSavedStates(datasetSavedStates[dataset.id]);
+    } else {
+      setSavedStates([]);
+    }
   };
 
   const deleteDataset = async (datasetId, event) => {
