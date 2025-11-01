@@ -818,7 +818,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
 
 
       {/* Auto-Generated Charts Section */}
-      {analysisResults.auto_charts && analysisResults.auto_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length > 0 && !collapsed.auto_charts && (
+      {analysisResults.auto_charts && analysisResults.auto_charts.filter(chart => chart && chart.plotly_data).length > 0 && !collapsed.auto_charts && (
         <Card className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -832,7 +832,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           
           <div className="grid md:grid-cols-2 gap-6">
             {analysisResults.auto_charts
-              .filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0)
+              .filter(chart => chart && chart.plotly_data)
               .map((chart, idx) => (
               <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
                 <h4 className="font-semibold mb-2">{chart.title}</h4>
@@ -846,10 +846,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
-      {analysisResults.auto_charts && analysisResults.auto_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length > 0 && collapsed.auto_charts && (
+      {analysisResults.auto_charts && analysisResults.auto_charts.filter(chart => chart && chart.plotly_data).length > 0 && collapsed.auto_charts && (
         <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('auto_charts')}>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">📊 AI-Generated Analysis Charts ({analysisResults.auto_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length} charts)</h3>
+            <h3 className="text-lg font-semibold">📊 AI-Generated Analysis Charts ({analysisResults.auto_charts.filter(chart => chart && chart.plotly_data).length} charts)</h3>
             <ChevronDown className="w-5 h-5" />
           </div>
         </Card>
