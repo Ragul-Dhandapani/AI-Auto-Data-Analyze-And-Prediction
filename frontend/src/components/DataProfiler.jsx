@@ -44,7 +44,8 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
       cleaning: false,
       insights: false,
       columns: false,
-      preview: false
+      preview: false,
+      missing_details: false
     });
   };
 
@@ -54,7 +55,8 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
       cleaning: true,
       insights: true,
       columns: true,
-      preview: true
+      preview: true,
+      missing_details: true
     });
   };
 
