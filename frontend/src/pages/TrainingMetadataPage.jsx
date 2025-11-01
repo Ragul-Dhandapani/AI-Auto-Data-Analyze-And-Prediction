@@ -262,58 +262,58 @@ const TrainingMetadataPage = () => {
               {displayData.isComplete ? (
                 /* Complete Dataset View */
                 <div className="space-y-6">
-                  {/* Key Metrics */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                  {/* Dataset Info & Training History */}
+                  <div className="bg-white p-5 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Database className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-lg font-bold text-gray-800">{selectedDataset.data.dataset_name}</h3>
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>
+                        <span className="font-medium">Dataset ID:</span> {selectedDataset.value}
+                      </p>
+                      <p>
+                        <span className="font-medium">Last trained:</span>{' '}
+                        {displayData.last_trained ? new Date(displayData.last_trained).toLocaleString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Key Metrics - Initial Score & Improvement */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-4 h-4 text-blue-600" />
-                        <span className="text-xs font-semibold text-blue-700">Initial Score</span>
+                        <TrendingUp className="w-5 h-5 text-blue-600" />
+                        <span className="text-sm font-semibold text-blue-700">Initial Score</span>
                       </div>
-                      <p className="text-2xl font-bold text-blue-800">
+                      <p className="text-4xl font-bold text-blue-800">
                         {displayData.initial_score !== null && displayData.initial_score !== undefined
                           ? Number(displayData.initial_score).toFixed(3)
                           : 'N/A'}
                       </p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-4 h-4 text-green-600" />
-                        <span className="text-xs font-semibold text-green-700">Current Score</span>
+                        <TrendingUp className="w-5 h-5 text-green-600" />
+                        <span className="text-sm font-semibold text-green-700">Improvement</span>
                       </div>
-                      <p className="text-2xl font-bold text-green-800">
-                        {displayData.current_score !== null && displayData.current_score !== undefined
-                          ? Number(displayData.current_score).toFixed(3)
-                          : 'N/A'}
-                      </p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="w-4 h-4 text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-700">Workspaces</span>
-                      </div>
-                      <p className="text-2xl font-bold text-purple-800">{displayData.training_count}</p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Database className="w-4 h-4 text-orange-600" />
-                        <span className="text-xs font-semibold text-orange-700">Improvement</span>
-                      </div>
-                      <p className="text-2xl font-bold text-orange-800">
+                      <p className="text-4xl font-bold text-green-800">
                         {displayData.improvement_percentage !== null && displayData.improvement_percentage !== undefined
                           ? `${displayData.improvement_percentage >= 0 ? '+' : ''}${Number(displayData.improvement_percentage).toFixed(1)}%`
                           : 'N/A'}
                       </p>
+                      <div className="mt-2 text-xs text-green-700">
+                        {displayData.training_count > 0 && `Trained ${displayData.training_count} times`}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Model Performance Breakdown */}
+                  {/* Model Performance Breakdown - Table Format */}
                   {displayData.initial_scores && Object.keys(displayData.initial_scores).length > 0 && (
                     <div>
                       <h3 className="text-lg font-bold text-gray-800 mb-4">Model Performance Breakdown</h3>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="space-y-3">
                         {Object.entries(displayData.initial_scores).map(([modelName, initialScore], idx) => {
                           const currentScore = displayData.current_scores?.[modelName] || initialScore;
                           const improvement = displayData.current_scores?.[modelName] 
@@ -322,25 +322,23 @@ const TrainingMetadataPage = () => {
                           
                           return (
                             <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h4 className="font-semibold text-gray-800 mb-3">{modelName}</h4>
-                              <div className="grid grid-cols-3 gap-4 text-center">
-                                <div>
-                                  <p className="text-xs text-gray-500 mb-1">Initial</p>
-                                  <p className="text-lg font-bold text-blue-600">
-                                    {(initialScore * 100).toFixed(1)}%
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-gray-500 mb-1">Current</p>
-                                  <p className="text-lg font-bold text-green-600">
-                                    {(currentScore * 100).toFixed(1)}%
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-gray-500 mb-1">Change</p>
-                                  <p className={`text-lg font-bold ${improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {improvement >= 0 ? '+' : ''}{improvement.toFixed(1)}%
-                                  </p>
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-semibold text-gray-800 text-base">{modelName}</h4>
+                                <div className="flex gap-8">
+                                  <div className="text-right">
+                                    <p className="text-xs text-gray-500 mb-1">Score</p>
+                                    <p className="text-xl font-bold text-blue-600">
+                                      {(currentScore * 100).toFixed(1)}%
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-xs text-gray-500 mb-1">Improvement</p>
+                                    <p className={`text-xl font-bold ${improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                      <span className="inline-flex items-center gap-1">
+                                        {improvement >= 0 ? '↑' : '↓'} {improvement >= 0 ? '+' : ''}{improvement.toFixed(1)}%
+                                      </span>
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
