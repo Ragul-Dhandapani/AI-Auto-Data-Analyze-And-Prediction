@@ -232,8 +232,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Display correlation heatmap in PredictiveAnalysis"
-    - "Support custom chart types (pie, bar, line) via chat"
+    - "Fix IndentationError at line 905"
+    - "Auto-generate up to 15 intelligent charts"
+    - "GridFS large file upload support"
+    - "Progress indicator for Predictive Analysis"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
