@@ -72,6 +72,96 @@ const DashboardPage = () => {
     }
   };
 
+
+  // Load saved states when dataset changes
+  useEffect(() => {
+    if (selectedDataset) {
+      loadSavedStates();
+    }
+  }, [selectedDataset]);
+
+  const loadSavedStates = async () => {
+    if (!selectedDataset) return;
+    try {
+      const response = await axios.get(`${API}/analysis/saved-states/${selectedDataset.id}`);
+      setSavedStates(response.data.states || []);
+    } catch (error) {
+      console.error("Failed to load saved states:", error);
+    }
+  };
+
+  const saveWorkspaceState = async () => {
+    if (!stateName.trim()) {
+      toast.error("Please enter a name for this workspace state");
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/analysis/save-state`, {
+        dataset_id: selectedDataset.id,
+        state_name: stateName,
+        analysis_data: {
+          predictive_analysis: predictiveAnalysisCache,
+          visualization: visualizationCache,
+          data_profiler: dataProfilerCache
+        },
+        chat_history: []
+      });
+      
+      toast.success(`Workspace saved as "${stateName}"`);
+      setStateName("");
+      setShowSaveDialog(false);
+      loadSavedStates();
+    } catch (error) {
+      const errorMessage = error.response?.data?.detail 
+        ? (typeof error.response.data.detail === 'string' 
+            ? error.response.data.detail 
+            : JSON.stringify(error.response.data.detail))
+        : error.message || "Unknown error occurred";
+      toast.error("Failed to save workspace: " + errorMessage);
+      console.error("Save error:", error);
+    }
+  };
+
+  const loadWorkspaceState = async (stateId) => {
+    try {
+      const response = await axios.get(`${API}/analysis/load-state/${stateId}`);
+      const loadedData = response.data.analysis_data;
+      
+      // Restore all cached states
+      if (loadedData.predictive_analysis) {
+        setPredictiveAnalysisCache(loadedData.predictive_analysis);
+      }
+      if (loadedData.visualization) {
+        setVisualizationCache(loadedData.visualization);
+      }
+      if (loadedData.data_profiler) {
+        setDataProfilerCache(loadedData.data_profiler);
+      }
+      
+      toast.success("Workspace loaded successfully");
+      setShowLoadDialog(false);
+    } catch (error) {
+      toast.error("Failed to load workspace: " + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const deleteState = async (stateId, event) => {
+    event.stopPropagation();
+    if (!confirm("Are you sure you want to delete this saved workspace?")) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API}/analysis/delete-state/${stateId}`);
+      toast.success("Saved workspace deleted");
+      loadSavedStates();
+    } catch (error) {
+      toast.error("Failed to delete workspace: " + (error.response?.data?.detail || error.message));
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Navigation */}
