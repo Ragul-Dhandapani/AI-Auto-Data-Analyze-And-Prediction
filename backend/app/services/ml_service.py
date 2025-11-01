@@ -55,9 +55,12 @@ def train_multiple_models(
         "Linear Regression": LinearRegression(),
         "Random Forest": RandomForestRegressor(n_estimators=100, random_state=random_state, n_jobs=-1),
         "XGBoost": xgb.XGBRegressor(n_estimators=100, random_state=random_state, n_jobs=-1),
-        "Decision Tree": DecisionTreeRegressor(random_state=random_state),
-        "LightGBM": lgb.LGBMRegressor(n_estimators=100, random_state=random_state, n_jobs=-1, verbose=-1)
+        "Decision Tree": DecisionTreeRegressor(random_state=random_state)
     }
+    
+    # Add LightGBM if available
+    if HAS_LIGHTGBM:
+        models["LightGBM"] = lgb.LGBMRegressor(n_estimators=100, random_state=random_state, n_jobs=-1, verbose=-1)
     
     results = []
     best_model = None
