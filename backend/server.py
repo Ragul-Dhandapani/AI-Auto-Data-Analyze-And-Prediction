@@ -1437,6 +1437,68 @@ async def analysis_chat_action(request: ChatRequest):
             else:
                 return {"response": "Need at least one numeric column for line chart."}
         
+        # Detect scatter plot request
+        if 'scatter' in user_message and 'chart' in user_message or 'scatter plot' in user_message:
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            
+            if len(numeric_cols) >= 2:
+                import plotly.graph_objects as go
+                
+                # Try to find mentioned columns
+                x_col = None
+                y_col = None
+                
+                # Search for mentioned column names
+                for col in numeric_cols:
+                    if col.lower() in user_message:
+                        if x_col is None:
+                            x_col = col
+                        elif y_col is None:
+                            y_col = col
+                            break
+                
+                # If not enough columns mentioned, use first two
+                if x_col is None or y_col is None:
+                    x_col = numeric_cols[0] if x_col is None else x_col
+                    y_col = numeric_cols[1] if y_col is None else y_col
+                
+                fig = go.Figure(data=[go.Scatter(
+                    x=df[x_col].values.tolist(),
+                    y=df[y_col].values.tolist(),
+                    mode='markers',
+                    marker=dict(
+                        size=8,
+                        color='rgb(99, 110, 250)',
+                        opacity=0.6
+                    ),
+                    name=f'{x_col} vs {y_col}'
+                )])
+                fig.update_layout(
+                    title=f"Scatter Plot: {x_col} vs {y_col}",
+                    xaxis_title=x_col,
+                    yaxis_title=y_col,
+                    width=800,
+                    height=500
+                )
+                
+                # Calculate correlation
+                corr = df[x_col].corr(df[y_col])
+                corr_text = f"Correlation: {corr:.3f}"
+                
+                return {
+                    "action": "add_chart",
+                    "message": f"I've created a scatter plot showing {x_col} vs {y_col}. {corr_text}",
+                    "chart_data": {
+                        "type": "scatter",
+                        "title": f"Scatter Plot: {x_col} vs {y_col}",
+                        "x_column": x_col,
+                        "y_column": y_col,
+                        "plotly_data": json.loads(fig.to_json()),
+                        "description": f"This scatter plot shows the relationship between {x_col} and {y_col}. {corr_text}"
+                    }
+                }
+            else:
+                return {"response": "Need at least two numeric columns for scatter plot."}
 
         # Detect histogram request
         if 'histogram' in user_message and ('chart' in user_message or 'distribution' in user_message):
