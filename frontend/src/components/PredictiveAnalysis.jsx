@@ -78,7 +78,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   useEffect(() => {
     if (analysisResults?.custom_charts && analysisResults.custom_charts.length > 0) {
       loadPlotly().then((Plotly) => {
-        analysisResults.custom_charts.forEach((chart, idx) => {
+        // Filter charts with valid plotly_data
+        const validCharts = analysisResults.custom_charts.filter(chart => 
+          chart.plotly_data && 
+          chart.plotly_data.data && 
+          chart.plotly_data.data.length > 0
+        );
+        
+        validCharts.forEach((chart, idx) => {
           const chartDiv = document.getElementById(`custom-chart-${idx}`);
           if (chartDiv && chart.plotly_data) {
             const plotlyData = chart.plotly_data;
