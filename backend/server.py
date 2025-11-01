@@ -1424,8 +1424,10 @@ async def holistic_analysis(request: HolisticRequest):
                 logging.error(f"ML training error for {target_col}: {str(e)}")
         
         # Predictive Insights - Summary from best model
+        best_score = 0
         if results["ml_models"]:
             best_model = max(results["ml_models"], key=lambda x: x["r2_score"])
+            best_score = best_model["r2_score"]
             results["predictions"].append({
                 "title": f"Best Model Prediction for {best_model['target_column']}",
                 "description": f"{best_model['model_name']} achieved R² score of {best_model['r2_score']:.3f}",
@@ -1434,6 +1436,17 @@ async def holistic_analysis(request: HolisticRequest):
                 "risk_level": "Low" if best_model["r2_score"] > 0.7 else "Medium" if best_model["r2_score"] > 0.5 else "High",
                 "model_used": best_model["model_name"]
             })
+            
+            # Update dataset with best model score
+            await db.datasets.update_one(
+                {"id": request.dataset_id},
+                {
+                    "$set": {
+                        "best_model_score": float(best_score),
+                        "best_model_name": best_model["model_name"]
+                    }
+                }
+            )
         
         # Generate AI Summary
         try:
