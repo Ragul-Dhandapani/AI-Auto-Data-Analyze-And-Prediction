@@ -633,7 +633,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       )}
 
       {/* Custom Charts Section */}
-      {analysisResults.custom_charts && analysisResults.custom_charts.length > 0 && !collapsed.custom_charts && (
+      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length > 0 && !collapsed.custom_charts && (
         <Card className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -646,7 +646,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           </div>
           
           <div className="space-y-6">
-            {analysisResults.custom_charts.map((chart, idx) => (
+            {analysisResults.custom_charts
+              .filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0)
+              .map((chart, idx) => (
               <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
                 <h4 className="font-semibold mb-2">{chart.title}</h4>
                 {chart.description && (
@@ -659,10 +661,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
-      {analysisResults.custom_charts && analysisResults.custom_charts.length > 0 && collapsed.custom_charts && (
+      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length > 0 && collapsed.custom_charts && (
         <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('custom_charts')}>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">📈 Custom Analysis Charts ({analysisResults.custom_charts.length})</h3>
+            <h3 className="text-lg font-semibold">📈 Custom Analysis Charts ({analysisResults.custom_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length})</h3>
             <ChevronDown className="w-5 h-5" />
           </div>
         </Card>
