@@ -267,9 +267,13 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
       <h2 className="text-2xl font-bold mb-6">Select Data Source</h2>
       
       <Tabs defaultValue="file">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="file" data-testid="tab-file-upload">File Upload</TabsTrigger>
           <TabsTrigger value="database" data-testid="tab-database">Database Connection</TabsTrigger>
+          <TabsTrigger value="custom-query" data-testid="tab-custom-query">
+            <Code className="w-4 h-4 mr-2" />
+            Custom SQL Query
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="file">
