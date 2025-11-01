@@ -104,8 +104,22 @@ const HomePage = () => {
               >
                 Start Analyzing <Sparkles className="w-5 h-5 ml-2" />
               </Button>
+              <Button 
+                onClick={() => setShowMetadataDashboard(true)}
+                size="lg"
+                variant="outline"
+                className="px-8 py-6 text-lg rounded-full border-2 border-purple-600 text-purple-600 hover:bg-purple-50"
+              >
+                <Award className="w-5 h-5 mr-2" />
+                Training Metadata
+              </Button>
             </div>
           </motion.div>
+
+          {/* Training Metadata Dashboard Modal */}
+          {showMetadataDashboard && (
+            <TrainingMetadataDashboard onClose={() => setShowMetadataDashboard(false)} />
+          )}
 
           {/* Feature Preview Cards */}
           <motion.div
