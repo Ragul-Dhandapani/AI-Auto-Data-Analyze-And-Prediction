@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Home, TrendingUp, TrendingDown, RefreshCw, Calendar, Database, ArrowUp } from 'lucide-react';
+import { Loader2, Home, TrendingUp, TrendingDown, RefreshCw, Calendar, Database, ArrowUp, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -16,6 +16,7 @@ const TrainingMetadataPage = () => {
   const [metadata, setMetadata] = useState([]);
   const [viewMode, setViewMode] = useState('dataset'); // 'dataset' or 'workspace'
   const [selectedDatasetForWorkspace, setSelectedDatasetForWorkspace] = useState(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(null);
 
   useEffect(() => {
     fetchMetadata();
@@ -36,6 +37,31 @@ const TrainingMetadataPage = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const downloadPdf = async (datasetId, datasetName) => {
+    setDownloadingPdf(datasetId);
+    try {
+      const response = await axios.get(`${API}/training/metadata/download-pdf/${datasetId}`, {
+        responseType: 'blob'
+      });
+      
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `training_metadata_${datasetName.replace(/\s+/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to download PDF');
+      console.error(error);
+    } finally {
+      setDownloadingPdf(null);
     }
   };
 
