@@ -144,9 +144,35 @@ async def download_training_metadata_pdf(dataset_id: str):
         
         # Model Performance
         if initial_scores or current_scores:
-            elements.append(Paragraph("Model Performance", heading_style))
+            elements.append(Paragraph("Model Performance Breakdown", heading_style))
             
-            model_data = [["Model Name", "Initial Score", "Current Score", "Improvement"]]
+            # Calculate initial score and improvement for summary
+            if initial_scores:
+                # Get best initial score across all models
+                best_initial = max(initial_scores.values()) if initial_scores.values() else 0
+                best_current = max(current_scores.values()) if current_scores.values() else best_initial
+                overall_improvement = ((best_current - best_initial) / best_initial * 100) if best_initial > 0 else 0
+                
+                summary_data = [
+                    ["Initial Score:", f"{best_initial:.3f}"],
+                    ["Current Score:", f"{best_current:.3f}"],
+                    ["Overall Improvement:", f"{overall_improvement:+.1f}%"]
+                ]
+                
+                summary_table = Table(summary_data, colWidths=[2*inch, 2*inch])
+                summary_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#dbeafe')),
+                    ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+                    ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                    ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 11),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ]))
+                elements.append(summary_table)
+                elements.append(Spacer(1, 0.2*inch))
+            
+            model_data = [["Model Name", "Score", "Improvement"]]
             
             all_models = set(list(initial_scores.keys()) + list(current_scores.keys()))
             for model_name in all_models:
@@ -154,21 +180,25 @@ async def download_training_metadata_pdf(dataset_id: str):
                 current = current_scores.get(model_name, 0)
                 improvement = ((current - initial) / initial * 100) if initial > 0 else 0
                 
+                # Use current score as the main score (matching UI)
+                score_percent = f"{(current * 100):.1f}%"
+                improvement_str = f"{improvement:+.1f}%"
+                
                 model_data.append([
                     model_name,
-                    f"{initial:.3f}" if initial else "N/A",
-                    f"{current:.3f}" if current else "N/A",
-                    f"{improvement:+.1f}%" if improvement else "0%"
+                    score_percent,
+                    improvement_str
                 ])
             
-            model_table = Table(model_data, colWidths=[2*inch, 1.5*inch, 1.5*inch, 1.5*inch])
+            model_table = Table(model_data, colWidths=[3*inch, 1.5*inch, 1.5*inch])
             model_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 1), (0, -1), 'LEFT'),  # Model names left-aligned
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, 0), 11),
-                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
                 ('GRID', (0, 0), (-1, -1), 1, colors.grey),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f3f4f6')])
