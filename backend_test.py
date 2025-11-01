@@ -90,13 +90,11 @@ def test_save_query_dataset():
     print("\n=== Test 2: Save Query Dataset ===")
     
     config = {
-        "db_type": "postgresql",
-        "query": "SELECT 1 as test_column, 'test_value' as test_string LIMIT 5",
+        "db_type": "mongodb",
+        "query": "datasets",  # Collection name for MongoDB
         "host": "localhost",
-        "port": 5432,
-        "username": "test",
-        "password": "test",
-        "database": "test_db",
+        "port": 27017,
+        "database": "test_database",
         "dataset_name": "High Value Customers"
     }
     
