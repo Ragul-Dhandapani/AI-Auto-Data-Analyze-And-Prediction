@@ -166,6 +166,11 @@ async def load_table_endpoint(request: DataSourceTest, table_name: str):
         if df.empty:
             raise HTTPException(400, f"Table '{table_name}' is empty or does not exist")
         
+        # Convert datetime columns to ISO format strings (for JSON serialization)
+        for col in df.columns:
+            if pd.api.types.is_datetime64_any_dtype(df[col]):
+                df[col] = df[col].astype(str)
+        
         # Generate dataset ID
         dataset_id = str(uuid.uuid4())
         
@@ -174,8 +179,13 @@ async def load_table_endpoint(request: DataSourceTest, table_name: str):
         
         # Check data size
         import json
-        data_json = json.dumps(data_dict)
-        data_size_mb = len(data_json.encode('utf-8')) / (1024 * 1024)
+        try:
+            data_json = json.dumps(data_dict, default=str)  # Use default=str for non-serializable types
+            data_size_mb = len(data_json.encode('utf-8')) / (1024 * 1024)
+        except Exception as e:
+            # If JSON serialization fails, treat as large dataset
+            print(f"JSON serialization warning: {e}")
+            data_size_mb = 15  # Force GridFS
         
         # Prepare dataset document
         dataset_doc = {
