@@ -180,7 +180,7 @@ const HomePage = () => {
       {/* Footer */}
       <footer className="py-8 px-6 border-t border-gray-200 bg-white/50">
         <div className="max-w-7xl mx-auto text-center text-gray-600">
-          <p>© 2025 PROMISE. Predictive Real-time Operational Monitoring & Intelligent System Evaluation.</p>
+          <p>© 2025 PROMISE AI. Predictive Real-time Operational Monitoring & Intelligent System Evaluation.</p>
         </div>
       </footer>
     </div>
