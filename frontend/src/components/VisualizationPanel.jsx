@@ -435,12 +435,12 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
 
       {/* Generated Visualizations - Collapsible */}
       {validCharts.length > 0 && (
-        <Collapsible defaultOpen={true}>
+        <Collapsible open={generatedChartsOpen} onOpenChange={setGeneratedChartsOpen}>
           <Card className="p-6">
             <CollapsibleTrigger className="w-full">
               <div className="flex items-center justify-between cursor-pointer hover:opacity-80">
                 <h3 className="text-lg font-semibold">📊 Generated Visualizations ({validCharts.length})</h3>
-                <ChevronDown className="w-5 h-5" />
+                <ChevronDown className={`w-5 h-5 transition-transform ${generatedChartsOpen ? 'rotate-180' : ''}`} />
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4">
