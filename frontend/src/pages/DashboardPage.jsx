@@ -187,7 +187,7 @@ const DashboardPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {selectedDataset && currentStep === "analysis" && (
+            {selectedDataset && (
               <>
                 <Button
                   onClick={() => setShowSaveDialog(true)}
