@@ -23,6 +23,54 @@ import os
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 
+@router.post("/run")
+async def run_analysis(request: Dict[str, Any]):
+    """Run specific analysis type (profile or clean) - for DataProfiler component"""
+    try:
+        dataset_id = request.get("dataset_id")
+        analysis_type = request.get("analysis_type", "profile")
+        
+        df = await load_dataframe(dataset_id)
+        
+        if analysis_type == "profile":
+            # Return data profile
+            profile = generate_data_profile(df)
+            return profile
+        
+        elif analysis_type == "clean":
+            # Run data cleaning
+            cleaned_df, cleaning_report = clean_data(df)
+            
+            # Update dataset with cleaned data if changes were made
+            if cleaning_report:
+                # Store cleaned data
+                dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+                if dataset:
+                    data_dict = cleaned_df.to_dict('records')
+                    await db.datasets.update_one(
+                        {"id": dataset_id},
+                        {"$set": {
+                            "data": data_dict,
+                            "row_count": len(cleaned_df),
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+            
+            return {
+                "cleaning_report": cleaning_report,
+                "rows_before": len(df),
+                "rows_after": len(cleaned_df)
+            }
+        
+        else:
+            raise HTTPException(400, f"Unknown analysis type: {analysis_type}")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Analysis failed: {str(e)}")
+
+
 async def load_dataframe(dataset_id: str) -> pd.DataFrame:
     """Helper function to load DataFrame from dataset"""
     dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
