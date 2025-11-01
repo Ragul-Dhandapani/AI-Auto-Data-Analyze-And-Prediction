@@ -1,102 +1,101 @@
 <analysis>
-The AI engineer's trajectory details the PROMISE AI application's iterative development from an MVP. Key initial tasks included stabilizing the backend (fixing ) and introducing core features like GridFS for large files and auto-chart generation. Significant effort was dedicated to enhancing user experience through a simulated progress bar, improved AI insights, and dynamic chat functionality. A major architectural shift involved containerization with Docker and Kubernetes. The recent work focused on implementing comprehensive database connection support (PostgreSQL, MySQL, Oracle, SQL Server, MongoDB) with both parameter and connection string options, requiring extensive frontend and backend modifications. A critical UI bug regarding workspace display in the training metadata dashboard was fixed by correcting a collection name mismatch. A substantial backend refactoring effort transformed the monolithic  into a modular  directory structure, streamlining the codebase. Post-refactoring, dependency issues (, ) and an API endpoint mismatch for file uploads () were addressed. The engineer also initiated comprehensive test suite creation and documentation, while tackling a  error with GridFS implementation. The final steps were focused on ensuring the refactored system maintained core functionalities.
+The previous AI engineer focused on enhancing the PROMISE AI platform, progressing from an MVP to a more robust and feature-rich application. Initially, the engineer stabilized the backend, introduced GridFS, and containerized the application with Docker/Kubernetes. A major refactoring of the backend from a monolithic  to a modular  structure was a key architectural decision. This refactoring led to several regression fixes, including API endpoint mismatches and data structure inconsistencies.
+
+Subsequent efforts involved comprehensive documentation cleanup and consolidation, creating dedicated guides for local setup, database configuration, and AWS RDS deployment. A significant feature addition was the Custom SQL Query capability, enabling users to fetch data directly from connected databases via user-defined queries. This required modifications to both frontend components () and backend API routes (). The engineer also tackled crucial database connectivity issues, specifically troubleshooting network blocks from the containerized backend to AWS RDS. The final focus was on fixing a Table load failed error, which involved correcting frontend request formats and backend data serialization (Pandas Timestamps).
 </analysis>
 
 <product_requirements>
-The PROMISE AI platform is an AI/ML-powered web solution for data analysis and prediction. It accepts Excel/CSV file uploads and database connections, automatically cleaning, preparing, analyzing, visualizing data, and providing near real-time insights and predictions.
+The PROMISE AI platform is an AI/ML-powered web solution for data analysis and prediction, processing Excel/CSV files and integrating with various databases. Key existing features include data ingestion (drag-and-drop, GridFS), data processing (cleaning, outlier detection), automated ML models (Linear Regression, Random Forest, XGBoost, Decision Tree, LSTM), smart chart recommendations, AI-generated insights, and a modern UI/UX with Shadcn. The application also supports interactive chat, workspace management, a training metadata dashboard, and Docker/Kubernetes deployment.
 
-Implemented features:
-- **Data Ingestion**: File upload (drag-and-drop, preview, metadata, progress bar, duplicate handling, GridFS for large files).
-- **Data Cleaning & Preparation**: Automatic detection/correction, outlier identification, summary statistics, missing values analysis, cleaned data download.
-- **Analysis & Modeling**: Automated ML (Linear Regression, Random Forest, XGBoost, Decision Tree, LSTM), predictive analytics, natural-language insights, 15 smart charts.
-- **Visualization & Reporting**: Smart chart recommendations, interactive dashboards, AI-generated chart descriptions, 2-column layout, dedicated descriptive visualization tab.
-- **User Interface**: Modern UI/UX with Shadcn, responsive design, PROMISE AI branding, animated navigation, improved AI insights.
-- **Extensibility**: MCP server for AI agents.
-- **Interactive Chat**: In Predictive Analysis and Visualization for customizing analysis, dynamic chart creation/removal (correlation, pie, bar, line, histogram, scatter plot), full chat controls, conversation/charts saved with workspace.
-- **Workspace Management**: Save/load analysis states across sessions, view from dashboard.
-- **Training Metadata Dashboard**: Dedicated page displaying dataset-wise/workspace-wise training history (count, last trained, initial/current model scores, improvement percentages).
-- **Deployment**: Dockerfiles, , Kubernetes manifests.
-
-New/Enhanced Requirements:
-- **Database Connectivity**: Support for Oracle, PostgreSQL, MySQL, SQL Server, and MongoDB with options for direct connection string or individual parameters; credentials to be saved with workspaces.
-- **Workspace Refresh**: Ability to update an existing workspace with fresh data from the same dataset (deferred).
-- **MCP Server**: Add all data analysis/prediction endpoints.
-- **Backend Refactoring**: Reorganize  into a modular, production-ready structure.
-- **Testing**: Create comprehensive unit tests for frontend and backend.
-- **Chart Cleanup**: Fix empty charts in Predictive and Visualization tabs.
+New/Enhanced Requirements included:
+- **Database Connectivity**: Expanded support for Oracle, PostgreSQL, MySQL, SQL Server, MongoDB (connection string or parameters).
+- **Custom SQL Query Feature**: Enable users to write and execute custom SQL queries against connected databases, with results feeding into Data Profile, Predictive Analysis, and Visualization.
+- **Workspace Refresh**: Update existing workspaces with fresh data (deferred).
+- **MCP Server**: Expose all data analysis/prediction endpoints.
+- **Backend Refactoring**: Modularize  to .
+- **Testing**: Comprehensive unit tests (frontend/backend).
+- **Chart Cleanup**: Fix empty charts and improve representation.
+- **Training Metadata Redesign**: Modernized multi-select dropdown, PDF download.
+- **Recent Datasets Redesign**: Multi-selection delete and improved layout.
+- **Observability/APM Datasets**: Request for more complex, real-world datasets for testing.
+- **Kerberos Authentication**: Request for Kerberos support for database connections.
+- **Dataset Naming for Custom Queries**: Prompt user for a name before loading custom query results as a new dataset.
+- **ML Model Comparison**: For multiple key correlation analysis, generate comparisons across ML models.
 </product_requirements>
 
 <key_technical_concepts>
 - **Full-stack Architecture**: React, FastAPI, MongoDB.
-- **Charting/Visualization**: Plotly.js.
-- **UI Components**: Shadcn UI.
-- **AI/ML**: scikit-learn, pandas, numpy, TensorFlow, XGBoost, LightGBM.
-- **LLM Integration**: .
-- **Large File Storage**: MongoDB GridFS.
 - **Containerization**: Docker, Kubernetes.
-- **Database Drivers**: , , , .
+- **Cloud Infrastructure**: AWS RDS, Terraform.
+- **Database Connectivity**: PostgreSQL, MySQL, SQL Server, Oracle, , , .
+- **Data Processing**: Pandas, NumPy, GridFS.
+- **ML/AI**: scikit-learn, LightGBM, XGBoost, LSTM.
+- **Visualization**: Plotly.js.
+- **UI Libraries**: Shadcn UI, React-Select.
+- **Error Handling**: Frontend (Axios error parsing), Backend (FastAPI HTTPException).
 </key_technical_concepts>
 
 <code_architecture>
-The application uses a standard full-stack architecture with , , and  directories, now with added Docker/Kubernetes files and a refactored backend.
+The application utilizes a full-stack architecture with a React frontend, FastAPI backend, and MongoDB for data storage, containerized with Docker and Kubernetes.
 
 
 
--   **backend/server.py**: Main FastAPI entry point.
-    -   **Summary**: Refactored from a monolithic 2567-line file to an 18-line wrapper that imports and mounts the  from . It now primarily serves as a simplified application initializer.
-    -   **Changes**: All core logic moved to . Added a backward-compatible  endpoint. Made  and  imports optional to handle environments without specific drivers/libraries.
--   **backend/app/main.py**: New central file for the modular backend.
-    -   **Summary**: Integrates all the new route modules (, , ) into a single FastAPI application.
-    -   **Changes**: Newly created to consolidate the API routing from the refactored structure.
--   **backend/app/routes/\***: New directory for API route definitions.
-    -   **Summary**: Contains , , and , which encapsulate API endpoints for respective functionalities.
-    -   **Changes**: These files were newly created, extracting all API routes and their handlers from the original  for better organization.
--   **backend/app/services/\***: New directory for backend business logic.
-    -   **Summary**: Contains modular service files (, , , ) that abstract the core business logic from the API layer.
-    -   **Changes**: Newly created, housing the moved business logic from the original .
--   **backend/app/models/pydantic_models.py**: New file for Pydantic models.
-    -   **Summary**: Centralizes all Pydantic models for data validation and serialization across the backend.
-    -   **Changes**: Newly created, consolidating model definitions previously scattered in .
--   **backend/app/database/connections.py**: New file for external database connection helpers.
-    -   **Summary**: Provides helper functions for connecting to various SQL/NoSQL databases (Oracle, PostgreSQL, MySQL, SQL Server), externalizing database-specific logic.
-    -   **Changes**: Newly created, consolidating database connection functions from .
--   **backend/app/database/mongodb.py**: New file for MongoDB operations.
-    -   **Summary**: Manages MongoDB connection, GridFS setup, and database-specific utility functions.
-    -   **Changes**: Newly created, containing MongoDB and GridFS specific logic.
--   **backend/requirements.txt**: Lists Python dependencies.
-    -   **Summary**: Ensures all necessary Python libraries for backend functionality are installed.
-    -   **Changes**: Added  and  for MySQL/SQL Server support. Declared  and  as optional dependencies.
--   **frontend/src/components/DataSourceSelector.jsx**: Frontend component for data source selection.
-    -   **Summary**: Handles UI for file uploads and database connections.
-    -   **Changes**: Updated to support MySQL and SQL Server. Introduced a Use Connection String toggle and UI logic. Fixed a React Fragment syntax error.
--   **mcp_server/autopredict_mcp.py**: MCP server for integrating AI agents.
-    -   **Summary**: Serves as a gateway for other AI agents to access the core application's data analysis and prediction functionalities.
-    -   **Changes**: Completely rewritten to expose a comprehensive set of data analysis and visualization endpoints, aligning with the new backend structure.
--   **backend/tests/test_backend_comprehensive.py**: Backend comprehensive test suite.
-    -   **Summary**: Provides a framework for extensive backend testing.
-    -   **Changes**: Newly created.
--   **frontend/src/tests/comprehensive.test.tsx**: Frontend comprehensive test suite.
-    -   **Summary**: Provides a framework for extensive frontend testing.
-    -   **Changes**: Newly created.
--   **DATABASE_TESTING_GUIDE.md, test_data_postgres_mysql.sql**: Documentation and script to assist users in setting up test databases locally.
+- **backend/app/database/connections.py**:
+    - **Summary**: Manages connections to external databases (PostgreSQL, MySQL, SQL Server, Oracle) and includes functions to test connections and load table data.
+    - **Changes**: Added explicit timeouts to database connection attempts to prevent hanging. Implemented GridFS support for large tables loaded from databases. Improved error handling to return more descriptive messages.
+- **backend/app/routes/datasource.py**:
+    - **Summary**: Handles API endpoints related to data source management, including file uploads, dataset listing, and database interactions.
+    - **Changes**:
+        - Added a new  endpoint to handle execution of user-provided SQL queries.
+        - Fixed  by adding  and other necessary database driver imports.
+        - Implemented a  helper to address  for Pandas DataFrames before JSON serialization.
+        - Modified the  endpoint to correctly parse  from the request body as part of  model, rather than as a query parameter.
+- **frontend/src/components/DataSourceSelector.jsx**:
+    - **Summary**: Frontend component responsible for allowing users to select data sources (file upload, database connection, custom SQL query).
+    - **Changes**:
+        - Added a new tab and UI elements for the Custom SQL Query feature, allowing users to input connection details and a SQL query.
+        - Implemented the  function to send custom SQL queries to the backend.
+        - Enhanced error handling for table loading and custom queries, specifically to properly display error messages from the backend (converting  errors to readable strings).
+        - Corrected the  function to send  and connection details in a JSON body to align with backend endpoint expectations.
+- **terraform/ (New Directory)**:
+    - **Summary**: Contains Terraform configuration files for provisioning AWS RDS instances (PostgreSQL, MySQL).
+    - **Changes**:
+        - : Defines the AWS resources (VPC, subnets, security groups, RDS instances).
+        - : Stores variables like , , , and  for customization.
+- **Various  files**: Numerous markdown files (, , , , , , , , etc.) were created, updated, or consolidated to provide comprehensive documentation.
 </code_architecture>
 
 <pending_tasks>
--   **Enhancement**: Allow users to update an existing workspace with fresh data while retaining analysis configurations for the same dataset (Phase 2).
--   **Feature**: Complete the unit testing comprehensively for both frontend and backend.
--   **Bug**: Investigate and fix the empty charts generated in the frontend (Predictive and Visualization tabs).
+- **Enhancement**: Allow users to update an existing workspace with fresh data while retaining analysis configurations for the same dataset (Phase 2).
+- **Feature**: Complete comprehensive unit testing for both frontend and backend.
+- **Feature**: Ensure the MCP server is available for Data Profiler and Predictive analysis, including chat window options.
+- **Bug**: Investigate why new workspaces (with LSTM) are not consistently showing up in Training Metadata if  are missing.
+- **Feature**: Implement Kerberos authentication for database connections.
+- **Feature**: If data is loaded based on a user's custom query, prompt the user for a name for this new dataset.
+- **Feature**: For multiple key correlation analysis in Predictive Analysis, generate comparisons across all ML models.
+- **Bug**: Address the Training Metadata dashboard not working correctly (models output, last trained, improvement, etc.).
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer completed a major refactoring of the backend, migrating all business logic and API routes from the monolithic  (originally 2567 lines) into a new, modular  directory structure. This involved creating distinct modules for configuration, database connections, Pydantic models, services (data, ML, visualization, chat), and API routes (datasource, analysis, training), resulting in a streamlined  of only 18 lines.
+Immediately before this summary request, the AI engineer was addressing a series of issues reported by the user, specifically concerning database connectivity and data loading into the PROMISE AI application.
 
-During the post-refactoring testing, several issues arose:
-1.  **Dependency Handling**:  for  and  error for  were encountered. These were resolved by making their imports optional in the backend code to prevent crashes in environments where these libraries or their underlying drivers are not present.
-2.  **API Endpoint Mismatch**: The frontend was observed making a  when trying to upload files, calling the old  endpoint. The refactored backend had changed this to .
+The user reported:
+1.  **Table load failed: [object Object],[object Object]** when attempting to load tables after successfully connecting to an AWS RDS PostgreSQL database.
+2.  **Table load failed: Request failed with status code 500** for larger tables.
+3.  An issue with **Generate AI Insights** resulting in Unable to generate AI insights at this time.
+4.  A **** in the backend logs when loading tables.
 
-The AI engineer's last action was to re-introduce the  endpoint in  for backward compatibility to address the frontend's 404 error. The backend was restarted successfully after this change, and the application's basic status check confirmed it was running. The very last recorded intent was to refresh the page to test the file upload functionality, indicating that the  fix was the immediate focus.
+The AI engineer's most recent actions were:
+-   **Debugging Table load failed: [object Object]**: Identified that the frontend was not correctly parsing error responses.  was modified to robustly handle backend error objects and display human-readable messages.
+-   **Debugging Request failed with status code 500**:
+    -   Traced to a  for  in . The missing  (and other database drivers) was added.
+    -   Discovered a  when Pandas DataFrames containing timestamps were converted to JSON. A  helper function was implemented and integrated into  to convert timestamps to ISO format before serialization.
+    -   Corrected the  endpoint's parameter handling in  to expect  and connection details within the JSON request body.
+    -   Updated the  function in  to send  and other parameters in a JSON request body, aligning with the backend's updated endpoint signature.
+-   **Observability Datasets**: Created  and  with more complex, real-world data for testing advanced features.
+-   **Addressing Training Metadata & ML Model Comparison**: The user's very last message explicitly reported that Trained Metadata is not working correctly and requested that ML Models comparison also should get generate for multiple key correlation analysis. The engineer acknowledged this and was about to investigate the provided screenshots.
 </current_work>
 
 <optional_next_step>
-Refresh the frontend to test file upload functionality and verify the  endpoint fix.
+Investigate the user-reported Trained Metadata is not working correctly issue by analyzing the provided screenshots.
 </optional_next_step>
