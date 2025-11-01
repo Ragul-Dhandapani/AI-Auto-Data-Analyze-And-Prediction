@@ -278,11 +278,11 @@ frontend:
   
   - task: "Display correlation heatmap in PredictiveAnalysis"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -290,6 +290,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Phase 1 & 3 implementation: 1) Added caching support to prevent re-analysis on tab switch (already existed in DashboardPage) 2) Enhanced backend to detect pie chart, bar chart, line chart requests and removal requests 3) Added Custom Charts section in frontend to display dynamically added charts 4) Added useEffect to render custom charts with Plotly 5) Added removal functionality to delete correlation or custom charts 6) All charts persist after refresh via cache mechanism"
+        - working: true
+          agent: "testing"
+          comment: "✅ KEY CORRELATIONS DISPLAY WORKING: Verified 🔗 Key Correlations section displays properly with 10 correlation pairs in correct format (Feature1 ↔ Feature2). Correlation values and strengths are visible. Heatmap and correlation list both working correctly."
   
   - task: "Support custom chart types (pie, bar, line) via chat"
     implemented: true
