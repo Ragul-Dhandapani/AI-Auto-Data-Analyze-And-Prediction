@@ -239,6 +239,11 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
   }, [customCharts, customChartsOpen]);
 
   const refreshCharts = () => {
+    if (customCharts.length > 0) {
+      if (!confirm('Refreshing will keep your custom charts but regenerate all auto-visualizations. Continue?')) {
+        return;
+      }
+    }
     setHasGenerated(false);
     setCharts([]);
     setSkippedCharts([]);
