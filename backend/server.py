@@ -1068,6 +1068,10 @@ async def test_connection(request: DataSourceTest):
             result = test_oracle_connection(request.config)
         elif request.source_type == 'postgresql':
             result = test_postgresql_connection(request.config)
+        elif request.source_type == 'mysql':
+            result = test_mysql_connection(request.config)
+        elif request.source_type == 'sqlserver':
+            result = test_sqlserver_connection(request.config)
         elif request.source_type == 'mongodb':
             # Test MongoDB connection
             await db.command('ping')
