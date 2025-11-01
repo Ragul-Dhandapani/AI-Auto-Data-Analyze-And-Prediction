@@ -80,6 +80,9 @@ def test_mysql_connection(config: dict) -> dict:
 
 def test_sqlserver_connection(config: dict) -> dict:
     """Test SQL Server database connection"""
+    if not HAS_PYODBC:
+        return {"success": False, "message": "SQL Server support not available (pyodbc not installed)"}
+    
     try:
         conn_str = (
             f"DRIVER={{ODBC Driver 17 for SQL Server}};"
