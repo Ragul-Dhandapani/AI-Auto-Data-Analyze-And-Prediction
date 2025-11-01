@@ -119,10 +119,28 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
           const chartDiv = document.getElementById(`auto-chart-${idx}`);
           if (chartDiv && chart.plotly_data) {
             const plotlyData = chart.plotly_data;
-            Plotly.newPlot(`auto-chart-${idx}`, plotlyData.data, plotlyData.layout, {
+            
+            // Force layout to respect container
+            const enhancedLayout = {
+              ...plotlyData.layout,
+              autosize: true,
+              width: null,  // Let Plotly calculate based on container
+              height: null, // Let Plotly calculate based on container
+              margin: { l: 50, r: 30, t: 50, b: 50 },
+              modebar: { orientation: 'v' }
+            };
+            
+            Plotly.newPlot(`auto-chart-${idx}`, plotlyData.data, enhancedLayout, {
               responsive: true,
               displayModeBar: true,
-              modeBarButtonsToRemove: ['lasso2d', 'select2d']
+              displaylogo: false,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d', 'pan2d', 'zoom2d']
+            }).then(() => {
+              // Force resize to container
+              const container = document.getElementById(`auto-chart-${idx}`);
+              if (container) {
+                Plotly.Plots.resize(container);
+              }
             });
           }
         });
