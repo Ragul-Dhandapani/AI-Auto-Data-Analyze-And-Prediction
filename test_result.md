@@ -105,6 +105,18 @@
 user_problem_statement: "Fix 8 critical issues: 1) Progress bar showing 100% but still loading for minutes 2) Add Clear Chat button 3) Chat history persistence in saved workspaces 4) New Chat & End Chat options 5) Change PROMISE to PROMISE AI 6) Self-training algorithm with training count display 7) Improve AI insights display 8) Fix chat to create charts (not Python code) for scatter plots"
 
 backend:
+  - task: "Health endpoint routing issue"
+    implemented: true
+    working: false
+    file: "/app/backend/app/main.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ HEALTH ENDPOINT ROUTING ISSUE: After refactoring, /health endpoint returns frontend HTML instead of backend API response. This suggests routing configuration issue where health endpoint is not properly mapped to backend service. The endpoint should return JSON like {'status': 'healthy', 'version': '2.0.0'} but instead returns full HTML page. Need to check Kubernetes ingress rules or supervisor configuration to ensure /health routes to backend service."
+
   - task: "Training counter and self-learning metadata"
     implemented: true
     working: true
