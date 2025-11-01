@@ -109,7 +109,11 @@ async def run_analysis(request: Dict[str, Any]):
                 numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
                 categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
                 
-                llm = LlmChat(api_key=llm_key, model="gpt-4o-mini")
+                llm = LlmChat(
+                    api_key=llm_key, 
+                    session_id="insights_generation",
+                    system_message="You are a data analyst expert. Provide clear, actionable insights about datasets."
+                )
                 
                 prompt = f"""Analyze this dataset and provide 4-5 key insights:
 
