@@ -362,9 +362,15 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "POST-REFACTORING COMPREHENSIVE VALIDATION"
+    - "File upload via /api/datasets endpoint"
+    - "Holistic analysis endpoint"
+    - "Chat action endpoint"
+    - "Empty charts bug investigation"
+    - "All backend API endpoints"
   stuck_tasks: []
-  test_all: false
+  test_all: true
   test_priority: "high_first"
 
 agent_communication:
@@ -384,3 +390,5 @@ agent_communication:
       message: "🎉 DATABASE CONNECTION FUNCTIONALITY COMPREHENSIVE TESTING COMPLETE: Successfully tested all database connection features as requested. RESULTS: ✅ Connection String Parsing (6/6 formats working) - PostgreSQL, MySQL, Oracle, SQL Server URL & key-value, MongoDB all parse correctly ✅ Database Connection Testing (5/5 types working) - All database types return proper error messages for connection failures ✅ Table Listing (5/5 types working) - All endpoints accessible with appropriate error handling ✅ Table Loading (working) - Proper error handling for invalid source types ✅ Endpoint Accessibility (4/4 endpoints working) - All endpoints accessible and return proper responses ✅ Training Counter & Scatter Plot Support also tested and working perfectly. Fixed ODBC dependency issue for SQL Server. Minor: list-tables returns 500 instead of 400 for unsupported types (caught by general exception handler). All core functionality working as expected."
     - agent: "main"
       message: "✅ CRITICAL BUG FIX - WORKSPACE STORAGE BSON LIMIT: Fixed 'BSON document too large' error (17.2MB exceeding 16MB limit) by implementing hybrid storage strategy. Solution: 1) Small workspaces (<10MB) stored directly in MongoDB collection 2) Large workspaces (≥10MB) stored in GridFS with only metadata in collection 3) Enhanced save-state endpoint to automatically choose storage method based on size 4) Updated load-state endpoint to transparently retrieve data from GridFS or collection 5) Updated delete-state endpoint to clean up GridFS files 6) Added ObjectId import for GridFS operations. Benefits: ✅ No size limitations (GridFS supports up to 16TB) ✅ Performance optimized (small=fast direct, large=streaming) ✅ Backward compatible with existing workspaces ✅ Transparent to frontend ✅ Efficient resource usage. API response now includes storage_type ('direct' or 'gridfs') and size_mb for monitoring. Tested successfully with curl - save/load/delete all working. See WORKSPACE_STORAGE_FIX.md for complete documentation."
+    - agent: "main"
+      message: "🔍 POST-REFACTORING COMPREHENSIVE VALIDATION INITIATED: Backend refactored from 2567-line monolithic server.py to modular structure. All logic now in backend/app/. Recent fixes: 1) Made lightgbm/pyodbc imports optional 2) Re-introduced /api/datasets endpoint for backward compatibility. Current phase: Comprehensive testing of all functionality including file upload, analysis, chat, database connections, workspace management. Homepage loads correctly with PROMISE AI branding. Need to verify: file upload functionality, empty charts bug, all API endpoints working after refactoring. Ready for backend testing agent."
