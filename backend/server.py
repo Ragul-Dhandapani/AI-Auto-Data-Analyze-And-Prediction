@@ -1055,10 +1055,78 @@ def generate_chart_recommendations(df: pd.DataFrame) -> List[dict]:
     
     return charts
 
+def parse_connection_string(source_type: str, conn_str: str) -> dict:
+    """Parse connection string into config dictionary"""
+    from urllib.parse import urlparse, parse_qs
+    
+    config = {}
+    
+    try:
+        if source_type in ['postgresql', 'mysql']:
+            # Format: postgresql://user:password@host:port/database
+            # Format: mysql://user:password@host:port/database
+            parsed = urlparse(conn_str)
+            config['host'] = parsed.hostname or 'localhost'
+            config['port'] = parsed.port or (5432 if source_type == 'postgresql' else 3306)
+            config['database'] = parsed.path.lstrip('/') if parsed.path else ''
+            config['username'] = parsed.username or ''
+            config['password'] = parsed.password or ''
+            
+        elif source_type == 'oracle':
+            # Format: oracle://user:password@host:port/service_name
+            parsed = urlparse(conn_str)
+            config['host'] = parsed.hostname or 'localhost'
+            config['port'] = parsed.port or 1521
+            config['service_name'] = parsed.path.lstrip('/') if parsed.path else 'ORCL'
+            config['username'] = parsed.username or ''
+            config['password'] = parsed.password or ''
+            
+        elif source_type == 'sqlserver':
+            # Format: mssql://user:password@host:port/database
+            # or: Server=host,port;Database=db;User Id=user;Password=pass;
+            if conn_str.startswith(('mssql://', 'sqlserver://')):
+                parsed = urlparse(conn_str)
+                config['host'] = parsed.hostname or 'localhost'
+                config['port'] = parsed.port or 1433
+                config['database'] = parsed.path.lstrip('/') if parsed.path else ''
+                config['username'] = parsed.username or ''
+                config['password'] = parsed.password or ''
+            else:
+                # Parse key-value format
+                parts = dict(item.split('=', 1) for item in conn_str.split(';') if '=' in item)
+                config['host'] = parts.get('Server', '').split(',')[0]
+                config['port'] = int(parts.get('Server', ',1433').split(',')[1]) if ',' in parts.get('Server', '') else 1433
+                config['database'] = parts.get('Database', '')
+                config['username'] = parts.get('User Id', parts.get('UID', ''))
+                config['password'] = parts.get('Password', parts.get('PWD', ''))
+                
+        elif source_type == 'mongodb':
+            # Format: mongodb://user:password@host:port/database
+            parsed = urlparse(conn_str)
+            config['host'] = parsed.hostname or 'localhost'
+            config['port'] = parsed.port or 27017
+            config['database'] = parsed.path.lstrip('/') if parsed.path else ''
+            config['username'] = parsed.username or ''
+            config['password'] = parsed.password or ''
+            
+    except Exception as e:
+        raise ValueError(f"Failed to parse connection string: {str(e)}")
+    
+    return config
+
 # API Routes
 @api_router.get("/")
 async def root():
     return {"message": "AutoPredict API", "version": "1.0"}
+
+@api_router.post("/datasource/parse-connection-string")
+async def parse_conn_string(source_type: str = Form(...), connection_string: str = Form(...)):
+    """Parse connection string into config parameters"""
+    try:
+        config = parse_connection_string(source_type, connection_string)
+        return {"success": True, "config": config}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
 @api_router.post("/datasource/test-connection")
 async def test_connection(request: DataSourceTest):
