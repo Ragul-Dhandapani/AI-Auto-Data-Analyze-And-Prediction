@@ -343,6 +343,29 @@ def load_table_data(source_type: str, config: dict, table_name: str) -> pd.DataF
         df = pd.read_sql(f"SELECT * FROM {table_name}", conn)
         conn.close()
         return df
+    elif source_type == 'mysql':
+        conn = pymysql.connect(
+            host=config.get('host'),
+            port=int(config.get('port', 3306)),
+            database=config.get('database'),
+            user=config.get('username'),
+            password=config.get('password')
+        )
+        df = pd.read_sql(f"SELECT * FROM {table_name}", conn)
+        conn.close()
+        return df
+    elif source_type == 'sqlserver':
+        conn_str = (
+            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"SERVER={config.get('host')},{config.get('port', 1433)};"
+            f"DATABASE={config.get('database')};"
+            f"UID={config.get('username')};"
+            f"PWD={config.get('password')}"
+        )
+        conn = pyodbc.connect(conn_str)
+        df = pd.read_sql(f"SELECT * FROM {table_name}", conn)
+        conn.close()
+        return df
     else:
         raise ValueError(f"Unsupported source type: {source_type}")
 
