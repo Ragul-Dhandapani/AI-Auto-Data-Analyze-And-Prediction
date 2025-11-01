@@ -356,6 +356,78 @@ const DashboardPage = () => {
           )}
         </div>
       </div>
+
+
+      {/* Save Dialog */}
+      {showSaveDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-96 p-6">
+            <h3 className="text-lg font-semibold mb-4">Save Workspace State</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              This will save Data Profiler, Predictive Analysis, and Visualizations
+            </p>
+            <input
+              type="text"
+              value={stateName}
+              onChange={(e) => setStateName(e.target.value)}
+              placeholder="Enter workspace name..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
+              onKeyPress={(e) => e.key === 'Enter' && saveWorkspaceState()}
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveWorkspaceState} disabled={!stateName.trim()}>
+                Save
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Load Dialog */}
+      {showLoadDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-[500px] p-6 max-h-[600px] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Load Saved Workspace</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowLoadDialog(false)}>
+                ×
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {savedStates.length === 0 ? (
+                <p className="text-gray-600 text-center py-4">No saved workspace states found</p>
+              ) : (
+                savedStates.map((state) => (
+                  <div
+                    key={state.id}
+                    className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between group"
+                    onClick={() => loadWorkspaceState(state.id)}
+                  >
+                    <div>
+                      <h4 className="font-semibold">{state.state_name}</h4>
+                      <p className="text-xs text-gray-500">
+                        Saved: {new Date(state.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => deleteState(state.id, e)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+
     </div>
   );
 };
