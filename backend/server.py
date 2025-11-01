@@ -2252,21 +2252,66 @@ User question: {request.message}
 # Save/Load Analysis States
 @api_router.post("/analysis/save-state")
 async def save_analysis_state(request: SaveStateRequest):
-    """Save analysis state with custom name"""
+    """Save analysis state with custom name (uses GridFS for large states)"""
     try:
         state_id = str(uuid.uuid4())
-        state_doc = {
-            "id": state_id,
-            "dataset_id": request.dataset_id,
-            "state_name": request.state_name,
+        
+        # Prepare the full state data
+        full_state_data = {
             "analysis_data": request.analysis_data,
-            "chat_history": request.chat_history,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "chat_history": request.chat_history
         }
         
+        # Convert to JSON and check size
+        state_json = json.dumps(full_state_data)
+        state_size = len(state_json.encode('utf-8'))
+        
+        # If larger than 10MB, use GridFS
+        if state_size > 10 * 1024 * 1024:  # 10MB threshold
+            # Store large data in GridFS
+            file_id = await fs.upload_from_stream(
+                f"workspace_{state_id}.json",
+                state_json.encode('utf-8'),
+                metadata={
+                    "type": "workspace_state",
+                    "state_id": state_id,
+                    "dataset_id": request.dataset_id,
+                    "state_name": request.state_name
+                }
+            )
+            
+            # Store only metadata in collection
+            state_doc = {
+                "id": state_id,
+                "dataset_id": request.dataset_id,
+                "state_name": request.state_name,
+                "storage_type": "gridfs",
+                "gridfs_file_id": str(file_id),
+                "size_bytes": state_size,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        else:
+            # Store directly in collection for smaller states
+            state_doc = {
+                "id": state_id,
+                "dataset_id": request.dataset_id,
+                "state_name": request.state_name,
+                "storage_type": "direct",
+                "analysis_data": request.analysis_data,
+                "chat_history": request.chat_history,
+                "size_bytes": state_size,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        
         await db.analysis_states.insert_one(state_doc)
-        return {"state_id": state_id, "message": f"Analysis state '{request.state_name}' saved successfully"}
+        return {
+            "state_id": state_id, 
+            "message": f"Analysis state '{request.state_name}' saved successfully",
+            "storage_type": state_doc["storage_type"],
+            "size_mb": round(state_size / (1024 * 1024), 2)
+        }
     except Exception as e:
         logging.error(f"Save state error: {traceback.format_exc()}")
         raise HTTPException(500, f"Failed to save state: {str(e)}")
