@@ -24,12 +24,15 @@ const PlotlyChart = ({ data, layout, config }) => {
           {
             ...layout,
             autosize: true,
-            responsive: true
+            responsive: true,
+            margin: { l: 60, r: 40, t: 60, b: 60 }  // Better margins for axis labels
           },
           { 
             ...config,
             responsive: true,
-            displayModeBar: false 
+            displayModeBar: true,
+            displaylogo: false,
+            modeBarButtonsToRemove: ['lasso2d', 'select2d']
           }
         );
         
