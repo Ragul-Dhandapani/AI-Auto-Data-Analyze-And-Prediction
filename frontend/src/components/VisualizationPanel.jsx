@@ -193,10 +193,8 @@ const VisualizationPanel = ({ dataset }) => {
 
   // Filter charts to only show those with valid data
   const validCharts = charts.filter(chart => 
-    chart.data && 
-    chart.data.data && 
-    Array.isArray(chart.data.data) &&
-    chart.data.data.length > 0
+    chart && 
+    chart.data
   );
 
   const validCustomCharts = customCharts.filter(chart =>
