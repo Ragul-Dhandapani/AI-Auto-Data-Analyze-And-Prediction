@@ -114,8 +114,20 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
 
   const runHolisticAnalysis = async () => {
     setLoading(true);
+    setProgress(0);
     const startTime = Date.now();
     toast.info("Running comprehensive AI/ML analysis...");
+    
+    // Simulate progress for better UX
+    progressIntervalRef.current = setInterval(() => {
+      setProgress(prev => {
+        // Slow down as we approach 90%
+        if (prev < 30) return prev + 3;
+        if (prev < 60) return prev + 2;
+        if (prev < 85) return prev + 1;
+        return prev + 0.5; // Very slow after 85%
+      });
+    }, 500);
     
     try {
       const response = await axios.post(`${API}/analysis/holistic`, {
@@ -126,6 +138,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       const timeTaken = ((endTime - startTime) / 1000).toFixed(1); // in seconds
       setAnalysisTime(timeTaken);
 
+      // Complete progress
+      setProgress(100);
+      
       setAnalysisResults(response.data);
       onAnalysisUpdate(response.data); // Cache the results
       toast.success(`Analysis complete in ${timeTaken}s!`);
@@ -141,7 +156,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       setAnalysisResults(errorResult);
       onAnalysisUpdate(errorResult);
     } finally {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
       setLoading(false);
+      setTimeout(() => setProgress(0), 1000); // Reset progress after 1s
     }
   };
 
