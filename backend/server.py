@@ -37,6 +37,10 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# GridFS for large file storage
+from motor.motor_asyncio import AsyncIOMotorGridFSBucket
+fs = AsyncIOMotorGridFSBucket(db)
+
 # LLM Setup
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
