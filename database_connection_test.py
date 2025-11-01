@@ -265,7 +265,7 @@ def test_connection_testing():
                 print(f"✅ Expected connection failure: {result['message']}")
             
             # Verify response format
-            print(f"   Response format: {{'success': {result['success']}, 'message': '{result['message'][:50]}...'}")
+            print(f"   Response format: {{'success': {result['success']}, 'message': '{result['message'][:50]}...'}}")
             
         except Exception as e:
             print(f"❌ Exception during {test_config['name']} test: {str(e)}")
