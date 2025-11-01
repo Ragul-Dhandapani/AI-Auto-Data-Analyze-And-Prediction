@@ -605,20 +605,60 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
                     ))}
                   </TabsList>
                   
-                  {models.map((model) => (
+                  {models.map((model) => {
+                    const modelDescriptions = {
+                      "Linear Regression": "Simple model that assumes a linear relationship between features and target. Best for: Basic trends, interpretable results, linear patterns.",
+                      "Random Forest": "Ensemble of decision trees that reduces overfitting. Best for: Complex patterns, handling non-linear relationships, robust predictions.",
+                      "Decision Tree": "Tree-like model making decisions based on feature values. Best for: Interpretable results, categorical data, quick training.",
+                      "XGBoost": "Advanced gradient boosting algorithm, highly accurate. Best for: Competition-level accuracy, complex datasets, handling missing values.",
+                      "LSTM Neural Network": "Deep learning model that captures sequential patterns. Best for: Time-series data, long-term dependencies, complex sequences."
+                    };
+                    
+                    return (
                     <TabsContent key={model.model_name} value={model.model_name}>
+                      {/* Model Description */}
+                      <div className="bg-blue-100 border-l-4 border-blue-600 p-3 mb-4 rounded">
+                        <p className="text-sm text-blue-900">
+                          <strong>{model.model_name}:</strong> {modelDescriptions[model.model_name] || "Advanced ML model for predictive analysis."}
+                        </p>
+                      </div>
+                      
                       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
                         <div className="grid md:grid-cols-3 gap-4 mb-4">
                           <div className="bg-white rounded-lg p-4 shadow-sm">
-                            <div className="text-sm text-gray-600">R² Score</div>
+                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                              <span>R² Score</span>
+                              <div className="group relative">
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                  Measures how well the model explains the data. 1.0 = perfect, 0.0 = no better than guessing. Higher is better.
+                                </div>
+                              </div>
+                            </div>
                             <div className="text-2xl font-bold text-blue-600">{model.r2_score.toFixed(3)}</div>
                           </div>
                           <div className="bg-white rounded-lg p-4 shadow-sm">
-                            <div className="text-sm text-gray-600">RMSE</div>
+                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                              <span>RMSE</span>
+                              <div className="group relative">
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                  Root Mean Square Error. Average prediction error in the same units as target. Lower is better.
+                                </div>
+                              </div>
+                            </div>
                             <div className="text-2xl font-bold text-purple-600">{model.rmse.toFixed(3)}</div>
                           </div>
                           <div className="bg-white rounded-lg p-4 shadow-sm">
-                            <div className="text-sm text-gray-600">Confidence</div>
+                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                              <span>Confidence</span>
+                              <div className="group relative">
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                  Overall model reliability based on R² score. High (>0.7), Medium (0.5-0.7), Low (<0.5).
+                                </div>
+                              </div>
+                            </div>
                             <div className={`text-2xl font-bold ${
                               model.confidence === 'High' ? 'text-green-600' : 
                               model.confidence === 'Medium' ? 'text-yellow-600' : 'text-red-600'
@@ -647,7 +687,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
                         )}
                       </div>
                     </TabsContent>
-                  ))}
+                    );
+                  })}
                 </Tabs>
               </div>
             ));
