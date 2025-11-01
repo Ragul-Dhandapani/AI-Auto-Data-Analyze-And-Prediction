@@ -18,41 +18,19 @@ Model Context Protocol server for PROMISE AI - Provides data analysis and ML cap
 3. `generate_visualizations` - Create charts
 4. `save_workspace` - Save analysis state
 
-## Installation
+## Usage
 
-### For Claude Desktop
+```bash
+# Install dependencies
+pip install -r ../backend/requirements.txt
 
-Add to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "autopredict": {
-      "command": "python",
-      "args": ["/app/mcp_server/autopredict_mcp.py"],
-      "env": {
-        "EMERGENT_LLM_KEY": "sk-emergent-9Ef52962b9aA8Cf87A"
-      }
-    }
-  }
-}
+# Run MCP server
+python autopredict_mcp.py
 ```
 
-### For VS Code (Cline Extension)
+## Integration
 
-Add to Cline MCP settings:
-
-```json
-{
-  "autopredict": {
-    "command": "python",
-    "args": ["/app/mcp_server/autopredict_mcp.py"],
-    "env": {
-      "EMERGENT_LLM_KEY": "sk-emergent-9Ef52962b9aA8Cf87A"
-    }
-  }
-}
-```
+Use with any MCP-compatible AI client (Claude Desktop, etc.) to perform data analysis tasks.
 
 ## Usage Example
 
