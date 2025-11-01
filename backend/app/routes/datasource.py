@@ -487,3 +487,276 @@ async def execute_custom_query(config: dict):
     except Exception as e:
         raise HTTPException(500, f"Failed to execute query: {str(e)}")
 
+
+
+@router.post("/execute-query-preview")
+async def execute_query_preview(config: dict):
+    """
+    Execute custom SQL query and return preview without saving as dataset
+    Used to validate query before user names and loads the dataset
+    """
+    try:
+        db_type = config.get("db_type")
+        query = config.get("query", "").strip()
+        
+        if not query:
+            raise HTTPException(400, "Query cannot be empty")
+        
+        if not db_type:
+            raise HTTPException(400, "Database type is required")
+        
+        # Execute query based on database type
+        if db_type == "postgresql":
+            import psycopg2
+            conn = psycopg2.connect(
+                host=config.get("host"),
+                port=config.get("port", 5432),
+                user=config.get("username"),
+                password=config.get("password"),
+                database=config.get("database"),
+                connect_timeout=10
+            )
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            
+        elif db_type == "mysql":
+            import pymysql
+            conn = pymysql.connect(
+                host=config.get("host"),
+                port=config.get("port", 3306),
+                user=config.get("username"),
+                password=config.get("password"),
+                database=config.get("database"),
+                connect_timeout=10
+            )
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            
+        elif db_type == "oracle":
+            import cx_Oracle
+            dsn = cx_Oracle.makedsn(
+                config.get("host"),
+                config.get("port", 1521),
+                service_name=config.get("service_name")
+            )
+            conn = cx_Oracle.connect(
+                user=config.get("username"),
+                password=config.get("password"),
+                dsn=dsn
+            )
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            
+        elif db_type == "sqlserver":
+            import pyodbc
+            conn_str = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                f"DATABASE={config.get('database')};"
+                f"UID={config.get('username')};"
+                f"PWD={config.get('password')}"
+            )
+            conn = pyodbc.connect(conn_str, timeout=10)
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            
+        elif db_type == "mongodb":
+            from pymongo import MongoClient
+            client = MongoClient(
+                host=config.get("host"),
+                port=config.get("port", 27017),
+                username=config.get("username"),
+                password=config.get("password"),
+                serverSelectionTimeoutMS=10000
+            )
+            db_mongo = client[config.get("database")]
+            collection = db_mongo[query]
+            data = list(collection.find().limit(10000))
+            if data and '_id' in data[0]:
+                for doc in data:
+                    doc['_id'] = str(doc['_id'])
+            df = pd.DataFrame(data)
+            client.close()
+        else:
+            raise HTTPException(400, f"Unsupported database type: {db_type}")
+        
+        if df.empty:
+            raise HTTPException(400, "Query returned no results")
+        
+        # Convert to records for preview
+        data_dict = df.to_dict('records')
+        
+        return {
+            "row_count": len(df),
+            "column_count": len(df.columns),
+            "columns": df.columns.tolist(),
+            "data_preview": data_dict[:10],  # Return first 10 rows as preview
+            "message": "Query executed successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Failed to execute query: {str(e)}")
+
+
+@router.post("/save-query-dataset")
+async def save_query_dataset(config: dict):
+    """
+    Execute query and save results as a named dataset
+    Called after user provides a custom name for the query results
+    """
+    try:
+        db_type = config.get("db_type")
+        query = config.get("query", "").strip()
+        dataset_name = config.get("dataset_name", "").strip()
+        
+        if not query:
+            raise HTTPException(400, "Query cannot be empty")
+        
+        if not db_type:
+            raise HTTPException(400, "Database type is required")
+        
+        if not dataset_name:
+            raise HTTPException(400, "Dataset name is required")
+        
+        # Execute query based on database type (same logic as preview)
+        if db_type == "postgresql":
+            import psycopg2
+            conn = psycopg2.connect(
+                host=config.get("host"),
+                port=config.get("port", 5432),
+                user=config.get("username"),
+                password=config.get("password"),
+                database=config.get("database"),
+                connect_timeout=10
+            )
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            
+        elif db_type == "mysql":
+            import pymysql
+            conn = pymysql.connect(
+                host=config.get("host"),
+                port=config.get("port", 3306),
+                user=config.get("username"),
+                password=config.get("password"),
+                database=config.get("database"),
+                connect_timeout=10
+            )
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            
+        elif db_type == "oracle":
+            import cx_Oracle
+            dsn = cx_Oracle.makedsn(
+                config.get("host"),
+                config.get("port", 1521),
+                service_name=config.get("service_name")
+            )
+            conn = cx_Oracle.connect(
+                user=config.get("username"),
+                password=config.get("password"),
+                dsn=dsn
+            )
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            
+        elif db_type == "sqlserver":
+            import pyodbc
+            conn_str = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                f"DATABASE={config.get('database')};"
+                f"UID={config.get('username')};"
+                f"PWD={config.get('password')}"
+            )
+            conn = pyodbc.connect(conn_str, timeout=10)
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            
+        elif db_type == "mongodb":
+            from pymongo import MongoClient
+            client = MongoClient(
+                host=config.get("host"),
+                port=config.get("port", 27017),
+                username=config.get("username"),
+                password=config.get("password"),
+                serverSelectionTimeoutMS=10000
+            )
+            db_mongo = client[config.get("database")]
+            collection = db_mongo[query]
+            data = list(collection.find().limit(10000))
+            if data and '_id' in data[0]:
+                for doc in data:
+                    doc['_id'] = str(doc['_id'])
+            df = pd.DataFrame(data)
+            client.close()
+        else:
+            raise HTTPException(400, f"Unsupported database type: {db_type}")
+        
+        if df.empty:
+            raise HTTPException(400, "Query returned no results")
+        
+        # Generate unique dataset ID
+        dataset_id = str(uuid.uuid4())
+        
+        # Use user-provided dataset name
+        
+        # Convert DataFrame to records
+        data_dict = df.to_dict('records')
+        
+        # Check size for storage decision
+        data_size_mb = len(str(data_dict).encode('utf-8')) / (1024 * 1024)
+        
+        dataset_doc = {
+            "id": dataset_id,
+            "name": dataset_name,  # User-provided name
+            "query": query,
+            "row_count": len(df),
+            "column_count": len(df.columns),
+            "columns": df.columns.tolist(),
+            "data_preview": data_dict[:10],
+            "source_type": "database_query",
+            "db_type": db_type,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Storage decision based on size
+        if data_size_mb < 10:
+            # Direct storage for small datasets
+            dataset_doc["data"] = data_dict
+            dataset_doc["storage_type"] = "direct"
+            dataset_doc["gridfs_file_id"] = None
+        else:
+            # GridFS storage for large datasets
+            import json
+            data_json = json.dumps(data_dict)
+            file_id = await fs.upload_from_stream(
+                f"query_{dataset_id}.json",
+                data_json.encode('utf-8'),
+                metadata={"dataset_id": dataset_id, "type": "query_results"}
+            )
+            dataset_doc["data"] = None
+            dataset_doc["storage_type"] = "gridfs"
+            dataset_doc["gridfs_file_id"] = str(file_id)
+        
+        # Save to MongoDB
+        await db.datasets.insert_one(dataset_doc)
+        
+        # Remove MongoDB-specific fields from response
+        dataset_doc.pop("_id", None)
+        
+        return {
+            **dataset_doc,
+            "message": f"Dataset '{dataset_name}' saved successfully",
+            "size_mb": round(data_size_mb, 2)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Failed to save dataset: {str(e)}")
+
+
