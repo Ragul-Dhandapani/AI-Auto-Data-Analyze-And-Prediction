@@ -283,7 +283,12 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
                   data-testid="db-port-input"
                   value={dbConfig.port}
                   onChange={(e) => setDbConfig({...dbConfig, port: e.target.value})}
-                  placeholder={dbConfig.source_type === 'oracle' ? '1521' : '5432'}
+                  placeholder={
+                    dbConfig.source_type === 'oracle' ? '1521' : 
+                    dbConfig.source_type === 'mysql' ? '3306' :
+                    dbConfig.source_type === 'sqlserver' ? '1433' :
+                    dbConfig.source_type === 'mongodb' ? '27017' : '5432'
+                  }
                 />
               </div>
             </div>
