@@ -119,7 +119,9 @@ const TrainingMetadataPage = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-gray-700">Last trained:</span>
                       <span className="text-sm text-gray-600">
-                        {dataset.workspaces.length > 0 ? dataset.workspaces[0].workspace_name : 'N/A'}
+                        {dataset.last_trained_at 
+                          ? new Date(dataset.last_trained_at).toLocaleDateString()
+                          : 'Never'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
