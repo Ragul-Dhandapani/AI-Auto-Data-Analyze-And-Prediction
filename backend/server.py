@@ -2321,7 +2321,7 @@ async def get_training_metadata():
         datasets = await datasets_cursor.to_list(length=None)
         
         # Get all saved states
-        states_cursor = db.saved_states.find({}, {"_id": 0})
+        states_cursor = db.analysis_states.find({}, {"_id": 0})
         saved_states = await states_cursor.to_list(length=None)
         
         # Get all training history
