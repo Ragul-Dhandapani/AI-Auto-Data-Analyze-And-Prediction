@@ -263,15 +263,18 @@ frontend:
   
   - task: "Display training count in UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added Self-Training Model card displaying: training count ('Trained X times'), dataset size, last trained timestamp. Positioned after AI Summary with green gradient styling and refresh icon. Shows metadata from training_metadata in analysis results."
+        - working: true
+          agent: "testing"
+          comment: "✅ TRAINING COUNT DISPLAY WORKING: Verified Self-Training Model card displays training count, dataset size, and last trained timestamp with proper green gradient styling. Training metadata properly shown in UI."
   
   - task: "Display correlation heatmap in PredictiveAnalysis"
     implemented: true
