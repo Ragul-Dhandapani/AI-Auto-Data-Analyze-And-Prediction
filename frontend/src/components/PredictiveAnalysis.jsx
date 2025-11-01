@@ -518,6 +518,29 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
+      {/* Training Metadata */}
+      {analysisResults.training_metadata && (
+        <Card className="p-4 bg-gradient-to-r from-green-50 to-teal-50 border-green-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <RefreshCw className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">Self-Training Model</h4>
+                <p className="text-sm text-gray-600">
+                  Trained <span className="font-bold text-green-600">{analysisResults.training_metadata.training_count}</span> time{analysisResults.training_metadata.training_count !== 1 ? 's' : ''} on this dataset
+                </p>
+              </div>
+            </div>
+            <div className="text-right text-sm text-gray-600">
+              <p>Dataset Size: {analysisResults.training_metadata.dataset_size?.toLocaleString()} rows</p>
+              <p className="text-xs mt-1">Last trained: {new Date(analysisResults.training_metadata.last_trained_at).toLocaleString()}</p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Rest of sections with collapse... */}
       {/* Volume Analysis */}
       {analysisResults.volume_analysis && analysisResults.volume_analysis.by_dimensions && analysisResults.volume_analysis.by_dimensions.length > 0 && !collapsed.volume && (
