@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Home, TrendingUp, TrendingDown, RefreshCw, Calendar, Database, ArrowUp, Download } from 'lucide-react';
+import { Loader2, Home, TrendingUp, Calendar, Database, Download, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import Select from 'react-select';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -14,8 +14,8 @@ const TrainingMetadataPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [metadata, setMetadata] = useState([]);
-  const [viewMode, setViewMode] = useState('dataset'); // 'dataset' or 'workspace'
-  const [selectedDatasetForWorkspace, setSelectedDatasetForWorkspace] = useState(null);
+  const [selectedDataset, setSelectedDataset] = useState(null);
+  const [selectedWorkspaces, setSelectedWorkspaces] = useState([]);
   const [downloadingPdf, setDownloadingPdf] = useState(null);
 
   useEffect(() => {
@@ -28,9 +28,15 @@ const TrainingMetadataPage = () => {
       const response = await axios.get(`${API}/training-metadata`);
       const data = response.data.metadata || [];
       setMetadata(data);
-      // Auto-select first dataset for workspace view
-      if (data.length > 0) {
-        setSelectedDatasetForWorkspace(data[0].dataset_id);
+      
+      // Auto-select first dataset with workspaces
+      const firstWithWorkspaces = data.find(d => d.workspaces && d.workspaces.length > 0);
+      if (firstWithWorkspaces) {
+        setSelectedDataset({
+          value: firstWithWorkspaces.dataset_id,
+          label: firstWithWorkspaces.dataset_name,
+          data: firstWithWorkspaces
+        });
       }
     } catch (error) {
       toast.error('Failed to fetch training metadata');
@@ -40,18 +46,22 @@ const TrainingMetadataPage = () => {
     }
   };
 
-  const downloadPdf = async (datasetId, datasetName) => {
+  const downloadPdf = async (datasetId, datasetName, workspaceIds = null) => {
     setDownloadingPdf(datasetId);
     try {
-      const response = await axios.get(`${API}/training/metadata/download-pdf/${datasetId}`, {
-        responseType: 'blob'
-      });
+      const url = workspaceIds 
+        ? `${API}/training/metadata/download-pdf/${datasetId}?workspaces=${workspaceIds.join(',')}`
+        : `${API}/training/metadata/download-pdf/${datasetId}`;
+        
+      const response = await axios.get(url, { responseType: 'blob' });
       
-      // Create blob link to download
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `training_metadata_${datasetName.replace(/\s+/g, '_')}.pdf`);
+      link.href = blobUrl;
+      const filename = workspaceIds && workspaceIds.length > 0
+        ? `training_metadata_${datasetName.replace(/\s+/g, '_')}_workspaces.pdf`
+        : `training_metadata_${datasetName.replace(/\s+/g, '_')}_complete.pdf`;
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -65,12 +75,68 @@ const TrainingMetadataPage = () => {
     }
   };
 
+  // Prepare dataset options for dropdown
+  const datasetOptions = metadata.map(ds => ({
+    value: ds.dataset_id,
+    label: `${ds.dataset_name} (${ds.workspaces?.length || 0} workspaces)`,
+    data: ds
+  }));
+
+  // Prepare workspace options for selected dataset
+  const workspaceOptions = selectedDataset?.data?.workspaces?.map(ws => ({
+    value: ws.workspace_id,
+    label: `${ws.workspace_name} - ${new Date(ws.saved_at).toLocaleDateString()}`,
+    data: ws
+  })) || [];
+
+  // Get data to display based on selections
+  const getDisplayData = () => {
+    if (!selectedDataset) return null;
+    
+    const dataset = selectedDataset.data;
+    
+    if (selectedWorkspaces.length === 0) {
+      // Show complete dataset data
+      return {
+        title: `Complete Dataset: ${dataset.dataset_name}`,
+        training_count: dataset.workspaces?.length || 0,
+        last_trained: dataset.last_trained,
+        initial_scores: dataset.initial_scores,
+        current_scores: dataset.current_scores,
+        initial_score: dataset.initial_score,
+        current_score: dataset.current_score,
+        improvement_percentage: dataset.improvement_percentage,
+        row_count: dataset.row_count,
+        column_count: dataset.column_count,
+        isComplete: true
+      };
+    } else {
+      // Show combined workspace data
+      const selectedWsData = selectedWorkspaces.map(ws => ws.data);
+      const allModels = {};
+      
+      selectedWsData.forEach(ws => {
+        // Extract model scores from workspace (would need to be added to API)
+        // For now, show workspace names
+      });
+      
+      return {
+        title: `${selectedWorkspaces.length} Workspace(s) Selected`,
+        workspaces: selectedWsData,
+        training_count: selectedWsData.length,
+        isComplete: false
+      };
+    }
+  };
+
+  const displayData = getDisplayData();
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading training metadata...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <p className="ml-3 text-gray-600">Loading training metadata...</p>
         </div>
       </div>
     );
