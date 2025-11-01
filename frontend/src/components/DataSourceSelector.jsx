@@ -253,22 +253,34 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
 
     setLoading(true);
     try {
-      const queryConfig = useConnectionString 
-        ? { 
-            db_type: dbConfig.source_type,
-            query: customQuery,
-            ...(await parseConnectionString())
-          }
-        : {
-            db_type: dbConfig.source_type,
-            query: customQuery,
-            host: dbConfig.host,
-            port: dbConfig.port || getDefaultPort(),
-            database: dbConfig.database,
-            username: dbConfig.username,
-            password: dbConfig.password,
-            service_name: dbConfig.service_name
-          };
+      let queryConfig;
+      
+      if (useConnectionString && connectionString) {
+        // Parse connection string first
+        const formData = new FormData();
+        formData.append("source_type", dbConfig.source_type);
+        formData.append("connection_string", connectionString);
+        
+        const parseResponse = await axios.post(`${API}/datasource/parse-connection-string`, formData);
+        const parsedConfig = parseResponse.data.config;
+        
+        queryConfig = {
+          db_type: dbConfig.source_type,
+          query: customQuery,
+          ...parsedConfig
+        };
+      } else {
+        queryConfig = {
+          db_type: dbConfig.source_type,
+          query: customQuery,
+          host: dbConfig.host,
+          port: dbConfig.port || getDefaultPort(),
+          database: dbConfig.database,
+          username: dbConfig.username,
+          password: dbConfig.password,
+          service_name: dbConfig.service_name
+        };
+      }
 
       // Execute query to validate and get preview
       const response = await axios.post(`${API}/datasource/execute-query-preview`, queryConfig);
