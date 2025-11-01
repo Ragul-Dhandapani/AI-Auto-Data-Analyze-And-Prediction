@@ -725,22 +725,33 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
                 <h4 className="font-semibold mb-3">Predicting: {targetCol}</h4>
                 <Tabs defaultValue={models[0].model_name} className="w-full">
                   <TabsList className="grid w-full grid-cols-5 mb-4">
-                    {models.map((model) => (
-                      <TabsTrigger key={model.model_name} value={model.model_name}>
-                        {model.model_name}
-                      </TabsTrigger>
-                    ))}
+                    {models.map((model) => {
+                      const modelDescriptions = {
+                        "Linear Regression": "Simple model that assumes a linear relationship between features and target. Best for: Basic trends, interpretable results, linear patterns.",
+                        "Random Forest": "Ensemble of decision trees that reduces overfitting. Best for: Complex patterns, handling non-linear relationships, robust predictions.",
+                        "Decision Tree": "Tree-like model making decisions based on feature values. Best for: Interpretable results, categorical data, quick training.",
+                        "XGBoost": "Advanced gradient boosting algorithm, highly accurate. Best for: Competition-level accuracy, complex datasets, handling missing values.",
+                        "LSTM Neural Network": "Deep learning model that captures sequential patterns. Best for: Time-series data, long-term dependencies, complex sequences.",
+                        "LightGBM": "Fast gradient boosting framework using tree-based learning. Best for: Large datasets, fast training, memory efficiency."
+                      };
+                      
+                      return (
+                        <TabsTrigger key={model.model_name} value={model.model_name}>
+                          <div className="flex items-center gap-1">
+                            <span>{model.model_name}</span>
+                            <div className="group relative">
+                              <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              <div className="hidden group-hover:block absolute bottom-full right-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg z-50">
+                                <strong>{model.model_name}:</strong> {modelDescriptions[model.model_name] || "Advanced ML model for predictive analysis."}
+                              </div>
+                            </div>
+                          </div>
+                        </TabsTrigger>
+                      );
+                    })}
                   </TabsList>
                   
                   {models.map((model) => {
-                    const modelDescriptions = {
-                      "Linear Regression": "Simple model that assumes a linear relationship between features and target. Best for: Basic trends, interpretable results, linear patterns.",
-                      "Random Forest": "Ensemble of decision trees that reduces overfitting. Best for: Complex patterns, handling non-linear relationships, robust predictions.",
-                      "Decision Tree": "Tree-like model making decisions based on feature values. Best for: Interpretable results, categorical data, quick training.",
-                      "XGBoost": "Advanced gradient boosting algorithm, highly accurate. Best for: Competition-level accuracy, complex datasets, handling missing values.",
-                      "LSTM Neural Network": "Deep learning model that captures sequential patterns. Best for: Time-series data, long-term dependencies, complex sequences."
-                    };
-                    
                     return (
                     <TabsContent key={model.model_name} value={model.model_name}>
                       {/* Model Description */}
