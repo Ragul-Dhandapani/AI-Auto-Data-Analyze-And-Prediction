@@ -33,6 +33,9 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState("");
   const [customQuery, setCustomQuery] = useState("");
+  const [queryResults, setQueryResults] = useState(null); // Store query execution results
+  const [showNameDialog, setShowNameDialog] = useState(false); // Show dataset naming dialog
+  const [datasetName, setDatasetName] = useState(""); // User-provided dataset name
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
