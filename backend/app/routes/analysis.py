@@ -441,7 +441,7 @@ async def save_analysis_state(request: SaveStateRequest):
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
         
-        await db.analysis_states.insert_one(state_doc)
+        await db.saved_states.insert_one(state_doc)
         
         return {
             "state_id": state_id,
@@ -458,7 +458,7 @@ async def save_analysis_state(request: SaveStateRequest):
 async def load_analysis_state(state_id: str):
     """Load saved analysis state"""
     try:
-        state = await db.analysis_states.find_one({"id": state_id}, {"_id": 0})
+        state = await db.saved_states.find_one({"id": state_id}, {"_id": 0})
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
@@ -487,7 +487,7 @@ async def load_analysis_state(state_id: str):
 async def get_saved_states(dataset_id: str):
     """Get all saved states for a dataset"""
     try:
-        cursor = db.analysis_states.find({"dataset_id": dataset_id}, {"_id": 0})
+        cursor = db.saved_states.find({"dataset_id": dataset_id}, {"_id": 0})
         states = await cursor.to_list(length=None)
         return {"states": states}
     except Exception as e:
@@ -498,7 +498,7 @@ async def get_saved_states(dataset_id: str):
 async def delete_analysis_state(state_id: str):
     """Delete saved analysis state"""
     try:
-        state = await db.analysis_states.find_one({"id": state_id}, {"_id": 0})
+        state = await db.saved_states.find_one({"id": state_id}, {"_id": 0})
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
@@ -510,7 +510,7 @@ async def delete_analysis_state(state_id: str):
                 pass
         
         # Delete metadata
-        result = await db.analysis_states.delete_one({"id": state_id})
+        result = await db.saved_states.delete_one({"id": state_id})
         if result.deleted_count == 0:
             raise HTTPException(404, "Analysis state not found")
         
