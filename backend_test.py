@@ -28,18 +28,16 @@ def test_api_health():
         return False
 
 def test_execute_query_preview():
-    """Test 1: Execute Query Preview (PostgreSQL) - Testing endpoint structure"""
+    """Test 1: Execute Query Preview (MongoDB) - Testing endpoint structure"""
     print("\n=== Test 1: Execute Query Preview ===")
     
-    # Test with a simple query that should work if PostgreSQL is available
+    # Test with MongoDB since it's available
     config = {
-        "db_type": "postgresql",
-        "query": "SELECT 1 as test_column, 'test_value' as test_string LIMIT 5",
+        "db_type": "mongodb",
+        "query": "datasets",  # Collection name for MongoDB
         "host": "localhost",
-        "port": 5432,
-        "username": "test",
-        "password": "test",
-        "database": "test_db"
+        "port": 27017,
+        "database": "test_database"
     }
     
     try:
