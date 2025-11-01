@@ -756,23 +756,8 @@ sudo supervisorctl restart backend
 
 ## Version History
 
-### v2.0 (November 1, 2025) - Current
-- Complete backend refactoring to modular structure
-- Training Metadata redesign with dropdown navigation
-- Multi-select delete for datasets
-- Chart overflow fixes (4-layer solution)
-- Boolean column handling
-- LSTM model integration
-- AI insights with Emergent LLM
-- PDF report generation
-- GridFS for large files
-- Comprehensive documentation
-
-### v1.0 (Original)
-- Monolithic backend (2567 lines)
-- Basic analysis and visualization
-- File upload only
-- Simple workspace management
+### v2.0 (November 2025) - Current
+**Major Refactoring:**\n- Complete backend refactoring to modular structure\n- Separated routes, services, models, and database layers\n- Streamlined server.py to 18 lines\n\n**New Features:**\n- Training Metadata redesign with dropdown navigation and multi-select\n- PDF report generation for training metadata\n- Missing Values Details with 2-liner explanatory description\n- Chat controls (Clear, New Chat, End Chat) with confirmations\n- Multi-select delete for recent datasets\n- Progress bar capping at 90% until completion\n- Model description tooltips with proper wrapping\n\n**Permanent Fixes:**\n- Chart overflow issue (4-layer solution)\n- Boolean column handling in numeric operations\n- Correlation display format\n- Chart removal keyword detection\n- Training Metadata page crashes (undefined initial_scores)\n- Volume Analysis insights display\n\n**Integrations:**\n- LSTM model integration for time series\n- AI insights with Emergent LLM\n- GridFS for large files and workspaces\n- Comprehensive documentation suite\n\n### v1.0 (Original)\n- Monolithic backend (2567 lines)\n- Basic analysis and visualization\n- File upload only\n- Simple workspace management
 
 ---
 
