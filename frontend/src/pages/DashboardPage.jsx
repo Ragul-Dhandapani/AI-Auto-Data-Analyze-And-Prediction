@@ -186,7 +186,32 @@ const DashboardPage = () => {
               </span>
             </div>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="flex items-center gap-3">
+            {selectedDataset && currentStep === "analysis" && (
+              <>
+                <Button
+                  onClick={() => setShowSaveDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Workspace
+                </Button>
+                {savedStates.length > 0 && (
+                  <Button
+                    onClick={() => setShowLoadDialog(true)}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <FolderOpen className="w-4 h-4" />
+                    Load ({savedStates.length})
+                  </Button>
+                )}
+              </>
+            )}
+            <div className="text-sm text-gray-600">
             {selectedDataset && (
               <span data-testid="current-dataset-name">
                 Current: <strong>{selectedDataset.name}</strong>
