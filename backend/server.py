@@ -1091,6 +1091,10 @@ async def list_tables(request: DataSourceTest):
             tables = get_oracle_tables(request.config)
         elif request.source_type == 'postgresql':
             tables = get_postgresql_tables(request.config)
+        elif request.source_type == 'mysql':
+            tables = get_mysql_tables(request.config)
+        elif request.source_type == 'sqlserver':
+            tables = get_sqlserver_tables(request.config)
         elif request.source_type == 'mongodb':
             tables = await get_mongodb_collections()
         else:
