@@ -10,19 +10,15 @@ import logging
 
 def generate_data_profile(df: pd.DataFrame) -> Dict[str, Any]:
     """Generate comprehensive data profiling report"""
-    profile = {
-        "row_count": len(df),
-        "column_count": len(df.columns),
-        "columns": [],
-        "missing_data_summary": {
-            "total_missing": int(df.isnull().sum().sum()),
-            "columns_with_missing": []
-        },
-        "numeric_summary": {},
-        "categorical_summary": {}
-    }
     
-    # Analyze each column
+    # Calculate missing values
+    total_missing = int(df.isnull().sum().sum())
+    duplicate_rows = int(df.duplicated().sum())
+    
+    # Build columns info for frontend compatibility
+    columns_info = []
+    columns = []
+    
     for col in df.columns:
         col_info = {
             "name": col,
@@ -47,14 +43,31 @@ def generate_data_profile(df: pd.DataFrame) -> Dict[str, Any]:
             # Categorical column info
             col_info["top_values"] = df[col].value_counts().head(5).to_dict()
         
-        profile["columns"].append(col_info)
-        
-        if col_info["missing_count"] > 0:
-            profile["missing_data_summary"]["columns_with_missing"].append({
-                "column": col,
-                "count": col_info["missing_count"],
-                "percentage": col_info["missing_percentage"]
-            })
+        columns.append(col_info)
+        columns_info.append(col_info)  # Frontend expects columns_info
+    
+    profile = {
+        "row_count": len(df),
+        "column_count": len(df.columns),
+        "missing_values_total": total_missing,  # Frontend expects this field
+        "duplicate_rows": duplicate_rows,  # Frontend expects this field
+        "columns": columns,
+        "columns_info": columns_info,  # Frontend expects this field
+        "missing_data_summary": {
+            "total_missing": total_missing,
+            "columns_with_missing": [
+                {
+                    "column": col_info["name"],
+                    "count": col_info["missing_count"],
+                    "percentage": col_info["missing_percentage"]
+                }
+                for col_info in columns_info
+                if col_info["missing_count"] > 0
+            ]
+        },
+        "numeric_summary": {},
+        "categorical_summary": {}
+    }
     
     # Numeric summary
     numeric_cols = df.select_dtypes(include=[np.number]).columns
