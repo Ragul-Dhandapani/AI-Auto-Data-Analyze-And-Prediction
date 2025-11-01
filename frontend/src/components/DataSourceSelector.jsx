@@ -203,6 +203,65 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
     }
   };
 
+  const executeCustomQuery = async () => {
+    if (!customQuery.trim()) {
+      toast.error("Please enter a SQL query");
+      return;
+    }
+
+    if (!connectionTested) {
+      toast.error("Please test the connection first");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const queryConfig = useConnectionString 
+        ? { 
+            db_type: dbConfig.source_type,
+            query: customQuery,
+            ...(await parseConnectionString())
+          }
+        : {
+            db_type: dbConfig.source_type,
+            query: customQuery,
+            host: dbConfig.host,
+            port: dbConfig.port || getDefaultPort(),
+            database: dbConfig.database,
+            username: dbConfig.username,
+            password: dbConfig.password,
+            service_name: dbConfig.service_name
+          };
+
+      const response = await axios.post(`${API}/datasource/execute-query`, queryConfig);
+      
+      toast.success(`Query executed successfully! Loaded ${response.data.row_count} rows`, {
+        description: response.data.size_mb ? `Size: ${response.data.size_mb} MB` : undefined
+      });
+      
+      onDatasetLoaded(response.data);
+      
+      // Clear query after successful execution
+      setCustomQuery("");
+    } catch (error) {
+      console.error("Query execution error:", error);
+      toast.error("Query execution failed: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDefaultPort = () => {
+    const ports = {
+      postgresql: 5432,
+      mysql: 3306,
+      oracle: 1521,
+      sqlserver: 1433,
+      mongodb: 27017
+    };
+    return ports[dbConfig.source_type] || "";
+  };
+
   return (
     <Card className="p-6 bg-white/90 backdrop-blur-sm" data-testid="data-source-selector">
       <h2 className="text-2xl font-bold mb-6">Select Data Source</h2>
