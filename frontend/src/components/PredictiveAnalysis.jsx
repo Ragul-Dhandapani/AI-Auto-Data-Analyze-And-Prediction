@@ -91,6 +91,25 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     }
   }, [analysisResults?.custom_charts]);
 
+  // Render auto-generated charts when available
+  useEffect(() => {
+    if (analysisResults?.auto_charts && analysisResults.auto_charts.length > 0) {
+      loadPlotly().then((Plotly) => {
+        analysisResults.auto_charts.forEach((chart, idx) => {
+          const chartDiv = document.getElementById(`auto-chart-${idx}`);
+          if (chartDiv && chart.plotly_data) {
+            const plotlyData = chart.plotly_data;
+            Plotly.newPlot(`auto-chart-${idx}`, plotlyData.data, plotlyData.layout, {
+              responsive: true,
+              displayModeBar: true,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d']
+            });
+          }
+        });
+      });
+    }
+  }, [analysisResults?.auto_charts]);
+
   const runHolisticAnalysis = async () => {
     setLoading(true);
     const startTime = Date.now();
