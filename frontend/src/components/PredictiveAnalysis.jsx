@@ -655,7 +655,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
                               <div className="group relative">
                                 <Info className="w-3 h-3 text-gray-400 cursor-help" />
                                 <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
-                                  Overall model reliability based on R² score. High (>0.7), Medium (0.5-0.7), Low (<0.5).
+                                  Overall model reliability based on R² score. High (&gt;0.7), Medium (0.5-0.7), Low (&lt;0.5).
                                 </div>
                               </div>
                             </div>
