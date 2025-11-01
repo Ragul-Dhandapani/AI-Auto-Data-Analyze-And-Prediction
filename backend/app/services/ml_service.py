@@ -62,6 +62,32 @@ def train_multiple_models(
     if HAS_LIGHTGBM:
         models["LightGBM"] = lgb.LGBMRegressor(n_estimators=100, random_state=random_state, n_jobs=-1, verbose=-1)
     
+    # Add LSTM for larger datasets (simplified version)
+    if len(X_train) >= 50:  # Only for datasets with sufficient data
+        try:
+            import tensorflow as tf
+            from tensorflow import keras
+            
+            # Simple LSTM implementation
+            lstm_model = keras.Sequential([
+                keras.layers.LSTM(50, activation='relu', input_shape=(X_train.shape[1], 1)),
+                keras.layers.Dense(1)
+            ])
+            lstm_model.compile(optimizer='adam', loss='mse')
+            
+            # Reshape for LSTM
+            X_train_lstm = X_train.values.reshape((X_train.shape[0], X_train.shape[1], 1))
+            X_test_lstm = X_test.values.reshape((X_test.shape[0], X_test.shape[1], 1))
+            
+            models["LSTM Neural Network"] = {
+                "model": lstm_model,
+                "X_train": X_train_lstm,
+                "X_test": X_test_lstm,
+                "is_lstm": True
+            }
+        except:
+            logging.warning("LSTM not available - TensorFlow not installed or compatible")
+    
     results = []
     best_model = None
     best_score = -float('inf')
