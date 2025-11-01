@@ -105,118 +105,41 @@
 user_problem_statement: "Implement 3 features: 1) Fix Training Metadata Dashboard - showing correct model scores instead of 0.000 2) Custom Query Dataset Naming - execute query, show preview, enable Load Data button, prompt for name before saving 3) ML Model Comparison for multiple key correlation analysis in Predictive Analysis"
 
 backend:
-  - task: "Health endpoint routing issue"
+  - task: "Training Metadata Dashboard - Fix score calculation"
     implemented: true
-    working: false
-    file: "/app/backend/app/main.py"
+    working: true
+    file: "/app/backend/app/routes/training.py"
     stuck_count: 0
-    priority: "critical"
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Fixed training metadata endpoint to correctly extract model scores from nested workspace structure (predictive_analysis[dataset_id].models). Initial and current scores now display correctly (1.000 instead of 0.000). Added fallback for old format. All model scores are retrieved properly including Linear Regression, Random Forest, XGBoost, Decision Tree, LSTM."
+  
+  - task: "Custom Query - Preview endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/app/routes/datasource.py"
+    stuck_count: 0
+    priority: "high"
     needs_retesting: true
     status_history:
-        - working: false
-          agent: "testing"
-          comment: "❌ HEALTH ENDPOINT ROUTING ISSUE: After refactoring, /health endpoint returns frontend HTML instead of backend API response. This suggests routing configuration issue where health endpoint is not properly mapped to backend service. The endpoint should return JSON like {'status': 'healthy', 'version': '2.0.0'} but instead returns full HTML page. Need to check Kubernetes ingress rules or supervisor configuration to ensure /health routes to backend service."
-
-  - task: "Training counter and self-learning metadata"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
         - working: "NA"
           agent: "main"
-          comment: "Added training_count increment in holistic_analysis endpoint. Each analysis now increments training counter and tracks last_trained_at timestamp. Returns training_metadata with training_count, last_trained_at, and dataset_size in results."
-        - working: true
-          agent: "testing"
-          comment: "✅ TRAINING COUNTER FULLY WORKING: Tested holistic analysis endpoint and verified training_metadata is correctly returned with all required fields: training_count (increments properly, starts at 1), last_trained_at (ISO timestamp), and dataset_size (15 records). Training counter functionality working correctly - each analysis increments the counter and tracks metadata properly."
-        - working: true
-          agent: "testing"
-          comment: "✅ COMPREHENSIVE VERIFICATION COMPLETE: All 5 requested tests passed successfully. 1) Key Correlations Display: 10 correlation pairs showing properly with correct format (Feature1 ↔ Feature2) 2) Training Metadata Page: Fixed critical 'Cannot convert undefined or null to object' error by updating model_scores references to use initial_scores/current_scores structure. Page now loads without crashes, displays proper Initial/Current/Improvement scores without undefined values 3) Chart Overflow Fixed: 11 AI-generated charts fit within containers with no horizontal scrolling 4) ML Model Description UI: 7 model tabs with 4 info icons (ℹ️) showing tooltips with model descriptions on hover 5) Volume Analysis Insights: 2 insights displaying proper statistics like 'Most common: Alice Johnson (2.0%)' with no undefined text. All fixes working correctly."
+          comment: "Added /api/datasource/execute-query-preview endpoint that executes SQL query and returns preview (first 10 rows) with row_count, column_count, columns list, and data_preview. Does not save to database. Supports all database types (PostgreSQL, MySQL, Oracle, SQL Server, MongoDB)."
   
-  - task: "Scatter plot support in chat"
+  - task: "Custom Query - Save named dataset endpoint"
     implemented: true
-    working: true
-    file: "/app/backend/server.py"
+    working: "NA"
+    file: "/app/backend/app/routes/datasource.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Added scatter plot detection and generation in chat-action endpoint. Detects 'scatter' and 'scatter plot' keywords, extracts mentioned column names (x_col, y_col), generates Plotly scatter plot with correlation calculation, returns proper chart_data with type='scatter' and plotly_data."
-        - working: true
-          agent: "testing"
-          comment: "✅ SCATTER PLOT SUPPORT FULLY WORKING: Tested chat-action endpoint with 'create a scatter plot of age vs salary' request. Verified: 1) Correct response structure with action='add_chart' 2) chart_data.type='scatter' 3) Valid Plotly data with scatter traces 4) Proper title 'Scatter Plot: age vs salary' 5) Meaningful description including correlation value (0.993) 6) All required fields present (type, title, plotly_data, description). Scatter plot generation via chat working perfectly."
-
-backend:
-  - task: "Fix IndentationError at line 905"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "critical"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "main"
-          comment: "Fixed IndentationError by removing orphaned LSTM code (lines 905-927) that was outside any function. This was duplicate code - proper LSTM implementation already exists in train_ml_models function. Backend now starts successfully."
-        - working: true
-          agent: "main"
-          comment: "BACKEND TESTING COMPLETE ✅: Verified backend health, file upload working (test_data.csv uploaded successfully), holistic analysis endpoint returns all expected data including 11 auto-generated charts with proper structure (type, title, plotly_data, description), ML models (10 models trained), correlations (3 found), chat action endpoint working for pie charts. All backend functionality verified."
-  
-  - task: "Auto-generate up to 15 intelligent charts"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Verified generate_auto_charts function is complete and properly integrated. Function generates: 1) Distributions for numeric columns 2) Box plots 3-6) Statistical summaries 7-9) Categorical distributions 10-12) Time series trends 13-15) Correlation scatter plots. Function called from holistic analysis endpoint and returns charts with Plotly data."
-        - working: true
-          agent: "main"
-          comment: "TESTING CONFIRMED ✅: Holistic analysis generated 11 auto charts for test dataset. Each chart has proper structure with type (histogram, box, bar, scatter), title, plotly_data (valid Plotly JSON), and AI-generated description. Example: 'Distribution of age' with description 'Shows frequency distribution of age. Mean: 30.60, Std: 3.50'. Auto-chart generation working perfectly."
-  
-  - task: "GridFS large file upload support"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "GridFS implementation is in place for storing large CSV files that exceed MongoDB BSON size limits. Upload endpoint uses GridFS, and get_dataset_data function retrieves from GridFS when needed. Includes data sanitization for JSON compliance."
-        - working: true
-          agent: "main"
-          comment: "TESTING VERIFIED ✅: File upload endpoint working correctly. Uploaded test_data.csv (307 bytes, 10 rows, 5 columns) successfully. Response includes dataset ID, metadata, data preview. GridFS integration ready for large files."
-
-backend:
-  - task: "Correlation calculation via chat"
-    implemented: true
-    working: true
-    file: "/app/backend/app/services/chat_service.py"
-    stuck_count: 1
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "main"
-          comment: "Backend already updated to calculate correlation matrix and return heatmap data when user requests correlation via chat. Returns data in Plotly format."
-        - working: true
-          agent: "testing"
-          comment: "✅ BACKEND CORRELATION ANALYSIS FULLY WORKING: Fixed syntax errors in server.py (escaped quotes), tested /api/analysis/chat-action endpoint with correlation request. Verified: 1) Correct response structure with action='add_chart' 2) chart_data.type='correlation' 3) correlations array with feature1/feature2/value/strength/interpretation 4) Valid Plotly heatmap data 5) Only significant correlations (abs>0.1) included 6) Correlations sorted by absolute value 7) All 5 numeric columns processed correctly 8) Strong correlations detected (age↔salary: 0.993, age↔years_experience: 0.991). Minor: Error handling returns 500 instead of 404 for non-existent datasets."
-        - working: false
-          agent: "testing"
-          comment: "❌ CORRELATION STRUCTURE MISMATCH: After refactoring, correlation response returns correlations as dictionary instead of expected array format. Current response has correlations: {age: {age: 1, salary: 0.98}, ...} but tests expect correlations: [{feature1: 'age', feature2: 'salary', value: 0.98, strength: 'Strong', interpretation: '...'}]. Need to update chat_service.py handle_correlation_request() to return array format for consistency with existing tests."
-        - working: true
-          agent: "testing"
-          comment: "✅ CORRELATION ARRAY FORMAT FIXED: Verified correlation response now returns proper array format with all required fields. Tested with 'show correlation analysis' request and confirmed: 1) correlations field is array (not dictionary) 2) Each correlation object has feature1, feature2, value, strength, interpretation fields 3) Only significant correlations included (abs > 0.1) 4) Correlations sorted by absolute value 5) Strong correlations detected (age↔salary: 0.993). Fix successful - correlation calculation working correctly."
+          comment: "Added /api/datasource/save-query-dataset endpoint that executes query and saves with user-provided dataset_name. Uses GridFS for large datasets (>10MB). Returns saved dataset info for loading into analysis."
 
 frontend:
   - task: "Progress bar capped at 90% until completion"
