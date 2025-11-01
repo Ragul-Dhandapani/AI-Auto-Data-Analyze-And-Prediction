@@ -94,8 +94,8 @@ const ChartComponent = ({ chart, index }) => {
     <Card className="p-6" data-testid={`chart-${index}`}>
       <h4 className="text-lg font-semibold mb-2">{chart.title}</h4>
       <p className="text-sm text-gray-600 mb-4 italic">{chart.description}</p>
-      <div className="w-full bg-white rounded-lg p-4">
-        <div id={chartId} style={{ width: '100%', height: '400px' }} />
+      <div className="w-full bg-white rounded-lg p-2">
+        <div id={chartId} className="w-full" style={{ minHeight: '400px', maxHeight: '450px' }} />
       </div>
     </Card>
   );
