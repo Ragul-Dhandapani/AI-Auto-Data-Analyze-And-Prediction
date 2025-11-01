@@ -624,6 +624,16 @@ Frontend displays:
 - Data quality analysis
 - Pattern detection
 - Actionable recommendations
+- Chart-specific insights generation
+
+#### UI/UX Enhancements
+- **Progress Bar Intelligence:** Caps at 90% until completion (prevents misleading 100%)
+- **Chat Controls:** Clear, New Chat, End Chat buttons with confirmations
+- **Model Descriptions:** Info icon tooltips with proper text wrapping
+- **Missing Values Clarity:** 2-liner description explaining impact and recommendations
+- **Recent Datasets:** Multi-select delete functionality with grid layout
+- **Training Metadata:** Modern dropdowns with multi-select using react-select
+- **Consistent Branding:** All instances updated to \"PROMISE AI\"
 
 ---
 
