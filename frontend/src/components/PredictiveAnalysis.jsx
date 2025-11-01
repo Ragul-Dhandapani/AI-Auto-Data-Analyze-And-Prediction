@@ -46,43 +46,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     if (analysisCache) {
       setAnalysisResults(analysisCache);
     } else if (dataset && !analysisResults) {
-      // Check if there are saved states before running analysis
-      checkForSavedStates();
+      runHolisticAnalysis();
     }
   }, [dataset, analysisCache]);
-
-  const checkForSavedStates = async () => {
-    try {
-      const response = await axios.get(`${API}/analysis/saved-states/${dataset.id}`);
-      const states = response.data.states || [];
-      setSavedStates(states);
-      
-      if (states.length > 0) {
-        // Get most recent state
-        const mostRecent = states.sort((a, b) => 
-          new Date(b.created_at) - new Date(a.created_at)
-        )[0];
-        setAutoLoadStateId(mostRecent.id);
-        setShowAutoLoadPrompt(true);
-      } else {
-        // No saved states, run analysis
-        runHolisticAnalysis();
-      }
-    } catch (error) {
-      console.error("Failed to check saved states:", error);
-      // If check fails, just run analysis
-      runHolisticAnalysis();
-    }
-  };
-
-  const handleAutoLoadResponse = (shouldLoad) => {
-    setShowAutoLoadPrompt(false);
-    if (shouldLoad && autoLoadStateId) {
-      loadAnalysisState(autoLoadStateId);
-    } else {
-      runHolisticAnalysis();
-    }
-  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
