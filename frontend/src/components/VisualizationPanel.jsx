@@ -194,11 +194,19 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
   }, []);
 
   // Auto-generate charts only once on mount
+  const hasRunGenerationRef = useRef(false);
+  
   useEffect(() => {
-    if (dataset && !hasGenerated) {
+    if (dataset && !hasGenerated && !hasRunGenerationRef.current && !loading) {
+      hasRunGenerationRef.current = true;
       generateCharts();
     }
   }, [dataset, hasGenerated]);
+
+  // Reset generation ref when dataset changes
+  useEffect(() => {
+    hasRunGenerationRef.current = !!chartsCache;
+  }, [dataset?.id]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
