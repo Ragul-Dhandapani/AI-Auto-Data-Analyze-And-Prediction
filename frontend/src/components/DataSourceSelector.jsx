@@ -125,15 +125,36 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
   const testConnection = async () => {
     setLoading(true);
     try {
+      let configToUse = dbConfig;
+      
+      // If using connection string, parse it first
+      if (useConnectionString && connectionString) {
+        const formData = new FormData();
+        formData.append("source_type", dbConfig.source_type);
+        formData.append("connection_string", connectionString);
+        
+        const parseResponse = await axios.post(`${API}/datasource/parse-connection-string`, formData);
+        
+        if (!parseResponse.data.success) {
+          toast.error("Invalid connection string: " + parseResponse.data.message);
+          setLoading(false);
+          return;
+        }
+        
+        configToUse = parseResponse.data.config;
+        // Update dbConfig with parsed values for display
+        setDbConfig({...dbConfig, ...configToUse});
+      }
+      
       const response = await axios.post(`${API}/datasource/test-connection`, {
         source_type: dbConfig.source_type,
-        config: dbConfig
+        config: configToUse
       });
       
       if (response.data.success) {
         toast.success("Connection successful!");
         setConnectionTested(true);
-        await loadTables();
+        await loadTables(configToUse);
       } else {
         toast.error("Connection failed: " + response.data.message);
         setConnectionTested(false);
@@ -146,11 +167,11 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
     }
   };
 
-  const loadTables = async () => {
+  const loadTables = async (configToUse = dbConfig) => {
     try {
       const response = await axios.post(`${API}/datasource/list-tables`, {
         source_type: dbConfig.source_type,
-        config: dbConfig
+        config: configToUse
       });
       setTables(response.data.tables || []);
     } catch (error) {
