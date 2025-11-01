@@ -102,7 +102,32 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix IndentationError at line 905 in server.py preventing backend from starting. Complete auto-generation of up to 15 intelligent charts. Add progress indicator for Predictive Analysis tab."
+user_problem_statement: "Fix 8 critical issues: 1) Progress bar showing 100% but still loading for minutes 2) Add Clear Chat button 3) Chat history persistence in saved workspaces 4) New Chat & End Chat options 5) Change PROMISE to PROMISE AI 6) Self-training algorithm with training count display 7) Improve AI insights display 8) Fix chat to create charts (not Python code) for scatter plots"
+
+backend:
+  - task: "Training counter and self-learning metadata"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added training_count increment in holistic_analysis endpoint. Each analysis now increments training counter and tracks last_trained_at timestamp. Returns training_metadata with training_count, last_trained_at, and dataset_size in results."
+  
+  - task: "Scatter plot support in chat"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added scatter plot detection and generation in chat-action endpoint. Detects 'scatter' and 'scatter plot' keywords, extracts mentioned column names (x_col, y_col), generates Plotly scatter plot with correlation calculation, returns proper chart_data with type='scatter' and plotly_data."
 
 backend:
   - task: "Fix IndentationError at line 905"
