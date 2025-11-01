@@ -409,6 +409,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
             {progress < 30 ? "Loading data and preparing..." : 
              progress < 60 ? "Running statistical analysis..." :
              progress < 85 ? "Training ML models..." :
+             progress >= 90 ? "Finalizing analysis and generating charts..." :
              "Generating visualizations..."}
           </p>
         </div>
