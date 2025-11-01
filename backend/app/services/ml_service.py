@@ -11,8 +11,15 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import xgboost as xgb
-import lightgbm as lgb
 import logging
+
+# Try to import LightGBM (optional)
+try:
+    import lightgbm as lgb
+    HAS_LIGHTGBM = True
+except ImportError:
+    HAS_LIGHTGBM = False
+    logging.warning("LightGBM not available, skipping in model training")
 
 
 def train_multiple_models(
