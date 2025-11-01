@@ -109,14 +109,16 @@ mcp_server/
 ### 3. Interactive Features ✅
 - **Chat Interface**:
   - Natural language queries
-  - Dynamic chart generation
+  - Dynamic chart generation (scatter, pie, bar, line)
   - Analysis customization
-  - Full chat controls (Clear, New, End)
+  - Full chat controls (Clear, New Chat, End Chat with confirmations)
+  - Save reminders for unsaved conversations
 - **Workspace Management**:
   - Save analysis states
   - Load previous workspaces
   - Chat history persistence
   - Training metadata tracking
+  - GridFS for large workspace states
 
 ### 4. Training Metadata Dashboard ✅
 - **Dataset-wise View**: Shows all datasets with training history
