@@ -32,6 +32,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
   const [connectionTested, setConnectionTested] = useState(false);
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState("");
+  const [customQuery, setCustomQuery] = useState("");
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
