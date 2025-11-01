@@ -861,5 +861,3 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
 };
 
 export default PredictiveAnalysis;
-
-export default PredictiveAnalysis;
