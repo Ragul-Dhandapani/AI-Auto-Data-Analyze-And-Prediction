@@ -230,6 +230,92 @@ async def get_mongodb_collections() -> List[str]:
     except Exception as e:
         raise Exception(f"Failed to list collections: {str(e)}")
 
+def test_mysql_connection(config: dict) -> dict:
+    """Test MySQL database connection"""
+    try:
+        conn = pymysql.connect(
+            host=config.get('host'),
+            port=int(config.get('port', 3306)),
+            database=config.get('database'),
+            user=config.get('username'),
+            password=config.get('password')
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.close()
+        conn.close()
+        return {"success": True, "message": "Connection successful"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+def get_mysql_tables(config: dict) -> List[str]:
+    """List tables from MySQL database"""
+    try:
+        conn = pymysql.connect(
+            host=config.get('host'),
+            port=int(config.get('port', 3306)),
+            database=config.get('database'),
+            user=config.get('username'),
+            password=config.get('password')
+        )
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = DATABASE()
+            ORDER BY table_name
+        """)
+        tables = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+        return tables
+    except Exception as e:
+        raise Exception(f"Failed to list tables: {str(e)}")
+
+def test_sqlserver_connection(config: dict) -> dict:
+    """Test SQL Server database connection"""
+    try:
+        conn_str = (
+            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"SERVER={config.get('host')},{config.get('port', 1433)};"
+            f"DATABASE={config.get('database')};"
+            f"UID={config.get('username')};"
+            f"PWD={config.get('password')}"
+        )
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.close()
+        conn.close()
+        return {"success": True, "message": "Connection successful"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+def get_sqlserver_tables(config: dict) -> List[str]:
+    """List tables from SQL Server database"""
+    try:
+        conn_str = (
+            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"SERVER={config.get('host')},{config.get('port', 1433)};"
+            f"DATABASE={config.get('database')};"
+            f"UID={config.get('username')};"
+            f"PWD={config.get('password')}"
+        )
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_type = 'BASE TABLE'
+            ORDER BY table_name
+        """)
+        tables = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+        return tables
+    except Exception as e:
+        raise Exception(f"Failed to list tables: {str(e)}")
+
 def load_table_data(source_type: str, config: dict, table_name: str) -> pd.DataFrame:
     """Load data from database table"""
     if source_type == 'oracle':
