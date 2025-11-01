@@ -28,31 +28,44 @@ const loadPlotly = () => {
 
 const ChartComponent = ({ chart, index }) => {
   const chartId = `viz-plotly-chart-${index}`;
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     const renderChart = async () => {
-      await loadPlotly();
-      
-      if (window.Plotly && chart.data) {
-        const container = document.getElementById(chartId);
-        if (container) {
-          window.Plotly.newPlot(
-            chartId,
-            chart.data.data,
-            {
-              ...chart.data.layout,
-              autosize: true,
-              height: 400,
-              paper_bgcolor: 'rgba(0,0,0,0)',
-              plot_bgcolor: 'rgba(0,0,0,0)',
-              font: { family: 'Inter, sans-serif' }
-            },
-            { 
-              responsive: true, 
-              displayModeBar: false 
+      try {
+        await loadPlotly();
+        
+        if (window.Plotly && chart.data) {
+          const container = document.getElementById(chartId);
+          if (container) {
+            // Validate data structure
+            if (!chart.data.data || !Array.isArray(chart.data.data) || chart.data.data.length === 0) {
+              setError("No chart data available");
+              return;
             }
-          );
+            
+            await window.Plotly.newPlot(
+              chartId,
+              chart.data.data,
+              {
+                ...chart.data.layout,
+                autosize: true,
+                height: 400,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { family: 'Inter, sans-serif' }
+              },
+              { 
+                responsive: true, 
+                displayModeBar: false 
+              }
+            );
+            setError(null);
+          }
         }
+      } catch (err) {
+        console.error('Chart rendering error:', err);
+        setError(err.message);
       }
     };
     
@@ -67,6 +80,15 @@ const ChartComponent = ({ chart, index }) => {
       }
     };
   }, [chart, chartId]);
+  
+  if (error) {
+    return (
+      <Card className="p-6 bg-red-50 border-red-200" data-testid={`chart-${index}`}>
+        <h4 className="text-lg font-semibold mb-2 text-red-800">{chart.title}</h4>
+        <p className="text-sm text-red-600">Error: {error}</p>
+      </Card>
+    );
+  }
   
   return (
     <Card className="p-6" data-testid={`chart-${index}`}>
