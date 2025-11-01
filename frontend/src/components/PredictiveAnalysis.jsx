@@ -754,13 +754,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
                   {models.map((model) => {
                     return (
                     <TabsContent key={model.model_name} value={model.model_name}>
-                      {/* Model Description */}
-                      <div className="bg-blue-100 border-l-4 border-blue-600 p-3 mb-4 rounded">
-                        <p className="text-sm text-blue-900">
-                          <strong>{model.model_name}:</strong> {modelDescriptions[model.model_name] || "Advanced ML model for predictive analysis."}
-                        </p>
-                      </div>
-                      
                       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
                         <div className="grid md:grid-cols-3 gap-4 mb-4">
                           <div className="bg-white rounded-lg p-4 shadow-sm">
