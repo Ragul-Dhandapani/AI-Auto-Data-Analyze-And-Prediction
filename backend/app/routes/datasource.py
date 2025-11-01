@@ -156,13 +156,24 @@ async def parse_conn_string(source_type: str = Form(...), connection_string: str
 
 @router.post("/load-table")
 async def load_table_endpoint(request: DataSourceTest, table_name: str):
-    """Load data from database table"""
+    """Load data from database table with GridFS support for large datasets"""
     try:
         # Load data from database
         df = load_table_data(request.source_type, request.config, table_name)
         
+        if df.empty:
+            raise HTTPException(400, f"Table '{table_name}' is empty or does not exist")
+        
         # Generate dataset ID
         dataset_id = str(uuid.uuid4())
+        
+        # Convert DataFrame to records
+        data_dict = df.to_dict('records')
+        
+        # Check data size
+        import json
+        data_json = json.dumps(data_dict)
+        data_size_mb = len(data_json.encode('utf-8')) / (1024 * 1024)
         
         # Prepare dataset document
         dataset_doc = {
@@ -175,18 +186,48 @@ async def load_table_endpoint(request: DataSourceTest, table_name: str):
             "column_count": len(df.columns),
             "columns": df.columns.tolist(),
             "dtypes": df.dtypes.astype(str).to_dict(),
-            "data": df.to_dict('records'),
             "data_preview": df.head(10).to_dict('records'),
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
         }
+        
+        # Storage decision based on size
+        if data_size_mb < 10:
+            # Direct storage for small datasets
+            dataset_doc["data"] = data_dict
+            dataset_doc["storage_type"] = "direct"
+            dataset_doc["gridfs_file_id"] = None
+        else:
+            # GridFS storage for large datasets
+            file_id = await fs.upload_from_stream(
+                f"table_{dataset_id}.json",
+                data_json.encode('utf-8'),
+                metadata={"dataset_id": dataset_id, "type": "table_data"}
+            )
+            dataset_doc["data"] = None
+            dataset_doc["storage_type"] = "gridfs"
+            dataset_doc["gridfs_file_id"] = str(file_id)
         
         # Save to database
         await db.datasets.insert_one(dataset_doc)
         dataset_doc.pop("_id", None)
         
-        return dataset_doc
+        return {
+            **dataset_doc,
+            "message": f"Table loaded successfully ({data_size_mb:.2f} MB)",
+            "storage_type": dataset_doc["storage_type"]
+        }
         
+    except HTTPException:
+        raise
+    except psycopg2.Error as e:
+        raise HTTPException(500, f"PostgreSQL error: {str(e)}")
+    except pymysql.Error as e:
+        raise HTTPException(500, f"MySQL error: {str(e)}")
     except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"Error loading table: {error_detail}")
         raise HTTPException(500, f"Failed to load table: {str(e)}")
 
 
