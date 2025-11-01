@@ -61,6 +61,7 @@ const DashboardPage = () => {
 
   const handleDatasetLoaded = (dataset) => {
     setSelectedDataset(dataset);
+    setCurrentStep("analysis");
     loadDatasets();
     toast.success("Dataset loaded successfully!");
   };
