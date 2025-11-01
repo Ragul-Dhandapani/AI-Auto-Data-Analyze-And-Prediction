@@ -109,12 +109,12 @@ async def run_analysis(request: Dict[str, Any]):
                 numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
                 categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
                 
-                # Initialize LLM chat
-                llm = LlmChat(api_key=llm_key)
-                
-                # Set system message
-                system_msg = "You are a data analyst expert. Provide clear, actionable insights about datasets in bullet points."
-                llm.set_system_message(system_msg)
+                # Initialize LLM chat with required arguments
+                llm = LlmChat(
+                    api_key=llm_key,
+                    session_id="insights_generation",
+                    system_message="You are a data analyst expert. Provide clear, actionable insights about datasets in bullet points."
+                )
                 
                 prompt = f"""Analyze this dataset and provide 4-5 key insights:
 
@@ -133,7 +133,7 @@ Provide actionable insights in bullet points about:
 4. Recommendations for analysis"""
                 
                 # Send message and get response
-                response = llm.send_user_message(prompt)
+                response = await llm.send_message(prompt)
                 insights_text = response if isinstance(response, str) else str(response)
                 
                 return {
