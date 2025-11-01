@@ -351,10 +351,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix IndentationError at line 905"
-    - "Auto-generate up to 15 intelligent charts"
-    - "GridFS large file upload support"
-    - "Progress indicator for Predictive Analysis"
+    - "Database connection support - MySQL and SQL Server"
+    - "Connection string parsing support"
+    - "Database type dropdown expansion"
+    - "Connection string UI toggle"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
