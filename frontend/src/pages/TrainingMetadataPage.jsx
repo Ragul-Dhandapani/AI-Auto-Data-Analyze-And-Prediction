@@ -230,36 +230,122 @@ const TrainingMetadataPage = () => {
             {/* Workspace-wise View */}
             {viewMode === 'workspace' && (
               <div className="space-y-6">
-                {metadata.map((dataset, idx) => (
-                  dataset.workspaces.length > 0 && (
-                    <Card key={idx} className="p-6 bg-white">
-                      <h3 className="text-lg font-bold text-gray-800 mb-4">{dataset.dataset_name}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {dataset.workspaces.map((workspace, wIdx) => (
-                          <Card key={wIdx} className="p-4 bg-blue-50 border-2 border-blue-200">
-                            <h4 className="font-semibold text-blue-800 mb-2">{workspace.workspace_name}</h4>
-                            <p className="text-xs text-blue-600 mb-3">
+                {/* Dataset Selector */}
+                <Card className="p-6 bg-white">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">Select Dataset</h3>
+                  <select
+                    value={selectedDatasetForWorkspace || ''}
+                    onChange={(e) => setSelectedDatasetForWorkspace(e.target.value)}
+                    className="w-full md:w-1/2 p-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  >
+                    {metadata.map((dataset) => (
+                      <option key={dataset.dataset_id} value={dataset.dataset_id}>
+                        {dataset.dataset_name} ({dataset.workspaces.length} workspaces)
+                      </option>
+                    ))}
+                  </select>
+                </Card>
+
+                {/* Workspaces for Selected Dataset */}
+                {selectedDatasetForWorkspace && (() => {
+                  const selectedDataset = metadata.find(d => d.dataset_id === selectedDatasetForWorkspace);
+                  if (!selectedDataset || selectedDataset.workspaces.length === 0) {
+                    return (
+                      <Card className="p-12 text-center">
+                        <p className="text-gray-500">No saved workspaces for this dataset</p>
+                      </Card>
+                    );
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {selectedDataset.workspaces.map((workspace, wIdx) => (
+                        <Card key={wIdx} className="p-6 bg-white border-2 border-blue-200 hover:border-blue-400 transition-all">
+                          {/* Workspace Header */}
+                          <div className="mb-6">
+                            <h3 className="text-xl font-bold text-blue-800 mb-1">{workspace.workspace_name}</h3>
+                            <p className="text-xs text-gray-500">Workspace ID: {workspace.workspace_id}</p>
+                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                              <Calendar className="w-3 h-3" />
                               Saved: {new Date(workspace.saved_at).toLocaleString()}
                             </p>
-                            
-                            {/* Show model scores for this workspace's dataset */}
-                            <div className="space-y-1">
-                              <p className="text-xs font-semibold text-gray-600 mb-2">Model Scores</p>
-                              {Object.entries(dataset.model_scores).slice(0, 3).map(([modelName, scores], mIdx) => (
-                                <div key={mIdx} className="flex justify-between text-xs">
-                                  <span className="text-gray-700">{modelName}</span>
-                                  <span className="font-semibold text-blue-600">
-                                    {(scores.current_score * 100).toFixed(1)}%
-                                  </span>
+                          </div>
+
+                          {/* Dataset Info */}
+                          <div className="mb-4 p-3 bg-gray-50 rounded">
+                            <p className="text-xs text-gray-600">Dataset: <span className="font-semibold">{selectedDataset.dataset_name}</span></p>
+                            <p className="text-xs text-gray-600">Training Count: <span className="font-semibold">{selectedDataset.training_count} times</span></p>
+                          </div>
+
+                          {/* Score Summary */}
+                          <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                              <p className="text-xs text-blue-700 font-semibold mb-1">Initial Score</p>
+                              <p className="text-3xl font-bold text-blue-800">
+                                {selectedDataset.initial_score !== null ? selectedDataset.initial_score.toFixed(3) : 'N/A'}
+                              </p>
+                            </div>
+                            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                              <p className="text-xs text-green-700 font-semibold mb-1">Current Score</p>
+                              <p className="text-3xl font-bold text-green-800">
+                                {selectedDataset.current_score !== null ? selectedDataset.current_score.toFixed(3) : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Improvement Badge */}
+                          {selectedDataset.improvement_percentage !== null && (
+                            <div className={`p-3 rounded-lg mb-4 ${selectedDataset.improvement_percentage >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                              <p className={`text-sm font-semibold flex items-center justify-center gap-2 ${selectedDataset.improvement_percentage >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                                {selectedDataset.improvement_percentage >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                                Overall Improvement: {Math.abs(selectedDataset.improvement_percentage).toFixed(1)}%
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Model Performance Breakdown */}
+                          <div className="mb-4">
+                            <h4 className="text-sm font-bold text-gray-700 mb-3">Model Performance</h4>
+                            <div className="space-y-2">
+                              {Object.entries(selectedDataset.model_scores).map(([modelName, scores], mIdx) => (
+                                <div key={mIdx} className="flex items-center justify-between bg-gray-50 p-3 rounded border">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-gray-800">{modelName}</p>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                      <p className="text-xs text-gray-500">Score</p>
+                                      <p className="text-sm font-bold text-blue-600">
+                                        {(scores.current_score * 100).toFixed(1)}%
+                                      </p>
+                                    </div>
+                                    {scores.initial_score !== undefined && (
+                                      <div className="text-right">
+                                        <p className="text-xs text-gray-500">Initial</p>
+                                        <p className="text-sm font-medium text-gray-600">
+                                          {(scores.initial_score * 100).toFixed(1)}%
+                                        </p>
+                                      </div>
+                                    )}
+                                    {scores.improvement_pct !== undefined && (
+                                      <div className="text-right">
+                                        <p className="text-xs text-gray-500">Change</p>
+                                        <p className={`text-sm font-bold flex items-center gap-1 ${scores.improvement_pct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                          <ArrowUp className={`w-3 h-3 ${scores.improvement_pct < 0 ? 'rotate-180' : ''}`} />
+                                          {scores.improvement_pct >= 0 ? '+' : ''}{scores.improvement_pct.toFixed(1)}%
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
-                          </Card>
-                        ))}
-                      </div>
-                    </Card>
-                  )
-                ))}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </>
