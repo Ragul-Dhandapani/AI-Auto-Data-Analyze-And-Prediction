@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: promise-ai-secrets
+  namespace: promise-ai
+type: Opaque
+stringData:
+  EMERGENT_LLM_KEY: "YOUR_EMERGENT_LLM_KEY_HERE"
+  MONGO_URL: "mongodb://mongodb-service:27017/autopredict"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promise-ai-config
+  namespace: promise-ai
+data:
+  REACT_APP_BACKEND_URL: "http://backend-service:8001"
+  PYTHONUNBUFFERED: "1"
