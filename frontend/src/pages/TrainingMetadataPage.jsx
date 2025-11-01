@@ -165,15 +165,36 @@ const TrainingMetadataPage = () => {
                 {metadata.map((dataset, idx) => (
                   <Card key={idx} className="p-6 bg-white border-2 border-gray-200 hover:border-blue-400 transition-all">
                     {/* Dataset Header */}
-                    <div className="mb-6">
-                      <h3 className="text-xl font-bold text-gray-800 mb-1">{dataset.dataset_name}</h3>
-                      <p className="text-xs text-gray-500">Dataset ID: {dataset.dataset_id}</p>
-                      {dataset.last_trained_at && (
-                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                          <Calendar className="w-3 h-3" />
-                          Last trained: {new Date(dataset.last_trained_at).toLocaleString()}
-                        </p>
-                      )}
+                    <div className="mb-6 flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-800 mb-1">{dataset.dataset_name}</h3>
+                        <p className="text-xs text-gray-500">Dataset ID: {dataset.dataset_id}</p>
+                        {dataset.last_trained_at && (
+                          <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                            <Calendar className="w-3 h-3" />
+                            Last trained: {new Date(dataset.last_trained_at).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        onClick={() => downloadPdf(dataset.dataset_id, dataset.dataset_name)}
+                        disabled={downloadingPdf === dataset.dataset_id}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        {downloadingPdf === dataset.dataset_id ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4" />
+                            PDF
+                          </>
+                        )}
+                      </Button>
                     </div>
 
                     {/* Score Summary */}
