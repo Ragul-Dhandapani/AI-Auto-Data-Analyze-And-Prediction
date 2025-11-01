@@ -82,9 +82,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
     }
   }, [analysisResults?.correlation_heatmap]);
 
-  // Render custom charts when available
+  // Render custom charts when available OR when collapsed state changes
   useEffect(() => {
-    if (analysisResults?.custom_charts && analysisResults.custom_charts.length > 0) {
+    if (analysisResults?.custom_charts && analysisResults.custom_charts.length > 0 && !collapsed.custom_charts) {
       loadPlotly().then((Plotly) => {
         // Filter charts with valid plotly_data
         const validCharts = analysisResults.custom_charts.filter(chart => 
@@ -104,11 +104,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         });
       });
     }
-  }, [analysisResults?.custom_charts]);
+  }, [analysisResults?.custom_charts, collapsed.custom_charts]);
 
-  // Render auto-generated charts when available
+  // Render auto-generated charts when available OR when collapsed state changes
   useEffect(() => {
-    if (analysisResults?.auto_charts && analysisResults.auto_charts.length > 0) {
+    if (analysisResults?.auto_charts && analysisResults.auto_charts.length > 0 && !collapsed.auto_charts) {
       loadPlotly().then((Plotly) => {
         // Filter charts with valid plotly_data
         const validCharts = analysisResults.auto_charts.filter(chart => 
@@ -128,7 +128,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         });
       });
     }
-  }, [analysisResults?.auto_charts]);
+  }, [analysisResults?.auto_charts, collapsed.auto_charts]);
 
   // Cleanup progress interval on unmount
   useEffect(() => {
