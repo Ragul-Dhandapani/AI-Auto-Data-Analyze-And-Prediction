@@ -216,7 +216,8 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
             <h3 className="text-lg font-semibold">Summary Statistics</h3>
             <ChevronDown className="w-5 h-5" />
           </div>
-
+        </Card>
+      )}
 
       {/* Missing Values Details */}
       {profileData && profileData.missing_values_total > 0 && !collapsedSections.missing_details && (
