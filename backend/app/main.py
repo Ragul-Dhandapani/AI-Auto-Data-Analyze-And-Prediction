@@ -71,6 +71,15 @@ async def get_datasets_compat():
     except Exception as e:
         return {"datasets": []}
 
+
+# Backward compatibility - delete dataset endpoint
+@api_router.delete("/datasets/{dataset_id}")
+async def delete_dataset_compat(dataset_id: str):
+    """Backward compatibility for /api/datasets/{dataset_id}"""
+    from app.routes.datasource import delete_dataset
+    return await delete_dataset(dataset_id)
+
+
 # Backward compatibility - training metadata endpoint
 @api_router.get("/training-metadata")
 async def get_training_metadata_compat():
