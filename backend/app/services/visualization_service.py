@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 import json
 from typing import Dict, Any, List
 import logging
+from app.services.chart_insights import generate_chart_insight
 
 
 def validate_chart_data(chart_dict: Dict[str, Any]) -> bool:
