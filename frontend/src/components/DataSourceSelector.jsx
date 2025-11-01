@@ -18,6 +18,8 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
   const [uploadProgress, setUploadProgress] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
   const cancelTokenRef = useRef(null);
+  const [useConnectionString, setUseConnectionString] = useState(false);
+  const [connectionString, setConnectionString] = useState("");
   const [dbConfig, setDbConfig] = useState({
     source_type: "postgresql",
     host: "",
