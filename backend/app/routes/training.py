@@ -267,7 +267,17 @@ async def get_training_metadata():
                 if len(sorted_states) > 0:
                     first_state = sorted_states[0]
                     first_analysis = first_state.get("analysis_data", {})
-                    first_models = first_analysis.get("models", []) or first_analysis.get("ml_models", [])
+                    
+                    # Try to find models in nested structure first (new format)
+                    first_models = []
+                    pred_analysis = first_analysis.get("predictive_analysis", {})
+                    if pred_analysis and dataset_id in pred_analysis:
+                        dataset_analysis = pred_analysis[dataset_id]
+                        first_models = dataset_analysis.get("models", []) or dataset_analysis.get("ml_models", [])
+                    
+                    # Fallback to old format (models at root level)
+                    if not first_models:
+                        first_models = first_analysis.get("models", []) or first_analysis.get("ml_models", [])
                     
                     logger.info(f"First state for {dataset_name}: {len(first_models)} models")
                     
@@ -284,7 +294,17 @@ async def get_training_metadata():
                 # Get latest state
                 latest_state = sorted_states[-1]  # Most recent
                 latest_analysis = latest_state.get("analysis_data", {})
-                latest_models = latest_analysis.get("models", []) or latest_analysis.get("ml_models", [])
+                
+                # Try to find models in nested structure first (new format)
+                latest_models = []
+                pred_analysis = latest_analysis.get("predictive_analysis", {})
+                if pred_analysis and dataset_id in pred_analysis:
+                    dataset_analysis = pred_analysis[dataset_id]
+                    latest_models = dataset_analysis.get("models", []) or dataset_analysis.get("ml_models", [])
+                
+                # Fallback to old format (models at root level)
+                if not latest_models:
+                    latest_models = latest_analysis.get("models", []) or latest_analysis.get("ml_models", [])
                 
                 logger.info(f"Latest state for {dataset_name}: {len(latest_models)} models")
                 
