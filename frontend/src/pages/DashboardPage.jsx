@@ -24,6 +24,13 @@ const DashboardPage = () => {
   // Lift analysis state to prevent re-analysis on tab switch
   const [predictiveAnalysisCache, setPredictiveAnalysisCache] = useState({});
   const [visualizationCache, setVisualizationCache] = useState({});
+  const [dataProfilerCache, setDataProfilerCache] = useState({});
+  
+  // Save/Load state management
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [stateName, setStateName] = useState("");
+  const [savedStates, setSavedStates] = useState([]);
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
 
   useEffect(() => {
     loadDatasets();
