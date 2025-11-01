@@ -728,9 +728,33 @@ def train_ml_models(df, target_col, feature_cols):
                 rmse = np.sqrt(mse)
                 
                 # Feature importance (if available)
-
-
-def generate_auto_charts(df, max_charts=15):
+                feature_importance = {}
+                if hasattr(model, 'feature_importances_'):
+                    importances = model.feature_importances_
+                    feature_importance = {feature_cols[i]: float(importances[i]) for i in range(len(feature_cols))}
+                    feature_importance = dict(sorted(feature_importance.items(), key=lambda x: x[1], reverse=True))
+                
+                # Calculate confidence
+                confidence = "High" if r2 > 0.7 else "Medium" if r2 > 0.5 else "Low"
+                
+                models_results.append({
+                    "model_name": model_name,
+                    "target_column": target_col,
+                    "r2_score": float(r2),
+                    "rmse": float(rmse),
+                    "mse": float(mse),
+                    "confidence": confidence,
+                    "feature_importance": feature_importance,
+                    "predictions_sample": {
+                        "actual": y_test.head(10).tolist(),
+                        "predicted": y_pred[:10].tolist()
+                    }
+                })
+            except Exception as e:
+                logging.error(f"Error training {model_name}: {str(e)}")
+                continue
+        
+        # Train LSTM model (Neural Network)
     """Generate up to 15 intelligent charts based on data analysis"""
     import plotly.graph_objects as go
     import plotly.express as px
