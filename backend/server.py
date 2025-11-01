@@ -469,19 +469,25 @@ def generate_chart_recommendations(df: pd.DataFrame) -> List[dict]:
     # 1. Distributions for all numeric columns
     for col in numeric_cols[:5]:  # Up to 5 numeric distributions
         try:
-            if df[col].dropna().empty:
-                skipped_charts.append(f"Distribution of {col}: No valid data")
+            clean_data = df[col].dropna()
+            if clean_data.empty or len(clean_data) < 2:
+                skipped_charts.append(f"Distribution of {col}: Insufficient data (need at least 2 values)")
+                continue
+            
+            # Check if all values are the same
+            if clean_data.nunique() == 1:
+                skipped_charts.append(f"Distribution of {col}: All values are identical")
                 continue
                 
-            mean_val = df[col].mean()
-            std_val = df[col].std()
-            median_val = df[col].median()
+            mean_val = clean_data.mean()
+            std_val = clean_data.std()
+            median_val = clean_data.median()
             
-            fig = px.histogram(df, x=col, nbins=30, title=f"Distribution of {col}")
+            fig = px.histogram(df, x=col, nbins=min(30, clean_data.nunique()), title=f"Distribution of {col}")
             fig.update_layout(showlegend=False, height=400)
             
             plotly_json = json.loads(fig.to_json())
-            if plotly_json.get('data') and len(plotly_json['data']) > 0:
+            if plotly_json.get('data') and len(plotly_json['data']) > 0 and plotly_json['data'][0].get('x'):
                 charts.append({
                     "type": "histogram",
                     "title": f"Distribution of {col}",
@@ -489,7 +495,7 @@ def generate_chart_recommendations(df: pd.DataFrame) -> List[dict]:
                     "description": f"Shows frequency distribution of {col}. Mean: {mean_val:.2f}, Median: {median_val:.2f}, Std: {std_val:.2f}. {'Right-skewed' if mean_val > median_val else 'Left-skewed' if mean_val < median_val else 'Symmetric'} distribution pattern."
                 })
             else:
-                skipped_charts.append(f"Distribution of {col}: Empty chart data")
+                skipped_charts.append(f"Distribution of {col}: Failed to generate valid chart")
         except Exception as e:
             skipped_charts.append(f"Distribution of {col}: {str(e)[:50]}")
     
