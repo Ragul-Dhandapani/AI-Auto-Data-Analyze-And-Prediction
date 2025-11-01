@@ -462,6 +462,279 @@ async def generate_chart_description(chart_data: dict, df: pd.DataFrame) -> str:
 def generate_chart_recommendations(df: pd.DataFrame) -> List[dict]:
     """Generate comprehensive data visualizations with detailed insights"""
     charts = []
+    skipped_charts = []
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+    
+    # 1. Distributions for all numeric columns
+    for col in numeric_cols[:5]:  # Up to 5 numeric distributions
+        try:
+            if df[col].dropna().empty:
+                skipped_charts.append(f"Distribution of {col}: No valid data")
+                continue
+                
+            mean_val = df[col].mean()
+            std_val = df[col].std()
+            median_val = df[col].median()
+            
+            fig = px.histogram(df, x=col, nbins=30, title=f"Distribution of {col}")
+            fig.update_layout(showlegend=False, height=400)
+            
+            plotly_json = json.loads(fig.to_json())
+            if plotly_json.get('data') and len(plotly_json['data']) > 0:
+                charts.append({
+                    "type": "histogram",
+                    "title": f"Distribution of {col}",
+                    "data": plotly_json,
+                    "description": f"Shows frequency distribution of {col}. Mean: {mean_val:.2f}, Median: {median_val:.2f}, Std: {std_val:.2f}. {'Right-skewed' if mean_val > median_val else 'Left-skewed' if mean_val < median_val else 'Symmetric'} distribution pattern."
+                })
+            else:
+                skipped_charts.append(f"Distribution of {col}: Empty chart data")
+        except Exception as e:
+            skipped_charts.append(f"Distribution of {col}: {str(e)[:50]}")
+    
+    # 2. Categorical frequency charts
+    for col in categorical_cols[:4]:  # Up to 4 categorical charts
+        try:
+            value_counts = df[col].value_counts().head(10)
+            if value_counts.empty:
+                skipped_charts.append(f"Frequency of {col}: No categories found")
+                continue
+                
+            total = len(df)
+            top_category = value_counts.index[0]
+            top_pct = (value_counts.values[0] / total) * 100
+            
+            fig = px.bar(x=value_counts.index, y=value_counts.values,
+                        title=f"Frequency of {col}",
+                        labels={'x': col, 'y': 'Count'})
+            fig.update_layout(showlegend=False, height=400)
+            
+            plotly_json = json.loads(fig.to_json())
+            if plotly_json.get('data') and len(plotly_json['data']) > 0:
+                charts.append({
+                    "type": "bar",
+                    "title": f"Frequency of {col}",
+                    "data": plotly_json,
+                    "description": f"Top 10 categories in {col}. '{top_category}' is most frequent ({value_counts.values[0]} records, {top_pct:.1f}% of data). Shows distribution of {len(value_counts)} unique categories."
+                })
+            else:
+                skipped_charts.append(f"Frequency of {col}: Empty chart data")
+        except Exception as e:
+            skipped_charts.append(f"Frequency of {col}: {str(e)[:50]}")
+    
+    # 3. Correlation heatmap
+    if len(numeric_cols) >= 2:
+        try:
+            corr_matrix = df[numeric_cols].corr()
+            fig = go.Figure(data=go.Heatmap(
+                z=corr_matrix.values,
+                x=corr_matrix.columns,
+                y=corr_matrix.columns,
+                colorscale='RdBu',
+                zmid=0,
+                text=corr_matrix.values.round(2),
+                texttemplate='%{text}',
+                textfont={"size": 10}
+            ))
+            fig.update_layout(title="Correlation Heatmap", height=500)
+            
+            # Find strongest correlations
+            strong_corrs = []
+            for i in range(len(numeric_cols)):
+                for j in range(i+1, len(numeric_cols)):
+                    if abs(corr_matrix.iloc[i, j]) > 0.5:
+                        strong_corrs.append(f"{numeric_cols[i]}↔{numeric_cols[j]}")
+            
+            corr_desc = f"Strong correlations detected: {', '.join(strong_corrs[:3])}" if strong_corrs else "No strong correlations found"
+            
+            plotly_json = json.loads(fig.to_json())
+            if plotly_json.get('data') and len(plotly_json['data']) > 0:
+                charts.append({
+                    "type": "heatmap",
+                    "title": "Correlation Heatmap",
+                    "data": plotly_json,
+                    "description": f"Shows relationships between {len(numeric_cols)} numeric variables. Red indicates positive correlation, blue negative. {corr_desc}."
+                })
+            else:
+                skipped_charts.append("Correlation Heatmap: Empty chart data")
+        except Exception as e:
+            skipped_charts.append(f"Correlation Heatmap: {str(e)[:50]}")
+    else:
+        skipped_charts.append("Correlation Heatmap: Need at least 2 numeric columns")
+    
+    # 4. Box plots for outlier detection (top 3 numeric columns)
+    for col in numeric_cols[:3]:
+        try:
+            if df[col].dropna().empty:
+                skipped_charts.append(f"Box Plot - {col}: No valid data")
+                continue
+                
+            q1 = df[col].quantile(0.25)
+            q3 = df[col].quantile(0.75)
+            iqr = q3 - q1
+            outliers = df[(df[col] < q1 - 1.5*iqr) | (df[col] > q3 + 1.5*iqr)][col]
+            outlier_pct = (len(outliers) / len(df)) * 100
+            
+            fig = px.box(df, y=col, title=f"Box Plot - {col}")
+            fig.update_layout(showlegend=False, height=400)
+            
+            plotly_json = json.loads(fig.to_json())
+            if plotly_json.get('data') and len(plotly_json['data']) > 0:
+                charts.append({
+                    "type": "box",
+                    "title": f"Box Plot - {col}",
+                    "data": plotly_json,
+                    "description": f"Outlier analysis for {col}. IQR: {iqr:.2f}, {len(outliers)} outliers detected ({outlier_pct:.1f}% of data). Box shows quartiles Q1={q1:.2f}, Q2={df[col].median():.2f}, Q3={q3:.2f}."
+                })
+            else:
+                skipped_charts.append(f"Box Plot - {col}: Empty chart data")
+        except Exception as e:
+            skipped_charts.append(f"Box Plot - {col}: {str(e)[:50]}")
+    
+    # 5. Scatter plots for relationships (top 3 pairs)
+    if len(numeric_cols) >= 2:
+        pairs_added = 0
+        for i in range(len(numeric_cols)):
+            for j in range(i+1, len(numeric_cols)):
+                if pairs_added >= 3: break
+                try:
+                    corr = df[numeric_cols[i]].corr(df[numeric_cols[j]])
+                    if abs(corr) > 0.3:  # Only significant correlations
+                        fig = px.scatter(df, x=numeric_cols[i], y=numeric_cols[j],
+                                       title=f"{numeric_cols[i]} vs {numeric_cols[j]}",
+                                       trendline="ols")
+                        fig.update_layout(height=400)
+                        
+                        strength = "Strong" if abs(corr) > 0.7 else "Moderate"
+                        direction = "positive" if corr > 0 else "negative"
+                        
+                        plotly_json = json.loads(fig.to_json())
+                        if plotly_json.get('data') and len(plotly_json['data']) > 0:
+                            charts.append({
+                                "type": "scatter",
+                                "title": f"{numeric_cols[i]} vs {numeric_cols[j]}",
+                                "data": plotly_json,
+                                "description": f"{strength} {direction} correlation (r={corr:.3f}). As {numeric_cols[i]} {'increases' if corr > 0 else 'decreases'}, {numeric_cols[j]} tends to {'increase' if corr > 0 else 'decrease'}. Trendline shows overall pattern."
+                            })
+                            pairs_added += 1
+                        else:
+                            skipped_charts.append(f"Scatter {numeric_cols[i]} vs {numeric_cols[j]}: Empty chart data")
+                except Exception as e:
+                    skipped_charts.append(f"Scatter {numeric_cols[i] if i < len(numeric_cols) else 'N/A'} vs {numeric_cols[j] if j < len(numeric_cols) else 'N/A'}: {str(e)[:50]}")
+    else:
+        skipped_charts.append("Scatter plots: Need at least 2 numeric columns")
+    
+    # 6. Pie charts for categorical distributions (top 2)
+    for col in categorical_cols[:2]:
+        try:
+            value_counts = df[col].value_counts().head(8)
+            if value_counts.empty:
+                skipped_charts.append(f"Pie Chart - {col}: No categories")
+                continue
+                
+            total = value_counts.sum()
+            
+            fig = go.Figure(data=[go.Pie(
+                labels=value_counts.index,
+                values=value_counts.values,
+                hole=0.3
+            )])
+            fig.update_layout(title=f"Proportion of {col}", height=400)
+            
+            top_3 = ', '.join([f"{idx} ({val/total*100:.1f}%)" for idx, val in list(value_counts.items())[:3]])
+            
+            plotly_json = json.loads(fig.to_json())
+            if plotly_json.get('data') and len(plotly_json['data']) > 0:
+                charts.append({
+                    "type": "pie",
+                    "title": f"Proportion of {col}",
+                    "data": plotly_json,
+                    "description": f"Proportional breakdown of {col} categories. Top 3: {top_3}. Shows relative distribution across {len(value_counts)} categories representing {total} total records."
+                })
+            else:
+                skipped_charts.append(f"Pie Chart - {col}: Empty chart data")
+        except Exception as e:
+            skipped_charts.append(f"Pie Chart - {col}: {str(e)[:50]}")
+    
+    # 7. Time series if applicable
+    time_cols = [col for col in df.columns if any(keyword in col.lower() for keyword in ['time', 'date', 'day', 'hour'])]
+    if time_cols and numeric_cols:
+        try:
+            time_col = time_cols[0]
+            num_col = numeric_cols[0]
+            temp_df = df[[time_col, num_col]].dropna().sort_values(time_col).head(1000)
+            
+            if not temp_df.empty:
+                fig = go.Figure(data=[go.Scatter(
+                    x=temp_df[time_col],
+                    y=temp_df[num_col],
+                    mode='lines+markers',
+                    name=num_col
+                )])
+                fig.update_layout(title=f"Trend of {num_col} Over {time_col}", height=400)
+                
+                trend_direction = "increasing" if temp_df[num_col].iloc[-1] > temp_df[num_col].iloc[0] else "decreasing"
+                
+                plotly_json = json.loads(fig.to_json())
+                if plotly_json.get('data') and len(plotly_json['data']) > 0:
+                    charts.append({
+                        "type": "line",
+                        "title": f"Trend of {num_col} Over {time_col}",
+                        "data": plotly_json,
+                        "description": f"Time series showing {num_col} over {time_col}. Overall trend is {trend_direction}. Peak: {temp_df[num_col].max():.2f}, Low: {temp_df[num_col].min():.2f}, displaying patterns and temporal variations."
+                    })
+                else:
+                    skipped_charts.append(f"Time Series: Empty chart data")
+            else:
+                skipped_charts.append(f"Time Series: No valid time series data")
+        except Exception as e:
+            skipped_charts.append(f"Time Series: {str(e)[:50]}")
+    
+    # 8. Grouped bar chart (categorical vs categorical)
+    if len(categorical_cols) >= 2:
+        try:
+            cat1, cat2 = categorical_cols[0], categorical_cols[1]
+            # Limit to top categories for readability
+            top_cat1 = df[cat1].value_counts().head(5).index
+            top_cat2 = df[cat2].value_counts().head(5).index
+            filtered_df = df[df[cat1].isin(top_cat1) & df[cat2].isin(top_cat2)]
+            
+            if not filtered_df.empty:
+                crosstab = pd.crosstab(filtered_df[cat1], filtered_df[cat2])
+                
+                fig = go.Figure()
+                for col in crosstab.columns:
+                    fig.add_trace(go.Bar(name=str(col), x=crosstab.index, y=crosstab[col]))
+                
+                fig.update_layout(
+                    title=f"{cat1} by {cat2}",
+                    barmode='group',
+                    height=400,
+                    xaxis_title=cat1,
+                    yaxis_title="Count"
+                )
+                
+                plotly_json = json.loads(fig.to_json())
+                if plotly_json.get('data') and len(plotly_json['data']) > 0:
+                    charts.append({
+                        "type": "grouped_bar",
+                        "title": f"{cat1} by {cat2}",
+                        "data": plotly_json,
+                        "description": f"Cross-tabulation showing how {cat1} categories are distributed across {cat2} values. Reveals interaction patterns between these two categorical variables."
+                    })
+                else:
+                    skipped_charts.append(f"Grouped Bar: Empty chart data")
+            else:
+                skipped_charts.append(f"Grouped Bar: No data after filtering")
+        except Exception as e:
+            skipped_charts.append(f"Grouped Bar: {str(e)[:50]}")
+    else:
+        skipped_charts.append("Grouped Bar: Need at least 2 categorical columns")
+    
+    return {"charts": charts, "skipped": skipped_charts}
+    """Generate comprehensive data visualizations with detailed insights"""
+    charts = []
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
     
