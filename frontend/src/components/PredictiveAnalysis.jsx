@@ -668,24 +668,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
             <MessageSquare className="w-4 h-4 mr-2" />
             Chat
           </Button>
-          <Button
-            onClick={() => setShowSaveDialog(true)}
-            variant="outline"
-            size="sm"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save
-          </Button>
-          {savedStates.length > 0 && (
-            <Button
-              onClick={() => setShowLoadDialog(true)}
-              variant="outline"
-              size="sm"
-            >
-              <FolderOpen className="w-4 h-4 mr-2" />
-              Load ({savedStates.length})
-            </Button>
-          )}
         </div>
       </div>
 
