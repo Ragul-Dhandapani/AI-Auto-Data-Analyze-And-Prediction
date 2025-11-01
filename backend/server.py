@@ -2388,8 +2388,8 @@ async def get_training_metadata():
                 "workspaces": [
                     {
                         "workspace_name": state.get("state_name"),
-                        "saved_at": state.get("saved_at"),
-                        "workspace_id": state.get("state_id")
+                        "saved_at": state.get("created_at"),
+                        "workspace_id": state.get("id")
                     }
                     for state in dataset_states
                 ],
