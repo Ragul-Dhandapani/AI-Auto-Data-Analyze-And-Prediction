@@ -184,11 +184,11 @@ backend:
 backend:
   - task: "Correlation calculation via chat"
     implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
+    working: false
+    file: "/app/backend/app/services/chat_service.py"
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: true
           agent: "main"
@@ -196,6 +196,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ BACKEND CORRELATION ANALYSIS FULLY WORKING: Fixed syntax errors in server.py (escaped quotes), tested /api/analysis/chat-action endpoint with correlation request. Verified: 1) Correct response structure with action='add_chart' 2) chart_data.type='correlation' 3) correlations array with feature1/feature2/value/strength/interpretation 4) Valid Plotly heatmap data 5) Only significant correlations (abs>0.1) included 6) Correlations sorted by absolute value 7) All 5 numeric columns processed correctly 8) Strong correlations detected (age↔salary: 0.993, age↔years_experience: 0.991). Minor: Error handling returns 500 instead of 404 for non-existent datasets."
+        - working: false
+          agent: "testing"
+          comment: "❌ CORRELATION STRUCTURE MISMATCH: After refactoring, correlation response returns correlations as dictionary instead of expected array format. Current response has correlations: {age: {age: 1, salary: 0.98}, ...} but tests expect correlations: [{feature1: 'age', feature2: 'salary', value: 0.98, strength: 'Strong', interpretation: '...'}]. Need to update chat_service.py handle_correlation_request() to return array format for consistency with existing tests."
 
 frontend:
   - task: "Progress bar capped at 90% until completion"
