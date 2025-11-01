@@ -638,7 +638,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       )}
 
       {/* Custom Charts Section */}
-      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart.plotly_data && chart.plotly_data.data && chart.plotly_data.data.length > 0).length > 0 && !collapsed.custom_charts && (
+      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length > 0 && !collapsed.custom_charts && (
         <Card className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
