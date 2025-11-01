@@ -118,6 +118,7 @@ REACT_APP_BACKEND_URL=http://localhost:8001
 
 ## 📚 Documentation
 
+- **[Master Documentation](MASTER_DOCUMENTATION.md)** - Complete system documentation (comprehensive)
 - **[Setup Guide](SETUP_GUIDE.md)** - Complete setup instructions (local, Docker, Kubernetes)
 - **[Database Setup](DATABASE_SETUP.md)** - MongoDB and external database configuration
 - **[Architecture](ARCHITECTURE.md)** - System architecture and data flow diagrams
