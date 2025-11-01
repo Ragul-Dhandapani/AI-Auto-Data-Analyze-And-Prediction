@@ -705,6 +705,44 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
+
+
+      {/* Auto-Generated Charts Section */}
+      {analysisResults.auto_charts && analysisResults.auto_charts.length > 0 && !collapsed.auto_charts && (
+        <Card className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">📊 AI-Generated Analysis Charts</h3>
+              <p className="text-sm text-gray-600 italic mt-1">Comprehensive visualization suite automatically generated based on your data</p>
+            </div>
+            <Button onClick={() => toggleSection('auto_charts')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {analysisResults.auto_charts.map((chart, idx) => (
+              <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold mb-2">{chart.title}</h4>
+                {chart.description && (
+                  <p className="text-sm text-gray-600 italic mb-3">{chart.description}</p>
+                )}
+                <div id={`auto-chart-${idx}`} style={{ width: '100%', height: '400px' }}></div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.auto_charts && analysisResults.auto_charts.length > 0 && collapsed.auto_charts && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('auto_charts')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">📊 AI-Generated Analysis Charts ({analysisResults.auto_charts.length} charts)</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
       {/* Chat Panel */}
       {showChat && !chatMinimized && (
         <div 
