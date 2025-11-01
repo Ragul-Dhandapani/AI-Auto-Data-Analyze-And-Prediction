@@ -192,9 +192,12 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
               <p className="text-sm text-gray-600 mb-1">Columns</p>
               <p className="text-3xl font-bold text-purple-600">{profileData.column_count}</p>
             </Card>
-            <Card className="p-4 bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+            <Card className="p-4 bg-gradient-to-br from-orange-50 to-red-50 border-orange-200 cursor-pointer hover:shadow-md transition-shadow" onClick={() => toggleSection('missing_details')}>
               <p className="text-sm text-gray-600 mb-1">Missing Values</p>
               <p className="text-3xl font-bold text-orange-600">{profileData.missing_values_total.toLocaleString()}</p>
+              {profileData.missing_values_total > 0 && (
+                <p className="text-xs text-orange-500 mt-1">Click to see details →</p>
+              )}
             </Card>
             <Card className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
               <p className="text-sm text-gray-600 mb-1">Duplicates</p>
