@@ -253,11 +253,14 @@ frontend/
 - Connection string parser
 
 #### **DataProfiler.jsx**
-- Summary statistics cards
-- Column-level analysis
-- Missing values detection
-- Data cleaning actions
+- Summary statistics cards (Total Rows, Columns, Missing Values, Duplicates)
+- **Missing Values Details** section with 2-liner explanation:
+  - "Shows columns with incomplete data (null, NaN, empty, or undefined values)"
+  - "Missing data can affect analysis accuracy and model performance - consider cleaning or imputing these values"
+- Column-level analysis with accordion view
+- Data cleaning actions with before/after comparison
 - AI insights generation
+- Expand/Collapse all sections functionality
 
 #### **PredictiveAnalysis.jsx**
 - Holistic analysis trigger
