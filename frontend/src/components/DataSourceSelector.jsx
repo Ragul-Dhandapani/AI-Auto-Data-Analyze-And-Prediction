@@ -197,7 +197,21 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
       toast.success("Table loaded successfully!");
       onDatasetLoaded(response.data);
     } catch (error) {
-      toast.error("Table load failed: " + (error.response?.data?.detail || error.message));
+      console.error("Table load error:", error.response?.data);
+      let errorMsg = "Table load failed";
+      if (error.response?.data?.detail) {
+        // Handle detail being string, object, or array
+        if (typeof error.response.data.detail === 'string') {
+          errorMsg += `: ${error.response.data.detail}`;
+        } else if (Array.isArray(error.response.data.detail)) {
+          errorMsg += `: ${error.response.data.detail.map(e => e.msg || e).join(', ')}`;
+        } else if (typeof error.response.data.detail === 'object') {
+          errorMsg += `: ${JSON.stringify(error.response.data.detail)}`;
+        }
+      } else if (error.message) {
+        errorMsg += `: ${error.message}`;
+      }
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
