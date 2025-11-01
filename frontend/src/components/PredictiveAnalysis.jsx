@@ -382,7 +382,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Predictive Analysis & Forecasting</h2>
-          <p className="text-sm text-gray-600">AI-powered predictions, trends, and future forecasts</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-600">AI-powered predictions, trends, and future forecasts</p>
+            {analysisTime && (
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                ⚡ Completed in {analysisTime}s
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={expandAll} variant="outline" size="sm">
