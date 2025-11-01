@@ -14,7 +14,7 @@ import io
 
 from app.models.pydantic_models import HolisticRequest, SaveStateRequest
 from app.database.mongodb import db, fs
-from app.services.data_service import generate_data_profile, get_correlation_matrix
+from app.services.data_service import generate_data_profile, get_correlation_matrix, clean_data
 from app.services.ml_service import train_multiple_models, suggest_best_target_column
 from app.services.visualization_service import generate_auto_charts
 from app.services.chat_service import process_chat_message
