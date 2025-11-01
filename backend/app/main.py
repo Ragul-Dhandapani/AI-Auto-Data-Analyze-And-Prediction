@@ -67,9 +67,9 @@ async def get_datasets_compat():
     try:
         cursor = db.datasets.find({}, {"_id": 0}).sort("created_at", -1).limit(10)
         datasets = await cursor.to_list(length=10)
-        return datasets
+        return {"datasets": datasets}  # Frontend expects {datasets: [...]}
     except Exception as e:
-        return []
+        return {"datasets": []}
 
 # Include main router
 app.include_router(api_router)
