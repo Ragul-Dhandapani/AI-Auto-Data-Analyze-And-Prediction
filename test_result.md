@@ -381,15 +381,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "POST-REFACTORING COMPREHENSIVE VALIDATION"
-    - "File upload via /api/datasets endpoint"
-    - "Holistic analysis endpoint"
-    - "Chat action endpoint"
-    - "Empty charts bug investigation"
-    - "All backend API endpoints"
+    - "Health endpoint routing issue"
+    - "Correlation calculation via chat"
+    - "Support custom chart types (pie, bar, line) via chat"
+    - "Chart removal functionality"
   stuck_tasks: []
-  test_all: true
-  test_priority: "high_first"
+  test_all: false
+  test_priority: "critical_first"
 
 agent_communication:
     - agent: "main"
