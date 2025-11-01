@@ -285,7 +285,7 @@ Dataset: {summary}
 
 Provide concise, actionable insights."""
                 
-                insights = llm.send_user_message(prompt)
+                insights = llm.send_message(prompt)
             except:
                 pass
         
