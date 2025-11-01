@@ -158,6 +158,18 @@ backend:
           comment: "✅ BACKEND CORRELATION ANALYSIS FULLY WORKING: Fixed syntax errors in server.py (escaped quotes), tested /api/analysis/chat-action endpoint with correlation request. Verified: 1) Correct response structure with action='add_chart' 2) chart_data.type='correlation' 3) correlations array with feature1/feature2/value/strength/interpretation 4) Valid Plotly heatmap data 5) Only significant correlations (abs>0.1) included 6) Correlations sorted by absolute value 7) All 5 numeric columns processed correctly 8) Strong correlations detected (age↔salary: 0.993, age↔years_experience: 0.991). Minor: Error handling returns 500 instead of 404 for non-existent datasets."
 
 frontend:
+  - task: "Progress indicator for Predictive Analysis"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added comprehensive progress tracking: 1) New progress state variable 2) Simulated progress bar with percentage display 3) Progress intervals that slow down appropriately (fast 0-30%, medium 30-60%, slow 60-85%, very slow 85-100%) 4) Stage-based messages (Loading data → Statistical analysis → Training ML → Generating visualizations) 5) Visual gradient progress bar 6) Cleanup effect to prevent memory leaks. Progress resets after completion."
+  
   - task: "Display correlation heatmap in PredictiveAnalysis"
     implemented: true
     working: "NA"
