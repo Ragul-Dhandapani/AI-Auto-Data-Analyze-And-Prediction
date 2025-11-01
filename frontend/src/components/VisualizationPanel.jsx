@@ -170,15 +170,8 @@ const VisualizationPanel = ({ dataset }) => {
         </div>
       </Card>
 
-      {charts.length === 0 && !loading && (
-        <Card className="p-12 text-center">
-          <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600">Loading visualizations...</p>
-        </Card>
-      )}
-
       <div className="grid md:grid-cols-2 gap-6">
-        {charts.map((chart, idx) => (
+        {validCharts.map((chart, idx) => (
           <ChartComponent key={`${dataset.id}-${idx}`} chart={chart} index={idx} />
         ))}
       </div>
