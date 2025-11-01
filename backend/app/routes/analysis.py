@@ -92,6 +92,60 @@ async def run_analysis(request: Dict[str, Any]):
                 "skipped": skipped
             }
         
+        elif analysis_type == "insights":
+            # Generate AI insights
+            llm_key = os.environ.get('EMERGENT_LLM_KEY')
+            
+            if not llm_key:
+                return {
+                    "insights": "AI insights require EMERGENT_LLM_KEY to be configured. Please set up the API key to generate intelligent insights about your data."
+                }
+            
+            try:
+                from emergentintegrations.llm.chat import LlmChat
+                
+                # Prepare data summary
+                profile = generate_data_profile(df)
+                numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+                categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+                
+                llm = LlmChat(api_key=llm_key, model="gpt-4o-mini")
+                
+                prompt = f"""Analyze this dataset and provide 4-5 key insights:
+
+Dataset Statistics:
+- Total Records: {len(df):,}
+- Columns: {len(df.columns)}
+- Numeric Columns: {', '.join(numeric_cols[:5])}
+- Categorical Columns: {', '.join(categorical_cols[:5])}
+- Missing Values: {profile.get('missing_values_total', 0)}
+- Duplicate Rows: {profile.get('duplicate_rows', 0)}
+
+Provide actionable insights in bullet points about:
+1. Data quality and completeness
+2. Interesting patterns or distributions
+3. Potential relationships between variables
+4. Recommendations for analysis"""
+                
+                insights_text = llm.send_user_message(prompt)
+                
+                return {
+                    "insights": insights_text,
+                    "summary": {
+                        "total_records": len(df),
+                        "total_columns": len(df.columns),
+                        "numeric_columns": len(numeric_cols),
+                        "categorical_columns": len(categorical_cols),
+                        "data_quality_score": 100 - (profile.get('missing_values_total', 0) / (len(df) * len(df.columns)) * 100)
+                    }
+                }
+            except Exception as e:
+                logger.error(f"AI insights generation failed: {str(e)}", exc_info=True)
+                return {
+                    "insights": f"Unable to generate AI insights: {str(e)}. You can still explore the data using profile statistics and visualizations.",
+                    "error": str(e)
+                }
+        
         else:
             raise HTTPException(400, f"Unknown analysis type: {analysis_type}")
         
