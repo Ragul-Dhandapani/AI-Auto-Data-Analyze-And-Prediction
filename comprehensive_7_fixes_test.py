@@ -228,15 +228,15 @@ def test_3_training_metadata_structure():
     
     result = response.json()
     
-    # Check if result has datasets
-    if 'datasets' not in result:
-        print(f"❌ Missing 'datasets' field in response")
+    # Check if result has metadata (actual field name)
+    if 'metadata' not in result:
+        print(f"❌ Missing 'metadata' field in response")
         return False
     
-    datasets = result['datasets']
+    datasets = result['metadata']
     
     if not isinstance(datasets, list):
-        print(f"❌ datasets should be a list, got: {type(datasets)}")
+        print(f"❌ metadata should be a list, got: {type(datasets)}")
         return False
     
     if len(datasets) == 0:
