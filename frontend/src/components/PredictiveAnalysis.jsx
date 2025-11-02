@@ -206,6 +206,12 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   }, []);
 
   const runHolisticAnalysis = async () => {
+    // Prevent multiple simultaneous runs
+    if (loading) {
+      console.log('Analysis already in progress, skipping duplicate run');
+      return;
+    }
+    
     setLoading(true);
     setProgress(0);
     setSelectionFeedback(null); // Reset feedback
