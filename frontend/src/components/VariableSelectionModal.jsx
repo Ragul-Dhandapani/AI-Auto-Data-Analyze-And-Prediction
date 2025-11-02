@@ -104,6 +104,12 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
       return;
     }
 
+    // Check if time series requires time column
+    if (problemType === "time_series" && !timeColumn) {
+      toast.error("Please select a time/date column for time series analysis");
+      return;
+    }
+
     // Check if multiple targets
     if (validTargets.length === 1) {
       // Single target - backward compatible format
@@ -111,6 +117,8 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
         target: validTargets[0].target,
         features: validTargets[0].features,
         mode: mode,
+        problem_type: problemType,
+        time_column: problemType === "time_series" ? timeColumn : undefined,
         aiSuggestions: aiSuggestions
       };
       console.log('Confirming single target selection:', selection);
@@ -120,6 +128,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
       const selection = {
         targets: validTargets,
         mode: mode,
+        problem_type: problemType,
         is_multi_target: true
       };
       console.log('Confirming multi-target selection:', selection);
