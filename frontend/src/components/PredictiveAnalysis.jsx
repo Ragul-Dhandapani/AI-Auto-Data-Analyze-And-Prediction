@@ -254,7 +254,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         dataset_id: dataset.id
       };
       
-      // Add variable selection if provided
+      // Add variable selection and problem_type if provided
       if (variableSelection && variableSelection.mode !== 'skip') {
         payload.user_selection = {
           target_variable: variableSelection.target,
@@ -262,7 +262,19 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
           mode: variableSelection.mode,
           ai_suggestions: variableSelection.aiSuggestions
         };
+        
+        // Add problem_type if specified
+        if (variableSelection.problem_type) {
+          payload.problem_type = variableSelection.problem_type;
+        }
+        
+        // Add time_column if specified (for time series)
+        if (variableSelection.time_column) {
+          payload.time_column = variableSelection.time_column;
+        }
+        
         console.log('Sending user_selection to backend:', JSON.stringify(payload.user_selection, null, 2));
+        console.log('Problem type:', payload.problem_type);
       }
       
       const response = await axios.post(`${API}/analysis/holistic`, payload);
