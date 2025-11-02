@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = "https://data-insight-hub-32.preview.emergentagent.com/api"
+BACKEND_URL = "https://data-genius-12.preview.emergentagent.com/api"
 
 def test_api_health():
     """Test if the API is running"""

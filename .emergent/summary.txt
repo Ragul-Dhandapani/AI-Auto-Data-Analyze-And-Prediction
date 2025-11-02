@@ -1,101 +1,107 @@
 <analysis>
-The previous AI engineer focused on enhancing the PROMISE AI platform, progressing from an MVP to a more robust and feature-rich application. Initially, the engineer stabilized the backend, introduced GridFS, and containerized the application with Docker/Kubernetes. A major refactoring of the backend from a monolithic  to a modular  structure was a key architectural decision. This refactoring led to several regression fixes, including API endpoint mismatches and data structure inconsistencies.
+The trajectory outlines the evolution of the PROMISE AI platform, initiated by an AI engineer addressing critical bug fixes and implementing significant feature enhancements. Initially, issues with Recent Datasets not displaying due to large data arrays and frontend race conditions were resolved through multiple debugging cycles. Subsequently, comprehensive Kerberos authentication was implemented for various databases (PostgreSQL, MySQL, Oracle, SQL Server).
 
-Subsequent efforts involved comprehensive documentation cleanup and consolidation, creating dedicated guides for local setup, database configuration, and AWS RDS deployment. A significant feature addition was the Custom SQL Query capability, enabling users to fetch data directly from connected databases via user-defined queries. This required modifications to both frontend components () and backend API routes (). The engineer also tackled crucial database connectivity issues, specifically troubleshooting network blocks from the containerized backend to AWS RDS. The final focus was on fixing a Table load failed error, which involved correcting frontend request formats and backend data serialization (Pandas Timestamps).
+The project then moved into two major phases: Phase 2 introduced Smart Variable Detection and AI Feature Selection, involving new backend services and a frontend modal. This phase faced challenges with user selections being ignored, particularly for categorical and multi-target features, leading to extensive debugging and race condition fixes in the frontend. Phase 3 focused on Enterprise-Grade AI Charts and Insights, establishing backend services for analytics tracking, model explainability (SHAP/LIME), and AI insights using Emergent LLM.
+
+User feedback highlighted a lack of visibility for Phase 2 and 3 changes, prompting integration efforts. Further iterations addressed a persistent Refresh button loading issue, enhanced business recommendations, added LSTM feature importance, improved volume analysis, fixed Data Profile reload and display issues, and resolved backend 500 errors related to JSON serialization. A PDF download feature was implemented for Predictive Analysis and Visualization, initially using  (which crashed) and then  as a workaround. The most recent focus was on integrating new AI intelligence services in the backend for more dynamic chat and chart generation. The user also outlined a roadmap for future enterprise features.
 </analysis>
 
 <product_requirements>
-The PROMISE AI platform is an AI/ML-powered web solution for data analysis and prediction, processing Excel/CSV files and integrating with various databases. Key existing features include data ingestion (drag-and-drop, GridFS), data processing (cleaning, outlier detection), automated ML models (Linear Regression, Random Forest, XGBoost, Decision Tree, LSTM), smart chart recommendations, AI-generated insights, and a modern UI/UX with Shadcn. The application also supports interactive chat, workspace management, a training metadata dashboard, and Docker/Kubernetes deployment.
-
-New/Enhanced Requirements included:
-- **Database Connectivity**: Expanded support for Oracle, PostgreSQL, MySQL, SQL Server, MongoDB (connection string or parameters).
-- **Custom SQL Query Feature**: Enable users to write and execute custom SQL queries against connected databases, with results feeding into Data Profile, Predictive Analysis, and Visualization.
-- **Workspace Refresh**: Update existing workspaces with fresh data (deferred).
-- **MCP Server**: Expose all data analysis/prediction endpoints.
-- **Backend Refactoring**: Modularize  to .
-- **Testing**: Comprehensive unit tests (frontend/backend).
-- **Chart Cleanup**: Fix empty charts and improve representation.
-- **Training Metadata Redesign**: Modernized multi-select dropdown, PDF download.
-- **Recent Datasets Redesign**: Multi-selection delete and improved layout.
-- **Observability/APM Datasets**: Request for more complex, real-world datasets for testing.
-- **Kerberos Authentication**: Request for Kerberos support for database connections.
-- **Dataset Naming for Custom Queries**: Prompt user for a name before loading custom query results as a new dataset.
-- **ML Model Comparison**: For multiple key correlation analysis, generate comparisons across ML models.
+The PROMISE AI platform is designed as an AI/ML web solution for data analysis and prediction, supporting diverse data sources. Key product requirements include:
+- **Expanded Database Connectivity**: Support for Oracle, PostgreSQL, MySQL, SQL Server, MongoDB with Kerberos authentication.
+- **Custom SQL Query**: Execute custom queries and feed results into analysis.
+- **Automated ML & Smart Charts**: Offer automated ML, intelligent charts, and AI insights.
+- **Workspace Management**: Fix training metadata display, enable model comparisons, and manage workspaces.
+- **Smart Variable Detection**: Manual, AI, or hybrid selection of target/feature variables, with multi-target support and AI explanations for selections.
+- **Model Explainability**: Incorporate SHAP/LIME for model explanations.
+- **AI Insights**: Generate insights using LLMs.
+- **Enterprise-Grade AI Charts**: Provide explanations for empty charts, enhance AI analysis for expert insights, and improve chart recommendations.
+- **User Feedback Loop**: Implement active learning for model refinement.
+- **Advanced Features**: Support classification/multi-target prediction, time series forecasting/anomaly detection, hyperparameter tuning, all data types, and relational data handling.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-stack Architecture**: React, FastAPI, MongoDB.
-- **Containerization**: Docker, Kubernetes.
-- **Cloud Infrastructure**: AWS RDS, Terraform.
-- **Database Connectivity**: PostgreSQL, MySQL, SQL Server, Oracle, , , .
-- **Data Processing**: Pandas, NumPy, GridFS.
-- **ML/AI**: scikit-learn, LightGBM, XGBoost, LSTM.
-- **Visualization**: Plotly.js.
-- **UI Libraries**: Shadcn UI, React-Select.
-- **Error Handling**: Frontend (Axios error parsing), Backend (FastAPI HTTPException).
+-   **Full-stack**: React.js, FastAPI, MongoDB.
+-   **Containerization**: Docker, Kubernetes.
+-   **Database Connectivity**: PostgreSQL, MySQL, SQL Server, Oracle (with Kerberos/GSSAPI).
+-   **Machine Learning**: scikit-learn, LightGBM, XGBoost, LSTM, SHAP, LIME.
+-   **AI/LLM**: Emergent LLM (via ).
+-   **UI/UX**: Shadcn UI, React-Select.
+-   **PDF Generation**: ,  (initially),  (current).
 </key_technical_concepts>
 
 <code_architecture>
-The application utilizes a full-stack architecture with a React frontend, FastAPI backend, and MongoDB for data storage, containerized with Docker and Kubernetes.
+The application utilizes a full-stack architecture with React.js for the frontend, FastAPI for the backend, and MongoDB as the database. It's containerized with Docker and orchestrated with Kubernetes.
 
 
 
-- **backend/app/database/connections.py**:
-    - **Summary**: Manages connections to external databases (PostgreSQL, MySQL, SQL Server, Oracle) and includes functions to test connections and load table data.
-    - **Changes**: Added explicit timeouts to database connection attempts to prevent hanging. Implemented GridFS support for large tables loaded from databases. Improved error handling to return more descriptive messages.
-- **backend/app/routes/datasource.py**:
-    - **Summary**: Handles API endpoints related to data source management, including file uploads, dataset listing, and database interactions.
-    - **Changes**:
-        - Added a new  endpoint to handle execution of user-provided SQL queries.
-        - Fixed  by adding  and other necessary database driver imports.
-        - Implemented a  helper to address  for Pandas DataFrames before JSON serialization.
-        - Modified the  endpoint to correctly parse  from the request body as part of  model, rather than as a query parameter.
-- **frontend/src/components/DataSourceSelector.jsx**:
-    - **Summary**: Frontend component responsible for allowing users to select data sources (file upload, database connection, custom SQL query).
-    - **Changes**:
-        - Added a new tab and UI elements for the Custom SQL Query feature, allowing users to input connection details and a SQL query.
-        - Implemented the  function to send custom SQL queries to the backend.
-        - Enhanced error handling for table loading and custom queries, specifically to properly display error messages from the backend (converting  errors to readable strings).
-        - Corrected the  function to send  and connection details in a JSON body to align with backend endpoint expectations.
-- **terraform/ (New Directory)**:
-    - **Summary**: Contains Terraform configuration files for provisioning AWS RDS instances (PostgreSQL, MySQL).
-    - **Changes**:
-        - : Defines the AWS resources (VPC, subnets, security groups, RDS instances).
-        - : Stores variables like , , , and  for customization.
-- **Various  files**: Numerous markdown files (, , , , , , , , etc.) were created, updated, or consolidated to provide comprehensive documentation.
+**File Details and Changes:**
+-   ****:
+    -   Refactored  endpoint to integrate , intelligent data sampling, categorical feature handling (one-hot encoding), filtering correlations/charts, and providing detailed feedback.
+    -   Integrated calls to , , .
+    -   Fixed JSON serialization issues for NumPy types in volume analysis.
+    -   Added new endpoints for  and integrated  for intelligent validation of user selections.
+-   ****:  modified to sanitize  and exclude large  fields;  added for centralized Kerberos connection logic.
+-   ****: Created for LLM-based insights via .
+-   ****: Created for self-learning and analytics.
+-   ****: **NEW** file created for AI-driven chart recommendations and validation.
+-   ****: Updated  to include , , and  fields for the frontend.
+-   ****: Created for AI feature selection logic.
+-   ****: Added permutation-based feature importance for LSTM models.
+-   ****: Created for SHAP/LIME explanations.
+-   ****: **NEW** file created for intelligent validation of variables.
+-   ****: Enhanced  to track skipped charts.
+-   ****: Updated to include , , , and cleaned for Python 3.13 compatibility.
+-   ****:  added.
+-   ****:
+    -    dependencies optimized to prevent reload on tab switch (Fix 6).
+    -   UI updated to display unique values, missing percentage, and data type inline (Fix 7).
+-   ****: UI updated with Kerberos toggle.
+-   ****:
+    -   Integrated .
+    -    sends  to backend.
+    -   Fixed  race condition (Fix 1).
+    -   UI fixes for long categorical feature names.
+    -   Text changed from Emergent LLM to AI (Fix 2).
+    -   Business Recommendations enhanced with clarity (Fix 3).
+    -   Implemented PDF download functionality using  as a workaround for  crashes; IDs added to sections.
+    -   Added safety mechanism to prevent multiple simultaneous analysis runs.
+-   ****: New component for target/feature variable selection.
+-   ****: Implemented PDF download functionality using ; IDs added to charts.
+-   ****: Integrated  and passed  prop.
 </code_architecture>
 
 <pending_tasks>
-- **Enhancement**: Allow users to update an existing workspace with fresh data while retaining analysis configurations for the same dataset (Phase 2).
-- **Feature**: Complete comprehensive unit testing for both frontend and backend.
-- **Feature**: Ensure the MCP server is available for Data Profiler and Predictive analysis, including chat window options.
-- **Bug**: Investigate why new workspaces (with LSTM) are not consistently showing up in Training Metadata if  are missing.
-- **Feature**: Implement Kerberos authentication for database connections.
-- **Feature**: If data is loaded based on a user's custom query, prompt the user for a name for this new dataset.
-- **Feature**: For multiple key correlation analysis in Predictive Analysis, generate comparisons across all ML models.
-- **Bug**: Address the Training Metadata dashboard not working correctly (models output, last trained, improvement, etc.).
+-   **Enhancement**: Allow users to update an existing workspace with fresh data while retaining analysis configurations.
+-   **Feature**: Complete comprehensive unit testing for both frontend and backend.
+-   **Feature**: Ensure the MCP server is available for Data Profiler and Predictive analysis, including chat window options.
+-   **Bug**: Investigate why new workspaces (with LSTM) are not consistently showing up in Training Metadata.
+-   **Feature**: Frontend integration for the newly created AI intelligence services ( and ).
+-   **Feature**: Re-implement robust PDF download functionality using a more stable library, or improve the  integration to prevent crashes.
+-   **Feature**: Implement the 8 enterprise-level features outlined by the user (e.g., Classification Targets, Multi-Target Prediction, Time Series Forecasting, Hyperparameter Tuning).
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing a series of issues reported by the user, specifically concerning database connectivity and data loading into the PROMISE AI application.
+Immediately before this summary, the AI engineer was implementing critical improvements based on detailed user feedback and further integrating AI intelligence features.
 
-The user reported:
-1.  **Table load failed: [object Object],[object Object]** when attempting to load tables after successfully connecting to an AWS RDS PostgreSQL database.
-2.  **Table load failed: Request failed with status code 500** for larger tables.
-3.  An issue with **Generate AI Insights** resulting in Unable to generate AI insights at this time.
-4.  A **** in the backend logs when loading tables.
+The previous work involved addressing 7 specific issues raised by the user:
+1.  **Refresh Button Loading:** Fixed an infinite loop in  where  updates were re-triggering analysis, and added a safety mechanism for simultaneous runs.
+2.  **Emergent LLM Text Change:** Updated Intelligent analysis powered by Emergent LLM to Intelligent analysis powered by AI in .
+3.  **Business Recommendations Enhancement:** Clarified the output of business recommendations in  to provide better actionable guidance.
+4.  **LSTM Feature Importance:** Added a permutation-based feature importance calculation for LSTM models in .
+5.  **Volume Analysis Enhancement:** Updated backend  for improved volume analysis logic and frontend  for displaying these enhancements. This also involved fixing a  JSON serialization error.
+6.  **Data Profile Reload on Tab Switch:** Optimized  to prevent unnecessary reloads by refining  dependencies.
+7.  **Data Profile Unique Values Display:** Modified  to show unique values, missing percentage, and data types inline, and updated  to provide the correct backend data (, , ).
 
-The AI engineer's most recent actions were:
--   **Debugging Table load failed: [object Object]**: Identified that the frontend was not correctly parsing error responses.  was modified to robustly handle backend error objects and display human-readable messages.
--   **Debugging Request failed with status code 500**:
-    -   Traced to a  for  in . The missing  (and other database drivers) was added.
-    -   Discovered a  when Pandas DataFrames containing timestamps were converted to JSON. A  helper function was implemented and integrated into  to convert timestamps to ISO format before serialization.
-    -   Corrected the  endpoint's parameter handling in  to expect  and connection details within the JSON request body.
-    -   Updated the  function in  to send  and other parameters in a JSON request body, aligning with the backend's updated endpoint signature.
--   **Observability Datasets**: Created  and  with more complex, real-world data for testing advanced features.
--   **Addressing Training Metadata & ML Model Comparison**: The user's very last message explicitly reported that Trained Metadata is not working correctly and requested that ML Models comparison also should get generate for multiple key correlation analysis. The engineer acknowledged this and was about to investigate the provided screenshots.
+Following these fixes, the user requested a PDF download feature for Predictive Analysis and Visualization. The AI implemented this using  and , adding IDs to sections for capture. However, initial implementations caused page crashes, leading to a temporary solution using  in both  and .
+
+Most recently, the user expressed a desire for more AI-driven intelligence in the chat window and chart generation. The AI engineer has initiated this by:
+*   Creating two new backend services:  and .
+*   Updating  to import and utilize these new intelligence services, including adding a new endpoint for chart validation and integrating variable intelligence for pre-processing user selections in the holistic analysis.
+
+The backend changes for AI intelligence have been completed and the backend services restarted. The system is currently in a state where the AI intelligence backend is functional and ready for frontend integration.
 </current_work>
 
 <optional_next_step>
-Investigate the user-reported Trained Metadata is not working correctly issue by analyzing the provided screenshots.
+Integrate the newly created AI intelligence services into the frontend components (e.g., ) to make them visible and functional to the user.
 </optional_next_step>
