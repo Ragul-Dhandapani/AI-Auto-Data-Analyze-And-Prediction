@@ -752,7 +752,11 @@ async def holistic_analysis(request: Dict[str, Any]):
             "ai_insights": ai_insights_list,  # Structured insights list
             "explainability": explainability_results,  # Model explainability info
             "business_recommendations": business_recommendations,  # AI-generated recommendations
-            "phase_3_enabled": True  # Flag to indicate Phase 3 features are available
+            "phase_3_enabled": True,  # Flag to indicate Phase 3 features are available
+            # Phase 1: Problem type information
+            "problem_type": models_result.get("problem_type", problem_type),  # Detected or specified problem type
+            "n_classes": models_result.get("n_classes"),  # For classification
+            "class_labels": models_result.get("class_labels")  # For classification
         }
         
         # Add selection feedback if user made a selection
