@@ -279,7 +279,7 @@ async def holistic_analysis(request: HolisticRequest):
                 models_result = {"models": [], "message": "No suitable target column found"}
         
         # 3. Generate Auto Charts
-        auto_charts = generate_auto_charts(df, max_charts=15)
+        auto_charts, skipped_charts = generate_auto_charts(df, max_charts=15)
         
         # 4. Correlation Analysis
         correlations = get_correlation_matrix(df)
