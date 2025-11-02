@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, BarChart3, MessageSquare, X, Send, ChevronDown, AlertCircle } from "lucide-react";
+import { Loader2, BarChart3, MessageSquare, X, Send, ChevronDown, AlertCircle, Download } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
