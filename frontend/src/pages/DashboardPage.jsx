@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DataSourceSelector from "@/components/DataSourceSelector";
 import DataProfiler from "@/components/DataProfiler";
 import PredictiveAnalysis from "@/components/PredictiveAnalysis";
+import AnalysisTabs from "@/components/AnalysisTabs";
 import VisualizationPanel from "@/components/VisualizationPanel";
 import VariableSelectionModal from "@/components/VariableSelectionModal";
 import { Sparkles, ArrowLeft, Home, Trash2, ChevronDown, ChevronUp, Save, FolderOpen, RefreshCw, Database } from "lucide-react";
