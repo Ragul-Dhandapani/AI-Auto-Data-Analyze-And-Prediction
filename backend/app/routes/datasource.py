@@ -249,7 +249,24 @@ async def get_recent_datasets(limit: int = 10):
     try:
         cursor = db.datasets.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
         datasets = await cursor.to_list(length=limit)
-        return {"datasets": datasets}
+        
+        # Sanitize datasets to handle NaN, Infinity values
+        import math
+        def sanitize_value(val):
+            if isinstance(val, float):
+                if math.isnan(val) or math.isinf(val):
+                    return None
+            return val
+        
+        def sanitize_dict(d):
+            return {k: sanitize_value(v) if not isinstance(v, (dict, list)) else 
+                    (sanitize_dict(v) if isinstance(v, dict) else 
+                     [sanitize_value(item) if not isinstance(item, dict) else sanitize_dict(item) for item in v])
+                    for k, v in d.items()}
+        
+        sanitized_datasets = [sanitize_dict(ds) for ds in datasets]
+        
+        return {"datasets": sanitized_datasets}
     except Exception as e:
         raise HTTPException(500, f"Failed to fetch datasets: {str(e)}")
 
