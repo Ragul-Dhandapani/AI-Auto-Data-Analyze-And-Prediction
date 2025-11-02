@@ -1024,3 +1024,82 @@ async def validate_variables(request: Dict[str, Any]):
         logger.error(f"Error validating variables: {str(e)}")
         raise HTTPException(500, f"Validation failed: {str(e)}")
 
+
+
+@router.post("/time-series")
+async def time_series_analysis_endpoint(request: Dict[str, Any]):
+    """
+    Perform time series forecasting and anomaly detection
+    
+    Request format:
+    {
+        "dataset_id": "string",
+        "time_column": "string",
+        "target_column": "string",
+        "forecast_periods": 30 (optional),
+        "forecast_method": "prophet" | "lstm" | "both" (optional, default: "prophet")
+    }
+    """
+    try:
+        dataset_id = request.get("dataset_id")
+        time_column = request.get("time_column")
+        target_column = request.get("target_column")
+        forecast_periods = request.get("forecast_periods", 30)
+        forecast_method = request.get("forecast_method", "prophet")
+        
+        if not all([dataset_id, time_column, target_column]):
+            raise HTTPException(400, "Missing required parameters: dataset_id, time_column, target_column")
+        
+        # Load dataframe
+        df = await load_dataframe(dataset_id)
+        
+        # Validate columns exist
+        if time_column not in df.columns:
+            raise HTTPException(400, f"Time column '{time_column}' not found in dataset")
+        if target_column not in df.columns:
+            raise HTTPException(400, f"Target column '{target_column}' not found in dataset")
+        
+        # Perform time series analysis
+        results = time_series_service.analyze_time_series(
+            df=df,
+            time_column=time_column,
+            target_column=target_column,
+            forecast_periods=forecast_periods,
+            forecast_method=forecast_method
+        )
+        
+        # Update training counter
+        await db.datasets.update_one(
+            {"id": dataset_id},
+            {"$inc": {"training_count": 1}}
+        )
+        
+        return results
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Time series analysis failed: {str(e)}")
+        raise HTTPException(500, f"Time series analysis failed: {str(e)}")
+
+
+@router.get("/datetime-columns/{dataset_id}")
+async def get_datetime_columns(dataset_id: str):
+    """
+    Get all potential datetime columns in the dataset
+    """
+    try:
+        df = await load_dataframe(dataset_id)
+        datetime_cols = time_series_service.detect_datetime_columns(df)
+        
+        return {
+            "datetime_columns": datetime_cols,
+            "total_columns": len(df.columns)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Failed to detect datetime columns: {str(e)}")
+        raise HTTPException(500, f"Failed to detect datetime columns: {str(e)}")
+
