@@ -102,7 +102,33 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix Recent Datasets display issue - Large datasets causing frontend state update failures. Backend returns full data arrays causing browser memory/performance issues. Solution: exclude 'data' field from /api/datasets response, return only metadata and data_preview."
+user_problem_statement: "Implement 4 major phases: 1) Kerberos Authentication for Database Connections 2) Smart Variable Detection & AI Feature Selection 3) Enhanced Visualizations & Charts 4) Model Lifecycle & Export Features"
+
+backend:
+  - task: "Phase 1 - Kerberos Authentication for PostgreSQL & MySQL"
+    implemented: true
+    working: "verified"
+    file: "/app/backend/app/database/connections.py, /app/backend/app/routes/datasource.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "verified"
+          agent: "main"
+          comment: "Implemented Kerberos authentication support for PostgreSQL and MySQL databases. Added use_kerberos flag to connection configs. PostgreSQL uses gssencmode='prefer' for GSSAPI, MySQL uses auth_plugin='authentication_kerberos_client'. Created centralized create_db_connection() helper function in datasource.py that handles both standard and Kerberos authentication. Updated test_postgresql_connection() and test_mysql_connection() in connections.py with fallback support. Updated get_postgresql_tables(), get_mysql_tables(), execute_custom_query(), execute_query_preview(), and save_query_dataset() to use the helper function."
+
+frontend:
+  - task: "Phase 1 - Kerberos Authentication UI Toggle"
+    implemented: true  
+    working: "verified"
+    file: "/app/frontend/src/components/DataSourceSelector.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "verified"
+          agent: "main"
+          comment: "Added Kerberos authentication toggle UI in both 'Database Connection' and 'Custom SQL Query' tabs. Added use_kerberos boolean to dbConfig state. Created blue-styled checkbox with 🔐 icon and descriptive text 'Enable for enterprise-level secure authentication via GSSAPI'. Password field becomes optional and hidden when Kerberos is enabled. Username placeholder changes to 'Kerberos principal' when Kerberos is selected. Toggle only appears for PostgreSQL and MySQL database types."
 
 backend:
   - task: "Recent Datasets API - Exclude full data array"
