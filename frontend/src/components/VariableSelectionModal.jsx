@@ -94,6 +94,9 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
     // Validate all targets
     const validTargets = targetVariables.filter(tv => tv.target && tv.features.length > 0);
     
+    console.log('targetVariables:', targetVariables);
+    console.log('validTargets:', validTargets);
+    
     if (validTargets.length === 0) {
       toast.error("Please select at least one target with features");
       return;
@@ -102,19 +105,23 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
     // Check if multiple targets
     if (validTargets.length === 1) {
       // Single target - backward compatible format
-      onConfirm({
+      const selection = {
         target: validTargets[0].target,
         features: validTargets[0].features,
         mode: mode,
         aiSuggestions: aiSuggestions
-      });
+      };
+      console.log('Confirming single target selection:', selection);
+      onConfirm(selection);
     } else {
       // Multiple targets - new format
-      onConfirm({
+      const selection = {
         targets: validTargets,
         mode: mode,
         is_multi_target: true
-      });
+      };
+      console.log('Confirming multi-target selection:', selection);
+      onConfirm(selection);
     }
   };
 
