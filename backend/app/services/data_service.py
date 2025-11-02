@@ -53,6 +53,7 @@ def generate_data_profile(df: pd.DataFrame) -> Dict[str, Any]:
     
     profile = {
         "row_count": len(df),
+        "total_rows": int(len(df)),  # Frontend expects total_rows for percentage calculation
         "column_count": len(df.columns),
         "missing_values_total": total_missing,  # Frontend expects this field
         "duplicate_rows": duplicate_rows,  # Frontend expects this field
