@@ -607,7 +607,9 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
             <CollapsibleContent className="mt-4">
               <div className="grid md:grid-cols-2 gap-6">
                 {validCharts.map((chart, idx) => (
-                  <ChartComponent key={`${dataset.id}-${idx}`} chart={chart} index={idx} />
+                  <div key={`${dataset.id}-${idx}`} id={`viz-chart-${idx}`}>
+                    <ChartComponent chart={chart} index={idx} />
+                  </div>
                 ))}
               </div>
             </CollapsibleContent>
