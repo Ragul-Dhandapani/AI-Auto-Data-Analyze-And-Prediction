@@ -522,17 +522,17 @@ async def holistic_analysis(request: Dict[str, Any]):
                 logging.error(f"ML training failed for target {target_col}: {str(e)}", exc_info=True)
                 all_feedback_messages.append(f"⚠️ Training failed for target '{target_col}': {str(e)}")
         
-        # Build final selection feedback
-        if all_feedback_messages:
-            selection_feedback = {
-                "status": "used",
-                "message": "\n\n".join(all_feedback_messages),
-                "used_targets": target_cols,
-                "is_multi_target": len(target_cols) > 1
-            }
-        
-        # Update models_result
-        models_result = {"models": all_models}
+            # Build final selection feedback (only for regression/classification)
+            if all_feedback_messages:
+                selection_feedback = {
+                    "status": "used",
+                    "message": "\n\n".join(all_feedback_messages),
+                    "used_targets": target_cols,
+                    "is_multi_target": len(target_cols) > 1
+                }
+            
+            # Update models_result
+            models_result = {"models": all_models}
         
         # Add performance info if sampled
         if is_sampled:
