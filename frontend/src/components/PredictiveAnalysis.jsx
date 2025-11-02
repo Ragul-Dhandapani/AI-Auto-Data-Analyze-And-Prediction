@@ -328,6 +328,158 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     setCollapsed(newCollapsed);
   };
 
+  const downloadPDF = async () => {
+    toast.info("Generating PDF... This may take a moment.");
+    
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pageWidth - 2 * margin;
+      let currentY = margin;
+
+      // Helper function to add page break if needed
+      const checkPageBreak = (height) => {
+        if (currentY + height > pageHeight - margin) {
+          pdf.addPage();
+          currentY = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // Add title
+      pdf.setFontSize(20);
+      pdf.setTextColor(59, 130, 246); // Blue color
+      pdf.text('PROMISE AI - Predictive Analysis Report', margin, currentY);
+      currentY += 10;
+
+      // Add metadata
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, currentY);
+      currentY += 5;
+      pdf.text(`Dataset: ${dataset.name || 'Unknown'}`, margin, currentY);
+      currentY += 10;
+
+      // Function to capture and add section to PDF
+      const addSectionToPDF = async (sectionId, title) => {
+        const element = document.getElementById(sectionId);
+        if (!element) {
+          console.log(`Section ${sectionId} not found, skipping`);
+          return;
+        }
+
+        try {
+          // Add section title
+          checkPageBreak(15);
+          pdf.setFontSize(14);
+          pdf.setTextColor(0, 0, 0);
+          pdf.text(title, margin, currentY);
+          currentY += 8;
+
+          // Capture section as canvas
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight
+          });
+
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = contentWidth;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+          // Split image across pages if too tall
+          let remainingHeight = imgHeight;
+          let sourceY = 0;
+
+          while (remainingHeight > 0) {
+            const availableHeight = pageHeight - currentY - margin;
+            const heightToAdd = Math.min(remainingHeight, availableHeight);
+
+            if (heightToAdd < 20 && remainingHeight > heightToAdd) {
+              // Not enough space, move to next page
+              pdf.addPage();
+              currentY = margin;
+              continue;
+            }
+
+            // Calculate the portion of the image to use
+            const sourceHeight = (heightToAdd / imgWidth) * canvas.width;
+
+            pdf.addImage(
+              imgData,
+              'PNG',
+              margin,
+              currentY,
+              imgWidth,
+              heightToAdd,
+              undefined,
+              'FAST',
+              0,
+              sourceY
+            );
+
+            currentY += heightToAdd + 5;
+            remainingHeight -= heightToAdd;
+            sourceY += sourceHeight;
+
+            if (remainingHeight > 0) {
+              pdf.addPage();
+              currentY = margin;
+            }
+          }
+
+          currentY += 5; // Add spacing after section
+        } catch (error) {
+          console.error(`Error capturing section ${sectionId}:`, error);
+          // Add error message to PDF
+          pdf.setFontSize(10);
+          pdf.setTextColor(200, 0, 0);
+          pdf.text(`Failed to capture: ${title}`, margin, currentY);
+          currentY += 10;
+        }
+      };
+
+      // Capture sections based on what's expanded
+      const sections = [
+        { id: 'training-metadata-section', key: 'summary', title: 'Self-Training Model' },
+        { id: 'selection-feedback-section', key: null, title: 'Variable Selection Feedback' },
+        { id: 'ai-insights-section', key: 'ai_insights', title: 'AI-Powered Insights' },
+        { id: 'explainability-section', key: 'explainability', title: 'Model Explainability' },
+        { id: 'recommendations-section', key: 'recommendations', title: 'Business Recommendations' },
+        { id: 'volume-analysis-section', key: 'volume', title: 'Volume Analysis' },
+        { id: 'correlations-section', key: 'correlations', title: 'Key Correlations' },
+        { id: 'ml-models-section', key: 'ml_models', title: 'ML Model Results' },
+        { id: 'auto-charts-section', key: 'auto_charts', title: 'AI-Generated Analysis Charts' }
+      ];
+
+      for (const section of sections) {
+        // Check if section is expanded (not collapsed)
+        if (section.key === null || !collapsed[section.key]) {
+          const element = document.getElementById(section.id);
+          if (element && element.offsetParent !== null) {
+            // Element is visible
+            await addSectionToPDF(section.id, section.title);
+          }
+        }
+      }
+
+      // Save PDF
+      const fileName = `PROMISE_AI_Analysis_${dataset.name || 'Report'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+      toast.success("PDF downloaded successfully!");
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast.error("Failed to generate PDF: " + error.message);
+    }
+  };
+
   const sendChatMessage = async () => {
     if (!chatInput.trim()) return;
 
