@@ -301,9 +301,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   };
 
   const refreshAnalysis = async () => {
+    console.log('Refresh button clicked - resetting analysis');
     setAnalysisResults(null);
     onAnalysisUpdate(null);
+    // Reset the ref to allow fresh run
+    hasRunAnalysisRef.current = false;
     await runHolisticAnalysis();
+    // Mark as run after completion
+    hasRunAnalysisRef.current = true;
   };
 
   const toggleSection = (section) => {
