@@ -89,11 +89,29 @@ const TimeSeriesAnalysis = ({ dataset }) => {
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <Calendar className="w-6 h-6" />
-          Time Series Forecasting & Anomaly Detection
-        </h2>
+      {/* Loading Progress */}
+      {loading && (
+        <Card className="p-6 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
+            <h3 className="text-lg font-semibold mb-2">{progressMessage}</h3>
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+              <div 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600">{progress}% Complete</p>
+          </div>
+        </Card>
+      )}
+
+      <Card className="p-6">{!loading && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Calendar className="w-6 h-6" />
+            Time Series Forecasting & Anomaly Detection
+          </h2>
 
         <div className="space-y-4">
           {/* Detect Datetime Columns */}
