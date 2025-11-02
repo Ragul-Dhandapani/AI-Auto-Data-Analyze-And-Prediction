@@ -472,55 +472,55 @@ async def holistic_analysis(request: Dict[str, Any]):
                 excluded_features = []
                 
                 if selected_features:
-                for feat in selected_features:
-                    if feat in df_analysis.columns and feat != target_col:
-                        if pd.api.types.is_numeric_dtype(df_analysis[feat].dtype):
-                            numeric_selected.append(feat)
-                        else:
-                            # Check cardinality for categorical features
-                            unique_count = df_analysis[feat].nunique()
-                            if unique_count <= 50:  # Reasonable for one-hot encoding
-                                categorical_selected.append(feat)
+                    for feat in selected_features:
+                        if feat in df_analysis.columns and feat != target_col:
+                            if pd.api.types.is_numeric_dtype(df_analysis[feat].dtype):
+                                numeric_selected.append(feat)
                             else:
-                                excluded_features.append(f"{feat} (too many categories: {unique_count})")
-                
-                # Build feedback message for this target
-                feedback_parts = []
-                feedback_parts.append(f"✅ Target '{target_col}':")
-                if numeric_selected:
-                    feedback_parts.append(f"   • Numeric features: {', '.join(numeric_selected)}")
-                if categorical_selected:
-                    feedback_parts.append(f"   • Categorical features (encoded): {', '.join(categorical_selected)}")
-                if excluded_features:
-                    feedback_parts.append(f"   • ⚠️ Excluded: {', '.join(excluded_features)}")
-                
-                all_feedback_messages.append("\n".join(feedback_parts))
-            
-            # Train models for this target
-            try:
-                if selected_features:
-                    # Create subset dataframe with selected features + target
-                    train_columns = selected_features + [target_col]
-                    df_subset = df_analysis[train_columns].copy()
+                                # Check cardinality for categorical features
+                                unique_count = df_analysis[feat].nunique()
+                                if unique_count <= 50:  # Reasonable for one-hot encoding
+                                    categorical_selected.append(feat)
+                                else:
+                                    excluded_features.append(f"{feat} (too many categories: {unique_count})")
                     
-                    # Handle categorical features with one-hot encoding
+                    # Build feedback message for this target
+                    feedback_parts = []
+                    feedback_parts.append(f"✅ Target '{target_col}':")
+                    if numeric_selected:
+                        feedback_parts.append(f"   • Numeric features: {', '.join(numeric_selected)}")
                     if categorical_selected:
-                        df_subset = pd.get_dummies(df_subset, columns=categorical_selected, drop_first=True, dtype=int)
-                        logging.info(f"Encoded {len(categorical_selected)} categorical features for target {target_col}")
+                        feedback_parts.append(f"   • Categorical features (encoded): {', '.join(categorical_selected)}")
+                    if excluded_features:
+                        feedback_parts.append(f"   • ⚠️ Excluded: {', '.join(excluded_features)}")
                     
-                    target_models = train_models_auto(df_subset, target_col, problem_type=problem_type)
-                else:
-                    # Train on all numeric features
-                    target_models = train_models_auto(df_analysis, target_col, problem_type=problem_type)
+                    all_feedback_messages.append("\n".join(feedback_parts))
                 
-                # Add models to all_models list
-                if target_models.get("models"):
-                    all_models.extend(target_models["models"])
-                    logging.info(f"Trained {len(target_models['models'])} models for target {target_col}")
-                
-            except Exception as e:
-                logging.error(f"ML training failed for target {target_col}: {str(e)}", exc_info=True)
-                all_feedback_messages.append(f"⚠️ Training failed for target '{target_col}': {str(e)}")
+                # Train models for this target
+                try:
+                    if selected_features:
+                        # Create subset dataframe with selected features + target
+                        train_columns = selected_features + [target_col]
+                        df_subset = df_analysis[train_columns].copy()
+                        
+                        # Handle categorical features with one-hot encoding
+                        if categorical_selected:
+                            df_subset = pd.get_dummies(df_subset, columns=categorical_selected, drop_first=True, dtype=int)
+                            logging.info(f"Encoded {len(categorical_selected)} categorical features for target {target_col}")
+                        
+                        target_models = train_models_auto(df_subset, target_col, problem_type=problem_type)
+                    else:
+                        # Train on all numeric features
+                        target_models = train_models_auto(df_analysis, target_col, problem_type=problem_type)
+                    
+                    # Add models to all_models list
+                    if target_models.get("models"):
+                        all_models.extend(target_models["models"])
+                        logging.info(f"Trained {len(target_models['models'])} models for target {target_col}")
+                    
+                except Exception as e:
+                    logging.error(f"ML training failed for target {target_col}: {str(e)}", exc_info=True)
+                    all_feedback_messages.append(f"⚠️ Training failed for target '{target_col}': {str(e)}")
         
             # Build final selection feedback (only for regression/classification)
             if all_feedback_messages:
