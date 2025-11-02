@@ -390,7 +390,7 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
                   className="bg-blue-50 hover:bg-blue-100"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download PDF
+                  Print/Save PDF
                 </Button>
                 <Button 
                   data-testid="refresh-charts-btn"
