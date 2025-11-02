@@ -427,11 +427,41 @@ async def holistic_analysis(request: Dict[str, Any]):
                         selection_feedback["message"] += f"\n\n✅ Auto-selected target: '{target_col}'"
                         selection_feedback["used_targets"] = [target_col]
         
-        # Process each target
-        all_models = []
-        all_feedback_messages = []
-        
-        for target_col in target_cols:
+        # Handle time series separately - don't train ML models
+        if problem_type == "time_series":
+            # For time series, user should use the dedicated /api/analysis/time-series endpoint
+            # Return helpful message instead of training models
+            models_result = {
+                "models": [],
+                "message": "⏰ Time Series Analysis Selected",
+                "problem_type": "time_series",
+                "training_info": {
+                    "note": "Time series forecasting requires a dedicated endpoint. Please use the Time Series analysis feature with a datetime column."
+                }
+            }
+            all_models = []
+            
+            # Provide helpful feedback
+            if selection_feedback:
+                selection_feedback["message"] = "⏰ **Time Series Analysis Mode**\n\n" + \
+                    "For time series forecasting and trend analysis, please ensure you have:\n" + \
+                    "1. A datetime/timestamp column in your dataset\n" + \
+                    "2. A numeric target variable to forecast\n\n" + \
+                    "Time series models (Prophet, LSTM, ARIMA) will analyze temporal patterns and generate forecasts."
+            else:
+                selection_feedback = {
+                    "status": "info",
+                    "message": "⏰ **Time Series Analysis Mode**\n\n" + \
+                        "For time series forecasting, use the dedicated time series analysis feature. " + \
+                        "This mode supports Prophet, LSTM, and ARIMA models for temporal pattern analysis.",
+                    "used_targets": target_cols if target_cols else []
+                }
+        else:
+            # Process each target for regression/classification
+            all_models = []
+            all_feedback_messages = []
+            
+            for target_col in target_cols:
             selected_features = target_feature_mapping.get(target_col, [])
             
             logging.info(f"Processing target: {target_col} with {len(selected_features)} selected features")
