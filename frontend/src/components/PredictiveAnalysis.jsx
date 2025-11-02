@@ -999,18 +999,29 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                           <div className="mt-4">
                             <h5 className="font-semibold mb-2">Feature Importance</h5>
                             <div className="space-y-2">
-                              {Object.entries(model.feature_importance).slice(0, 5).map(([feature, importance]) => (
-                                <div key={feature} className="flex items-center gap-2">
-                                  <span className="text-sm w-32 truncate">{feature}</span>
-                                  <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div 
-                                      className="bg-blue-600 rounded-full h-2" 
-                                      style={{width: `${importance * 100}%`}}
-                                    ></div>
+                              {Object.entries(model.feature_importance).slice(0, 10).map(([feature, importance]) => {
+                                // Truncate long feature names intelligently
+                                const displayName = feature.length > 25 ? feature.substring(0, 22) + '...' : feature;
+                                
+                                return (
+                                  <div key={feature} className="flex items-center gap-2">
+                                    <span 
+                                      className="text-sm min-w-[180px] max-w-[180px] truncate" 
+                                      title={feature}
+                                      style={{fontSize: '12px'}}
+                                    >
+                                      {displayName}
+                                    </span>
+                                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                      <div 
+                                        className="bg-blue-600 rounded-full h-2" 
+                                        style={{width: `${importance * 100}%`}}
+                                      ></div>
+                                    </div>
+                                    <span className="text-sm text-gray-600 w-16 text-right">{(importance * 100).toFixed(1)}%</span>
                                   </div>
-                                  <span className="text-sm text-gray-600 w-16 text-right">{(importance * 100).toFixed(1)}%</span>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                         )}
