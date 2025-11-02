@@ -1094,6 +1094,282 @@ async def time_series_analysis_endpoint(request: Dict[str, Any]):
             df=df,
             time_column=time_column,
             target_column=target_column,
+
+
+@router.post("/hyperparameter-tuning")
+async def hyperparameter_tuning_endpoint(request: Dict[str, Any]):
+    """
+    Perform hyperparameter tuning for a specific model
+    
+    Request format:
+    {
+        "dataset_id": "string",
+        "target_column": "string",
+        "model_type": "random_forest" | "xgboost" | "lightgbm",
+        "problem_type": "regression" | "classification",
+        "search_type": "grid" | "random",
+        "param_grid": {} (optional),
+        "n_iter": 20 (for random search)
+    }
+    """
+    try:
+        from app.services import hyperparameter_service
+        
+        dataset_id = request.get("dataset_id")
+        target_column = request.get("target_column")
+        model_type = request.get("model_type", "random_forest")
+        problem_type = request.get("problem_type", "regression")
+        search_type = request.get("search_type", "grid")
+        param_grid = request.get("param_grid")
+        n_iter = request.get("n_iter", 20)
+        
+        if not all([dataset_id, target_column]):
+            raise HTTPException(400, "Missing required parameters")
+        
+        # Load data
+        df = await load_dataframe(dataset_id)
+        
+        # Prepare features and target
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        feature_cols = [col for col in numeric_cols if col != target_column]
+        
+        X = df[feature_cols].fillna(df[feature_cols].mean())
+        y = df[target_column].fillna(df[target_column].mean() if problem_type == "regression" else df[target_column].mode()[0])
+        
+        # Split data
+        from sklearn.model_selection import train_test_split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        # Perform tuning
+        if search_type == "grid":
+            results = hyperparameter_service.tune_hyperparameters_grid(
+                X_train, y_train, model_type, problem_type, param_grid
+            )
+        else:
+            results = hyperparameter_service.tune_hyperparameters_random(
+                X_train, y_train, model_type, problem_type, param_grid, n_iter
+            )
+        
+        if "error" in results:
+            raise HTTPException(500, results["error"])
+        
+        # Remove model object from response (not JSON serializable)
+        results_clean = {k: v for k, v in results.items() if k != "model"}
+        
+        return {
+            "success": True,
+            "model_type": model_type,
+            "search_type": search_type,
+            **results_clean
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Hyperparameter tuning failed: {str(e)}")
+        raise HTTPException(500, f"Tuning failed: {str(e)}")
+
+
+@router.post("/feedback/submit")
+async def submit_prediction_feedback(request: Dict[str, Any]):
+    """
+    Submit user feedback for a prediction
+    
+    Request format:
+    {
+        "prediction_id": "string",
+        "is_correct": bool,
+        "actual_outcome": any (optional),
+        "user_comment": "string" (optional)
+    }
+    """
+    try:
+        from app.services.feedback_service import FeedbackTracker
+        
+        prediction_id = request.get("prediction_id")
+        is_correct = request.get("is_correct")
+        actual_outcome = request.get("actual_outcome")
+        user_comment = request.get("user_comment")
+        
+        if not prediction_id or is_correct is None:
+            raise HTTPException(400, "Missing required parameters")
+        
+        tracker = FeedbackTracker(db)
+        success = await tracker.submit_feedback(
+            prediction_id,
+            is_correct,
+            actual_outcome,
+            user_comment
+        )
+        
+        if success:
+            return {"success": True, "message": "Feedback submitted successfully"}
+        else:
+            raise HTTPException(404, "Prediction not found")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Feedback submission failed: {str(e)}")
+        raise HTTPException(500, f"Failed to submit feedback: {str(e)}")
+
+
+@router.get("/feedback/stats/{dataset_id}/{model_name}")
+async def get_feedback_stats(dataset_id: str, model_name: str):
+    """
+    Get feedback statistics for a model
+    """
+    try:
+        from app.services.feedback_service import FeedbackTracker
+        
+        tracker = FeedbackTracker(db)
+        stats = await tracker.get_model_performance_stats(dataset_id, model_name)
+        
+        return stats
+        
+    except Exception as e:
+        logging.error(f"Failed to get feedback stats: {str(e)}")
+        raise HTTPException(500, f"Failed to get stats: {str(e)}")
+
+
+@router.post("/feedback/retrain")
+async def retrain_with_feedback(request: Dict[str, Any]):
+    """
+    Retrain model using feedback data
+    
+    Request format:
+    {
+        "dataset_id": "string",
+        "model_name": "string",
+        "target_column": "string"
+    }
+    """
+    try:
+        from app.services.feedback_service import FeedbackTracker
+        from app.services.ml_service import train_models_auto
+        
+        dataset_id = request.get("dataset_id")
+        model_name = request.get("model_name")
+        target_column = request.get("target_column")
+        
+        if not all([dataset_id, model_name, target_column]):
+            raise HTTPException(400, "Missing required parameters")
+        
+        # Get feedback data
+        tracker = FeedbackTracker(db)
+        feedback_df = await tracker.prepare_retraining_data(dataset_id, model_name)
+        
+        if feedback_df.empty:
+            raise HTTPException(400, "No feedback data available for retraining")
+        
+        # Rename actual_outcome to target column
+        feedback_df = feedback_df.rename(columns={"actual_outcome": target_column})
+        
+        # Train model with feedback data
+        results = train_models_auto(feedback_df, target_column, problem_type="auto")
+        
+        return {
+            "success": True,
+            "message": f"Model retrained with {len(feedback_df)} feedback samples",
+            "models": results.get("models", []),
+            "feedback_samples": len(feedback_df)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Retraining failed: {str(e)}")
+        raise HTTPException(500, f"Retraining failed: {str(e)}")
+
+
+@router.post("/relational/join")
+async def join_datasets(request: Dict[str, Any]):
+    """
+    Join multiple datasets
+    
+    Request format:
+    {
+        "dataset_ids": ["id1", "id2"],
+        "join_keys": [{"left": "col1", "right": "col2"}],
+        "join_type": "inner" | "left" | "right" | "outer"
+    }
+    """
+    try:
+        from app.services.relational_service import join_tables, detect_foreign_keys
+        
+        dataset_ids = request.get("dataset_ids", [])
+        join_keys = request.get("join_keys", [])
+        join_type = request.get("join_type", "inner")
+        auto_detect = request.get("auto_detect", False)
+        
+        if len(dataset_ids) < 2:
+            raise HTTPException(400, "At least 2 datasets required for join")
+        
+        # Load datasets
+        dfs = []
+        for dataset_id in dataset_ids:
+            df = await load_dataframe(dataset_id)
+            dfs.append(df)
+        
+        # Auto-detect foreign keys if requested
+        if auto_detect and len(dfs) == 2:
+            detected_fks = detect_foreign_keys(dfs[0], dfs[1])
+            if detected_fks:
+                return {
+                    "auto_detected_keys": [
+                        {"left": left, "right": right} 
+                        for left, right in detected_fks
+                    ]
+                }
+        
+        # Perform join
+        if len(join_keys) == 0:
+            raise HTTPException(400, "No join keys specified")
+        
+        result_df = dfs[0]
+        for i in range(1, len(dfs)):
+            if i - 1 < len(join_keys):
+                join_key = join_keys[i - 1]
+                result_df = join_tables(
+                    result_df,
+                    dfs[i],
+                    left_on=join_key["left"],
+                    right_on=join_key["right"],
+                    how=join_type
+                )
+        
+        # Store joined dataset
+        joined_id = str(uuid.uuid4())
+        dataset_doc = {
+            "id": joined_id,
+            "name": f"Joined_{len(dataset_ids)}_tables",
+            "source": "relational_join",
+            "columns": result_df.columns.tolist(),
+            "dtypes": {col: str(dtype) for col, dtype in result_df.dtypes.items()},
+            "row_count": len(result_df),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.datasets.insert_one(dataset_doc)
+        
+        # Store data
+        data_collection = f"data_{joined_id}"
+        await db[data_collection].insert_many(result_df.to_dict('records'))
+        
+        return {
+            "success": True,
+            "joined_dataset_id": joined_id,
+            "row_count": len(result_df),
+            "column_count": len(result_df.columns)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Dataset join failed: {str(e)}")
+        raise HTTPException(500, f"Join failed: {str(e)}")
+
+
             forecast_periods=forecast_periods,
             forecast_method=forecast_method
         )
