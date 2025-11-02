@@ -580,7 +580,7 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
             <CollapsibleContent className="mt-4">
               <div className="grid md:grid-cols-2 gap-6">
                 {validCustomCharts.map((chart, idx) => (
-                  <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div key={idx} id={`custom-chart-${idx}`} className="bg-white rounded-lg p-4 border border-gray-200">
                     <h4 className="font-semibold mb-2">{chart.title}</h4>
                     {chart.description && (
                       <p className="text-sm text-gray-600 italic mb-3">{chart.description}</p>
