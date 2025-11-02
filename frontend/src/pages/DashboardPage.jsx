@@ -515,6 +515,7 @@ const DashboardPage = () => {
                     <PredictiveAnalysis 
                       dataset={selectedDataset}
                       analysisCache={predictiveAnalysisCache[selectedDataset.id]}
+                      variableSelection={selectedDataset?.variableSelection || variableSelection}
                       onAnalysisUpdate={(data) => {
                         setPredictiveAnalysisCache(prev => ({
                           ...prev,
