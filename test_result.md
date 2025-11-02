@@ -317,12 +317,16 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Phase 3 - AI Insights & Model Explainability Integration"
+    - "Phase 3 - AI Insights, Explainability, and Recommendations Display"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
 
 agent_communication:
+    - agent: "main"
+      message: "🚀 PHASE 3 INTEGRATION COMPLETE: Integrated all Phase 3 backend services (ai_insights_service, model_explainability_service, analytics_tracking_service) into the holistic analysis endpoint. Backend now generates: 1) AI-powered statistical insights using Emergent LLM 2) Anomaly detection insights 3) Business recommendations 4) Model explainability for best performing models. Frontend updated with three new collapsible sections to display all Phase 3 features with gradient backgrounds, proper categorization, and Phase 3 badges. All services include Azure OpenAI as commented alternative for easy switching. Using EMERGENT_LLM_KEY from environment. Ready for comprehensive backend and frontend testing."
     - agent: "main"
       message: "🔧 FIXING CRITICAL BUG: Recent Datasets not displaying. Root cause identified: Backend /api/datasets endpoint returning full data arrays (can be 100MB+ for large datasets), causing frontend setState to fail due to browser memory limits. Solution implemented: 1) Fixed duplicate route definition in main.py 2) Modified get_recent_datasets() projection to exclude 'data' field, keeping only metadata + data_preview (10 rows). This reduces response from potentially 100MB+ to just a few KB per dataset. Backend restarted successfully. Ready for testing."
     - agent: "testing"
