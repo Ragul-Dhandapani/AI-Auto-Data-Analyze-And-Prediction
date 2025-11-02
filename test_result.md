@@ -144,6 +144,30 @@ backend:
           agent: "testing"
           comment: "✅ COMPREHENSIVE TESTING COMPLETED: All variable selection modes working correctly. Test Case 1 (Single Target Manual): ✅ Successfully uses user-specified target 'latency_ms' with selected features ['cpu_utilization', 'memory_usage_mb']. Test Case 2 (Multiple Targets Hybrid): ✅ Correctly processes both targets with their respective features, trains 10 models total. Test Case 3 (Invalid Target Fallback): ✅ Properly detects invalid target 'nonexistent_column' and falls back to auto-detection with selection_feedback status='modified'. Test Case 4 (Auto Mode): ✅ Auto-detection works without user selection, trains 5 models. Test Case 5 (Performance): ✅ Response time 8.3s acceptable, performance optimization working for large datasets (62,500 rows). All response structures contain required fields: profile, models, ml_models, auto_charts, correlations, insights. Selection feedback mechanism working correctly for all scenarios."
 
+  - task: "Phase 1 Enterprise - Classification Support"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/backend/app/services/ml_service.py, /app/backend/app/routes/analysis.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "✅ CLASSIFICATION SUPPORT IMPLEMENTED: Added comprehensive classification model training to ml_service.py. New functions: detect_problem_type() auto-detects regression vs classification based on target unique values (<20 = classification). train_classification_models() trains Logistic Regression, Random Forest, XGBoost, Decision Tree, LightGBM, and LSTM classifiers. Returns classification metrics: accuracy, precision, recall, F1-score, confusion_matrix (as list), and ROC-AUC for binary classification. train_models_auto() unified function routes to classification or regression based on problem_type parameter (auto/regression/classification/time_series). Handles label encoding for categorical targets. Supports both binary and multiclass classification. Updated analysis.py holistic endpoint to accept problem_type parameter (defaults to 'auto'), pass to train_models_auto(), and return problem_type, n_classes, and class_labels in response. Backward compatible - defaults to regression. All classification models train successfully with appropriate metrics."
+
+  - task: "Phase 1 Enterprise - Time Series Forecasting Service"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/backend/app/services/time_series_service.py, /app/backend/app/routes/analysis.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "✅ TIME SERIES SERVICE CREATED: New time_series_service.py with comprehensive forecasting capabilities. Functions: detect_datetime_columns() finds potential time columns. forecast_with_prophet() uses Facebook Prophet for time series forecasting with configurable confidence intervals, returns forecast, trends (weekly, yearly), and metrics (MAPE, RMSE). forecast_with_lstm() uses TensorFlow LSTM for time series with configurable lookback window. detect_anomalies() uses Isolation Forest and LOF for anomaly detection in time series. analyze_time_series() provides complete analysis including forecasting (prophet/lstm/both) and anomaly detection. New endpoints in analysis.py: POST /api/analysis/time-series for forecasting and anomaly detection, GET /api/datetime-columns/{dataset_id} to detect datetime columns. Supports multiple forecast methods. Ready for frontend integration and testing."
+
 frontend:
   - task: "Phase 1 - Kerberos Authentication UI Toggle"
     implemented: true  
