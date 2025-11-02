@@ -208,6 +208,7 @@ const TimeSeriesAnalysis = ({ dataset }) => {
           </Button>
         </div>
       </Card>
+      )}
 
       {/* Results Display */}
       {results && (
