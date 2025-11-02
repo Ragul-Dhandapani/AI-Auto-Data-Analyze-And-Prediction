@@ -372,40 +372,29 @@ async def holistic_analysis(request: Dict[str, Any]):
                     logging.error(f"Variable validation failed: {str(e)}")
                     # Fall back to manual validation below
         
-        # If no targets set yet, fall back to original logic
-        if len(target_cols) == 0:
-            # Check if multiple targets provided
-            user_targets = user_selection.get("target_variables", [])  # Multiple targets
-            user_target = user_selection.get("target_variable")  # Single target (backward compatibility)
-            
-            logging.info(f"user_targets: {user_targets}, user_target: {user_target}")
-            
-            if user_targets and isinstance(user_targets, list) and len(user_targets) > 0:
-                # Multiple targets mode
-                logging.info(f"Processing {len(user_targets)} user-selected targets")
-                for target_info in user_targets:
-                    target_name = target_info.get("target")
-                    target_features = target_info.get("features", [])
-                    
-                    logging.info(f"Checking target: {target_name} with features: {target_features}")
-                    
-                    if target_name and target_name in df_analysis.columns:
-                        if pd.api.types.is_numeric_dtype(df_analysis[target_name].dtype):
-                            target_cols.append(target_name)
-                            target_feature_mapping[target_name] = target_features
-                            logging.info(f"Added target: {target_name}")
-                        else:
-                            logging.warning(f"Target {target_name} is not numeric, skipping")
-                    else:
-                        logging.warning(f"Target {target_name} not found in dataframe")
-            elif user_target:
-                # Single target mode (existing logic)
-                logging.info(f"Processing single user-selected target: {user_target}")
-                if user_target in df_analysis.columns and pd.api.types.is_numeric_dtype(df_analysis[user_target].dtype):
-                    target_cols.append(user_target)
-                    target_feature_mapping[user_target] = user_selection.get("selected_features", [])
+            # Manual fallback validation (if AI validation failed)
+            if user_selection and user_selection != {}:
+                user_targets = user_selection.get("target_variables", [])
+                user_target = user_selection.get("target_variable")
+                
+                # Convert single target to list format
+                if user_target and not user_targets:
+                    user_targets = [{"target": user_target, "features": user_selection.get("selected_features", [])}]
+                
+                # Process targets manually
+                if user_targets and isinstance(user_targets, list):
+                    for target_info in user_targets:
+                        if isinstance(target_info, dict):
+                            target_name = target_info.get("target")
+                            target_features = target_info.get("features", [])
+                            
+                            if target_name and target_name in df_analysis.columns:
+                                if pd.api.types.is_numeric_dtype(df_analysis[target_name].dtype):
+                                    target_cols.append(target_name)
+                                    target_feature_mapping[target_name] = target_features
+                                    logging.info(f"Manual validation: Added target {target_name}")
         
-        logging.info(f"Final target_cols: {target_cols}")
+        logging.info(f"Final target_cols after validation: {target_cols}")
         
         # If no valid targets from user selection, auto-detect AND inform user
         if len(target_cols) == 0:
