@@ -1360,37 +1360,70 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                     <TabsContent key={model.model_name} value={model.model_name}>
                       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
                         <div className="grid md:grid-cols-3 gap-4 mb-4">
-                          <div className="bg-white rounded-lg p-4 shadow-sm">
-                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                              <span>R² Score</span>
-                              <div className="group relative">
-                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                                <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
-                                  Measures how well the model explains the data. 1.0 = perfect, 0.0 = no better than guessing. Higher is better.
+                          {analysisResults.problem_type === 'classification' ? (
+                            <>
+                              <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                                  <span>Accuracy</span>
+                                  <div className="group relative">
+                                    <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                    <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                      Percentage of correct predictions. 100% = perfect, 0% = all wrong. Higher is better.
+                                    </div>
+                                  </div>
                                 </div>
+                                <div className="text-2xl font-bold text-blue-600">{((model.accuracy || 0) * 100).toFixed(1)}%</div>
                               </div>
-                            </div>
-                            <div className="text-2xl font-bold text-blue-600">{model.r2_score.toFixed(3)}</div>
-                          </div>
-                          <div className="bg-white rounded-lg p-4 shadow-sm">
-                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                              <span>RMSE</span>
-                              <div className="group relative">
-                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                                <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
-                                  Root Mean Square Error. Average prediction error in the same units as target. Lower is better.
+                              <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                                  <span>F1-Score</span>
+                                  <div className="group relative">
+                                    <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                    <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                      Harmonic mean of precision and recall. Balances false positives and false negatives. Higher is better.
+                                    </div>
+                                  </div>
                                 </div>
+                                <div className="text-2xl font-bold text-purple-600">{((model.f1_score || 0) * 100).toFixed(1)}%</div>
                               </div>
-                            </div>
-                            <div className="text-2xl font-bold text-purple-600">{model.rmse.toFixed(3)}</div>
-                          </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                                  <span>R² Score</span>
+                                  <div className="group relative">
+                                    <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                    <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                      Measures how well the model explains the data. 1.0 = perfect, 0.0 = no better than guessing. Higher is better.
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-2xl font-bold text-blue-600">{(model.r2_score || 0).toFixed(3)}</div>
+                              </div>
+                              <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                                  <span>RMSE</span>
+                                  <div className="group relative">
+                                    <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                    <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                      Root Mean Square Error. Average prediction error in the same units as target. Lower is better.
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-2xl font-bold text-purple-600">{(model.rmse || 0).toFixed(3)}</div>
+                              </div>
+                            </>
+                          )}
                           <div className="bg-white rounded-lg p-4 shadow-sm">
                             <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
                               <span>Confidence</span>
                               <div className="group relative">
                                 <Info className="w-3 h-3 text-gray-400 cursor-help" />
                                 <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
-                                  Overall model reliability based on R² score. High (&gt;0.7), Medium (0.5-0.7), Low (&lt;0.5).
+                                  {analysisResults.problem_type === 'classification' ? 
+                                    'Overall model reliability based on accuracy. High (>0.85), Medium (0.70-0.85), Low (<0.70).' :
+                                    'Overall model reliability based on R² score. High (>0.7), Medium (0.5-0.7), Low (<0.5).'}
                                 </div>
                               </div>
                             </div>
