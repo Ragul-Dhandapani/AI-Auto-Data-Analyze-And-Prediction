@@ -229,21 +229,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Custom Query - Execute and preview UI"
-    - "Custom Query - Dataset naming dialog"
-    - "Custom Query - Results preview UI"
+    - "Recent Datasets API - Exclude full data array"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
 agent_communication:
     - agent: "main"
-      message: "✅ PHASE 1 COMPLETE: Fixed Training Metadata Dashboard. Updated /app/backend/app/routes/training.py get_training_metadata() function to correctly extract model scores from nested workspace structure (predictive_analysis[dataset_id].models). Frontend now displays correct Initial Score (1.000 vs 0.000), Current Score (1.000 vs 0.000), and Model Performance Breakdown with all 5 models showing Initial/Current/Change percentages. Added fallback for old format compatibility. Verified with screenshot - all scores displaying correctly."
-    - agent: "main"
-      message: "✅ PHASE 2 IMPLEMENTED & BACKEND TESTED: Custom Query Dataset Naming feature. Backend: Added two new endpoints - /api/datasource/execute-query-preview (validates query, returns preview without saving) and /api/datasource/save-query-dataset (saves with user-provided name). Both endpoints tested by backend testing agent - all validation working correctly (empty queries return 400, missing parameters return 400, invalid SQL returns 500). Frontend: Updated DataSourceSelector.jsx with new flow - Execute Query button → shows preview panel with row/column count and table preview → Load Data button → naming dialog modal → saves with custom name. User will test frontend manually."
-    - agent: "main"
-      message: "✅ PHASE 3 COMPLETE: ML Model Comparison for multiple key correlations. Added 'All Models Comparison' table in PredictiveAnalysis.jsx that displays when multiple target variables are detected. Table shows all trained models sorted by R² score (descending) with comprehensive metrics: Rank (#1, #2...), Model Name, Target Variable (as badge), R² Score (color-coded), RMSE, Confidence (as badge), Train Samples. Top-performing model highlighted with 🏆 trophy icon and yellow background. Includes helpful tip explaining R² and RMSE interpretation. Table appears above existing per-target model tabs for easy comparison."
-    - agent: "main"
-      message: "🎯 ALL 3 PHASES IMPLEMENTED: 1) Training Metadata Dashboard fixed and verified working 2) Custom Query Dataset Naming - backend tested and working, frontend ready for user testing 3) ML Model Comparison table added for multiple targets. Ready for user acceptance testing. No breaking changes to existing functionality."
-    - agent: "testing"
-      message: "✅ BACKEND TESTING COMPLETE: Both new endpoints (/api/datasource/execute-query-preview and /api/datasource/save-query-dataset) are working correctly. Endpoint structure, validation, and error handling all functioning as expected. Database connectivity issues are environmental (PostgreSQL not available in container). Core functionality verified through comprehensive endpoint testing. Ready for frontend testing or user acceptance testing."
+      message: "🔧 FIXING CRITICAL BUG: Recent Datasets not displaying. Root cause identified: Backend /api/datasets endpoint returning full data arrays (can be 100MB+ for large datasets), causing frontend setState to fail due to browser memory limits. Solution implemented: 1) Fixed duplicate route definition in main.py 2) Modified get_recent_datasets() projection to exclude 'data' field, keeping only metadata + data_preview (10 rows). This reduces response from potentially 100MB+ to just a few KB per dataset. Backend restarted successfully. Ready for testing."
