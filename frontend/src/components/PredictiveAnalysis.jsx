@@ -879,6 +879,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                 <span className="text-xs bg-orange-600 text-white px-2 py-1 rounded-full">Phase 3</span>
               </h3>
               <p className="text-sm text-gray-600 italic mt-1">AI-generated strategic recommendations</p>
+              <p className="text-xs text-orange-700 mt-2 bg-white px-3 py-2 rounded border border-orange-200">
+                💡 <strong>How to use:</strong> These are strategic recommendations for your team to implement. 
+                Review each recommendation, assess the effort vs. impact, and work with your technical team to apply the suggested improvements.
+              </p>
             </div>
             <Button onClick={() => toggleSection('recommendations')} variant="ghost" size="sm">
               <ChevronUp className="w-4 h-4" />
@@ -920,6 +924,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                         </span>
                       </div>
                     )}
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs text-gray-600 italic">
+                        ⚡ <strong>Action Required:</strong> Discuss with your technical team and plan implementation based on priority and available resources.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
