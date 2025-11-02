@@ -886,7 +886,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       {/* Rest of sections with collapse... */}
       {/* Volume Analysis */}
       {analysisResults.volume_analysis && analysisResults.volume_analysis.by_dimensions && analysisResults.volume_analysis.by_dimensions.length > 0 && !collapsed.volume && (
-        <Card className="p-6">
+        <Card id="volume-analysis-section" className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">📊 Volume Analysis</h3>
