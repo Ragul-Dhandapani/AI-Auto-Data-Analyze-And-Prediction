@@ -88,7 +88,7 @@ async def run_analysis(request: Dict[str, Any]):
             
             return {
                 "charts": charts,
-                "skipped": skipped
+                "skipped_charts": skipped_charts  # Return why charts were skipped
             }
         
         elif analysis_type == "insights":
