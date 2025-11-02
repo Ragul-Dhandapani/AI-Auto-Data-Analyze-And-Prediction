@@ -224,6 +224,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
           mode: variableSelection.mode,
           ai_suggestions: variableSelection.aiSuggestions
         };
+        console.log('Sending user_selection to backend:', JSON.stringify(payload.user_selection, null, 2));
       }
       
       const response = await axios.post(`${API}/analysis/holistic`, payload);
