@@ -82,21 +82,37 @@ def create_db_connection(db_type: str, config: dict):
             config.get("port", 1521),
             service_name=config.get("service_name")
         )
-        return cx_Oracle.connect(
-            user=config.get("username"),
-            password=config.get("password"),
-            dsn=dsn
-        )
+        if use_kerberos:
+            # Oracle Kerberos via external authentication
+            return cx_Oracle.connect(
+                user=config.get("username") + '/',  # External auth format
+                dsn=dsn
+            )
+        else:
+            return cx_Oracle.connect(
+                user=config.get("username"),
+                password=config.get("password"),
+                dsn=dsn
+            )
     
     elif db_type == "sqlserver":
         import pyodbc
-        conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={config.get('host')},{config.get('port', 1433)};"
-            f"DATABASE={config.get('database')};"
-            f"UID={config.get('username')};"
-            f"PWD={config.get('password')}"
-        )
+        if use_kerberos:
+            # SQL Server with Kerberos/Windows Integrated Authentication
+            conn_str = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                f"DATABASE={config.get('database')};"
+                f"Trusted_Connection=yes;"
+            )
+        else:
+            conn_str = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                f"DATABASE={config.get('database')};"
+                f"UID={config.get('username')};"
+                f"PWD={config.get('password')}"
+            )
         return pyodbc.connect(conn_str)
     
     else:
