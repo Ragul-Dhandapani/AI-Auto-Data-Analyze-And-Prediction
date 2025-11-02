@@ -1301,7 +1301,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
       {/* ML Models Section */}
       {analysisResults.ml_models && analysisResults.ml_models.length > 0 && !collapsed.ml_models && (
-        <Card className="p-6">
+        <Card id="ml-models-section" className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">🤖 ML Model Comparison</h3>
