@@ -243,7 +243,7 @@ async def load_table_endpoint(request: DataSourceTest, table_name: str):
         raise HTTPException(500, f"Failed to load table: {str(e)}")
 
 
-@router.get("/recent")
+
 def remove_nested_data_fields(obj):
     """Recursively remove 'data' fields from nested structures to reduce response size"""
     if isinstance(obj, dict):
@@ -259,6 +259,7 @@ def remove_nested_data_fields(obj):
     return obj
 
 
+@router.get("/recent")
 async def get_recent_datasets(limit: int = 10):
     """Get recent datasets - returns only metadata, excludes full data array for performance"""
     import json
