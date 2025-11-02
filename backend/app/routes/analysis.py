@@ -852,3 +852,99 @@ async def delete_analysis_state(state_id: str):
         raise
     except Exception as e:
         raise HTTPException(500, f"Failed to delete state: {str(e)}")
+
+
+# ============================================
+# Intelligence Endpoints
+# ============================================
+
+@router.post("/validate-chart-request")
+async def validate_chart_request(request: Dict[str, Any]):
+    """
+    Validate if a chart request is feasible
+    Returns intelligent feedback and suggestions
+    """
+    try:
+        dataset_id = request.get("dataset_id")
+        chart_type = request.get("chart_type")
+        column = request.get("column")
+        y_column = request.get("y_column")
+        
+        if not dataset_id or not chart_type or not column:
+            raise HTTPException(400, "Missing required fields: dataset_id, chart_type, column")
+        
+        # Load dataset
+        dataset = await db.datasets.find_one({"id": dataset_id})
+        if not dataset:
+            raise HTTPException(404, "Dataset not found")
+        
+        # Load data
+        if dataset.get("gridfs_file_id"):
+            grid_out = await fs.open_download_stream(ObjectId(dataset["gridfs_file_id"]))
+            data_bytes = await grid_out.read()
+            df = pd.read_json(io.BytesIO(data_bytes))
+        else:
+            df = pd.DataFrame(dataset.get("data", []))
+        
+        # Validate chart request
+        validation = chart_intelligence.validate_chart_request(
+            df=df,
+            chart_type=chart_type,
+            column=column,
+            y_column=y_column
+        )
+        
+        return validation
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error validating chart request: {str(e)}")
+        raise HTTPException(500, f"Validation failed: {str(e)}")
+
+
+@router.post("/validate-variables")
+async def validate_variables(request: Dict[str, Any]):
+    """
+    Validate variable selection and suggest better alternatives if needed
+    """
+    try:
+        dataset_id = request.get("dataset_id")
+        target_variables = request.get("target_variables", [])
+        features = request.get("features", [])
+        
+        if not dataset_id:
+            raise HTTPException(400, "Missing dataset_id")
+        
+        # Handle both formats
+        if not isinstance(target_variables, list):
+            target_variables = [target_variables] if target_variables else []
+        
+        # Load dataset
+        dataset = await db.datasets.find_one({"id": dataset_id})
+        if not dataset:
+            raise HTTPException(404, "Dataset not found")
+        
+        # Load data
+        if dataset.get("gridfs_file_id"):
+            grid_out = await fs.open_download_stream(ObjectId(dataset["gridfs_file_id"]))
+            data_bytes = await grid_out.read()
+            df = pd.read_json(io.BytesIO(data_bytes))
+        else:
+            df = pd.DataFrame(dataset.get("data", []))
+        
+        # Validate variables
+        validation = variable_intelligence.validate_variable_selection(
+            df=df,
+            target_variables=target_variables,
+            features=features
+        )
+        
+        return validation
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error validating variables: {str(e)}")
+        raise HTTPException(500, f"Validation failed: {str(e)}")
+
