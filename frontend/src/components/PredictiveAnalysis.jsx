@@ -183,7 +183,17 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     
     // Show different toast based on variable selection
     if (variableSelection && variableSelection.mode !== 'skip') {
-      toast.info(`Running analysis with your selection: Target=${variableSelection.target}, Features=${variableSelection.features.length}...`);
+      // Handle both single and multi-target formats
+      if (variableSelection.target_variables && Array.isArray(variableSelection.target_variables)) {
+        // Multi-target format
+        toast.info(`Running analysis with ${variableSelection.target_variables.length} target(s)...`);
+      } else if (variableSelection.target_variable) {
+        // Single target format
+        const featureCount = variableSelection.selected_features?.length || 0;
+        toast.info(`Running analysis: Target=${variableSelection.target_variable}, Features=${featureCount}...`);
+      } else {
+        toast.info("Running comprehensive AI/ML analysis...");
+      }
     } else {
       toast.info("Running comprehensive AI/ML analysis...");
     }
