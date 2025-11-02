@@ -261,15 +261,18 @@ frontend:
   
   - task: "ML Model Comparison Table for Multiple Targets"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added 'All Models Comparison' table that displays when multiple target variables are detected (multiple key correlations). Table shows all trained models sorted by R² score (best to worst) with columns: Rank, Model, Target Variable, R² Score, RMSE, Confidence, Train Samples. Top model highlighted with 🏆 badge and yellow background. Includes tip about interpreting R² and RMSE. Appears above the existing per-target model tabs."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: ML Model Comparison Table working correctly for multiple targets. Table displays when multiple target variables detected, shows all models sorted by R² score, includes proper columns (Rank, Model, Target Variable, R² Score, RMSE, Confidence, Train Samples), top model highlighted with 🏆 badge and yellow background. Appears above per-target model tabs as designed."
 
 metadata:
   created_by: "main_agent"
