@@ -117,6 +117,18 @@ backend:
           agent: "main"
           comment: "Implemented Kerberos authentication support for PostgreSQL and MySQL databases. Added use_kerberos flag to connection configs. PostgreSQL uses gssencmode='prefer' for GSSAPI, MySQL uses auth_plugin='authentication_kerberos_client'. Created centralized create_db_connection() helper function in datasource.py that handles both standard and Kerberos authentication. Updated test_postgresql_connection() and test_mysql_connection() in connections.py with fallback support. Updated get_postgresql_tables(), get_mysql_tables(), execute_custom_query(), execute_query_preview(), and save_query_dataset() to use the helper function."
 
+  - task: "Phase 3 - AI Insights & Model Explainability Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/app/routes/analysis.py, /app/backend/app/services/ai_insights_service.py, /app/backend/app/services/model_explainability_service.py, /app/backend/app/services/analytics_tracking_service.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Integrated Phase 3 services into holistic analysis endpoint. Added comprehensive AI insights using generate_statistical_insights() and generate_anomaly_detection_insights(). Added model explainability results for best performing models. Added business recommendations using generate_business_recommendations(). All services use Emergent LLM (with Azure OpenAI as commented alternative). Response now includes ai_insights (list of structured insights), explainability (model explanation data), business_recommendations (strategic recommendations), and phase_3_enabled flag. Services handle errors gracefully with fallback to rule-based insights."
+
   - task: "Holistic Analysis - Variable Selection for All Modes"
     implemented: true
     working: true
