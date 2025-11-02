@@ -12,6 +12,8 @@ const API = `${BACKEND_URL}/api`;
 
 const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
   const [targetColumn, setTargetColumn] = useState('');
   const [modelType, setModelType] = useState('random_forest');
   const [problemType, setProblemType] = useState('regression');
@@ -40,7 +42,13 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
     }
 
     setLoading(true);
+    setProgress(10);
+    setProgressMessage('Initializing hyperparameter search...');
+    
     try {
+      setProgress(20);
+      setProgressMessage('Preparing parameter grid...');
+      
       // Parse custom params
       const paramGrid = {};
       Object.entries(customParams).forEach(([key, value]) => {
@@ -59,6 +67,11 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
         }
       });
 
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setProgress(40);
+      setProgressMessage(`Running ${searchType} search with cross-validation...`);
+
       const response = await axios.post(`${API}/analysis/hyperparameter-tuning`, {
         dataset_id: dataset.id,
         target_column: targetColumn,
@@ -69,13 +82,25 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
         n_iter: searchType === 'random' ? nIter : undefined
       });
 
+      setProgress(80);
+      setProgressMessage('Evaluating best parameters...');
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setProgress(100);
+      setProgressMessage('Tuning complete!');
+
       setResults(response.data);
       toast.success('Hyperparameter tuning complete!');
       if (onComplete) onComplete(response.data);
     } catch (error) {
       toast.error('Tuning failed: ' + (error.response?.data?.detail || error.message));
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+        setProgress(0);
+        setProgressMessage('');
+      }, 500);
     }
   };
 
@@ -86,196 +111,198 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <Settings className="w-6 h-6" />
-          Hyperparameter Tuning
-        </h2>
-
-        <div className="space-y-4">
-          {/* Target Column */}
-          <div>
-            <Label>Target Column</Label>
-            <select
-              className="w-full p-2 border rounded mt-1"
-              value={targetColumn}
-              onChange={(e) => setTargetColumn(e.target.value)}
-            >
-              <option value="">-- Select Target --</option>
-              {numericColumns.map(col => (
-                <option key={col} value={col}>{col}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Model Type */}
-          <div>
-            <Label>Model Type</Label>
-            <div className="grid grid-cols-3 gap-3 mt-2">
-              <Card
-                className={`p-3 cursor-pointer border-2 ${modelType === 'random_forest' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
-                onClick={() => setModelType('random_forest')}
-              >
-                <div className="font-semibold text-sm">🌳 Random Forest</div>
-              </Card>
-              <Card
-                className={`p-3 cursor-pointer border-2 ${modelType === 'xgboost' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-                onClick={() => setModelType('xgboost')}
-              >
-                <div className="font-semibold text-sm">⚡ XGBoost</div>
-              </Card>
-              <Card
-                className={`p-3 cursor-pointer border-2 ${modelType === 'lightgbm' ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}
-                onClick={() => setModelType('lightgbm')}
-              >
-                <div className="font-semibold text-sm">💡 LightGBM</div>
-              </Card>
+      {/* Loading Progress */}
+      {loading && (
+        <Card className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-indigo-600" />
+            <h3 className="text-lg font-semibold mb-2">{progressMessage}</h3>
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+              <div 
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 h-3 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              ></div>
             </div>
+            <p className="text-sm text-gray-600">{progress}% Complete</p>
           </div>
+        </Card>
+      )}
 
-          {/* Problem Type */}
-          <div>
-            <Label>Problem Type</Label>
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              <Card
-                className={`p-3 cursor-pointer border-2 ${problemType === 'regression' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
-                onClick={() => setProblemType('regression')}
-              >
-                <div className="font-semibold text-sm">📈 Regression</div>
-              </Card>
-              <Card
-                className={`p-3 cursor-pointer border-2 ${problemType === 'classification' ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}
-                onClick={() => setProblemType('classification')}
-              >
-                <div className="font-semibold text-sm">🎯 Classification</div>
-              </Card>
-            </div>
-          </div>
+      {!loading && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Settings className="w-6 h-6" />
+            Hyperparameter Tuning
+          </h2>
 
-          {/* Search Type */}
-          <div>
-            <Label>Search Type</Label>
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              <Card
-                className={`p-3 cursor-pointer border-2 ${searchType === 'grid' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-                onClick={() => setSearchType('grid')}
-              >
-                <div className="font-semibold text-sm">🧩 Grid Search</div>
-                <div className="text-xs text-gray-600">Exhaustive search</div>
-              </Card>
-              <Card
-                className={`p-3 cursor-pointer border-2 ${searchType === 'random' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}
-                onClick={() => setSearchType('random')}
-              >
-                <div className="font-semibold text-sm">🎲 Random Search</div>
-                <div className="text-xs text-gray-600">Faster, good enough</div>
-              </Card>
-            </div>
-          </div>
-
-          {/* Number of iterations for random search */}
-          {searchType === 'random' && (
+          <div className="space-y-4">
+            {/* Target Column */}
             <div>
-              <Label>Number of Iterations</Label>
-              <input
-                type="number"
+              <Label>Target Column</Label>
+              <select
                 className="w-full p-2 border rounded mt-1"
-                value={nIter}
-                onChange={(e) => setNIter(parseInt(e.target.value))}
-                min={5}
-                max={100}
-              />
+                value={targetColumn}
+                onChange={(e) => setTargetColumn(e.target.value)}
+              >
+                <option value="">-- Select Target Column --</option>
+                {numericColumns.map(col => (
+                  <option key={col} value={col}>{col}</option>
+                ))}
+              </select>
             </div>
-          )}
 
-          {/* Custom Parameters */}
-          <div>
-            <Label>Custom Parameters (optional)</Label>
-            <div className="space-y-2 mt-2">
+            {/* Model Type Selection */}
+            <div>
+              <Label>Model Type</Label>
+              <div className="grid grid-cols-3 gap-3 mt-2">
+                {['random_forest', 'xgboost', 'lightgbm'].map(model => (
+                  <button
+                    key={model}
+                    className={`p-3 rounded border-2 transition-all ${
+                      modelType === model
+                        ? 'border-indigo-600 bg-indigo-50'
+                        : 'border-gray-300 hover:border-indigo-300'
+                    }`}
+                    onClick={() => setModelType(model)}
+                  >
+                    <div className="font-semibold capitalize">{model.replace('_', ' ')}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Problem Type */}
+            <div>
+              <Label>Problem Type</Label>
+              <select
+                className="w-full p-2 border rounded mt-1"
+                value={problemType}
+                onChange={(e) => setProblemType(e.target.value)}
+              >
+                <option value="regression">Regression</option>
+                <option value="classification">Classification</option>
+              </select>
+            </div>
+
+            {/* Search Type */}
+            <div>
+              <Label>Search Strategy</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <button
+                  className={`p-3 rounded border-2 transition-all ${
+                    searchType === 'grid'
+                      ? 'border-indigo-600 bg-indigo-50'
+                      : 'border-gray-300 hover:border-indigo-300'
+                  }`}
+                  onClick={() => setSearchType('grid')}
+                >
+                  <div className="font-semibold">Grid Search</div>
+                  <div className="text-xs text-gray-600 mt-1">Exhaustive search</div>
+                </button>
+                <button
+                  className={`p-3 rounded border-2 transition-all ${
+                    searchType === 'random'
+                      ? 'border-indigo-600 bg-indigo-50'
+                      : 'border-gray-300 hover:border-indigo-300'
+                  }`}
+                  onClick={() => setSearchType('random')}
+                >
+                  <div className="font-semibold">Random Search</div>
+                  <div className="text-xs text-gray-600 mt-1">Faster, good results</div>
+                </button>
+              </div>
+            </div>
+
+            {/* N Iterations (for random search) */}
+            {searchType === 'random' && (
               <div>
-                <label className="text-sm text-gray-600">n_estimators (comma-separated)</label>
+                <Label>Number of Iterations</Label>
                 <input
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  value={customParams.n_estimators}
-                  onChange={(e) => setCustomParams({...customParams, n_estimators: e.target.value})}
-                  placeholder="50,100,200"
+                  type="number"
+                  className="w-full p-2 border rounded mt-1"
+                  value={nIter}
+                  onChange={(e) => setNIter(parseInt(e.target.value))}
+                  min="5"
+                  max="100"
                 />
               </div>
-              <div>
-                <label className="text-sm text-gray-600">max_depth (comma-separated)</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  value={customParams.max_depth}
-                  onChange={(e) => setCustomParams({...customParams, max_depth: e.target.value})}
-                  placeholder="5,10,20,none"
-                />
-              </div>
-              {modelType === 'xgboost' && (
+            )}
+
+            {/* Custom Parameters */}
+            <div className="border rounded p-4 bg-gray-50">
+              <Label className="mb-3 block">Custom Parameters (comma-separated)</Label>
+              <div className="space-y-2">
                 <div>
-                  <label className="text-sm text-gray-600">learning_rate (comma-separated)</label>
+                  <label className="text-sm text-gray-600">n_estimators</label>
                   <input
                     type="text"
-                    className="w-full p-2 border rounded"
-                    value={customParams.learning_rate}
-                    onChange={(e) => setCustomParams({...customParams, learning_rate: e.target.value})}
-                    placeholder="0.01,0.1,0.2"
+                    className="w-full p-2 border rounded mt-1"
+                    value={customParams.n_estimators}
+                    onChange={(e) => setCustomParams({...customParams, n_estimators: e.target.value})}
+                    placeholder="e.g., 50,100,200"
                   />
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Run Button */}
-          <Button
-            onClick={runTuning}
-            disabled={loading || !targetColumn}
-            className="w-full"
-          >
-            {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Tuning...</>
-            ) : (
-              <><Play className="w-4 h-4 mr-2" /> Start Tuning</>
-            )}
-          </Button>
-        </div>
-      </Card>
-
-      {/* Results */}
-      {results && results.success && (
-        <Card className="p-6">
-          <h3 className="text-xl font-bold mb-4">✅ Tuning Results</h3>
-          
-          <div className="space-y-4">
-            {/* Best Score */}
-            <div className="bg-green-50 p-4 rounded">
-              <div className="text-sm text-gray-600">Best Score</div>
-              <div className="text-3xl font-bold text-green-600">
-                {results.best_score?.toFixed(4)}
-              </div>
-            </div>
-
-            {/* Best Parameters */}
-            <div>
-              <h4 className="font-semibold mb-2">🏆 Best Parameters</h4>
-              <div className="bg-gray-50 p-4 rounded">
-                <pre className="text-sm">
-                  {JSON.stringify(results.best_params, null, 2)}
-                </pre>
-              </div>
-            </div>
-
-            {/* CV Results Summary */}
-            {results.cv_results && (
-              <div>
-                <h4 className="font-semibold mb-2">📉 Cross-Validation Results</h4>
-                <div className="text-sm text-gray-600">
-                  Tested {results.cv_results.params?.length || 0} parameter combinations
+                <div>
+                  <label className="text-sm text-gray-600">max_depth</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded mt-1"
+                    value={customParams.max_depth}
+                    onChange={(e) => setCustomParams({...customParams, max_depth: e.target.value})}
+                    placeholder="e.g., 5,10,20"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600">learning_rate</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded mt-1"
+                    value={customParams.learning_rate}
+                    onChange={(e) => setCustomParams({...customParams, learning_rate: e.target.value})}
+                    placeholder="e.g., 0.01,0.1,0.2"
+                  />
                 </div>
               </div>
-            )}
+            </div>
+
+            <Button onClick={runTuning} className="w-full" disabled={!targetColumn}>
+              <Play className="w-4 h-4 mr-2" />
+              Start Tuning
+            </Button>
           </div>
+        </Card>
+      )}
+
+      {/* Results */}
+      {results && !loading && (
+        <Card className="p-6">
+          <h3 className="text-xl font-bold mb-4">Tuning Results</h3>
+          
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg mb-4">
+            <div className="text-center">
+              <div className="text-sm text-gray-600 mb-2">Best Score</div>
+              <div className="text-4xl font-bold text-green-600">
+                {(results.best_score * 100).toFixed(2)}%
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded mb-4">
+            <h4 className="font-semibold mb-2">Best Parameters:</h4>
+            <pre className="text-sm bg-white p-3 rounded overflow-x-auto">
+              {JSON.stringify(results.best_params, null, 2)}
+            </pre>
+          </div>
+
+          {results.cv_results && (
+            <div className="bg-gray-50 p-4 rounded">
+              <h4 className="font-semibold mb-2">Cross-Validation Summary:</h4>
+              <div className="text-sm space-y-1">
+                <div>Total combinations tested: <strong>{results.cv_results.n_splits || 'N/A'}</strong></div>
+                <div>Best CV score: <strong>{(results.best_score * 100).toFixed(2)}%</strong></div>
+              </div>
+            </div>
+          )}
         </Card>
       )}
     </div>
