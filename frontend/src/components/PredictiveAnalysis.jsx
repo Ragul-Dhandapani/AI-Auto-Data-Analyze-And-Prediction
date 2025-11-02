@@ -26,7 +26,7 @@ const loadPlotly = () => {
   });
 };
 
-const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
+const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection }) => {
   const [loading, setLoading] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(analysisCache || null);
   const [analysisTime, setAnalysisTime] = useState(null);  // Track analysis time
@@ -41,6 +41,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
   const [chatPosition, setChatPosition] = useState({ x: null, y: null });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [selectionFeedback, setSelectionFeedback] = useState(null); // User selection validation feedback
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
