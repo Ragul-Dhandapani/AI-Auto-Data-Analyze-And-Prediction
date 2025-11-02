@@ -14,10 +14,11 @@ async def clear_training_metadata():
     
     # Connect to MongoDB
     mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+    db_name = os.environ.get('DB_NAME', 'autopredict_db')  # Use correct DB name
     client = AsyncIOMotorClient(mongo_url)
-    db = client.promise_ai
+    db = client[db_name]
     
-    print("🗑️  Clearing all data...")
+    print(f"🗑️  Clearing all data from database: {db_name}...")
     
     # Clear datasets collection
     datasets_result = await db.datasets.delete_many({})
