@@ -117,6 +117,18 @@ backend:
           agent: "main"
           comment: "Implemented Kerberos authentication support for PostgreSQL and MySQL databases. Added use_kerberos flag to connection configs. PostgreSQL uses gssencmode='prefer' for GSSAPI, MySQL uses auth_plugin='authentication_kerberos_client'. Created centralized create_db_connection() helper function in datasource.py that handles both standard and Kerberos authentication. Updated test_postgresql_connection() and test_mysql_connection() in connections.py with fallback support. Updated get_postgresql_tables(), get_mysql_tables(), execute_custom_query(), execute_query_preview(), and save_query_dataset() to use the helper function."
 
+  - task: "Holistic Analysis - Variable Selection for All Modes"
+    implemented: true
+    working: true
+    file: "/app/backend/app/routes/analysis.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TESTING COMPLETED: All variable selection modes working correctly. Test Case 1 (Single Target Manual): ✅ Successfully uses user-specified target 'latency_ms' with selected features ['cpu_utilization', 'memory_usage_mb']. Test Case 2 (Multiple Targets Hybrid): ✅ Correctly processes both targets with their respective features, trains 10 models total. Test Case 3 (Invalid Target Fallback): ✅ Properly detects invalid target 'nonexistent_column' and falls back to auto-detection with selection_feedback status='modified'. Test Case 4 (Auto Mode): ✅ Auto-detection works without user selection, trains 5 models. Test Case 5 (Performance): ✅ Response time 8.3s acceptable, performance optimization working for large datasets (62,500 rows). All response structures contain required fields: profile, models, ml_models, auto_charts, correlations, insights. Selection feedback mechanism working correctly for all scenarios."
+
 frontend:
   - task: "Phase 1 - Kerberos Authentication UI Toggle"
     implemented: true  
