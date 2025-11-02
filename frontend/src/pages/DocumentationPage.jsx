@@ -119,6 +119,314 @@ const DocumentationPage = () => {
             </div>
           </TabsContent>
 
+          {/* ARCHITECTURE TAB */}
+          <TabsContent value="architecture">
+            <div className="space-y-6">
+              
+              {/* Tech Stack */}
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold mb-4">Technology Stack</h2>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Frontend */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg">
+                    <h3 className="text-xl font-bold mb-4 text-blue-900">🎨 Frontend</h3>
+                    <div className="space-y-3">
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-blue-600">React 18</strong>
+                        <p className="text-sm text-gray-600">Modern UI framework with hooks</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-blue-600">Vite</strong>
+                        <p className="text-sm text-gray-600">Lightning-fast build tool</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-blue-600">Shadcn/UI</strong>
+                        <p className="text-sm text-gray-600">Beautiful component library</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-blue-600">TailwindCSS</strong>
+                        <p className="text-sm text-gray-600">Utility-first CSS framework</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-blue-600">Plotly.js</strong>
+                        <p className="text-sm text-gray-600">Interactive data visualization</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-blue-600">React Router</strong>
+                        <p className="text-sm text-gray-600">Client-side routing</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-blue-600">Axios</strong>
+                        <p className="text-sm text-gray-600">HTTP client for API calls</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Backend */}
+                  <div className="bg-gradient-to-br from-green-50 to-teal-50 p-6 rounded-lg">
+                    <h3 className="text-xl font-bold mb-4 text-green-900">⚙️ Backend</h3>
+                    <div className="space-y-3">
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">FastAPI (Python 3.11+)</strong>
+                        <p className="text-sm text-gray-600">High-performance async API framework</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">MongoDB</strong>
+                        <p className="text-sm text-gray-600">NoSQL database for datasets & metadata</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">Scikit-learn</strong>
+                        <p className="text-sm text-gray-600">Core ML library</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">XGBoost & LightGBM</strong>
+                        <p className="text-sm text-gray-600">Gradient boosting algorithms</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">TensorFlow/Keras</strong>
+                        <p className="text-sm text-gray-600">Deep learning for LSTM models</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">Prophet</strong>
+                        <p className="text-sm text-gray-600">Time series forecasting by Facebook</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">SHAP & LIME</strong>
+                        <p className="text-sm text-gray-600">Model explainability</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">Emergent LLM</strong>
+                        <p className="text-sm text-gray-600">AI-powered insights generation</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Database Connectors */}
+                <div className="mt-6 bg-purple-50 p-6 rounded-lg">
+                  <h3 className="text-xl font-bold mb-4 text-purple-900">🔌 Database Connectors</h3>
+                  <div className="grid md:grid-cols-3 gap-3">
+                    <div className="bg-white p-3 rounded text-center">
+                      <strong className="text-purple-600">PostgreSQL</strong>
+                      <p className="text-xs text-gray-600 mt-1">psycopg2</p>
+                    </div>
+                    <div className="bg-white p-3 rounded text-center">
+                      <strong className="text-purple-600">MySQL</strong>
+                      <p className="text-xs text-gray-600 mt-1">pymysql</p>
+                    </div>
+                    <div className="bg-white p-3 rounded text-center">
+                      <strong className="text-purple-600">SQL Server</strong>
+                      <p className="text-xs text-gray-600 mt-1">pyodbc</p>
+                    </div>
+                    <div className="bg-white p-3 rounded text-center">
+                      <strong className="text-purple-600">Oracle</strong>
+                      <p className="text-xs text-gray-600 mt-1">cx_Oracle</p>
+                    </div>
+                    <div className="bg-white p-3 rounded text-center">
+                      <strong className="text-purple-600">MongoDB</strong>
+                      <p className="text-xs text-gray-600 mt-1">motor (async)</p>
+                    </div>
+                    <div className="bg-white p-3 rounded text-center">
+                      <strong className="text-purple-600">Kerberos</strong>
+                      <p className="text-xs text-gray-600 mt-1">GSSAPI authentication</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Architecture Diagram */}
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold mb-4">System Architecture</h2>
+                
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <div className="space-y-6">
+                    {/* Client Layer */}
+                    <div className="text-center">
+                      <div className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold">
+                        👤 User Browser
+                      </div>
+                      <div className="flex justify-center my-2">
+                        <div className="w-0.5 h-8 bg-gray-400"></div>
+                      </div>
+                    </div>
+
+                    {/* Frontend Layer */}
+                    <div className="bg-blue-100 p-4 rounded-lg">
+                      <h4 className="font-bold text-blue-900 mb-3 text-center">Frontend Layer (React)</h4>
+                      <div className="grid md:grid-cols-4 gap-2">
+                        <div className="bg-white p-2 rounded text-center text-sm">
+                          <strong>HomePage</strong>
+                          <p className="text-xs text-gray-600">Landing</p>
+                        </div>
+                        <div className="bg-white p-2 rounded text-center text-sm">
+                          <strong>Dashboard</strong>
+                          <p className="text-xs text-gray-600">Data Upload</p>
+                        </div>
+                        <div className="bg-white p-2 rounded text-center text-sm">
+                          <strong>Analysis Tabs</strong>
+                          <p className="text-xs text-gray-600">5 Analysis Types</p>
+                        </div>
+                        <div className="bg-white p-2 rounded text-center text-sm">
+                          <strong>Training Metadata</strong>
+                          <p className="text-xs text-gray-600">Model History</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-center my-2">
+                        <div className="w-0.5 h-8 bg-gray-400"></div>
+                      </div>
+                      <div className="text-center text-sm text-gray-600">
+                        HTTP/REST API (Port 3000 → Backend 8001)
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <div className="w-0.5 h-8 bg-gray-400"></div>
+                    </div>
+
+                    {/* Backend Layer */}
+                    <div className="bg-green-100 p-4 rounded-lg">
+                      <h4 className="font-bold text-green-900 mb-3 text-center">Backend Layer (FastAPI)</h4>
+                      <div className="grid md:grid-cols-3 gap-3 mb-3">
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm">Routes</strong>
+                          <div className="text-xs space-y-1 mt-1">
+                            <div>• /api/datasource</div>
+                            <div>• /api/analysis</div>
+                            <div>• /api/training</div>
+                            <div>• /api/feedback</div>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm">Services</strong>
+                          <div className="text-xs space-y-1 mt-1">
+                            <div>• ml_service</div>
+                            <div>• time_series_service</div>
+                            <div>• nlp_service</div>
+                            <div>• hyperparameter_service</div>
+                            <div>• feedback_service</div>
+                            <div>• relational_service</div>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm">AI/ML</strong>
+                          <div className="text-xs space-y-1 mt-1">
+                            <div>• Model Training</div>
+                            <div>• Feature Engineering</div>
+                            <div>• Explainability (SHAP)</div>
+                            <div>• LLM Insights</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <div className="w-0.5 h-8 bg-gray-400"></div>
+                    </div>
+
+                    {/* Data Layer */}
+                    <div className="bg-purple-100 p-4 rounded-lg">
+                      <h4 className="font-bold text-purple-900 mb-3 text-center">Data Layer</h4>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm">MongoDB</strong>
+                          <div className="text-xs space-y-1 mt-1">
+                            <div>✓ Datasets metadata</div>
+                            <div>✓ Training history</div>
+                            <div>✓ User feedback</div>
+                            <div>✓ Analysis results</div>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm">External Sources</strong>
+                          <div className="text-xs space-y-1 mt-1">
+                            <div>✓ PostgreSQL</div>
+                            <div>✓ MySQL</div>
+                            <div>✓ SQL Server</div>
+                            <div>✓ Oracle</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Data Flow */}
+                    <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-400">
+                      <h4 className="font-bold text-yellow-900 mb-2">📊 Data Flow</h4>
+                      <div className="text-sm space-y-1">
+                        <div>1. User uploads data or connects to database</div>
+                        <div>2. Data stored/cached in MongoDB</div>
+                        <div>3. Variable selection modal appears (Manual/AI/Hybrid)</div>
+                        <div>4. Backend trains multiple ML models</div>
+                        <div>5. Results with visualizations sent to frontend</div>
+                        <div>6. AI generates insights and recommendations</div>
+                        <div>7. User can provide feedback for active learning</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Key Features */}
+                <div className="mt-6 grid md:grid-cols-3 gap-4">
+                  <div className="bg-blue-50 p-4 rounded border-l-4 border-blue-600">
+                    <strong className="text-blue-900">🔒 Security</strong>
+                    <p className="text-sm text-gray-700 mt-2">
+                      Kerberos authentication, secure connections, data encryption
+                    </p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded border-l-4 border-green-600">
+                    <strong className="text-green-900">⚡ Performance</strong>
+                    <p className="text-sm text-gray-700 mt-2">
+                      Async processing, intelligent sampling, optimized queries
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded border-l-4 border-purple-600">
+                    <strong className="text-purple-900">🔄 Scalability</strong>
+                    <p className="text-sm text-gray-700 mt-2">
+                      Kubernetes ready, horizontal scaling, load balancing
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Deployment */}
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold mb-4">Deployment Architecture</h2>
+                
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-lg">
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded shadow">
+                      <h4 className="font-semibold text-blue-600 mb-2">Development</h4>
+                      <ul className="text-sm space-y-1">
+                        <li>✓ Hot reload enabled</li>
+                        <li>✓ Local MongoDB</li>
+                        <li>✓ Debug mode</li>
+                        <li>✓ Source maps</li>
+                      </ul>
+                    </div>
+                    <div className="bg-white p-4 rounded shadow">
+                      <h4 className="font-semibold text-green-600 mb-2">Staging</h4>
+                      <ul className="text-sm space-y-1">
+                        <li>✓ Docker containers</li>
+                        <li>✓ Cloud MongoDB</li>
+                        <li>✓ HTTPS enabled</li>
+                        <li>✓ Performance monitoring</li>
+                      </ul>
+                    </div>
+                    <div className="bg-white p-4 rounded shadow">
+                      <h4 className="font-semibold text-purple-600 mb-2">Production</h4>
+                      <ul className="text-sm space-y-1">
+                        <li>✓ Kubernetes cluster</li>
+                        <li>✓ Auto-scaling</li>
+                        <li>✓ Load balancer</li>
+                        <li>✓ CDN for frontend</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* FEATURES TAB */}
           <TabsContent value="features">
             <div className="space-y-4">
