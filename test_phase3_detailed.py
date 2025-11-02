@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = "https://data-genius-12.preview.emergentagent.com/api"
+BACKEND_URL = "https://predictive-suite.preview.emergentagent.com/api"
 
 def test_business_recommendations_detailed():
     """Test business recommendations generation in detail"""
