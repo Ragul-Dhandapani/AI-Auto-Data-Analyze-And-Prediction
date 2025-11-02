@@ -283,26 +283,41 @@ async def holistic_analysis(request: Dict[str, Any]):
         target_cols = []
         target_feature_mapping = {}  # Map each target to its features
         
+        logging.info(f"User selection received: {user_selection}")
+        
         if user_selection:
             # Check if multiple targets provided
             user_targets = user_selection.get("target_variables", [])  # Multiple targets
             user_target = user_selection.get("target_variable")  # Single target (backward compatibility)
             
-            if user_targets and isinstance(user_targets, list):
+            logging.info(f"user_targets: {user_targets}, user_target: {user_target}")
+            
+            if user_targets and isinstance(user_targets, list) and len(user_targets) > 0:
                 # Multiple targets mode
+                logging.info(f"Processing {len(user_targets)} user-selected targets")
                 for target_info in user_targets:
                     target_name = target_info.get("target")
                     target_features = target_info.get("features", [])
+                    
+                    logging.info(f"Checking target: {target_name} with features: {target_features}")
                     
                     if target_name and target_name in df_analysis.columns:
                         if pd.api.types.is_numeric_dtype(df_analysis[target_name].dtype):
                             target_cols.append(target_name)
                             target_feature_mapping[target_name] = target_features
+                            logging.info(f"Added target: {target_name}")
+                        else:
+                            logging.warning(f"Target {target_name} is not numeric, skipping")
+                    else:
+                        logging.warning(f"Target {target_name} not found in dataframe")
             elif user_target:
                 # Single target mode (existing logic)
+                logging.info(f"Processing single user-selected target: {user_target}")
                 if user_target in df_analysis.columns and pd.api.types.is_numeric_dtype(df_analysis[user_target].dtype):
                     target_cols.append(user_target)
                     target_feature_mapping[user_target] = user_selection.get("selected_features", [])
+        
+        logging.info(f"Final target_cols: {target_cols}")
         
         # If no valid targets from user selection, auto-detect
         if len(target_cols) == 0 and len(numeric_cols) >= 2:
