@@ -7,10 +7,26 @@ import FeedbackPanel from './FeedbackPanel';
 import { BarChart3, TrendingUp, Settings, MessageSquare, Database } from 'lucide-react';
 
 const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection }) => {
+  const [tabResults, setTabResults] = useState({
+    predictive: analysisCache || null,
+    timeseries: null,
+    hyperparameters: null,
+    feedback: null
+  });
+
+  // Persist results across tab switches
+  const handleTimeSeriesComplete = (results) => {
+    setTabResults(prev => ({ ...prev, timeseries: results }));
+  };
+
+  const handleHyperparameterComplete = (results) => {
+    setTabResults(prev => ({ ...prev, hyperparameters: results }));
+  };
+
   return (
     <div className="w-full">
       <Tabs defaultValue="predictive" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="predictive" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Predictive Analysis
@@ -26,10 +42,6 @@ const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelect
           <TabsTrigger value="feedback" className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4" />
             Feedback & Learning
-          </TabsTrigger>
-          <TabsTrigger value="relational" className="flex items-center gap-2">
-            <Database className="w-4 h-4" />
-            Multi-Table
           </TabsTrigger>
         </TabsList>
 
