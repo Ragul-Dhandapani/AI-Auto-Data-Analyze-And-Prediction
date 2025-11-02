@@ -1301,106 +1301,452 @@ const DocumentationPage = () => {
               <Card className="p-6">
                 <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
                 
-                <div className="space-y-4">
-                  {/* FAQ Item */}
-                  <div className="border-b pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: How do I know which model to use?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> PROMISE AI automatically trains multiple models and ranks them by performance. 
-                      The top-performing model is highlighted with 🏆. Generally, ensemble methods (Random Forest, XGBoost, LightGBM) 
-                      perform well on most datasets. LSTM works best for large datasets with complex patterns.
-                    </p>
+                <div className="space-y-3">
+                  {/* General FAQs */}
+                  <div className="border-b pb-3">
+                    <h3 className="font-bold text-lg text-blue-600 mb-3">📌 General Questions</h3>
                   </div>
 
-                  <div className="border-b pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: What does "confidence" mean in model results?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> Confidence indicates model reliability:
-                      <ul className="list-disc list-inside mt-2 ml-4">
-                        <li><strong>Regression:</strong> High (R²&gt;0.7), Medium (0.5-0.7), Low (&lt;0.5)</li>
-                        <li><strong>Classification:</strong> High (Accuracy&gt;85%), Medium (70-85%), Low (&lt;70%)</li>
-                      </ul>
-                    </p>
+                  <Collapsible open={expandedSections['faq-1']} onOpenChange={() => toggleSection('faq-1')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What is PROMISE AI and what can it do?</h3>
+                      {expandedSections['faq-1'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <p className="text-gray-700 text-sm">
+                        <strong>A:</strong> PROMISE AI is an enterprise-grade machine learning platform that automates the entire ML workflow. 
+                        It supports regression, classification, and time series forecasting with 6+ algorithms including Random Forest, XGBoost, 
+                        LightGBM, and LSTM neural networks. The platform provides automated feature selection, hyperparameter tuning, 
+                        model explainability (SHAP/LIME), AI-powered insights, and active learning capabilities.
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-2']} onOpenChange={() => toggleSection('faq-2')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: How do I know which model to use?</h3>
+                      {expandedSections['faq-2'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <p className="text-gray-700 text-sm">
+                        <strong>A:</strong> PROMISE AI automatically trains multiple models and ranks them by performance. 
+                        The top-performing model is highlighted with 🏆. Generally, ensemble methods (Random Forest, XGBoost, LightGBM) 
+                        perform well on most datasets. LSTM works best for large datasets with complex patterns or time series data. 
+                        You can also use the Hyperparameter Tuning tab to optimize your chosen model for even better results.
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-3']} onOpenChange={() => toggleSection('faq-3')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What's the difference between the 4 analysis tabs?</h3>
+                      {expandedSections['faq-3'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> Each tab serves a specific purpose:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li><strong>Predictive Analysis & Forecasting:</strong> Core ML models for regression and classification</li>
+                          <li><strong>Time Series:</strong> Dedicated forecasting with Prophet/LSTM for temporal data</li>
+                          <li><strong>Tune Models:</strong> Optimize model performance through hyperparameter search</li>
+                          <li><strong>Feedback & Learning:</strong> Track predictions and retrain models based on real-world results</li>
+                        </ul>
+                        <p className="mt-2 text-xs text-gray-600">💡 Your results persist across tabs - switch freely without losing work!</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Data & Models FAQs */}
+                  <div className="border-b pb-3 pt-4">
+                    <h3 className="font-bold text-lg text-green-600 mb-3">📊 Data & Models</h3>
                   </div>
 
-                  <div className="border-b pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: Why are some charts empty?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> Charts may be empty due to:
-                      <ul className="list-disc list-inside mt-2 ml-4">
-                        <li>No correlations above threshold (0.3)</li>
-                        <li>Insufficient data points</li>
-                        <li>Data type incompatibility</li>
-                      </ul>
-                      Check the AI Insights section for specific explanations and recommendations.
-                    </p>
+                  <Collapsible open={expandedSections['faq-4']} onOpenChange={() => toggleSection('faq-4')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What data sources are supported?</h3>
+                      {expandedSections['faq-4'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> PROMISE AI supports multiple data sources:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li>CSV file upload (recommended up to 100MB)</li>
+                          <li>PostgreSQL (with optional Kerberos authentication)</li>
+                          <li>MySQL (with optional Kerberos authentication)</li>
+                          <li>SQL Server</li>
+                          <li>Oracle</li>
+                          <li>MongoDB</li>
+                        </ul>
+                        <p className="mt-2">For larger datasets, use database connections. The system automatically samples intelligently 
+                        for datasets over 10,000 rows while maintaining statistical representativeness.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-5']} onOpenChange={() => toggleSection('faq-5')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What's the maximum dataset size?</h3>
+                      {expandedSections['faq-5'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <p className="text-gray-700 text-sm">
+                        <strong>A:</strong> For CSV uploads, we recommend up to 100MB. For larger datasets, use database connections. 
+                        The system automatically samples large datasets (intelligently stratified) to ensure analysis completes 
+                        in reasonable time while maintaining representativeness. Datasets over 100,000 rows are sampled to 10,000-20,000 rows 
+                        based on complexity.
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-6']} onOpenChange={() => toggleSection('faq-6')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: Which data types are supported?</h3>
+                      {expandedSections['faq-6'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> PROMISE AI handles all common data types:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li><strong>Numeric:</strong> int, float (directly used in models)</li>
+                          <li><strong>Categorical:</strong> Automatically one-hot encoded</li>
+                          <li><strong>Text/NLP:</strong> TF-IDF feature extraction with dimensionality reduction</li>
+                          <li><strong>Datetime:</strong> Extracts year, month, day, hour, day of week, is_weekend, quarter</li>
+                          <li><strong>Boolean:</strong> Converted to 0/1</li>
+                        </ul>
+                        <p className="mt-2">The system automatically detects and processes each type appropriately!</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Metrics & Results FAQs */}
+                  <div className="border-b pb-3 pt-4">
+                    <h3 className="font-bold text-lg text-purple-600 mb-3">📈 Metrics & Results</h3>
                   </div>
 
-                  <div className="border-b pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: How accurate is the AI auto-detection?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> The AI auto-detection is highly accurate for standard datasets. It analyzes:
-                      <ul className="list-disc list-inside mt-2 ml-4">
-                        <li>Data types and distributions</li>
-                        <li>Correlations and feature importance</li>
-                        <li>Missing value patterns</li>
-                        <li>Cardinality and uniqueness</li>
-                      </ul>
-                      For best results, use Manual or Hybrid mode if you have domain expertise.
-                    </p>
+                  <Collapsible open={expandedSections['faq-7']} onOpenChange={() => toggleSection('faq-7')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What does "confidence" mean in model results?</h3>
+                      {expandedSections['faq-7'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> Confidence indicates model reliability based on performance metrics:</p>
+                        <div className="bg-gray-50 p-3 rounded mt-2">
+                          <p className="font-semibold mb-2">For Regression:</p>
+                          <ul className="list-disc list-inside ml-4 space-y-1">
+                            <li><span className="text-green-600 font-bold">High:</span> R² &gt; 0.7 (explains 70%+ of variance)</li>
+                            <li><span className="text-yellow-600 font-bold">Medium:</span> R² 0.5-0.7 (moderate predictive power)</li>
+                            <li><span className="text-red-600 font-bold">Low:</span> R² &lt; 0.5 (weak predictions)</li>
+                          </ul>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded mt-2">
+                          <p className="font-semibold mb-2">For Classification:</p>
+                          <ul className="list-disc list-inside ml-4 space-y-1">
+                            <li><span className="text-green-600 font-bold">High:</span> Accuracy &gt; 85%</li>
+                            <li><span className="text-yellow-600 font-bold">Medium:</span> Accuracy 70-85%</li>
+                            <li><span className="text-red-600 font-bold">Low:</span> Accuracy &lt; 70%</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-8']} onOpenChange={() => toggleSection('faq-8')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: Why are some charts empty?</h3>
+                      {expandedSections['faq-8'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> Charts may be empty due to several reasons:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li><strong>Low Correlations:</strong> No feature correlations above threshold (0.3)</li>
+                          <li><strong>Insufficient Data:</strong> Not enough data points for meaningful visualization</li>
+                          <li><strong>Data Type Issues:</strong> Incompatible data types for the chart type</li>
+                          <li><strong>All Values Identical:</strong> No variance to visualize</li>
+                        </ul>
+                        <p className="mt-2">💡 <strong>Tip:</strong> Check the AI Insights section for specific explanations and recommendations 
+                        on how to improve your data for better visualizations.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-9']} onOpenChange={() => toggleSection('faq-9')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: How accurate is the AI auto-detection?</h3>
+                      {expandedSections['faq-9'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> The AI auto-detection is highly accurate for standard datasets. It analyzes:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li>Data types and distributions (numeric, categorical, text, datetime)</li>
+                          <li>Correlations and feature importance scores</li>
+                          <li>Missing value patterns and data quality</li>
+                          <li>Cardinality and uniqueness ratios</li>
+                          <li>Target variable characteristics (for problem type detection)</li>
+                        </ul>
+                        <p className="mt-2">For best results, use <strong>Manual</strong> or <strong>Hybrid</strong> mode if you have 
+                        domain expertise. The system will validate your selections with AI intelligence.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Advanced Features FAQs */}
+                  <div className="border-b pb-3 pt-4">
+                    <h3 className="font-bold text-lg text-orange-600 mb-3">🚀 Advanced Features</h3>
                   </div>
 
-                  <div className="border-b pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: Can I use PROMISE AI for real-time predictions?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> PROMISE AI is designed for batch analysis and model training. For production deployment, 
-                      export trained models and deploy them in your infrastructure. The feedback loop allows you to improve 
-                      models based on real-world performance.
-                    </p>
+                  <Collapsible open={expandedSections['faq-10']} onOpenChange={() => toggleSection('faq-10')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: How does hyperparameter tuning improve results?</h3>
+                      {expandedSections['faq-10'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> Hyperparameter tuning systematically searches for optimal model parameters and can improve 
+                        performance by 5-20% typically. The system offers two search methods:</p>
+                        <div className="grid md:grid-cols-2 gap-3 mt-2">
+                          <div className="bg-blue-50 p-3 rounded">
+                            <strong className="text-blue-900">Grid Search</strong>
+                            <p className="text-xs mt-1">Tests all parameter combinations exhaustively. More thorough but slower. 
+                            Best when you know the approximate parameter ranges.</p>
+                          </div>
+                          <div className="bg-orange-50 p-3 rounded">
+                            <strong className="text-orange-900">Random Search</strong>
+                            <p className="text-xs mt-1">Random sampling of parameter space. Faster with good results. 
+                            Best for initial exploration or large parameter spaces.</p>
+                          </div>
+                        </div>
+                        <p className="mt-2">Most beneficial for Random Forest, XGBoost, and LightGBM models.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-11']} onOpenChange={() => toggleSection('faq-11')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What is the Training Metadata feature?</h3>
+                      {expandedSections['faq-11'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> Training Metadata automatically tracks every model training session. This includes:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li>All models trained and their performance metrics</li>
+                          <li>Dataset used, target variable, and features selected</li>
+                          <li>Problem type (regression/classification/time series)</li>
+                          <li>Training timestamps and session duration</li>
+                          <li>Hyperparameters and model configurations</li>
+                        </ul>
+                        <p className="mt-2"><strong>Use Cases:</strong></p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li>Compare performance across different experiments</li>
+                          <li>Track model improvements over time</li>
+                          <li>Reproduce successful training sessions</li>
+                          <li>Maintain audit trail for compliance</li>
+                        </ul>
+                        <p className="mt-2">Access via the <strong>Training Metadata</strong> tab in Dashboard.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-12']} onOpenChange={() => toggleSection('faq-12')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: How does the Feedback Loop / Active Learning work?</h3>
+                      {expandedSections['faq-12'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> The Feedback Loop enables continuous model improvement based on real-world performance:</p>
+                        <div className="bg-green-50 p-3 rounded mt-2">
+                          <p className="font-semibold mb-2">4-Step Process:</p>
+                          <ol className="list-decimal list-inside ml-4 space-y-1">
+                            <li>Model makes predictions on new data</li>
+                            <li>You mark predictions as correct/incorrect or provide actual outcome</li>
+                            <li>System tracks accuracy and identifies improvement areas</li>
+                            <li>Retrain model with feedback data for better performance</li>
+                          </ol>
+                        </div>
+                        <p className="mt-2"><strong>Active Learning:</strong> The system automatically identifies uncertain predictions 
+                        (low confidence) and prioritizes them for your review, maximizing learning efficiency.</p>
+                        <p className="mt-2">Navigate to <strong>Feedback & Learning</strong> tab to track and retrain models.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-13']} onOpenChange={() => toggleSection('faq-13')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What's the difference between Prophet and LSTM for time series?</h3>
+                      {expandedSections['faq-13'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <div className="grid md:grid-cols-2 gap-3 mt-2">
+                          <div className="bg-blue-50 p-3 rounded">
+                            <strong className="text-blue-900">Prophet (Facebook)</strong>
+                            <p className="text-xs mt-2"><strong>Best For:</strong></p>
+                            <ul className="text-xs list-disc list-inside ml-2">
+                              <li>Business forecasting</li>
+                              <li>Seasonal patterns</li>
+                              <li>Holiday effects</li>
+                              <li>Missing data tolerance</li>
+                            </ul>
+                            <p className="text-xs mt-2"><strong>Strengths:</strong> Interpretable trend decomposition, handles outliers well</p>
+                          </div>
+                          <div className="bg-purple-50 p-3 rounded">
+                            <strong className="text-purple-900">LSTM (Deep Learning)</strong>
+                            <p className="text-xs mt-2"><strong>Best For:</strong></p>
+                            <ul className="text-xs list-disc list-inside ml-2">
+                              <li>Complex patterns</li>
+                              <li>Long-term dependencies</li>
+                              <li>Large datasets (1000+ points)</li>
+                              <li>Multivariate forecasting</li>
+                            </ul>
+                            <p className="text-xs mt-2"><strong>Strengths:</strong> Captures non-linear patterns, learns from data</p>
+                          </div>
+                        </div>
+                        <p className="mt-2">💡 <strong>Tip:</strong> Use "Both" option to compare and choose the best performer!</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Usage & Deployment FAQs */}
+                  <div className="border-b pb-3 pt-4">
+                    <h3 className="font-bold text-lg text-indigo-600 mb-3">⚙️ Usage & Deployment</h3>
                   </div>
 
-                  <div className="border-b pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: What's the maximum dataset size?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> For CSV uploads, we recommend up to 100MB. For larger datasets, use database connections. 
-                      The system automatically samples large datasets (intelligently stratified) to ensure analysis completes 
-                      in reasonable time while maintaining representativeness.
-                    </p>
-                  </div>
+                  <Collapsible open={expandedSections['faq-14']} onOpenChange={() => toggleSection('faq-14')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: Can I use PROMISE AI for real-time predictions?</h3>
+                      {expandedSections['faq-14'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <p className="text-gray-700 text-sm">
+                        <strong>A:</strong> PROMISE AI is designed for batch analysis and model training/evaluation. For production deployment 
+                        with real-time predictions, export your trained model configurations and deploy them in your infrastructure using 
+                        standard ML serving frameworks (TensorFlow Serving, TorchServe, FastAPI microservice, etc.). The Training Metadata 
+                        feature provides all parameters needed to reproduce models. The Feedback Loop allows you to improve models based 
+                        on real-world performance.
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
 
-                  <div className="border-b pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: How does hyperparameter tuning improve results?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> Hyperparameter tuning systematically searches for optimal model parameters. 
-                      It can improve model performance by 5-20% typically. Use Grid Search for thorough optimization 
-                      or Random Search for faster results. Most beneficial for Random Forest, XGBoost, and LightGBM models.
-                    </p>
-                  </div>
+                  <Collapsible open={expandedSections['faq-15']} onOpenChange={() => toggleSection('faq-15')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: How do I interpret business recommendations?</h3>
+                      {expandedSections['faq-15'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> Business recommendations are AI-generated strategic actions based on your analysis results. 
+                        They're categorized by priority:</p>
+                        <div className="space-y-2 mt-2">
+                          <div className="bg-red-50 p-3 rounded border-l-4 border-red-500">
+                            <strong className="text-red-900">🔴 High Priority</strong>
+                            <p className="text-xs mt-1">Critical actions with high expected impact. Implement immediately. 
+                            Usually addresses data quality issues or significant business opportunities.</p>
+                          </div>
+                          <div className="bg-yellow-50 p-3 rounded border-l-4 border-yellow-500">
+                            <strong className="text-yellow-900">🟡 Medium Priority</strong>
+                            <p className="text-xs mt-1">Important improvements that can be scheduled. 
+                            Good ROI but not urgent.</p>
+                          </div>
+                          <div className="bg-green-50 p-3 rounded border-l-4 border-green-500">
+                            <strong className="text-green-900">🟢 Low Priority</strong>
+                            <p className="text-xs mt-1">Nice-to-have enhancements with lower effort. 
+                            Consider for future optimization.</p>
+                          </div>
+                        </div>
+                        <p className="mt-2">⚠️ <strong>Important:</strong> Treat recommendations as starting points. Always validate with 
+                        domain expertise before implementation.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
 
-                  <div className="border-b pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: What data sources are supported?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> PROMISE AI supports:
-                      <ul className="list-disc list-inside mt-2 ml-4">
-                        <li>CSV file upload</li>
-                        <li>PostgreSQL (with Kerberos)</li>
-                        <li>MySQL (with Kerberos)</li>
-                        <li>SQL Server</li>
-                        <li>Oracle</li>
-                        <li>MongoDB</li>
-                      </ul>
-                      All with optional Kerberos authentication for enterprise security.
-                    </p>
-                  </div>
+                  <Collapsible open={expandedSections['faq-16']} onOpenChange={() => toggleSection('faq-16')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: Do my results persist when I switch between tabs?</h3>
+                      {expandedSections['faq-16'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <p className="text-gray-700 text-sm">
+                        <strong>A:</strong> Yes! All your analysis results are cached and persist across tab switches. You can freely navigate 
+                        between Predictive Analysis, Time Series, Tune Models, and Feedback tabs without losing any work. Results remain 
+                        available until you load a different dataset or refresh the browser. This allows you to compare different analysis 
+                        approaches efficiently.
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
 
-                  <div className="pb-4">
-                    <h3 className="font-semibold text-lg mb-2">Q: How do I interpret business recommendations?</h3>
-                    <p className="text-gray-700 text-sm">
-                      <strong>A:</strong> Business recommendations are AI-generated strategic actions based on your analysis. 
-                      They're categorized by priority (High/Medium/Low) and include expected impact and implementation effort. 
-                      Treat them as starting points for discussion - validate with domain expertise before implementation.
-                    </p>
-                  </div>
+                  <Collapsible open={expandedSections['faq-17']} onOpenChange={() => toggleSection('faq-17')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: How secure is Kerberos authentication?</h3>
+                      {expandedSections['faq-17'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <p className="text-gray-700 text-sm">
+                        <strong>A:</strong> Kerberos authentication provides enterprise-grade security using ticket-based authentication. 
+                        It eliminates the need to transmit passwords over the network and provides mutual authentication between client and server. 
+                        PROMISE AI supports Kerberos for PostgreSQL, MySQL, and other enterprise databases. Your credentials are never stored - 
+                        only temporary tickets are used for authentication. This is the same security standard used by major enterprises worldwide.
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-18']} onOpenChange={() => toggleSection('faq-18')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What happens to my data after analysis?</h3>
+                      {expandedSections['faq-18'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <p className="text-gray-700 text-sm">
+                        <strong>A:</strong> Your uploaded data is stored securely in MongoDB for the duration of your analysis session. 
+                        Analysis results, model metadata, and training history are saved separately. You can delete datasets at any time from 
+                        the Dashboard. For database connections, we only query and cache a sample for analysis - your source data remains in 
+                        your database. All data transmission is encrypted, and we follow enterprise security best practices.
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-19']} onOpenChange={() => toggleSection('faq-19')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: Can I export my models or analysis results?</h3>
+                      {expandedSections['faq-19'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> Yes, multiple export options are available:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li><strong>PDF Download:</strong> Export entire analysis with charts and insights (Ctrl+P / Cmd+P)</li>
+                          <li><strong>Training Metadata:</strong> Download model parameters and performance metrics for reproduction</li>
+                          <li><strong>Model Recreation:</strong> Use saved hyperparameters from Training Metadata to recreate models in your environment</li>
+                          <li><strong>API Integration:</strong> Training metadata includes all information needed for API-based model serving</li>
+                        </ul>
+                        <p className="mt-2">For production deployment, we recommend exporting model configurations and retraining with 
+                        the same parameters in your ML infrastructure.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Collapsible open={expandedSections['faq-20']} onOpenChange={() => toggleSection('faq-20')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What should I do if analysis is taking too long?</h3>
+                      {expandedSections['faq-20'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> If analysis is slower than expected, try these optimization strategies:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li><strong>Reduce Features:</strong> Use Variable Selection to choose only relevant features</li>
+                          <li><strong>Sample Data:</strong> For very large datasets, the system auto-samples, but you can manually sample before upload</li>
+                          <li><strong>Skip LSTM:</strong> LSTM is powerful but slowest - may not be needed for simpler patterns</li>
+                          <li><strong>Use Faster Models:</strong> Decision Tree and Logistic Regression are fastest</li>
+                          <li><strong>Database Connection:</strong> For large CSVs, use database connection instead</li>
+                        </ul>
+                        <p className="mt-2">💡 Typical analysis times: Small datasets (&lt;1K rows): 30-60s | Medium (1-10K): 1-3 mins | Large (10K+): 3-8 mins</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               </Card>
 
