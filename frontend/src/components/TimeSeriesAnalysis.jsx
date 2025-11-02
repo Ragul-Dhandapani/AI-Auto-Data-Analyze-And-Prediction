@@ -41,7 +41,18 @@ const TimeSeriesAnalysis = ({ dataset }) => {
     }
 
     setLoading(true);
+    setProgress(10);
+    setProgressMessage('Loading time series data...');
+    
     try {
+      setProgress(30);
+      setProgressMessage('Preparing temporal features...');
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setProgress(50);
+      setProgressMessage(`Running ${forecastMethod} forecasting...`);
+      
       const response = await axios.post(`${API}/analysis/time-series`, {
         dataset_id: dataset.id,
         time_column: timeColumn,
@@ -50,12 +61,24 @@ const TimeSeriesAnalysis = ({ dataset }) => {
         forecast_method: forecastMethod
       });
 
+      setProgress(80);
+      setProgressMessage('Detecting anomalies...');
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setProgress(100);
+      setProgressMessage('Analysis complete!');
+      
       setResults(response.data);
       toast.success('Time series analysis complete!');
     } catch (error) {
       toast.error('Analysis failed: ' + (error.response?.data?.detail || error.message));
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+        setProgress(0);
+        setProgressMessage('');
+      }, 500);
     }
   };
 
