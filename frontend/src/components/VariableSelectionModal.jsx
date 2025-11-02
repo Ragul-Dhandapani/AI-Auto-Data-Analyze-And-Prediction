@@ -12,10 +12,10 @@ const API = `${BACKEND_URL}/api`;
 const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
   const [mode, setMode] = useState("manual"); // "manual", "ai", "hybrid"
   const [loading, setLoading] = useState(false);
-  const [targetVariable, setTargetVariable] = useState("");
-  const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [targetVariables, setTargetVariables] = useState([{ target: "", features: [] }]); // Support multiple targets
   const [aiSuggestions, setAiSuggestions] = useState(null);
   const [showExplanations, setShowExplanations] = useState(false);
+  const [activeTargetIndex, setActiveTargetIndex] = useState(0);
 
   useEffect(() => {
     // Auto-select numeric columns as potential targets
