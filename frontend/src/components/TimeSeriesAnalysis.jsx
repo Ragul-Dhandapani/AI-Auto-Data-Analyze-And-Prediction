@@ -12,6 +12,8 @@ const API = `${BACKEND_URL}/api`;
 
 const TimeSeriesAnalysis = ({ dataset }) => {
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
   const [timeColumn, setTimeColumn] = useState('');
   const [targetColumn, setTargetColumn] = useState('');
   const [forecastPeriods, setForecastPeriods] = useState(30);
