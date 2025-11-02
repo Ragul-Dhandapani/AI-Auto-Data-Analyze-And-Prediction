@@ -397,105 +397,35 @@ async def holistic_analysis(request: Dict[str, Any]):
                 "sample_size": SAMPLE_SIZE,
                 "message": f"⚡ Performance optimized: Used {SAMPLE_SIZE} samples from {original_size} rows for faster analysis"
             }
-                                    categorical_selected.append(feat)
-                                else:
-                                    excluded_features.append(f"{feat} (too many categories: {unique_count})")
-                    
-                    # Build feedback message
-                    feedback_parts = []
-                    if numeric_selected or categorical_selected:
-                        feedback_parts.append(f"✅ Using your selected target '{target_col}'")
-                        if numeric_selected:
-                            feedback_parts.append(f"   • Numeric features: {', '.join(numeric_selected)}")
-                        if categorical_selected:
-                            feedback_parts.append(f"   • Categorical features (encoded): {', '.join(categorical_selected)}")
-                        if excluded_features:
-                            feedback_parts.append(f"   • ⚠️ Excluded: {', '.join(excluded_features)}")
-                    
-                    selection_feedback = {
-                        "status": "used",
-                        "message": "\n".join(feedback_parts),
-                        "used_target": target_col,
-                        "used_features": numeric_selected + categorical_selected,
-                        "numeric_features": numeric_selected,
-                        "categorical_features": categorical_selected,
-                        "excluded_features": excluded_features
-                    }
-                    logging.info(f"Using user selection: target={target_col}, numeric={numeric_selected}, categorical={categorical_selected}")
-                else:
-                    # Target is not numeric - fallback to auto
-                    target_col = suggest_best_target_column(df)
-                    selection_feedback = {
-                        "status": "modified",
-                        "message": f"⚠️ Your selected target '{user_target}' is not numeric (type: {target_dtype}). Auto-selected '{target_col}' instead for prediction.\n\nNote: ML regression models require numeric targets. Consider selecting a different variable or converting categorical data to numeric.",
-                        "used_target": target_col,
-                        "used_features": None
-                    }
-                    logging.warning(f"User target '{user_target}' is not numeric, using auto-selected: {target_col}")
-            else:
-                # Target not in dataframe - fallback
-                target_col = suggest_best_target_column(df)
-                selection_feedback = {
-                    "status": "modified",
-                    "message": f"⚠️ Your selected target '{user_target}' was not found in the dataset. Auto-selected '{target_col}' instead.\n\nPlease ensure the target variable name matches exactly with column names in your data.",
-                    "used_target": target_col,
-                    "used_features": None
-                }
-                logging.warning(f"User target '{user_target}' not found, using auto-selected: {target_col}")
-        else:
-            # No user selection - use auto detection
-            if len(numeric_cols) >= 2:
-                target_col = suggest_best_target_column(df)
-                logging.info(f"Auto-suggested target column: {target_col}")
-        
-        # Train models if target column is available
-        if target_col and len(numeric_cols) >= 2:
-            try:
-                logging.info(f"Starting ML training for target: {target_col}")
-                
-                # If user provided specific features, train only on those
-                if selected_features and len(selected_features) > 0:
-                    # Create subset dataframe with selected features + target
-                    train_columns = selected_features + [target_col]
-                    df_subset = df[train_columns].copy()
-                    
-                    # Handle categorical features with one-hot encoding
-                    if selection_feedback and selection_feedback.get('categorical_features'):
-                        categorical_cols = selection_feedback['categorical_features']
-                        # One-hot encode categorical columns
-                        df_subset = pd.get_dummies(df_subset, columns=categorical_cols, drop_first=True, dtype=int)
-                        logging.info(f"Encoded {len(categorical_cols)} categorical features, result shape: {df_subset.shape}")
-                    
-                    models_result = train_multiple_models(df_subset, target_col)
-                else:
-                    # Train on all numeric features
-                    models_result = train_multiple_models(df, target_col)
-                
-                logging.info(f"ML training completed: {len(models_result.get('models', []))} models trained")
-            except Exception as e:
-                logging.error(f"ML training failed: {str(e)}", exc_info=True)
-                models_result = {"models": [], "error": str(e)}
-        elif not target_col:
-            logging.warning("No suitable target column found or suggested")
-            models_result = {"models": [], "message": "No suitable target column found"}
         
         # 3. Generate Auto Charts - filtered to user selection if provided
-        if user_selection and selected_features:
-            # Create subset for visualization with selected variables only
-            chart_columns = [target_col] + selected_features
-            df_charts = df[chart_columns].copy()
-            auto_charts, skipped_charts = generate_auto_charts(df_charts, max_charts=15)
+        if user_selection and len(target_cols) > 0:
+            # Use first target for chart generation (or could generate for all targets)
+            first_target = target_cols[0]
+            selected_features = target_feature_mapping.get(first_target, [])
+            
+            if selected_features:
+                chart_columns = [first_target] + selected_features
+                df_charts = df_analysis[chart_columns].copy()
+                auto_charts, skipped_charts = generate_auto_charts(df_charts, max_charts=15)
+            else:
+                auto_charts, skipped_charts = generate_auto_charts(df_analysis, max_charts=15)
         else:
-            auto_charts, skipped_charts = generate_auto_charts(df, max_charts=15)
+            auto_charts, skipped_charts = generate_auto_charts(df_analysis, max_charts=15)
         
         # 4. Correlation Analysis - filtered to user selection if provided
-        if user_selection and selected_features and target_col:
-            # Only show correlations for selected variables
-            corr_columns = [target_col] + selected_features
-            df_corr = df[corr_columns].select_dtypes(include=[np.number]).copy()
-            correlations = get_correlation_matrix(df_corr)
+        if user_selection and len(target_cols) > 0:
+            first_target = target_cols[0]
+            selected_features = target_feature_mapping.get(first_target, [])
+            
+            if selected_features:
+                corr_columns = [first_target] + selected_features
+                df_corr = df_analysis[corr_columns].select_dtypes(include=[np.number]).copy()
+                correlations = get_correlation_matrix(df_corr)
+            else:
+                correlations = get_correlation_matrix(df_analysis)
         else:
-            correlations = get_correlation_matrix(df)
+            correlations = get_correlation_matrix(df_analysis)
         
         # 5. Generate AI insights (if LLM key available)
         insights = "Analysis complete. Explore the charts and model results above."
