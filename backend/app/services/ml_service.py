@@ -150,9 +150,35 @@ def train_multiple_models(
                     feature_imp_pairs = sorted(zip(feature_cols, importances), key=lambda x: x[1], reverse=True)
                     feature_importance_dict = {feat: float(imp) for feat, imp in feature_imp_pairs[:10]}
             elif is_lstm:
-                # For LSTM, we can't directly get feature importance, but we can note which features were used
-                # Indicate that all features contributed equally (or leave empty)
-                pass  # Keep empty dict for LSTM
+                # For LSTM, use simple permutation importance
+                # Calculate baseline score
+                baseline_score = r2_test
+                
+                # Calculate feature importance by permuting each feature
+                importances = []
+                for i, feat in enumerate(feature_cols):
+                    # Create a copy of test data
+                    X_test_perm = X_test.copy()
+                    # Permute this feature
+                    X_test_perm.iloc[:, i] = np.random.permutation(X_test_perm.iloc[:, i].values)
+                    # Reshape for LSTM
+                    X_test_perm_lstm = X_test_perm.values.reshape((X_test_perm.shape[0], X_test_perm.shape[1], 1))
+                    # Predict with permuted feature
+                    y_pred_perm = model.predict(X_test_perm_lstm, verbose=0).flatten()
+                    # Calculate score decrease
+                    perm_score = r2_score(y_test, y_pred_perm)
+                    importance = max(0, baseline_score - perm_score)  # How much performance dropped
+                    importances.append(importance)
+                
+                # Normalize importances
+                if sum(importances) > 0:
+                    importances = [imp / sum(importances) for imp in importances]
+                    feature_imp_pairs = sorted(zip(feature_cols, importances), key=lambda x: x[1], reverse=True)
+                    feature_importance_dict = {feat: float(imp) for feat, imp in feature_imp_pairs[:10]}
+                else:
+                    # Fallback: equal importance for all features
+                    equal_importance = 1.0 / len(feature_cols)
+                    feature_importance_dict = {feat: equal_importance for feat in feature_cols[:10]}
             
             # Calculate confidence level based on R² score
             if r2_test >= 0.7:
