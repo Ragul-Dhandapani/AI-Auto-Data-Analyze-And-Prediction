@@ -286,13 +286,94 @@ async def holistic_analysis(request: Dict[str, Any]):
         
         logging.info(f"Holistic analysis: Found {len(numeric_cols)} numeric columns, dataset size: {len(df_analysis)}")
         
-        # Handle multiple targets or single target
+        # Process user variable selection with intelligence
         target_cols = []
-        target_feature_mapping = {}  # Map each target to its features
+        target_feature_mapping = {}  # Maps target -> list of features
+        selection_feedback = None
         
-        logging.info(f"User selection received: {user_selection}")
-        
+        # AI-POWERED VARIABLE VALIDATION
         if user_selection and user_selection != {}:
+            # Extract user's choices
+            user_targets = user_selection.get("target_variables", [])
+            user_target = user_selection.get("target_variable")
+            
+            # Convert to list format
+            if user_target and not user_targets:
+                user_targets = [{"target": user_target, "features": user_selection.get("selected_features", [])}]
+            elif not user_targets and not user_target:
+                user_targets = []
+            
+            # Extract all targets and features for validation
+            all_user_targets = []
+            all_user_features = []
+            
+            if isinstance(user_targets, list):
+                for t in user_targets:
+                    if isinstance(t, dict):
+                        target_name = t.get("target")
+                        if target_name:
+                            all_user_targets.append(target_name)
+                            all_user_features.extend(t.get("features", []))
+            
+            # Remove duplicates
+            all_user_features = list(set(all_user_features))
+            
+            logging.info(f"Validating user selection: targets={all_user_targets}, features={all_user_features[:5]}")
+            
+            # VALIDATE WITH AI
+            if all_user_targets or all_user_features:
+                try:
+                    validation = variable_intelligence.validate_variable_selection(
+                        df=df_analysis,
+                        target_variables=all_user_targets,
+                        features=all_user_features
+                    )
+                    
+                    logging.info(f"Variable validation result: valid={validation['valid']}, override={validation['override_needed']}")
+                    
+                    # If override is needed, use AI suggestions
+                    if validation['override_needed'] and validation['suggested_target']:
+                        logging.warning(f"AI overriding variables. Suggested target: {validation['suggested_target']}")
+                        
+                        # Use AI suggestions
+                        target_cols = [validation['suggested_target']]
+                        target_feature_mapping[validation['suggested_target']] = validation['suggested_features']
+                        
+                        # Create rich feedback for user
+                        selection_feedback = {
+                            "status": "override",
+                            "message": f"⚠️ **AI Variable Selection Override**\n\n{validation['explanation']}\n\n" +
+                                     f"✅ **Proceeding with AI-recommended variables for better results.**",
+                            "used_targets": target_cols,
+                            "is_multi_target": False,
+                            "confidence": validation['confidence'],
+                            "ai_override": True,
+                            "original_targets": all_user_targets,
+                            "original_features": all_user_features[:10]
+                        }
+                    elif validation['valid']:
+                        # User selection is good, use it
+                        logging.info("User selection validated successfully")
+                        for t in user_targets:
+                            if isinstance(t, dict):
+                                target_name = t.get("target")
+                                if target_name in df_analysis.columns:
+                                    target_cols.append(target_name)
+                                    target_feature_mapping[target_name] = t.get("features", [])
+                        
+                        selection_feedback = {
+                            "status": "used",
+                            "message": f"✅ Your variable selection looks good! (Confidence: {validation['confidence']*100:.0f}%)",
+                            "used_targets": target_cols,
+                            "is_multi_target": len(target_cols) > 1
+                        }
+                    
+                except Exception as e:
+                    logging.error(f"Variable validation failed: {str(e)}")
+                    # Fall back to manual validation below
+        
+        # If no targets set yet, fall back to original logic
+        if len(target_cols) == 0:
             # Check if multiple targets provided
             user_targets = user_selection.get("target_variables", [])  # Multiple targets
             user_target = user_selection.get("target_variable")  # Single target (backward compatibility)
