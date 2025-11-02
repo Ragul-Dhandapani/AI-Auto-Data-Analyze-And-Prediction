@@ -369,29 +369,40 @@ const TrainingMetadataPage = () => {
                   )}
                 </div>
               ) : (
-                /* Selected Workspaces View */
+                /* Selected Workspaces View - Show message */
                 <div className="space-y-6">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-semibold text-blue-800 mb-2">Selected Workspaces</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {displayData.workspaces.map((ws, idx) => (
-                        <div key={idx} className="bg-white p-3 rounded border">
-                          <p className="font-medium text-gray-800">{ws.workspace_name}</p>
-                          <p className="text-xs text-gray-500">
-                            Saved: {new Date(ws.saved_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      ))}
+                  <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <Database className="w-5 h-5 text-yellow-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-yellow-800">Individual Workspace Analysis Not Available</h3>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          To view detailed training metadata and model performance, please deselect all workspaces to see the complete dataset analysis.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">
-                      Workspace-specific analysis will be available in the PDF report
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      The PDF will contain detailed performance metrics for the selected workspaces
-                    </p>
+                    
+                    <div className="mt-4 p-4 bg-white rounded border border-yellow-300">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Selected Workspaces ({displayData.workspaces.length}):</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {displayData.workspaces.map((ws, idx) => (
+                          <div key={idx} className="text-sm text-gray-600 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                            {ws.workspace_name} - {new Date(ws.saved_at).toLocaleDateString()}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <Button
+                      onClick={() => setSelectedWorkspaces([])}
+                      variant="outline"
+                      className="mt-4"
+                    >
+                      Clear Selection & View Complete Analysis
+                    </Button>
                   </div>
                 </div>
               )}
