@@ -55,15 +55,18 @@ const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelect
         </TabsContent>
 
         <TabsContent value="timeseries">
-          <TimeSeriesAnalysis dataset={dataset} />
+          <TimeSeriesAnalysis 
+            dataset={dataset} 
+            cachedResults={tabResults.timeseries}
+            onComplete={handleTimeSeriesComplete}
+          />
         </TabsContent>
 
         <TabsContent value="hyperparameters">
           <HyperparameterTuning 
             dataset={dataset}
-            onComplete={(results) => {
-              console.log('Tuning complete:', results);
-            }}
+            cachedResults={tabResults.hyperparameters}
+            onComplete={handleHyperparameterComplete}
           />
         </TabsContent>
 
