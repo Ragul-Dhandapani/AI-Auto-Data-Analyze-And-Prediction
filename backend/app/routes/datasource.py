@@ -684,62 +684,8 @@ async def save_query_dataset(config: dict):
         if not dataset_name:
             raise HTTPException(400, "Dataset name is required")
         
-        # Execute query based on database type (same logic as preview)
-        if db_type == "postgresql":
-            import psycopg2
-            conn = psycopg2.connect(
-                host=config.get("host"),
-                port=config.get("port", 5432),
-                user=config.get("username"),
-                password=config.get("password"),
-                database=config.get("database"),
-                connect_timeout=10
-            )
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            
-        elif db_type == "mysql":
-            import pymysql
-            conn = pymysql.connect(
-                host=config.get("host"),
-                port=config.get("port", 3306),
-                user=config.get("username"),
-                password=config.get("password"),
-                database=config.get("database"),
-                connect_timeout=10
-            )
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            
-        elif db_type == "oracle":
-            import cx_Oracle
-            dsn = cx_Oracle.makedsn(
-                config.get("host"),
-                config.get("port", 1521),
-                service_name=config.get("service_name")
-            )
-            conn = cx_Oracle.connect(
-                user=config.get("username"),
-                password=config.get("password"),
-                dsn=dsn
-            )
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            
-        elif db_type == "sqlserver":
-            import pyodbc
-            conn_str = (
-                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-                f"SERVER={config.get('host')},{config.get('port', 1433)};"
-                f"DATABASE={config.get('database')};"
-                f"UID={config.get('username')};"
-                f"PWD={config.get('password')}"
-            )
-            conn = pyodbc.connect(conn_str, timeout=10)
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            
-        elif db_type == "mongodb":
+        # Execute query based on database type using helper function
+        if db_type == "mongodb":
             from pymongo import MongoClient
             client = MongoClient(
                 host=config.get("host"),
@@ -757,7 +703,9 @@ async def save_query_dataset(config: dict):
             df = pd.DataFrame(data)
             client.close()
         else:
-            raise HTTPException(400, f"Unsupported database type: {db_type}")
+            conn = create_db_connection(db_type, config)
+            df = pd.read_sql_query(query, conn)
+            conn.close()
         
         if df.empty:
             raise HTTPException(400, "Query returned no results")
