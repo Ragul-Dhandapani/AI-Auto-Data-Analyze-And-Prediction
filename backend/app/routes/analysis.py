@@ -379,7 +379,7 @@ Provide concise, actionable insights."""
                 pass
         
         # Get dataset info for training metadata
-        dataset = await db.datasets.find_one({"id": request.dataset_id}, {"_id": 0})
+        dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
         training_count = dataset.get("training_count", 1)
         last_trained_at = dataset.get("updated_at", datetime.now(timezone.utc).isoformat())
         
