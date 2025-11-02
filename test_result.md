@@ -366,14 +366,16 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "2.2"
-  test_sequence: 7
+  version: "3.0"
+  test_sequence: 8
   run_ui: true
 
 test_plan:
   current_focus:
-    - "Phase 3 - AI Insights & Model Explainability Integration"
-    - "Phase 3 - AI Insights, Explainability, and Recommendations Display"
+    - "Phase 1 Enterprise - Classification Support"
+    - "Phase 1 Enterprise - Time Series Forecasting Service"
+    - "Phase 1 Enterprise - Problem Type Selector UI"
+    - "Phase 1 Enterprise - Classification Metrics Display"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
