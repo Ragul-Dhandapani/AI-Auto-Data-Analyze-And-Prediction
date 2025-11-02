@@ -210,6 +210,76 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
           </Card>
         </div>
 
+        {/* Problem Type Selection */}
+        <div className="mb-6">
+          <Label className="text-lg font-semibold mb-3 block">
+            🎯 Problem Type
+          </Label>
+          <div className="grid md:grid-cols-4 gap-3">
+            <Card
+              className={`p-3 cursor-pointer border-2 transition-all ${
+                problemType === "auto" ? "border-blue-500 bg-blue-50" : "border-gray-200"
+              }`}
+              onClick={() => setProblemType("auto")}
+            >
+              <h3 className="font-semibold text-sm">🔍 Auto-Detect</h3>
+              <p className="text-xs text-gray-600 mt-1">Let AI decide</p>
+            </Card>
+            
+            <Card
+              className={`p-3 cursor-pointer border-2 transition-all ${
+                problemType === "regression" ? "border-green-500 bg-green-50" : "border-gray-200"
+              }`}
+              onClick={() => setProblemType("regression")}
+            >
+              <h3 className="font-semibold text-sm">📈 Regression</h3>
+              <p className="text-xs text-gray-600 mt-1">Predict numbers</p>
+            </Card>
+            
+            <Card
+              className={`p-3 cursor-pointer border-2 transition-all ${
+                problemType === "classification" ? "border-purple-500 bg-purple-50" : "border-gray-200"
+              }`}
+              onClick={() => setProblemType("classification")}
+            >
+              <h3 className="font-semibold text-sm">🏷️ Classification</h3>
+              <p className="text-xs text-gray-600 mt-1">Predict categories</p>
+            </Card>
+            
+            <Card
+              className={`p-3 cursor-pointer border-2 transition-all ${
+                problemType === "time_series" ? "border-orange-500 bg-orange-50" : "border-gray-200"
+              }`}
+              onClick={() => setProblemType("time_series")}
+            >
+              <h3 className="font-semibold text-sm">⏰ Time Series</h3>
+              <p className="text-xs text-gray-600 mt-1">Forecast trends</p>
+            </Card>
+          </div>
+        </div>
+
+        {/* Time Column Selection (only for time series) */}
+        {problemType === "time_series" && (
+          <div className="mb-6">
+            <Label className="text-lg font-semibold mb-2 block">
+              📅 Select Time/Date Column
+            </Label>
+            <select
+              className="w-full p-2 border rounded"
+              value={timeColumn}
+              onChange={(e) => setTimeColumn(e.target.value)}
+            >
+              <option value="">-- Select Time Column --</option>
+              {availableColumns.map(col => (
+                <option key={col} value={col}>{col}</option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-600 mt-1">
+              Select the column containing dates or timestamps
+            </p>
+          </div>
+        )}
+
         {/* Target Variables Selection - Support Multiple */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
