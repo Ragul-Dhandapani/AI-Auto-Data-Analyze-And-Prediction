@@ -216,15 +216,18 @@ frontend:
   
   - task: "Custom Query - Execute and preview UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/DataSourceSelector.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Updated executeCustomQuery function to call /api/datasource/execute-query-preview endpoint. Shows query results with row/column count, preview table (first 3 rows, first 6 columns), and enables 'Load Data' button. Added queryResults state to store preview data. Changed button text from 'Execute Query & Load Data' to just 'Execute Query'."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Custom Query UI functionality working correctly. Execute Query button calls preview endpoint, displays results with row/column count, shows preview table, and enables Load Data button. Query results state management working properly. UI flow from query execution to data loading is functional."
   
   - task: "Custom Query - Dataset naming dialog"
     implemented: true
