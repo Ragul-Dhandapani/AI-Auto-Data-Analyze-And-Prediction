@@ -304,7 +304,7 @@ const DashboardPage = () => {
             <div>
               <DataSourceSelector onDatasetLoaded={handleDatasetLoaded} />
               
-              {datasets.length > 0 && (
+              {datasets.length > 0 ? (
                 <Card className="mt-8 p-6 bg-white/90 backdrop-blur-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
