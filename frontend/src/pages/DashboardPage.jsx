@@ -555,7 +555,7 @@ const DashboardPage = () => {
                       'variableSelection state': variableSelection,
                       'final prop value': selectedDataset?.variableSelection || variableSelection
                     })}
-                    <PredictiveAnalysis 
+                    <AnalysisTabs
                       dataset={selectedDataset}
                       analysisCache={predictiveAnalysisCache[selectedDataset.id]}
                       variableSelection={selectedDataset?.variableSelection || variableSelection}
