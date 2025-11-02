@@ -1,0 +1,289 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { X, Brain, Hand, Sparkles, Loader2, Check, Info } from "lucide-react";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
+  const [mode, setMode] = useState("manual"); // "manual", "ai", "hybrid"
+  const [loading, setLoading] = useState(false);
+  const [targetVariable, setTargetVariable] = useState("");
+  const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [aiSuggestions, setAiSuggestions] = useState(null);
+  const [showExplanations, setShowExplanations] = useState(false);
+
+  useEffect(() => {
+    // Auto-select numeric columns as potential targets
+    if (dataset && dataset.dtypes) {
+      const numericCols = Object.keys(dataset.dtypes).filter(
+        col => ['int64', 'float64', 'int32', 'float32'].includes(dataset.dtypes[col])
+      );
+      if (numericCols.length > 0 && !targetVariable) {
+        setTargetVariable(numericCols[0]);
+      }
+    }
+  }, [dataset]);
+
+  const fetchAISuggestions = async () => {
+    if (!targetVariable) {
+      toast.error("Please select a target variable first");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API}/datasource/suggest-features`, {
+        dataset_id: dataset.id,
+        target_column: targetVariable,
+        top_n: 10
+      });
+
+      setAiSuggestions(response.data);
+      
+      // Auto-select suggested features in hybrid mode
+      if (mode === "hybrid" || mode === "ai") {
+        const suggestedFeatureNames = response.data.suggested_features.map(f => f.feature);
+        setSelectedFeatures(suggestedFeatureNames);
+      }
+
+      toast.success(`AI suggested ${response.data.suggested_features.length} features`);
+    } catch (error) {
+      console.error("Error fetching AI suggestions:", error);
+      toast.error("Failed to get AI suggestions: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFeatureToggle = (feature) => {
+    setSelectedFeatures(prev => 
+      prev.includes(feature)
+        ? prev.filter(f => f !== feature)
+        : [...prev, feature]
+    );
+  };
+
+  const handleConfirm = () => {
+    if (!targetVariable) {
+      toast.error("Please select a target variable");
+      return;
+    }
+
+    if (selectedFeatures.length === 0) {
+      toast.error("Please select at least one feature");
+      return;
+    }
+
+    onConfirm({
+      target: targetVariable,
+      features: selectedFeatures,
+      mode: mode,
+      aiSuggestions: aiSuggestions
+    });
+  };
+
+  const handleSkip = () => {
+    // User wants to proceed without variable selection
+    onConfirm({
+      target: null,
+      features: [],
+      mode: "skip"
+    });
+  };
+
+  if (!dataset) return null;
+
+  const availableColumns = dataset.columns || [];
+  const numericColumns = availableColumns.filter(col => {
+    const dtype = dataset.dtypes?.[col];
+    return dtype && ['int64', 'float64', 'int32', 'float32'].includes(dtype);
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h2 className="text-2xl font-bold">🎯 Select Target Variables & Features</h2>
+            <p className="text-gray-600 mt-1">
+              Choose how you'd like to select variables for prediction and analysis
+            </p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {/* Mode Selection */}
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <Card
+            className={`p-4 cursor-pointer border-2 transition-all ${
+              mode === "manual" ? "border-blue-500 bg-blue-50" : "border-gray-200"
+            }`}
+            onClick={() => setMode("manual")}
+          >
+            <Hand className="w-8 h-8 text-blue-600 mb-2" />
+            <h3 className="font-semibold mb-1">✅ Manual Selection</h3>
+            <p className="text-sm text-gray-600">
+              Choose target and features yourself with checkboxes
+            </p>
+          </Card>
+
+          <Card
+            className={`p-4 cursor-pointer border-2 transition-all ${
+              mode === "ai" ? "border-purple-500 bg-purple-50" : "border-gray-200"
+            }`}
+            onClick={() => setMode("ai")}
+          >
+            <Brain className="w-8 h-8 text-purple-600 mb-2" />
+            <h3 className="font-semibold mb-1">🤖 AI-Suggested</h3>
+            <p className="text-sm text-gray-600">
+              Let AI analyze and suggest best features automatically
+            </p>
+          </Card>
+
+          <Card
+            className={`p-4 cursor-pointer border-2 transition-all ${
+              mode === "hybrid" ? "border-green-500 bg-green-50" : "border-gray-200"
+            }`}
+            onClick={() => setMode("hybrid")}
+          >
+            <Sparkles className="w-8 h-8 text-green-600 mb-2" />
+            <h3 className="font-semibold mb-1">🔄 Hybrid</h3>
+            <p className="text-sm text-gray-600">
+              AI suggests, you review and adjust the selection
+            </p>
+          </Card>
+        </div>
+
+        {/* Target Variable Selection */}
+        <div className="mb-6">
+          <Label className="text-lg font-semibold mb-2 block">
+            1️⃣ Select Target Variable (What to Predict)
+          </Label>
+          <select
+            className="w-full p-2 border rounded"
+            value={targetVariable}
+            onChange={(e) => setTargetVariable(e.target.value)}
+          >
+            <option value="">-- Select Target Variable --</option>
+            {numericColumns.map(col => (
+              <option key={col} value={col}>{col}</option>
+            ))}
+          </select>
+          {numericColumns.length === 0 && (
+            <p className="text-sm text-amber-600 mt-1">
+              ⚠️ No numeric columns found for prediction target
+            </p>
+          )}
+        </div>
+
+        {/* AI Suggestion Button */}
+        {(mode === "ai" || mode === "hybrid") && targetVariable && (
+          <div className="mb-6">
+            <Button
+              onClick={fetchAISuggestions}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Analyzing Features...</>
+              ) : (
+                <><Brain className="w-4 h-4 mr-2" /> Get AI Feature Suggestions</>
+              )}
+            </Button>
+          </div>
+        )}
+
+        {/* Feature Selection */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <Label className="text-lg font-semibold">
+              2️⃣ Select Features (Predictors)
+            </Label>
+            {aiSuggestions && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowExplanations(!showExplanations)}
+              >
+                <Info className="w-4 h-4 mr-1" />
+                {showExplanations ? "Hide" : "Show"} Explanations
+              </Button>
+            )}
+          </div>
+
+          <div className="max-h-96 overflow-y-auto border rounded p-4">
+            {availableColumns
+              .filter(col => col !== targetVariable)
+              .map(col => {
+                const suggestion = aiSuggestions?.suggested_features?.find(s => s.feature === col);
+                const isSelected = selectedFeatures.includes(col);
+
+                return (
+                  <div key={col} className="mb-3">
+                    <div className="flex items-start space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`feature-${col}`}
+                        checked={isSelected}
+                        onChange={() => handleFeatureToggle(col)}
+                        className="mt-1"
+                        disabled={mode === "ai" && loading}
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor={`feature-${col}`} className="cursor-pointer">
+                          <span className="font-medium">{col}</span>
+                          {suggestion && (
+                            <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                              AI Score: {(suggestion.combined_score * 100).toFixed(1)}%
+                            </span>
+                          )}
+                        </Label>
+                        
+                        {showExplanations && suggestion && (
+                          <p className="text-sm text-gray-600 mt-1 pl-6">
+                            💡 {suggestion.explanation}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+          <p className="text-sm text-gray-600 mt-2">
+            Selected: {selectedFeatures.length} feature(s)
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button
+            onClick={handleSkip}
+            variant="outline"
+            className="flex-1"
+          >
+            Skip (Use All Columns)
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            className="flex-1"
+            disabled={!targetVariable || selectedFeatures.length === 0}
+          >
+            <Check className="w-4 h-4 mr-2" />
+            Confirm Selection
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+export default VariableSelectionModal;
