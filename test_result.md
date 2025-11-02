@@ -231,8 +231,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Recent Datasets API - Exclude full data array"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
