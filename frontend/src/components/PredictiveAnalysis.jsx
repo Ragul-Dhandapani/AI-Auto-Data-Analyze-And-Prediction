@@ -1012,6 +1012,49 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate }) => {
         </Card>
       )}
 
+      {/* Skipped Charts Explanation */}
+      {analysisResults.skipped_charts && analysisResults.skipped_charts.length > 0 && (
+        <Card className="p-6 bg-amber-50 border border-amber-200">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-amber-900 mb-2">Why Some Charts Weren't Generated</h3>
+              <p className="text-sm text-amber-700 mb-4">
+                Due to data characteristics or insufficient values, the following chart types couldn't be created:
+              </p>
+              <div className="space-y-2">
+                {(() => {
+                  // Group by category
+                  const grouped = analysisResults.skipped_charts.reduce((acc, item) => {
+                    if (!acc[item.category]) acc[item.category] = [];
+                    acc[item.category].push(item.reason);
+                    return acc;
+                  }, {});
+                  
+                  return Object.entries(grouped).map(([category, reasons], idx) => (
+                    <div key={idx} className="bg-white p-3 rounded border border-amber-200">
+                      <p className="font-medium text-amber-900 text-sm mb-1">📊 {category}</p>
+                      <ul className="text-xs text-amber-700 space-y-1 ml-4">
+                        {reasons.slice(0, 3).map((reason, ridx) => (
+                          <li key={ridx} className="list-disc">{reason}</li>
+                        ))}
+                        {reasons.length > 3 && (
+                          <li className="text-amber-600 italic">... and {reasons.length - 3} more</li>
+                        )}
+                      </ul>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Chat Panel */}
       {showChat && !chatMinimized && (
         <div 
