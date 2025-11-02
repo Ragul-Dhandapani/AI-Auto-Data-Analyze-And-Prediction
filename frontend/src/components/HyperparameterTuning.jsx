@@ -10,14 +10,14 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const HyperparameterTuning = ({ dataset, onComplete }) => {
+const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
   const [loading, setLoading] = useState(false);
   const [targetColumn, setTargetColumn] = useState('');
   const [modelType, setModelType] = useState('random_forest');
   const [problemType, setProblemType] = useState('regression');
   const [searchType, setSearchType] = useState('grid');
   const [nIter, setNIter] = useState(20);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState(cachedResults || null);
   
   // Custom parameter grid
   const [customParams, setCustomParams] = useState({
@@ -25,6 +25,13 @@ const HyperparameterTuning = ({ dataset, onComplete }) => {
     max_depth: '5,10,20',
     learning_rate: '0.01,0.1,0.2'
   });
+
+  // Update results when cache changes
+  useEffect(() => {
+    if (cachedResults) {
+      setResults(cachedResults);
+    }
+  }, [cachedResults]);
 
   const runTuning = async () => {
     if (!targetColumn) {
