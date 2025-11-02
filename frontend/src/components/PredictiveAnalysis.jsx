@@ -744,6 +744,199 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
+      {/* PHASE 3: AI-Powered Insights */}
+      {analysisResults.ai_insights && analysisResults.ai_insights.length > 0 && !collapsed.ai_insights && (
+        <Card className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                🤖 AI-Powered Insights
+                <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">Phase 3</span>
+              </h3>
+              <p className="text-sm text-gray-600 italic mt-1">Intelligent analysis powered by Emergent LLM</p>
+            </div>
+            <Button onClick={() => toggleSection('ai_insights')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {analysisResults.ai_insights.map((insight, idx) => (
+              <div key={idx} className={`p-4 rounded-lg border-2 ${
+                insight.severity === 'critical' ? 'bg-red-50 border-red-300' :
+                insight.severity === 'warning' ? 'bg-amber-50 border-amber-300' :
+                'bg-blue-50 border-blue-300'
+              }`}>
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    insight.severity === 'critical' ? 'bg-red-100' :
+                    insight.severity === 'warning' ? 'bg-amber-100' :
+                    'bg-blue-100'
+                  }`}>
+                    <span className="text-lg">
+                      {insight.type === 'anomaly' ? '⚠️' :
+                       insight.type === 'trend' ? '📈' :
+                       insight.type === 'correlation' ? '🔗' :
+                       insight.type === 'business' ? '💼' : '📊'}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900">{insight.title}</h4>
+                    <p className="text-sm text-gray-700 mt-1">{insight.description}</p>
+                    {insight.recommendation && (
+                      <div className="mt-2 p-2 bg-white rounded border border-gray-200">
+                        <p className="text-xs text-gray-600">
+                          <span className="font-semibold">💡 Recommendation:</span> {insight.recommendation}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.ai_insights && analysisResults.ai_insights.length > 0 && collapsed.ai_insights && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('ai_insights')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">🤖 AI-Powered Insights ({analysisResults.ai_insights.length} insights)</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
+      {/* PHASE 3: Model Explainability */}
+      {analysisResults.explainability && analysisResults.explainability.available && !collapsed.explainability && (
+        <Card className="p-6 bg-gradient-to-br from-green-50 to-teal-50 border-2 border-green-200">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                🔍 Model Explainability
+                <span className="text-xs bg-green-600 text-white px-2 py-1 rounded-full">Phase 3</span>
+              </h3>
+              <p className="text-sm text-gray-600 italic mt-1">Understand how your model makes predictions</p>
+            </div>
+            <Button onClick={() => toggleSection('explainability')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="space-y-4">
+            <div className="p-4 bg-white rounded-lg border border-green-200">
+              <h4 className="font-semibold text-green-900 mb-2">
+                Model: {analysisResults.explainability.model_name}
+              </h4>
+              <p className="text-sm text-gray-700 mb-3">
+                Target: <span className="font-medium">{analysisResults.explainability.target_variable}</span>
+              </p>
+              <p className="text-sm text-gray-700">{analysisResults.explainability.explanation_text}</p>
+              {analysisResults.explainability.note && (
+                <p className="text-xs text-gray-500 mt-2 italic">{analysisResults.explainability.note}</p>
+              )}
+            </div>
+            {analysisResults.explainability.feature_importance && 
+             Object.keys(analysisResults.explainability.feature_importance).length > 0 && (
+              <div className="p-4 bg-white rounded-lg border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-3">Feature Importance Scores</h4>
+                <div className="space-y-2">
+                  {Object.entries(analysisResults.explainability.feature_importance)
+                    .slice(0, 5)
+                    .map(([feature, importance], idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-sm text-gray-700 w-32 truncate" title={feature}>{feature}</span>
+                        <div className="flex-1 h-6 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-green-400 to-green-600"
+                            style={{ width: `${importance * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-600 w-12 text-right">{(importance * 100).toFixed(1)}%</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.explainability && analysisResults.explainability.available && collapsed.explainability && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('explainability')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">🔍 Model Explainability</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
+      {/* PHASE 3: Business Recommendations */}
+      {analysisResults.business_recommendations && analysisResults.business_recommendations.length > 0 && !collapsed.recommendations && (
+        <Card className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                💼 Business Recommendations
+                <span className="text-xs bg-orange-600 text-white px-2 py-1 rounded-full">Phase 3</span>
+              </h3>
+              <p className="text-sm text-gray-600 italic mt-1">AI-generated strategic recommendations</p>
+            </div>
+            <Button onClick={() => toggleSection('recommendations')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {analysisResults.business_recommendations.map((rec, idx) => (
+              <div key={idx} className={`p-4 rounded-lg border-2 ${
+                rec.priority === 'high' ? 'bg-red-50 border-red-300' :
+                rec.priority === 'medium' ? 'bg-yellow-50 border-yellow-300' :
+                'bg-green-50 border-green-300'
+              }`}>
+                <div className="flex items-start gap-3">
+                  <div className={`px-2 py-1 rounded text-xs font-semibold ${
+                    rec.priority === 'high' ? 'bg-red-600 text-white' :
+                    rec.priority === 'medium' ? 'bg-yellow-600 text-white' :
+                    'bg-green-600 text-white'
+                  }`}>
+                    {rec.priority?.toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900">{rec.title}</h4>
+                    <p className="text-sm text-gray-700 mt-1">{rec.description}</p>
+                    {rec.expected_impact && (
+                      <div className="mt-2 flex items-start gap-2 text-xs">
+                        <span className="font-semibold text-gray-600">📊 Expected Impact:</span>
+                        <span className="text-gray-700">{rec.expected_impact}</span>
+                      </div>
+                    )}
+                    {rec.implementation_effort && (
+                      <div className="mt-1 flex items-start gap-2 text-xs">
+                        <span className="font-semibold text-gray-600">⚙️ Effort:</span>
+                        <span className={`px-2 py-0.5 rounded ${
+                          rec.implementation_effort === 'high' ? 'bg-red-100 text-red-700' :
+                          rec.implementation_effort === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {rec.implementation_effort}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.business_recommendations && analysisResults.business_recommendations.length > 0 && collapsed.recommendations && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('recommendations')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">💼 Business Recommendations ({analysisResults.business_recommendations.length} recommendations)</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
       {/* Correlations */}
       {analysisResults.correlations && 
        analysisResults.correlations.correlations && 
