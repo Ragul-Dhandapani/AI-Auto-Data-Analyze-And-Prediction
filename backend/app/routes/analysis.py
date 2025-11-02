@@ -241,42 +241,106 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
 
 
 @router.post("/holistic")
-async def holistic_analysis(request: HolisticRequest):
-    """Perform comprehensive analysis"""
+async def holistic_analysis(request: Dict[str, Any]):
+    """Perform comprehensive analysis with optional user variable selection"""
     try:
-        df = await load_dataframe(request.dataset_id)
+        dataset_id = request.get("dataset_id")
+        user_selection = request.get("user_selection")  # Optional user-provided target and features
+        
+        df = await load_dataframe(dataset_id)
         
         # Update training counter
         await db.datasets.update_one(
-            {"id": request.dataset_id},
+            {"id": dataset_id},
             {"$inc": {"training_count": 1}}
         )
         
         # 1. Data Profiling
         profile = generate_data_profile(df)
         
-        # 2. Train ML Models
+        # 2. Train ML Models with user selection if provided
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         models_result = {"models": [], "message": "No numeric columns for ML training"}
+        selection_feedback = None
         
         logging.info(f"Holistic analysis: Found {len(numeric_cols)} numeric columns")
         
-        if len(numeric_cols) >= 2:
-            # Suggest best target column
-            target_col = suggest_best_target_column(df)
-            logging.info(f"Suggested target column: {target_col}")
+        # Determine target column - prefer user selection
+        target_col = None
+        selected_features = None
+        
+        if user_selection:
+            # User provided target and features
+            user_target = user_selection.get("target_variable")
+            user_features = user_selection.get("selected_features", [])
+            selection_mode = user_selection.get("mode", "manual")
             
-            if target_col:
-                try:
-                    logging.info(f"Starting ML training for target: {target_col}")
-                    models_result = train_multiple_models(df, target_col)
-                    logging.info(f"ML training completed: {len(models_result.get('models', []))} models trained")
-                except Exception as e:
-                    logging.error(f"ML training failed: {str(e)}", exc_info=True)
-                    models_result = {"models": [], "error": str(e)}
+            logging.info(f"User selection: target={user_target}, features={user_features}, mode={selection_mode}")
+            
+            # Validate user's target selection
+            if user_target and user_target in df.columns:
+                target_dtype = df[user_target].dtype
+                
+                # Check if target is numeric
+                if pd.api.types.is_numeric_dtype(target_dtype):
+                    target_col = user_target
+                    selected_features = [f for f in user_features if f in df.columns and f != target_col]
+                    
+                    selection_feedback = {
+                        "status": "used",
+                        "message": f"✅ Using your selected target variable '{target_col}' with {len(selected_features)} features.",
+                        "used_target": target_col,
+                        "used_features": selected_features
+                    }
+                    logging.info(f"Using user selection: target={target_col}, features={selected_features}")
+                else:
+                    # Target is not numeric - fallback to auto
+                    target_col = suggest_best_target_column(df)
+                    selection_feedback = {
+                        "status": "modified",
+                        "message": f"⚠️ Your selected target '{user_target}' is not numeric (type: {target_dtype}). Auto-selected '{target_col}' instead for prediction.\n\nNote: ML regression models require numeric targets. Consider selecting a different variable or converting categorical data to numeric.",
+                        "used_target": target_col,
+                        "used_features": None
+                    }
+                    logging.warning(f"User target '{user_target}' is not numeric, using auto-selected: {target_col}")
             else:
-                logging.warning("No suitable target column suggested")
-                models_result = {"models": [], "message": "No suitable target column found"}
+                # Target not in dataframe - fallback
+                target_col = suggest_best_target_column(df)
+                selection_feedback = {
+                    "status": "modified",
+                    "message": f"⚠️ Your selected target '{user_target}' was not found in the dataset. Auto-selected '{target_col}' instead.\n\nPlease ensure the target variable name matches exactly with column names in your data.",
+                    "used_target": target_col,
+                    "used_features": None
+                }
+                logging.warning(f"User target '{user_target}' not found, using auto-selected: {target_col}")
+        else:
+            # No user selection - use auto detection
+            if len(numeric_cols) >= 2:
+                target_col = suggest_best_target_column(df)
+                logging.info(f"Auto-suggested target column: {target_col}")
+        
+        # Train models if target column is available
+        if target_col and len(numeric_cols) >= 2:
+            try:
+                logging.info(f"Starting ML training for target: {target_col}")
+                
+                # If user provided specific features, train only on those
+                if selected_features and len(selected_features) > 0:
+                    # Create subset dataframe with selected features + target
+                    train_columns = selected_features + [target_col]
+                    df_subset = df[train_columns].copy()
+                    models_result = train_multiple_models(df_subset, target_col)
+                else:
+                    # Train on all numeric features
+                    models_result = train_multiple_models(df, target_col)
+                
+                logging.info(f"ML training completed: {len(models_result.get('models', []))} models trained")
+            except Exception as e:
+                logging.error(f"ML training failed: {str(e)}", exc_info=True)
+                models_result = {"models": [], "error": str(e)}
+        elif not target_col:
+            logging.warning("No suitable target column found or suggested")
+            models_result = {"models": [], "message": "No suitable target column found"}
         
         # 3. Generate Auto Charts
         auto_charts, skipped_charts = generate_auto_charts(df, max_charts=15)
