@@ -246,14 +246,15 @@ async def load_table_endpoint(request: DataSourceTest, table_name: str):
 @router.get("/recent")
 async def get_recent_datasets(limit: int = 10):
     """Get recent datasets"""
+    import json
+    import math
+    from fastapi.responses import JSONResponse
+    
     try:
         cursor = db.datasets.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
         datasets = await cursor.to_list(length=limit)
         
         # Sanitize datasets to handle NaN, Infinity values
-        import json
-        import math
-        
         def sanitize_value(obj):
             """Recursively sanitize NaN and Infinity values"""
             if isinstance(obj, float):
@@ -269,7 +270,8 @@ async def get_recent_datasets(limit: int = 10):
         
         sanitized_datasets = [sanitize_value(ds) for ds in datasets]
         
-        return {"datasets": sanitized_datasets}
+        # Return as JSONResponse to handle serialization properly
+        return JSONResponse(content={"datasets": sanitized_datasets})
     except Exception as e:
         raise HTTPException(500, f"Failed to fetch datasets: {str(e)}")
 
