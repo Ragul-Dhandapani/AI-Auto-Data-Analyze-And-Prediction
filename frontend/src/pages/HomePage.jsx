@@ -13,7 +13,11 @@ import {
   Shield,
   ArrowRight,
   Award,
-  BookOpen
+  BookOpen,
+  Target,
+  Settings,
+  MessageSquare,
+  Activity
 } from "lucide-react";
 
 const HomePage = () => {
