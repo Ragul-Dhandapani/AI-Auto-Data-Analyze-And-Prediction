@@ -155,3 +155,5 @@ xgboost
 scikit-learn
 tensorflow
 reportlab
+lime==0.2.0.1
+shap==0.49.1
