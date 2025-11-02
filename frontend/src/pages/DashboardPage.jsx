@@ -92,7 +92,8 @@ const DashboardPage = () => {
           target: t.target,
           features: t.features
         })),
-        mode: selection.mode
+        mode: selection.mode,
+        problem_type: selection.problem_type || "auto"
       };
       console.log('Transformed to multi-target format:', transformedSelection);
     } else if (selection.target) {
@@ -101,6 +102,8 @@ const DashboardPage = () => {
         target_variable: selection.target,
         selected_features: selection.features,
         mode: selection.mode,
+        problem_type: selection.problem_type || "auto",
+        time_column: selection.time_column,
         ai_suggestions: selection.aiSuggestions
       };
       console.log('Transformed to single-target format:', transformedSelection);
