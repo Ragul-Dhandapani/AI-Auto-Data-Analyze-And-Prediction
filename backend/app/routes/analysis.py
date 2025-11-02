@@ -570,26 +570,91 @@ async def holistic_analysis(request: Dict[str, Any]):
         training_count = dataset.get("training_count", 1)
         last_trained_at = dataset.get("updated_at", datetime.now(timezone.utc).isoformat())
         
-        # Build volume analysis from profile data
+        # Build enhanced volume analysis from profile data
         volume_analysis = {
             "total_records": len(df),
-            "by_dimensions": []
+            "by_dimensions": [],
+            "summary": {
+                "total_columns": len(df.columns),
+                "numeric_columns": len(df.select_dtypes(include=[np.number]).columns),
+                "categorical_columns": len(df.select_dtypes(include=['object', 'category']).columns),
+                "memory_usage_mb": round(df.memory_usage(deep=True).sum() / (1024 * 1024), 2)
+            }
         }
         
         # Add categorical breakdown for volume analysis
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
-        for col in categorical_cols[:3]:  # Top 3 categorical columns
-            value_counts = df[col].value_counts().to_dict()
+        for col in categorical_cols[:5]:  # Top 5 categorical columns
+            value_counts = df[col].value_counts()
+            value_counts_dict = value_counts.head(10).to_dict()  # Top 10 values
+            
             # Calculate insights
-            total = sum(value_counts.values())
-            top_category = max(value_counts, key=value_counts.get)
-            top_percentage = (value_counts[top_category] / total * 100)
+            total = value_counts.sum()
+            top_category = value_counts.index[0] if len(value_counts) > 0 else "N/A"
+            top_percentage = (value_counts.iloc[0] / total * 100) if len(value_counts) > 0 else 0
+            
+            # Check for imbalance
+            imbalance_status = ""
+            if top_percentage > 70:
+                imbalance_status = " ⚠️ Highly imbalanced - one category dominates."
+            elif top_percentage > 50:
+                imbalance_status = " ⚠️ Moderately imbalanced."
+            
+            # Calculate diversity
+            unique_count = len(value_counts)
+            diversity_pct = (unique_count / total) * 100
+            
+            diversity_status = ""
+            if diversity_pct > 50:
+                diversity_status = " High diversity - many unique values."
+            elif diversity_pct < 5:
+                diversity_status = " Low diversity - few unique values."
             
             volume_analysis["by_dimensions"].append({
                 "dimension": col,
-                "breakdown": value_counts,
-                "insights": f"Most common: {top_category} ({top_percentage:.1f}%). Total unique values: {len(value_counts)}"
+                "breakdown": value_counts_dict,
+                "total_unique": unique_count,
+                "top_value": top_category,
+                "top_percentage": round(top_percentage, 1),
+                "insights": f"Most common: {top_category} ({top_percentage:.1f}%). Total unique values: {unique_count}.{imbalance_status}{diversity_status}",
+                "chart_data": {
+                    "labels": list(value_counts_dict.keys()),
+                    "values": list(value_counts_dict.values())
+                }
             })
+        
+        # Add numeric column volume analysis
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_volume = []
+        for col in numeric_cols[:5]:  # Top 5 numeric columns
+            col_min = df[col].min()
+            col_max = df[col].max()
+            col_mean = df[col].mean()
+            col_median = df[col].median()
+            col_std = df[col].std()
+            
+            # Calculate range analysis
+            range_size = col_max - col_min
+            range_status = ""
+            if col_std > 0:
+                coefficient_variation = (col_std / col_mean) * 100 if col_mean != 0 else 0
+                if coefficient_variation > 100:
+                    range_status = " High variability detected."
+                elif coefficient_variation < 10:
+                    range_status = " Low variability - values are consistent."
+            
+            numeric_volume.append({
+                "dimension": col,
+                "min": round(col_min, 2),
+                "max": round(col_max, 2),
+                "mean": round(col_mean, 2),
+                "median": round(col_median, 2),
+                "std": round(col_std, 2),
+                "range": round(range_size, 2),
+                "insights": f"Range: {col_min:.2f} to {col_max:.2f}. Mean: {col_mean:.2f}, Median: {col_median:.2f}.{range_status}"
+            })
+        
+        volume_analysis["numeric_summary"] = numeric_volume
         
         response = {
             "profile": profile,
