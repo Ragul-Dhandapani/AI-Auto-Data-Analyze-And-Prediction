@@ -154,6 +154,18 @@ frontend:
           agent: "main"
           comment: "Added Kerberos authentication toggle UI in both 'Database Connection' and 'Custom SQL Query' tabs. Added use_kerberos boolean to dbConfig state. Created blue-styled checkbox with 🔐 icon and descriptive text 'Enable for enterprise-level secure authentication via GSSAPI'. Password field becomes optional and hidden when Kerberos is enabled. Username placeholder changes to 'Kerberos principal' when Kerberos is selected. Toggle only appears for PostgreSQL and MySQL database types."
 
+  - task: "Phase 3 - AI Insights, Explainability, and Recommendations Display"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Added three new collapsible sections for Phase 3 features: 1) AI-Powered Insights - displays structured insights with severity indicators (critical/warning/info), categorized by type (anomaly/trend/correlation/business) with icons and recommendations. 2) Model Explainability - shows best model explanation with feature importance visualization using progress bars. 3) Business Recommendations - displays AI-generated strategic recommendations with priority levels (high/medium/low), expected impact, and implementation effort. All sections have gradient backgrounds with Phase 3 badges, proper collapse/expand functionality, and are integrated into the existing PredictiveAnalysis layout."
+
   - task: "Variable Selection Modal & Predictive Analysis Integration"
     implemented: true
     working: true
