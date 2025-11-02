@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import TrainingMetadataPage from "@/pages/TrainingMetadataPage";
+import DocumentationPage from "@/pages/DocumentationPage";
 import { Toaster } from "@/components/ui/sonner";
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/training-metadata" element={<TrainingMetadataPage />} />
+          <Route path="/documentation" element={<DocumentationPage />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
