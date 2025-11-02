@@ -18,6 +18,10 @@ from app.services.data_service import generate_data_profile, get_correlation_mat
 from app.services.ml_service import train_multiple_models, suggest_best_target_column
 from app.services.visualization_service import generate_auto_charts
 from app.services.chat_service import process_chat_message
+# Phase 3: Import new services for analytics, explainability, and AI insights
+from app.services.analytics_tracking_service import track_chart_view, get_popular_charts_for_dataset_type
+from app.services.model_explainability_service import generate_shap_explanation, generate_lime_explanation, explain_prediction_in_words
+from app.services.ai_insights_service import generate_statistical_insights, generate_anomaly_detection_insights, generate_business_recommendations
 import os
 import logging
 
