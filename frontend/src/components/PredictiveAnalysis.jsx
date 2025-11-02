@@ -45,6 +45,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
+  
+  // Debug: Log the variableSelection prop value whenever it changes
+  useEffect(() => {
+    console.log('PredictiveAnalysis received variableSelection prop:', variableSelection);
+  }, [variableSelection]);
 
   // Use cached data if available, re-run when variableSelection changes
   useEffect(() => {
