@@ -180,11 +180,28 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> Tuple[List[D
                         if validate_chart_data(chart):
                             charts.append(chart)
                             pairs_added += 1
+                        else:
+                            skipped_charts.append({
+                                "category": "Correlation Scatter Plots", 
+                                "reason": f"Invalid chart data for {col1} vs {col2}"
+                            })
                 except Exception as e:
                     logging.warning(f"Failed to generate scatter plot: {str(e)}")
+                    skipped_charts.append({
+                        "category": "Correlation Scatter Plots", 
+                        "reason": f"Error generating scatter plot: {str(e)[:100]}"
+                    })
+    
+    if len(numeric_cols) < 2:
+        skipped_charts.append({
+            "category": "Correlation Scatter Plots", 
+            "reason": "Need at least 2 numeric columns for correlation analysis"
+        })
     
     logging.info(f"Generated {len(charts)} valid charts out of maximum {max_charts}")
-    return charts[:max_charts]
+    logging.info(f"Skipped {len(skipped_charts)} chart categories due to data limitations")
+    
+    return charts[:max_charts], skipped_charts
 
 
 def generate_single_chart(
