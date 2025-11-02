@@ -53,16 +53,25 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
   // Use cached data if available, re-run when variableSelection changes
   useEffect(() => {
+    console.log('useEffect triggered - analysisCache:', !!analysisCache, 'hasRunAnalysisRef:', hasRunAnalysisRef.current, 'loading:', loading, 'variableSelection:', variableSelection);
+    
     if (analysisCache && !variableSelection) {
       // Use cached data only if no new variable selection
       setAnalysisResults(analysisCache);
       hasRunAnalysisRef.current = true;
     } else if (dataset && !hasRunAnalysisRef.current && !loading) {
-      // Run analysis for new dataset or when variable selection changes
-      hasRunAnalysisRef.current = true;
-      runHolisticAnalysis();
-    } else if (variableSelection && hasRunAnalysisRef.current) {
+      // Only run if we have a dataset and haven't run yet
+      // Wait a bit for variableSelection to be set if modal was just closed
+      const timer = setTimeout(() => {
+        console.log('Running analysis after delay, variableSelection:', variableSelection);
+        hasRunAnalysisRef.current = true;
+        runHolisticAnalysis();
+      }, 100); // 100ms delay to let state settle
+      
+      return () => clearTimeout(timer);
+    } else if (variableSelection && hasRunAnalysisRef.current && !loading) {
       // Variable selection changed after initial load - re-run analysis
+      console.log('Re-running analysis due to variableSelection change');
       runHolisticAnalysis();
     }
   }, [dataset, analysisCache, variableSelection]);
