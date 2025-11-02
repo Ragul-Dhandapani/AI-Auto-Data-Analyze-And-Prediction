@@ -67,11 +67,10 @@ async def run_analysis(request: Dict[str, Any]):
         
         elif analysis_type == "visualize":
             # Generate auto charts for visualization panel
-            auto_charts = generate_auto_charts(df, max_charts=15)
+            auto_charts, skipped_charts = generate_auto_charts(df, max_charts=15)
             
             # Convert to frontend format with proper structure
             charts = []
-            skipped = []
             
             for chart in auto_charts:
                 if chart and chart.get("plotly_data"):
