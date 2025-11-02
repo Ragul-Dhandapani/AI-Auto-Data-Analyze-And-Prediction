@@ -1,0 +1,102 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import PredictiveAnalysis from './PredictiveAnalysis';
+import TimeSeriesAnalysis from './TimeSeriesAnalysis';
+import HyperparameterTuning from './HyperparameterTuning';
+import FeedbackPanel from './FeedbackPanel';
+import { BarChart3, TrendingUp, Settings, MessageSquare, Database } from 'lucide-react';
+
+const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection }) => {
+  return (
+    <div className="w-full">
+      <Tabs defaultValue="predictive" className="w-full">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsTrigger value="predictive" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Predictive Analysis
+          </TabsTrigger>
+          <TabsTrigger value="timeseries" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Time Series
+          </TabsTrigger>
+          <TabsTrigger value="hyperparameters" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Tune Models
+          </TabsTrigger>
+          <TabsTrigger value="feedback" className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Feedback & Learning
+          </TabsTrigger>
+          <TabsTrigger value="relational" className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            Multi-Table
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="predictive">
+          <PredictiveAnalysis
+            dataset={dataset}
+            analysisCache={analysisCache}
+            onAnalysisUpdate={onAnalysisUpdate}
+            variableSelection={variableSelection}
+          />
+        </TabsContent>
+
+        <TabsContent value="timeseries">
+          <TimeSeriesAnalysis dataset={dataset} />
+        </TabsContent>
+
+        <TabsContent value="hyperparameters">
+          <HyperparameterTuning 
+            dataset={dataset}
+            onComplete={(results) => {
+              console.log('Tuning complete:', results);
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="feedback">
+          <Card className="p-6">
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">Active Learning & Model Improvement</h2>
+                <p className="text-gray-600">
+                  Track model performance and retrain based on user feedback
+                </p>
+              </div>
+              
+              {analysisCache?.ml_models && analysisCache.ml_models.length > 0 ? (
+                <FeedbackPanel
+                  dataset={dataset}
+                  modelName={analysisCache.ml_models[0].model_name}
+                />
+              ) : (
+                <div className="text-center text-gray-500 py-12">
+                  <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <p>Run predictive analysis first to enable feedback tracking</p>
+                </div>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="relational">
+          <Card className="p-6">
+            <div className="text-center py-12">
+              <Database className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-xl font-bold mb-2">Multi-Table Join Analysis</h3>
+              <p className="text-gray-600 mb-4">
+                Join multiple datasets and analyze relationships
+              </p>
+              <p className="text-sm text-gray-500">
+                <strong>Feature Coming Soon:</strong> Upload multiple related tables to perform joins and analyze combined data
+              </p>
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default AnalysisTabs;
