@@ -818,7 +818,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
       {/* Training Metadata */}
       {analysisResults.training_metadata && (
-        <Card className="p-4 bg-gradient-to-r from-green-50 to-teal-50 border-green-200">
+        <Card id="training-metadata-section" className="p-4 bg-gradient-to-r from-green-50 to-teal-50 border-green-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
