@@ -41,16 +41,39 @@ def test_oracle_connection(config: dict) -> dict:
 
 
 def test_postgresql_connection(config: dict) -> dict:
-    """Test PostgreSQL database connection"""
+    """Test PostgreSQL database connection with optional Kerberos support"""
     try:
-        conn = psycopg2.connect(
-            host=config.get('host'),
-            port=config.get('port', 5432),
-            database=config.get('database'),
-            user=config.get('username'),
-            password=config.get('password'),
-            connect_timeout=10  # 10 second timeout
-        )
+        use_kerberos = config.get('use_kerberos', False)
+        
+        if use_kerberos:
+            # Kerberos authentication via GSSAPI
+            # Uses system Kerberos ticket (kinit must be run beforehand)
+            try:
+                conn = psycopg2.connect(
+                    host=config.get('host'),
+                    port=config.get('port', 5432),
+                    database=config.get('database'),
+                    user=config.get('username'),  # Kerberos principal
+                    gssencmode='prefer',  # Use GSSAPI encryption if available
+                    connect_timeout=10
+                )
+            except Exception as kerb_error:
+                # Fallback to standard auth if Kerberos fails
+                return {
+                    "success": False, 
+                    "message": f"Kerberos authentication failed: {str(kerb_error)}. Ensure kinit is configured or disable Kerberos."
+                }
+        else:
+            # Standard username/password authentication
+            conn = psycopg2.connect(
+                host=config.get('host'),
+                port=config.get('port', 5432),
+                database=config.get('database'),
+                user=config.get('username'),
+                password=config.get('password'),
+                connect_timeout=10
+            )
+        
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
         cursor.close()
