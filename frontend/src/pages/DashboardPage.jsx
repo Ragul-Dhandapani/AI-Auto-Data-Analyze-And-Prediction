@@ -454,6 +454,13 @@ const DashboardPage = () => {
                     </div>
                   )}
                 </Card>
+              ) : (
+                <Card className="mt-8 p-6 bg-gray-50 text-center">
+                  <Database className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <p className="text-gray-600 font-medium">No datasets yet</p>
+                  <p className="text-sm text-gray-500 mt-1">Upload a file or connect to a database above to get started</p>
+                  <p className="text-xs text-gray-400 mt-3">Note: If you uploaded data but don't see it, try refreshing the page</p>
+                </Card>
               )}
             </div>
           ) : (
