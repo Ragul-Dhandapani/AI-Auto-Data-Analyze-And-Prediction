@@ -1199,7 +1199,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
        analysisResults.correlations.correlations && 
        analysisResults.correlations.correlations.length > 0 && 
        !collapsed.correlations && (
-        <Card className="p-6">
+        <Card id="correlations-section" className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">🔗 Key Correlations</h3>
