@@ -541,7 +541,7 @@ const DashboardPage = () => {
                 <Tabs defaultValue="profile" className="w-full">
                   <TabsList className="grid w-full grid-cols-3 mb-6">
                     <TabsTrigger value="profile" data-testid="tab-profile">Data Profile</TabsTrigger>
-                    <TabsTrigger value="predict" data-testid="tab-predict">Predictive Analysis</TabsTrigger>
+                    <TabsTrigger value="predict" data-testid="tab-predict">Predictive Analysis & Forecasting</TabsTrigger>
                     <TabsTrigger value="visualize" data-testid="tab-visualize">Visualizations</TabsTrigger>
                   </TabsList>
 
