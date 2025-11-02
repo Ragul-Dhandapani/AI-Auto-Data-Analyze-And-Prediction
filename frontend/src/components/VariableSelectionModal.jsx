@@ -29,8 +29,30 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
     }
   }, [dataset]);
 
+  const addTargetVariable = () => {
+    setTargetVariables([...targetVariables, { target: "", features: [] }]);
+    setActiveTargetIndex(targetVariables.length);
+  };
+
+  const removeTargetVariable = (index) => {
+    if (targetVariables.length > 1) {
+      const updated = targetVariables.filter((_, i) => i !== index);
+      setTargetVariables(updated);
+      if (activeTargetIndex >= updated.length) {
+        setActiveTargetIndex(updated.length - 1);
+      }
+    }
+  };
+
+  const updateTargetVariable = (index, field, value) => {
+    const updated = [...targetVariables];
+    updated[index] = { ...updated[index], [field]: value };
+    setTargetVariables(updated);
+  };
+
   const fetchAISuggestions = async () => {
-    if (!targetVariable) {
+    const currentTarget = targetVariables[activeTargetIndex].target;
+    if (!currentTarget) {
       toast.error("Please select a target variable first");
       return;
     }
@@ -39,7 +61,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
     try {
       const response = await axios.post(`${API}/datasource/suggest-features`, {
         dataset_id: dataset.id,
-        target_column: targetVariable,
+        target_column: currentTarget,
         top_n: 10
       });
 
@@ -48,7 +70,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
       // Auto-select suggested features in hybrid mode
       if (mode === "hybrid" || mode === "ai") {
         const suggestedFeatureNames = response.data.suggested_features.map(f => f.feature);
-        setSelectedFeatures(suggestedFeatureNames);
+        updateTargetVariable(activeTargetIndex, 'features', suggestedFeatureNames);
       }
 
       toast.success(`AI suggested ${response.data.suggested_features.length} features`);
@@ -61,30 +83,39 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
   };
 
   const handleFeatureToggle = (feature) => {
-    setSelectedFeatures(prev => 
-      prev.includes(feature)
-        ? prev.filter(f => f !== feature)
-        : [...prev, feature]
-    );
+    const currentFeatures = targetVariables[activeTargetIndex].features;
+    const updated = currentFeatures.includes(feature)
+      ? currentFeatures.filter(f => f !== feature)
+      : [...currentFeatures, feature];
+    updateTargetVariable(activeTargetIndex, 'features', updated);
   };
 
   const handleConfirm = () => {
-    if (!targetVariable) {
-      toast.error("Please select a target variable");
+    // Validate all targets
+    const validTargets = targetVariables.filter(tv => tv.target && tv.features.length > 0);
+    
+    if (validTargets.length === 0) {
+      toast.error("Please select at least one target with features");
       return;
     }
 
-    if (selectedFeatures.length === 0) {
-      toast.error("Please select at least one feature");
-      return;
+    // Check if multiple targets
+    if (validTargets.length === 1) {
+      // Single target - backward compatible format
+      onConfirm({
+        target: validTargets[0].target,
+        features: validTargets[0].features,
+        mode: mode,
+        aiSuggestions: aiSuggestions
+      });
+    } else {
+      // Multiple targets - new format
+      onConfirm({
+        targets: validTargets,
+        mode: mode,
+        is_multi_target: true
+      });
     }
-
-    onConfirm({
-      target: targetVariable,
-      features: selectedFeatures,
-      mode: mode,
-      aiSuggestions: aiSuggestions
-    });
   };
 
   const handleSkip = () => {
