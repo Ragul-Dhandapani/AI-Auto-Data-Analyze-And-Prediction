@@ -381,11 +381,23 @@ async def holistic_analysis(request: Dict[str, Any]):
             logging.warning("No suitable target column found or suggested")
             models_result = {"models": [], "message": "No suitable target column found"}
         
-        # 3. Generate Auto Charts
-        auto_charts, skipped_charts = generate_auto_charts(df, max_charts=15)
+        # 3. Generate Auto Charts - filtered to user selection if provided
+        if user_selection and selected_features:
+            # Create subset for visualization with selected variables only
+            chart_columns = [target_col] + selected_features
+            df_charts = df[chart_columns].copy()
+            auto_charts, skipped_charts = generate_auto_charts(df_charts, max_charts=15)
+        else:
+            auto_charts, skipped_charts = generate_auto_charts(df, max_charts=15)
         
-        # 4. Correlation Analysis
-        correlations = get_correlation_matrix(df)
+        # 4. Correlation Analysis - filtered to user selection if provided
+        if user_selection and selected_features and target_col:
+            # Only show correlations for selected variables
+            corr_columns = [target_col] + selected_features
+            df_corr = df[corr_columns].select_dtypes(include=[np.number]).copy()
+            correlations = get_correlation_matrix(df_corr)
+        else:
+            correlations = get_correlation_matrix(df)
         
         # 5. Generate AI insights (if LLM key available)
         insights = "Analysis complete. Explore the charts and model results above."
