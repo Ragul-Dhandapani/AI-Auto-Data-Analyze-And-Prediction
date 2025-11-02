@@ -12,7 +12,8 @@ import {
   Zap,
   Shield,
   ArrowRight,
-  Award
+  Award,
+  BookOpen
 } from "lucide-react";
 
 const HomePage = () => {
