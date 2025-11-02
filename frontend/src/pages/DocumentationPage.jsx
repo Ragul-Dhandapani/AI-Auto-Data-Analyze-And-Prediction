@@ -196,7 +196,7 @@ const DocumentationPage = () => {
                         <p className="text-sm text-gray-600">Model explainability</p>
                       </div>
                       <div className="bg-white p-3 rounded">
-                        <strong className="text-green-600">Emergent LLM</strong>
+                        <strong className="text-green-600">LLM Integration</strong>
                         <p className="text-sm text-gray-600">AI-powered insights generation</p>
                       </div>
                     </div>
