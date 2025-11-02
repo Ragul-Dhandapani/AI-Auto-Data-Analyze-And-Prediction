@@ -1211,15 +1211,31 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                           <th className="text-left p-3 font-semibold text-green-900">Rank</th>
                           <th className="text-left p-3 font-semibold text-green-900">Model</th>
                           <th className="text-left p-3 font-semibold text-green-900">Target Variable</th>
-                          <th className="text-right p-3 font-semibold text-green-900">R² Score</th>
-                          <th className="text-right p-3 font-semibold text-green-900">RMSE</th>
+                          {analysisResults.problem_type === 'classification' ? (
+                            <>
+                              <th className="text-right p-3 font-semibold text-green-900">Accuracy</th>
+                              <th className="text-right p-3 font-semibold text-green-900">F1-Score</th>
+                              <th className="text-right p-3 font-semibold text-green-900">Precision</th>
+                            </>
+                          ) : (
+                            <>
+                              <th className="text-right p-3 font-semibold text-green-900">R² Score</th>
+                              <th className="text-right p-3 font-semibold text-green-900">RMSE</th>
+                            </>
+                          )}
                           <th className="text-center p-3 font-semibold text-green-900">Confidence</th>
                           <th className="text-right p-3 font-semibold text-green-900">Train Samples</th>
                         </tr>
                       </thead>
                       <tbody>
                         {[...analysisResults.ml_models]
-                          .sort((a, b) => b.r2_score - a.r2_score)
+                          .sort((a, b) => {
+                            if (analysisResults.problem_type === 'classification') {
+                              return (b.accuracy || 0) - (a.accuracy || 0);
+                            } else {
+                              return (b.r2_score || 0) - (a.r2_score || 0);
+                            }
+                          })
                           .map((model, idx) => (
                             <tr key={idx} className={`border-t ${idx === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}`}>
                               <td className="p-3">
@@ -1237,15 +1253,32 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                                   {model.target_column}
                                 </span>
                               </td>
-                              <td className="p-3 text-right">
-                                <span className={`font-bold ${
-                                  model.r2_score >= 0.7 ? 'text-green-600' : 
-                                  model.r2_score >= 0.5 ? 'text-yellow-600' : 'text-red-600'
-                                }`}>
-                                  {model.r2_score.toFixed(3)}
-                                </span>
-                              </td>
-                              <td className="p-3 text-right text-gray-700">{model.rmse.toFixed(3)}</td>
+                              {analysisResults.problem_type === 'classification' ? (
+                                <>
+                                  <td className="p-3 text-right">
+                                    <span className={`font-bold ${
+                                      (model.accuracy || 0) >= 0.85 ? 'text-green-600' : 
+                                      (model.accuracy || 0) >= 0.70 ? 'text-yellow-600' : 'text-red-600'
+                                    }`}>
+                                      {((model.accuracy || 0) * 100).toFixed(1)}%
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-right text-gray-700">{((model.f1_score || 0) * 100).toFixed(1)}%</td>
+                                  <td className="p-3 text-right text-gray-700">{((model.precision || 0) * 100).toFixed(1)}%</td>
+                                </>
+                              ) : (
+                                <>
+                                  <td className="p-3 text-right">
+                                    <span className={`font-bold ${
+                                      (model.r2_score || 0) >= 0.7 ? 'text-green-600' : 
+                                      (model.r2_score || 0) >= 0.5 ? 'text-yellow-600' : 'text-red-600'
+                                    }`}>
+                                      {(model.r2_score || 0).toFixed(3)}
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-right text-gray-700">{(model.rmse || 0).toFixed(3)}</td>
+                                </>
+                              )}
                               <td className="p-3 text-center">
                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                   model.confidence === 'High' ? 'bg-green-100 text-green-800' : 
@@ -1262,8 +1295,13 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                   </div>
                   
                   <div className="mt-3 text-xs text-green-700">
-                    💡 <strong>Tip:</strong> The model with the highest R² score (closest to 1.0) and lowest RMSE typically performs best. 
-                    Top-ranked model is highlighted with 🏆.
+                    {analysisResults.problem_type === 'classification' ? (
+                      <>💡 <strong>Tip:</strong> The model with the highest accuracy (closest to 100%) and F1-score typically performs best for classification. 
+                      Top-ranked model is highlighted with 🏆.</>
+                    ) : (
+                      <>💡 <strong>Tip:</strong> The model with the highest R² score (closest to 1.0) and lowest RMSE typically performs best. 
+                      Top-ranked model is highlighted with 🏆.</>
+                    )}
                   </div>
                 </div>
               );
