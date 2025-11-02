@@ -710,6 +710,25 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
               </div>
             </div>
 
+            {/* Kerberos Authentication Toggle - Custom Query */}
+            {(dbConfig.source_type === "postgresql" || dbConfig.source_type === "mysql") && !useConnectionString && (
+              <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <input 
+                  type="checkbox"
+                  id="use-kerberos-query"
+                  checked={dbConfig.use_kerberos}
+                  onChange={(e) => setDbConfig({...dbConfig, use_kerberos: e.target.checked})}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <Label htmlFor="use-kerberos-query" className="cursor-pointer flex-1">
+                  <span className="font-semibold">🔐 Use Kerberos Authentication</span>
+                  <span className="block text-xs text-gray-600 mt-1">
+                    Enable for enterprise-level secure authentication via GSSAPI
+                  </span>
+                </Label>
+              </div>
+            )}
+
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label>Username</Label>
