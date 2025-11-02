@@ -736,6 +736,140 @@ const DocumentationPage = () => {
                   </CollapsibleContent>
                 </Collapsible>
               </Card>
+
+              {/* Training Metadata */}
+              <Card className="p-6">
+                <Collapsible open={expandedSections['training-metadata']} onOpenChange={() => toggleSection('training-metadata')}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <Activity className="w-6 h-6 text-indigo-600" />
+                      <h3 className="text-xl font-bold">8. Training Metadata & Model History</h3>
+                    </div>
+                    {expandedSections['training-metadata'] ? <ChevronDown /> : <ChevronRight />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-4 space-y-3">
+                    <p className="text-gray-700">Track and compare all your model training sessions and experiments.</p>
+                    
+                    <div className="bg-gray-50 p-4 rounded">
+                      <h4 className="font-semibold mb-2">What is Training Metadata?</h4>
+                      <p className="text-sm text-gray-700 mb-3">
+                        Every time you run predictive analysis, PROMISE AI automatically saves comprehensive metadata about 
+                        the training session. This includes all models trained, their performance metrics, parameters used, 
+                        and timestamps.
+                      </p>
+                    </div>
+
+                    <div className="bg-indigo-50 p-4 rounded border-l-4 border-indigo-600">
+                      <h4 className="font-semibold text-indigo-900 mb-2">📊 What Gets Tracked?</h4>
+                      <div className="grid md:grid-cols-2 gap-3 mt-2">
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm text-indigo-600">Model Performance</strong>
+                          <ul className="text-xs space-y-1 mt-1">
+                            <li>✓ R² / Accuracy scores</li>
+                            <li>✓ RMSE / F1-Score</li>
+                            <li>✓ Feature importance</li>
+                            <li>✓ Confidence levels</li>
+                          </ul>
+                        </div>
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm text-indigo-600">Training Context</strong>
+                          <ul className="text-xs space-y-1 mt-1">
+                            <li>✓ Dataset used</li>
+                            <li>✓ Target variable</li>
+                            <li>✓ Features selected</li>
+                            <li>✓ Problem type</li>
+                          </ul>
+                        </div>
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm text-indigo-600">Timestamps</strong>
+                          <ul className="text-xs space-y-1 mt-1">
+                            <li>✓ Training date & time</li>
+                            <li>✓ Duration</li>
+                            <li>✓ Last updated</li>
+                            <li>✓ Training count</li>
+                          </ul>
+                        </div>
+                        <div className="bg-white p-3 rounded">
+                          <strong className="text-sm text-indigo-600">Model Details</strong>
+                          <ul className="text-xs space-y-1 mt-1">
+                            <li>✓ Algorithm used</li>
+                            <li>✓ Hyperparameters</li>
+                            <li>✓ Train/test split</li>
+                            <li>✓ Sample sizes</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded">
+                      <h4 className="font-semibold mb-2">How to Access Training Metadata:</h4>
+                      <ol className="list-decimal list-inside space-y-2 text-sm">
+                        <li>Navigate to <strong>Dashboard</strong></li>
+                        <li>Click on <strong>Training Metadata</strong> tab</li>
+                        <li>View all historical training sessions in chronological order</li>
+                        <li>Click on any session to see detailed metrics</li>
+                        <li>Compare performance across different experiments</li>
+                      </ol>
+                    </div>
+
+                    <div className="bg-green-50 p-4 rounded">
+                      <h4 className="font-semibold text-green-900 mb-2">💡 Use Cases:</h4>
+                      <ul className="space-y-2 text-sm">
+                        <li>
+                          <strong className="text-green-700">Model Comparison:</strong> Compare different model runs to find the best performer
+                        </li>
+                        <li>
+                          <strong className="text-green-700">Experiment Tracking:</strong> Track how model performance changes with different features or datasets
+                        </li>
+                        <li>
+                          <strong className="text-green-700">Reproducibility:</strong> Recreate successful models using saved metadata
+                        </li>
+                        <li>
+                          <strong className="text-green-700">Audit Trail:</strong> Maintain compliance records of all ML experiments
+                        </li>
+                        <li>
+                          <strong className="text-green-700">Team Collaboration:</strong> Share training results and insights with team members
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-yellow-50 p-4 rounded border-l-4 border-yellow-600">
+                      <div className="flex items-start gap-2">
+                        <Info className="w-5 h-5 text-yellow-600 mt-0.5" />
+                        <div>
+                          <strong className="text-yellow-900">Performance Tracking:</strong>
+                          <p className="text-sm text-yellow-800 mt-1">
+                            The Training Metadata dashboard shows training count and last trained date for each dataset. 
+                            This helps you monitor how often models are retrained and identify stale models that may need updating.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded">
+                      <h4 className="font-semibold mb-2">Metadata Dashboard Features:</h4>
+                      <div className="grid md:grid-cols-2 gap-3 mt-2 text-sm">
+                        <div>
+                          <strong className="text-indigo-600">📋 Table View</strong>
+                          <p className="text-gray-600">All training sessions in sortable table format</p>
+                        </div>
+                        <div>
+                          <strong className="text-indigo-600">🔍 Search & Filter</strong>
+                          <p className="text-gray-600">Find specific experiments quickly</p>
+                        </div>
+                        <div>
+                          <strong className="text-indigo-600">📊 Performance Charts</strong>
+                          <p className="text-gray-600">Visualize model performance trends</p>
+                        </div>
+                        <div>
+                          <strong className="text-indigo-600">📥 Export</strong>
+                          <p className="text-gray-600">Download metadata for reporting</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
             </div>
           </TabsContent>
 
