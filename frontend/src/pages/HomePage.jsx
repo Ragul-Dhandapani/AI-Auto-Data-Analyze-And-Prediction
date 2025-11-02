@@ -115,8 +115,8 @@ const HomePage = () => {
               </span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-              PROMISE AI - Transform raw data into actionable insights with AI-powered analysis, 
-              predictive forecasting, and automated visualizations for real-time operational intelligence.
+              Enterprise ML platform with classification, time series forecasting, hyperparameter tuning, 
+              NLP support, and AI-powered insights. Transform raw data into actionable intelligence with automated analysis.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Button 
