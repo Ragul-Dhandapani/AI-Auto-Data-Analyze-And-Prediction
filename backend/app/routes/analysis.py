@@ -345,6 +345,7 @@ Provide concise, actionable insights."""
             "models": models_result.get("models", []),
             "ml_models": models_result.get("models", []),  # Frontend expects ml_models
             "auto_charts": auto_charts,
+            "skipped_charts": skipped_charts,  # Why charts were not generated
             "correlations": correlations,
             "insights": insights,
             "training_info": models_result.get("training_info", {}),
