@@ -738,3 +738,66 @@ async def save_query_dataset(config: dict):
         raise HTTPException(500, f"Failed to save dataset: {str(e)}")
 
 
+
+
+@router.post("/suggest-features")
+async def suggest_features(request: dict):
+    """
+    AI-powered feature selection endpoint
+    
+    Request body:
+    {
+        "dataset_id": "uuid",
+        "target_column": "column_name",
+        "top_n": 10  (optional)
+    }
+    
+    Returns suggested features with explanations
+    """
+    try:
+        from app.services.feature_selection_service import suggest_features_ai, detect_variable_types
+        
+        dataset_id = request.get('dataset_id')
+        target_column = request.get('target_column')
+        top_n = request.get('top_n', 10)
+        
+        if not dataset_id or not target_column:
+            raise HTTPException(400, "dataset_id and target_column are required")
+        
+        # Fetch dataset from MongoDB
+        dataset = await db.datasets.find_one({"id": dataset_id})
+        if not dataset:
+            raise HTTPException(404, f"Dataset not found: {dataset_id}")
+        
+        # Load data
+        if dataset.get('storage_type') == 'gridfs' and dataset.get('gridfs_file_id'):
+            # Load from GridFS
+            file_data = await fs.download_to_stream(dataset['gridfs_file_id'], io.BytesIO())
+            file_data.seek(0)
+            df = pd.read_json(file_data, orient='records')
+        else:
+            # Load from direct storage
+            df = pd.DataFrame(dataset['data'])
+        
+        # Validate target column exists
+        if target_column not in df.columns:
+            raise HTTPException(400, f"Target column '{target_column}' not found in dataset")
+        
+        # Detect variable types
+        var_types = detect_variable_types(df)
+        
+        # Get AI suggestions
+        suggestions = suggest_features_ai(df, target_column, top_n)
+        
+        return {
+            **suggestions,
+            'variable_types': var_types,
+            'total_columns': len(df.columns),
+            'dataset_shape': {'rows': len(df), 'columns': len(df.columns)}
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Feature suggestion failed: {str(e)}")
+
