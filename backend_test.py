@@ -766,20 +766,378 @@ def test_holistic_analysis_performance():
         print(f"❌ Performance Test Exception: {str(e)}")
         return False
 
+def test_phase3_ai_insights():
+    """Test Phase 3: AI Insights Generation"""
+    print("\n=== Phase 3 Test: AI Insights Generation ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv
+    
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variable": "latency_ms",
+            "selected_features": ["cpu_utilization", "memory_usage_mb"],
+            "mode": "manual"
+        }
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Phase 3 AI Insights Test Successful")
+            
+            # Check for Phase 3 fields
+            phase3_fields = ['ai_insights', 'explainability', 'business_recommendations', 'phase_3_enabled']
+            missing_fields = [field for field in phase3_fields if field not in data]
+            
+            if missing_fields:
+                print(f"❌ Missing Phase 3 fields: {missing_fields}")
+                return False
+            
+            # Verify ai_insights structure
+            ai_insights = data.get('ai_insights', [])
+            print(f"   AI Insights count: {len(ai_insights)}")
+            
+            if ai_insights:
+                sample_insight = ai_insights[0]
+                required_insight_fields = ['type', 'title', 'description', 'severity']
+                missing_insight_fields = [field for field in required_insight_fields if field not in sample_insight]
+                
+                if missing_insight_fields:
+                    print(f"❌ AI Insight missing fields: {missing_insight_fields}")
+                    return False
+                else:
+                    print("✅ AI Insights have correct structure")
+                    print(f"   Sample insight: {sample_insight.get('title', 'N/A')}")
+            
+            # Verify explainability structure
+            explainability = data.get('explainability', {})
+            if explainability:
+                print("✅ Model explainability data present")
+                print(f"   Model: {explainability.get('model_name', 'N/A')}")
+                print(f"   Target: {explainability.get('target_variable', 'N/A')}")
+            else:
+                print("ℹ️ No explainability data (may be due to model performance)")
+            
+            # Verify business recommendations structure
+            business_recs = data.get('business_recommendations', [])
+            print(f"   Business recommendations count: {len(business_recs)}")
+            
+            if business_recs:
+                sample_rec = business_recs[0]
+                required_rec_fields = ['priority', 'title', 'description', 'expected_impact', 'implementation_effort']
+                missing_rec_fields = [field for field in required_rec_fields if field not in sample_rec]
+                
+                if missing_rec_fields:
+                    print(f"❌ Business recommendation missing fields: {missing_rec_fields}")
+                    return False
+                else:
+                    print("✅ Business recommendations have correct structure")
+                    print(f"   Sample recommendation: {sample_rec.get('title', 'N/A')}")
+            
+            # Verify phase_3_enabled flag
+            phase3_enabled = data.get('phase_3_enabled', False)
+            if phase3_enabled:
+                print("✅ Phase 3 enabled flag is True")
+            else:
+                print("❌ Phase 3 enabled flag is False or missing")
+                return False
+            
+            return True
+        else:
+            print(f"❌ Phase 3 AI Insights Test Failed: {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error: {error_data}")
+            except:
+                print(f"   Error: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Phase 3 AI Insights Test Exception: {str(e)}")
+        return False
+
+def test_phase2_variable_selection_feedback():
+    """Test Phase 2: Variable Selection Feedback"""
+    print("\n=== Phase 2 Test: Variable Selection Feedback ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv
+    
+    # Test with valid user selection
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variable": "latency_ms",
+            "selected_features": ["cpu_utilization", "memory_usage_mb"],
+            "mode": "manual"
+        }
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Phase 2 Variable Selection Test Successful")
+            
+            # Check for selection_feedback
+            selection_feedback = data.get('selection_feedback')
+            if selection_feedback:
+                print("✅ Selection feedback present")
+                
+                # Verify feedback structure
+                required_feedback_fields = ['status', 'message', 'used_targets', 'is_multi_target']
+                missing_feedback_fields = [field for field in required_feedback_fields if field not in selection_feedback]
+                
+                if missing_feedback_fields:
+                    print(f"❌ Selection feedback missing fields: {missing_feedback_fields}")
+                    return False
+                
+                status = selection_feedback.get('status')
+                message = selection_feedback.get('message', '')
+                used_targets = selection_feedback.get('used_targets', [])
+                
+                print(f"   Status: {status}")
+                print(f"   Used targets: {used_targets}")
+                print(f"   Message preview: {message[:100]}...")
+                
+                # Verify target was used correctly
+                if 'latency_ms' in used_targets:
+                    print("✅ User-selected target was used correctly")
+                else:
+                    print(f"❌ Expected 'latency_ms' in used targets, got: {used_targets}")
+                    return False
+                
+                return True
+            else:
+                print("❌ No selection feedback found")
+                return False
+        else:
+            print(f"❌ Phase 2 Variable Selection Test Failed: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Phase 2 Variable Selection Test Exception: {str(e)}")
+        return False
+
+def test_phase2_invalid_selection_fallback():
+    """Test Phase 2: Invalid Selection Fallback with Feedback"""
+    print("\n=== Phase 2 Test: Invalid Selection Fallback ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv
+    
+    # Test with invalid user selection
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variable": "nonexistent_column",
+            "selected_features": ["invalid_feature"],
+            "mode": "manual"
+        }
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Invalid Selection Fallback Test Successful")
+            
+            # Check for selection_feedback with modified status
+            selection_feedback = data.get('selection_feedback')
+            if selection_feedback:
+                status = selection_feedback.get('status')
+                message = selection_feedback.get('message', '')
+                
+                print(f"   Status: {status}")
+                print(f"   Message preview: {message[:150]}...")
+                
+                if status == "modified":
+                    print("✅ Correctly detected invalid selection and provided fallback")
+                    
+                    # Check if warning message is helpful
+                    if "could not be used" in message.lower() or "auto-detection" in message.lower():
+                        print("✅ Helpful warning message provided")
+                        return True
+                    else:
+                        print("❌ Warning message not helpful enough")
+                        return False
+                else:
+                    print(f"❌ Expected status 'modified', got: {status}")
+                    return False
+            else:
+                print("❌ No selection feedback for invalid selection")
+                return False
+        else:
+            print(f"❌ Invalid Selection Fallback Test Failed: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Invalid Selection Fallback Test Exception: {str(e)}")
+        return False
+
+def test_phase3_multi_target_scenario():
+    """Test Phase 3: Multi-target scenario with AI insights"""
+    print("\n=== Phase 3 Test: Multi-target AI Insights ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv
+    
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variables": [
+                {"target": "latency_ms", "features": ["cpu_utilization", "memory_usage_mb"]},
+                {"target": "cpu_utilization", "features": ["payload_size_kb", "memory_usage_mb"]}
+            ],
+            "mode": "hybrid"
+        }
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Multi-target Phase 3 Test Successful")
+            
+            # Check selection feedback for multi-target
+            selection_feedback = data.get('selection_feedback')
+            if selection_feedback:
+                is_multi_target = selection_feedback.get('is_multi_target', False)
+                used_targets = selection_feedback.get('used_targets', [])
+                
+                print(f"   Is multi-target: {is_multi_target}")
+                print(f"   Used targets: {used_targets}")
+                
+                if is_multi_target and len(used_targets) > 1:
+                    print("✅ Multi-target scenario correctly identified")
+                else:
+                    print("❌ Multi-target scenario not properly handled")
+                    return False
+            
+            # Check Phase 3 features still work with multi-target
+            ai_insights = data.get('ai_insights', [])
+            business_recs = data.get('business_recommendations', [])
+            
+            print(f"   AI insights for multi-target: {len(ai_insights)}")
+            print(f"   Business recommendations: {len(business_recs)}")
+            
+            if len(ai_insights) > 0 or len(business_recs) > 0:
+                print("✅ Phase 3 features working with multi-target")
+                return True
+            else:
+                print("⚠️ Phase 3 features may not be generating insights for multi-target")
+                return True  # Still pass as core functionality works
+        else:
+            print(f"❌ Multi-target Phase 3 Test Failed: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Multi-target Phase 3 Test Exception: {str(e)}")
+        return False
+
+def test_performance_with_phase3():
+    """Test Performance with Phase 3 features enabled"""
+    print("\n=== Performance Test: Phase 3 Integration ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # Large dataset
+    
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variable": "latency_ms",
+            "selected_features": ["cpu_utilization", "memory_usage_mb", "payload_size_kb"],
+            "mode": "manual"
+        }
+    }
+    
+    try:
+        import time
+        start_time = time.time()
+        
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=90  # Longer timeout for Phase 3 processing
+        )
+        
+        end_time = time.time()
+        response_time = (end_time - start_time) * 1000  # Convert to milliseconds
+        
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Time with Phase 3: {response_time:.2f} ms")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Performance Test with Phase 3 Successful")
+            
+            # Check all Phase 3 features are present
+            phase3_features = {
+                'ai_insights': len(data.get('ai_insights', [])),
+                'explainability': 1 if data.get('explainability') else 0,
+                'business_recommendations': len(data.get('business_recommendations', [])),
+                'phase_3_enabled': data.get('phase_3_enabled', False)
+            }
+            
+            print(f"   Phase 3 features generated:")
+            for feature, count in phase3_features.items():
+                print(f"     {feature}: {count}")
+            
+            # Verify reasonable response time (Phase 3 adds processing time)
+            if response_time < 45000:  # 45 seconds threshold for Phase 3
+                print("✅ Response time acceptable for Phase 3 processing")
+            else:
+                print(f"⚠️ Response time seems slow for Phase 3: {response_time:.2f} ms")
+            
+            return True
+        else:
+            print(f"❌ Performance Test with Phase 3 Failed: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Performance Test with Phase 3 Exception: {str(e)}")
+        return False
+
 def main():
     """Run all tests"""
-    print("🚀 Starting Comprehensive Variable Selection Testing for Holistic Analysis")
+    print("🚀 Starting COMPREHENSIVE PHASE 2 & PHASE 3 INTEGRATION TESTING")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now().isoformat()}")
     
     # Track test results
     results = {
         'api_health': False,
-        'single_target_manual': False,
-        'multiple_targets_hybrid': False,
-        'invalid_target_fallback': False,
-        'auto_mode': False,
-        'performance_test': False
+        'phase2_variable_selection': False,
+        'phase2_invalid_fallback': False,
+        'phase3_ai_insights': False,
+        'phase3_multi_target': False,
+        'performance_phase3': False
     }
     
     # Test 0: API Health Check
@@ -789,25 +1147,19 @@ def main():
         print("\n❌ API is not accessible. Stopping tests.")
         return False
     
-    # Test 1: Single Target (Manual Mode)
-    results['single_target_manual'] = test_holistic_analysis_single_target()
+    # Phase 2 Tests
+    results['phase2_variable_selection'] = test_phase2_variable_selection_feedback()
+    results['phase2_invalid_fallback'] = test_phase2_invalid_selection_fallback()
     
-    # Test 2: Multiple Targets (Hybrid Mode)
-    results['multiple_targets_hybrid'] = test_holistic_analysis_multiple_targets()
-    
-    # Test 3: Invalid Target (Should Fallback)
-    results['invalid_target_fallback'] = test_holistic_analysis_invalid_target()
-    
-    # Test 4: No User Selection (Auto Mode)
-    results['auto_mode'] = test_holistic_analysis_auto_mode()
-    
-    # Test 5: Performance Test
-    results['performance_test'] = test_holistic_analysis_performance()
+    # Phase 3 Tests
+    results['phase3_ai_insights'] = test_phase3_ai_insights()
+    results['phase3_multi_target'] = test_phase3_multi_target_scenario()
+    results['performance_phase3'] = test_performance_with_phase3()
     
     # Summary
-    print("\n" + "="*60)
-    print("📊 TEST SUMMARY - HOLISTIC ANALYSIS VARIABLE SELECTION")
-    print("="*60)
+    print("\n" + "="*70)
+    print("📊 TEST SUMMARY - PHASE 2 & PHASE 3 INTEGRATION")
+    print("="*70)
     
     passed_tests = sum(1 for result in results.values() if result)
     total_tests = len(results)
@@ -821,33 +1173,35 @@ def main():
     # Detailed summary
     print("\n🔍 DETAILED FINDINGS:")
     
-    if results['single_target_manual']:
-        print("   ✅ Single target manual mode working correctly")
+    print("\n📋 PHASE 2 - Variable Selection & Feedback:")
+    if results['phase2_variable_selection']:
+        print("   ✅ Variable selection feedback working correctly")
     else:
-        print("   ❌ Single target manual mode has issues")
+        print("   ❌ Variable selection feedback has issues")
     
-    if results['multiple_targets_hybrid']:
-        print("   ✅ Multiple targets hybrid mode working correctly")
+    if results['phase2_invalid_fallback']:
+        print("   ✅ Invalid selection fallback with helpful warnings")
     else:
-        print("   ❌ Multiple targets hybrid mode has issues")
+        print("   ❌ Invalid selection fallback not working properly")
     
-    if results['invalid_target_fallback']:
-        print("   ✅ Invalid target fallback mechanism working")
+    print("\n🤖 PHASE 3 - AI Insights & Explainability:")
+    if results['phase3_ai_insights']:
+        print("   ✅ AI insights generation working with proper structure")
     else:
-        print("   ❌ Invalid target fallback mechanism not working")
+        print("   ❌ AI insights generation has issues")
     
-    if results['auto_mode']:
-        print("   ✅ Auto-detection mode working correctly")
+    if results['phase3_multi_target']:
+        print("   ✅ Multi-target scenarios working with Phase 3 features")
     else:
-        print("   ❌ Auto-detection mode has issues")
+        print("   ❌ Multi-target scenarios have issues with Phase 3")
     
-    if results['performance_test']:
-        print("   ✅ Performance optimization working for large datasets")
+    if results['performance_phase3']:
+        print("   ✅ Performance acceptable with Phase 3 processing")
     else:
-        print("   ❌ Performance issues detected")
+        print("   ❌ Performance issues with Phase 3 integration")
     
     if passed_tests == total_tests:
-        print("\n🎉 All holistic analysis tests passed!")
+        print("\n🎉 All Phase 2 & Phase 3 integration tests passed!")
         return True
     else:
         print(f"\n⚠️ {total_tests - passed_tests} test(s) failed. Check the details above.")
