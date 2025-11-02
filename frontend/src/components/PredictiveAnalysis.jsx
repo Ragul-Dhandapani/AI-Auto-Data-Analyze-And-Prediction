@@ -994,7 +994,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
       {/* PHASE 3: AI-Powered Insights */}
       {analysisResults.ai_insights && analysisResults.ai_insights.length > 0 && !collapsed.ai_insights && (
-        <Card className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200">
+        <Card id="ai-insights-section" className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold flex items-center gap-2">
