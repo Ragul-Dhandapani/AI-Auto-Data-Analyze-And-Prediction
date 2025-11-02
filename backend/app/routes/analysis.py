@@ -254,6 +254,7 @@ async def holistic_analysis(request: Dict[str, Any]):
     try:
         dataset_id = request.get("dataset_id")
         user_selection = request.get("user_selection")  # Optional user-provided target and features
+        problem_type = request.get("problem_type", "auto")  # "auto", "regression", "classification", or "time_series"
         
         df = await load_dataframe(dataset_id)
         original_size = len(df)
