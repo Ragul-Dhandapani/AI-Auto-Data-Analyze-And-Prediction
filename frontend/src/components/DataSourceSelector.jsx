@@ -738,21 +738,23 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
                     setDbConfig({...dbConfig, username: e.target.value});
                     setConnectionTested(false);
                   }}
-                  placeholder="username"
+                  placeholder={dbConfig.use_kerberos ? "Kerberos principal" : "username"}
                 />
               </div>
-              <div>
-                <Label>Password</Label>
-                <Input 
-                  type="password"
-                  value={dbConfig.password}
-                  onChange={(e) => {
-                    setDbConfig({...dbConfig, password: e.target.value});
-                    setConnectionTested(false);
-                  }}
-                  placeholder="password"
-                />
-              </div>
+              {!dbConfig.use_kerberos && (
+                <div>
+                  <Label>Password</Label>
+                  <Input 
+                    type="password"
+                    value={dbConfig.password}
+                    onChange={(e) => {
+                      setDbConfig({...dbConfig, password: e.target.value});
+                      setConnectionTested(false);
+                    }}
+                    placeholder="password"
+                  />
+                </div>
+              )}
             </div>
 
             <div>
