@@ -10,32 +10,34 @@ from dotenv import load_dotenv
 load_dotenv()
 
 async def clear_training_metadata():
-    """Clear all training metadata records"""
+    """Clear all training metadata and datasets"""
     
     # Connect to MongoDB
     mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
     client = AsyncIOMotorClient(mongo_url)
     db = client.promise_ai
     
-    print("🗑️  Clearing training metadata...")
+    print("🗑️  Clearing all data...")
+    
+    # Clear datasets collection
+    datasets_result = await db.datasets.delete_many({})
+    print(f"✅ Deleted {datasets_result.deleted_count} datasets")
     
     # Clear saved_states collection (training metadata)
     result = await db.saved_states.delete_many({})
     print(f"✅ Deleted {result.deleted_count} training metadata records")
     
-    # Reset training_count in datasets
-    datasets_result = await db.datasets.update_many(
-        {},
-        {"$set": {"training_count": 0, "last_trained_at": None}}
-    )
-    print(f"✅ Reset training count for {datasets_result.modified_count} datasets")
-    
     # Clear prediction feedback
     feedback_result = await db.prediction_feedback.delete_many({})
     print(f"✅ Deleted {feedback_result.deleted_count} feedback records")
     
-    print("\n✨ Training metadata cleared successfully!")
-    print("📊 Training Metadata module is still intact and will track new analyses")
+    # Clear any GridFS files (for large datasets)
+    fs_files = await db.fs.files.delete_many({})
+    fs_chunks = await db.fs.chunks.delete_many({})
+    print(f"✅ Deleted {fs_files.deleted_count} GridFS files and {fs_chunks.deleted_count} chunks")
+    
+    print("\n✨ All data cleared successfully!")
+    print("📊 Database is now clean and ready for new analyses")
     
     client.close()
 
