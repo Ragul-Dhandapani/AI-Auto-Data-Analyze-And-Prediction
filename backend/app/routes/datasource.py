@@ -251,20 +251,23 @@ async def get_recent_datasets(limit: int = 10):
         datasets = await cursor.to_list(length=limit)
         
         # Sanitize datasets to handle NaN, Infinity values
+        import json
         import math
-        def sanitize_value(val):
-            if isinstance(val, float):
-                if math.isnan(val) or math.isinf(val):
+        
+        def sanitize_value(obj):
+            """Recursively sanitize NaN and Infinity values"""
+            if isinstance(obj, float):
+                if math.isnan(obj) or math.isinf(obj):
                     return None
-            return val
+                return obj
+            elif isinstance(obj, dict):
+                return {k: sanitize_value(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [sanitize_value(item) for item in obj]
+            else:
+                return obj
         
-        def sanitize_dict(d):
-            return {k: sanitize_value(v) if not isinstance(v, (dict, list)) else 
-                    (sanitize_dict(v) if isinstance(v, dict) else 
-                     [sanitize_value(item) if not isinstance(item, dict) else sanitize_dict(item) for item in v])
-                    for k, v in d.items()}
-        
-        sanitized_datasets = [sanitize_dict(ds) for ds in datasets]
+        sanitized_datasets = [sanitize_value(ds) for ds in datasets]
         
         return {"datasets": sanitized_datasets}
     except Exception as e:
