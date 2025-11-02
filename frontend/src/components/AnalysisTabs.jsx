@@ -94,21 +94,6 @@ const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelect
             </div>
           </Card>
         </TabsContent>
-
-        <TabsContent value="relational">
-          <Card className="p-6">
-            <div className="text-center py-12">
-              <Database className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-bold mb-2">Multi-Table Join Analysis</h3>
-              <p className="text-gray-600 mb-4">
-                Join multiple datasets and analyze relationships
-              </p>
-              <p className="text-sm text-gray-500">
-                <strong>Feature Coming Soon:</strong> Upload multiple related tables to perform joins and analyze combined data
-              </p>
-            </div>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );
