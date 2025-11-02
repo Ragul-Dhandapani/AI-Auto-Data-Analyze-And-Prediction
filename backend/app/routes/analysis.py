@@ -317,37 +317,86 @@ async def holistic_analysis(request: Dict[str, Any]):
         all_feedback_messages = []
         
         for target_col in target_cols:
-        
-        if user_selection:
-            # User provided target and features
-            user_target = user_selection.get("target_variable")
-            user_features = user_selection.get("selected_features", [])
-            selection_mode = user_selection.get("mode", "manual")
+            selected_features = target_feature_mapping.get(target_col, [])
             
-            logging.info(f"User selection: target={user_target}, features={user_features}, mode={selection_mode}")
+            logging.info(f"Processing target: {target_col} with {len(selected_features)} selected features")
             
-            # Validate user's target selection
-            if user_target and user_target in df.columns:
-                target_dtype = df[user_target].dtype
-                
-                # Check if target is numeric
-                if pd.api.types.is_numeric_dtype(target_dtype):
-                    target_col = user_target
-                    selected_features = [f for f in user_features if f in df.columns and f != target_col]
-                    
-                    # Separate numeric and categorical selected features
-                    numeric_selected = []
-                    categorical_selected = []
-                    excluded_features = []
-                    
-                    for feat in selected_features:
-                        if feat in df.columns:
-                            if pd.api.types.is_numeric_dtype(df[feat].dtype):
-                                numeric_selected.append(feat)
+            # Separate numeric and categorical selected features
+            numeric_selected = []
+            categorical_selected = []
+            excluded_features = []
+            
+            if selected_features:
+                for feat in selected_features:
+                    if feat in df_analysis.columns and feat != target_col:
+                        if pd.api.types.is_numeric_dtype(df_analysis[feat].dtype):
+                            numeric_selected.append(feat)
+                        else:
+                            # Check cardinality for categorical features
+                            unique_count = df_analysis[feat].nunique()
+                            if unique_count <= 50:  # Reasonable for one-hot encoding
+                                categorical_selected.append(feat)
                             else:
-                                # Check cardinality for categorical features
-                                unique_count = df[feat].nunique()
-                                if unique_count <= 50:  # Reasonable for one-hot encoding
+                                excluded_features.append(f"{feat} (too many categories: {unique_count})")
+                
+                # Build feedback message for this target
+                feedback_parts = []
+                feedback_parts.append(f"✅ Target '{target_col}':")
+                if numeric_selected:
+                    feedback_parts.append(f"   • Numeric features: {', '.join(numeric_selected)}")
+                if categorical_selected:
+                    feedback_parts.append(f"   • Categorical features (encoded): {', '.join(categorical_selected)}")
+                if excluded_features:
+                    feedback_parts.append(f"   • ⚠️ Excluded: {', '.join(excluded_features)}")
+                
+                all_feedback_messages.append("\n".join(feedback_parts))
+            
+            # Train models for this target
+            try:
+                if selected_features:
+                    # Create subset dataframe with selected features + target
+                    train_columns = selected_features + [target_col]
+                    df_subset = df_analysis[train_columns].copy()
+                    
+                    # Handle categorical features with one-hot encoding
+                    if categorical_selected:
+                        df_subset = pd.get_dummies(df_subset, columns=categorical_selected, drop_first=True, dtype=int)
+                        logging.info(f"Encoded {len(categorical_selected)} categorical features for target {target_col}")
+                    
+                    target_models = train_multiple_models(df_subset, target_col)
+                else:
+                    # Train on all numeric features
+                    target_models = train_multiple_models(df_analysis, target_col)
+                
+                # Add models to all_models list
+                if target_models.get("models"):
+                    all_models.extend(target_models["models"])
+                    logging.info(f"Trained {len(target_models['models'])} models for target {target_col}")
+                
+            except Exception as e:
+                logging.error(f"ML training failed for target {target_col}: {str(e)}", exc_info=True)
+                all_feedback_messages.append(f"⚠️ Training failed for target '{target_col}': {str(e)}")
+        
+        # Build final selection feedback
+        if all_feedback_messages:
+            selection_feedback = {
+                "status": "used",
+                "message": "\n\n".join(all_feedback_messages),
+                "used_targets": target_cols,
+                "is_multi_target": len(target_cols) > 1
+            }
+        
+        # Update models_result
+        models_result = {"models": all_models}
+        
+        # Add performance info if sampled
+        if is_sampled:
+            models_result["performance_info"] = {
+                "sampled": True,
+                "original_size": original_size,
+                "sample_size": SAMPLE_SIZE,
+                "message": f"⚡ Performance optimized: Used {SAMPLE_SIZE} samples from {original_size} rows for faster analysis"
+            }
                                     categorical_selected.append(feat)
                                 else:
                                     excluded_features.append(f"{feat} (too many categories: {unique_count})")
