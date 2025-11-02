@@ -462,16 +462,16 @@ async def holistic_analysis(request: Dict[str, Any]):
             all_feedback_messages = []
             
             for target_col in target_cols:
-            selected_features = target_feature_mapping.get(target_col, [])
-            
-            logging.info(f"Processing target: {target_col} with {len(selected_features)} selected features")
-            
-            # Separate numeric and categorical selected features
-            numeric_selected = []
-            categorical_selected = []
-            excluded_features = []
-            
-            if selected_features:
+                selected_features = target_feature_mapping.get(target_col, [])
+                
+                logging.info(f"Processing target: {target_col} with {len(selected_features)} selected features")
+                
+                # Separate numeric and categorical selected features
+                numeric_selected = []
+                categorical_selected = []
+                excluded_features = []
+                
+                if selected_features:
                 for feat in selected_features:
                     if feat in df_analysis.columns and feat != target_col:
                         if pd.api.types.is_numeric_dtype(df_analysis[feat].dtype):
