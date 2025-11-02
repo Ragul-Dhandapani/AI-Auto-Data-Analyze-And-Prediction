@@ -19,18 +19,38 @@ except ImportError:
 
 
 def test_oracle_connection(config: dict) -> dict:
-    """Test Oracle database connection"""
+    """Test Oracle database connection with optional Kerberos support"""
     try:
+        use_kerberos = config.get('use_kerberos', False)
+        
         dsn = cx_Oracle.makedsn(
             config.get('host'),
             config.get('port', 1521),
             service_name=config.get('service_name')
         )
-        conn = cx_Oracle.connect(
-            user=config.get('username'),
-            password=config.get('password'),
-            dsn=dsn
-        )
+        
+        if use_kerberos:
+            # Oracle Kerberos authentication via external authentication
+            # Requires Oracle configured with Kerberos and sqlnet.ora settings
+            try:
+                # External authentication - username with "/" suffix indicates Kerberos
+                conn = cx_Oracle.connect(
+                    user=config.get('username') + '/',  # External auth format
+                    dsn=dsn
+                )
+            except Exception as kerb_error:
+                return {
+                    "success": False,
+                    "message": f"Kerberos authentication failed: {str(kerb_error)}. Ensure Oracle is configured for Kerberos external authentication (sqlnet.ora)."
+                }
+        else:
+            # Standard username/password authentication
+            conn = cx_Oracle.connect(
+                user=config.get('username'),
+                password=config.get('password'),
+                dsn=dsn
+            )
+        
         cursor = conn.cursor()
         cursor.execute("SELECT 1 FROM DUAL")
         cursor.close()
