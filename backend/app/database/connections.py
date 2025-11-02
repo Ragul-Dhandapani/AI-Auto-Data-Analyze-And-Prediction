@@ -207,18 +207,28 @@ def test_sqlserver_connection(config: dict) -> dict:
 
 
 def get_oracle_tables(config: dict) -> List[str]:
-    """List tables from Oracle database"""
+    """List tables from Oracle database with optional Kerberos support"""
     try:
+        use_kerberos = config.get('use_kerberos', False)
+        
         dsn = cx_Oracle.makedsn(
             config.get('host'),
             config.get('port', 1521),
             service_name=config.get('service_name')
         )
-        conn = cx_Oracle.connect(
-            user=config.get('username'),
-            password=config.get('password'),
-            dsn=dsn
-        )
+        
+        if use_kerberos:
+            conn = cx_Oracle.connect(
+                user=config.get('username') + '/',  # External auth format
+                dsn=dsn
+            )
+        else:
+            conn = cx_Oracle.connect(
+                user=config.get('username'),
+                password=config.get('password'),
+                dsn=dsn
+            )
+        
         cursor = conn.cursor()
         cursor.execute("""
             SELECT table_name FROM user_tables 
