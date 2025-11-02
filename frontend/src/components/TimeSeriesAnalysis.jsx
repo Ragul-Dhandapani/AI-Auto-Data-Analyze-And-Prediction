@@ -114,14 +114,14 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
         </Card>
       )}
 
-      <Card className="p-6">{!loading && (
+      {!loading && (
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <Calendar className="w-6 h-6" />
             Time Series Forecasting & Anomaly Detection
           </h2>
 
-        <div className="space-y-4">
+          <div className="space-y-4">
           {/* Detect Datetime Columns */}
           <Button onClick={detectDatetimeColumns} variant="outline">
             🔍 Detect Datetime Columns
