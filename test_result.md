@@ -246,15 +246,18 @@ frontend:
   
   - task: "Custom Query - Results preview UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/DataSourceSelector.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added query results preview panel that displays after successful query execution. Shows green success message with row/column count, preview table (3 rows × 6 columns max), and 'Load Data' button. Includes X button to dismiss preview. Preview shows before dataset is saved to database."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Query results preview UI working correctly. Preview panel displays after successful query execution, shows success message with row/column count, displays preview table (3x6 max), includes Load Data button and X dismiss button. Preview functionality working before dataset save."
   
   - task: "ML Model Comparison Table for Multiple Targets"
     implemented: true
