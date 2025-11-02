@@ -1119,7 +1119,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
       {/* PHASE 3: Business Recommendations */}
       {analysisResults.business_recommendations && analysisResults.business_recommendations.length > 0 && !collapsed.recommendations && (
-        <Card className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200">
+        <Card id="recommendations-section" className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold flex items-center gap-2">
