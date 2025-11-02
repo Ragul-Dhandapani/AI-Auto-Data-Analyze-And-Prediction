@@ -229,15 +229,27 @@ def get_postgresql_tables(config: dict) -> List[str]:
 
 
 def get_mysql_tables(config: dict) -> List[str]:
-    """List tables from MySQL database"""
+    """List tables from MySQL database with optional Kerberos support"""
     try:
-        conn = pymysql.connect(
-            host=config.get('host'),
-            port=int(config.get('port', 3306)),
-            database=config.get('database'),
-            user=config.get('username'),
-            password=config.get('password')
-        )
+        use_kerberos = config.get('use_kerberos', False)
+        
+        if use_kerberos:
+            conn = pymysql.connect(
+                host=config.get('host'),
+                port=int(config.get('port', 3306)),
+                database=config.get('database'),
+                user=config.get('username'),
+                auth_plugin='authentication_kerberos_client'
+            )
+        else:
+            conn = pymysql.connect(
+                host=config.get('host'),
+                port=int(config.get('port', 3306)),
+                database=config.get('database'),
+                user=config.get('username'),
+                password=config.get('password')
+            )
+        
         cursor = conn.cursor()
         cursor.execute("""
             SELECT table_name 
