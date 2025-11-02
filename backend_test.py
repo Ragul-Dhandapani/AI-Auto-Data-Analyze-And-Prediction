@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Custom Query Dataset Naming Feature
-Tests the new endpoints: execute-query-preview and save-query-dataset
+Backend API Testing for Recent Datasets Fix
+Tests the /api/datasets endpoint to verify large dataset response optimization
 """
 
 import requests
