@@ -7,7 +7,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 import logging
 from app.services.chart_insights import generate_chart_insight
 
