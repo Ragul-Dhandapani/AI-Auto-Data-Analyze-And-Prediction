@@ -192,15 +192,27 @@ def get_oracle_tables(config: dict) -> List[str]:
 
 
 def get_postgresql_tables(config: dict) -> List[str]:
-    """List tables from PostgreSQL database"""
+    """List tables from PostgreSQL database with optional Kerberos support"""
     try:
-        conn = psycopg2.connect(
-            host=config.get('host'),
-            port=config.get('port', 5432),
-            database=config.get('database'),
-            user=config.get('username'),
-            password=config.get('password')
-        )
+        use_kerberos = config.get('use_kerberos', False)
+        
+        if use_kerberos:
+            conn = psycopg2.connect(
+                host=config.get('host'),
+                port=config.get('port', 5432),
+                database=config.get('database'),
+                user=config.get('username'),
+                gssencmode='prefer'
+            )
+        else:
+            conn = psycopg2.connect(
+                host=config.get('host'),
+                port=config.get('port', 5432),
+                database=config.get('database'),
+                user=config.get('username'),
+                password=config.get('password')
+            )
+        
         cursor = conn.cursor()
         cursor.execute("""
             SELECT table_name 
