@@ -79,6 +79,8 @@ const DashboardPage = () => {
   };
 
   const handleVariableSelectionConfirm = (selection) => {
+    console.log('handleVariableSelectionConfirm received:', selection);
+    
     setVariableSelection(selection);
     
     // Transform selection format for backend
@@ -92,6 +94,7 @@ const DashboardPage = () => {
         })),
         mode: selection.mode
       };
+      console.log('Transformed to multi-target format:', transformedSelection);
     } else if (selection.target) {
       // Single target format (backward compatible)
       transformedSelection = {
@@ -100,10 +103,14 @@ const DashboardPage = () => {
         mode: selection.mode,
         ai_suggestions: selection.aiSuggestions
       };
+      console.log('Transformed to single-target format:', transformedSelection);
     } else {
       // Skip mode
       transformedSelection = null;
+      console.log('Skip mode - no selection');
     }
+    
+    console.log('Setting dataset variableSelection to:', transformedSelection);
     
     setSelectedDataset({
       ...pendingDataset,
