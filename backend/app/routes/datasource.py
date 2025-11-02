@@ -248,30 +248,25 @@ async def get_recent_datasets(limit: int = 10):
     """Get recent datasets"""
     import json
     import math
-    from fastapi.responses import JSONResponse
+    from fastapi.responses import Response
     
     try:
         cursor = db.datasets.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
         datasets = await cursor.to_list(length=limit)
         
-        # Sanitize datasets to handle NaN, Infinity values
-        def sanitize_value(obj):
-            """Recursively sanitize NaN and Infinity values"""
-            if isinstance(obj, float):
-                if math.isnan(obj) or math.isinf(obj):
-                    return None
-                return obj
-            elif isinstance(obj, dict):
-                return {k: sanitize_value(v) for k, v in obj.items()}
-            elif isinstance(obj, list):
-                return [sanitize_value(item) for item in obj]
-            else:
-                return obj
+        # Custom JSON encoder that handles NaN and Infinity
+        class NanInfEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, float):
+                    if math.isnan(obj) or math.isinf(obj):
+                        return None
+                return super().default(obj)
         
-        sanitized_datasets = [sanitize_value(ds) for ds in datasets]
+        # Serialize with custom encoder
+        json_str = json.dumps({"datasets": datasets}, cls=NanInfEncoder)
         
-        # Return as JSONResponse to handle serialization properly
-        return JSONResponse(content={"datasets": sanitized_datasets})
+        # Return as Response with proper content type
+        return Response(content=json_str, media_type="application/json")
     except Exception as e:
         raise HTTPException(500, f"Failed to fetch datasets: {str(e)}")
 
