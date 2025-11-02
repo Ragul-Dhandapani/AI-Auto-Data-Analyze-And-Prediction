@@ -148,10 +148,27 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
   if (!dataset) return null;
 
   const availableColumns = dataset.columns || [];
-  const numericColumns = availableColumns.filter(col => {
-    const dtype = dataset.dtypes?.[col];
-    return dtype && ['int64', 'float64', 'int32', 'float32'].includes(dtype);
-  });
+  
+  // Filter columns based on problem type
+  let targetColumns = [];
+  if (problemType === "regression" || problemType === "auto") {
+    // Numeric columns for regression
+    targetColumns = availableColumns.filter(col => {
+      const dtype = dataset.dtypes?.[col];
+      return dtype && ['int64', 'float64', 'int32', 'float32'].includes(dtype);
+    });
+  } else if (problemType === "classification") {
+    // All columns for classification (categorical + numeric with few unique values)
+    targetColumns = availableColumns;
+  } else if (problemType === "time_series") {
+    // Numeric columns for time series
+    targetColumns = availableColumns.filter(col => {
+      const dtype = dataset.dtypes?.[col];
+      return dtype && ['int64', 'float64', 'int32', 'float32'].includes(dtype);
+    });
+  }
+  
+  const numericColumns = targetColumns;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
