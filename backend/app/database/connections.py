@@ -163,19 +163,40 @@ def test_mysql_connection(config: dict) -> dict:
 
 
 def test_sqlserver_connection(config: dict) -> dict:
-    """Test SQL Server database connection"""
+    """Test SQL Server database connection with optional Kerberos support"""
     if not HAS_PYODBC:
         return {"success": False, "message": "SQL Server support not available (pyodbc not installed)"}
     
     try:
-        conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={config.get('host')},{config.get('port', 1433)};"
-            f"DATABASE={config.get('database')};"
-            f"UID={config.get('username')};"
-            f"PWD={config.get('password')}"
-        )
-        conn = pyodbc.connect(conn_str)
+        use_kerberos = config.get('use_kerberos', False)
+        
+        if use_kerberos:
+            # SQL Server with Kerberos/Windows Integrated Authentication
+            # Uses Trusted_Connection instead of UID/PWD
+            try:
+                conn_str = (
+                    f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                    f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                    f"DATABASE={config.get('database')};"
+                    f"Trusted_Connection=yes;"  # Windows/Kerberos authentication
+                )
+                conn = pyodbc.connect(conn_str)
+            except Exception as kerb_error:
+                return {
+                    "success": False,
+                    "message": f"Kerberos authentication failed: {str(kerb_error)}. Ensure SQL Server is configured for Windows Authentication and kinit is configured."
+                }
+        else:
+            # Standard SQL Server authentication
+            conn_str = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                f"DATABASE={config.get('database')};"
+                f"UID={config.get('username')};"
+                f"PWD={config.get('password')}"
+            )
+            conn = pyodbc.connect(conn_str)
+        
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
         cursor.close()
