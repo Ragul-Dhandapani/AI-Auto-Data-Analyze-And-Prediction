@@ -10,7 +10,7 @@ import Plot from 'react-plotly.js';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const TimeSeriesAnalysis = ({ dataset }) => {
+const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
@@ -18,8 +18,15 @@ const TimeSeriesAnalysis = ({ dataset }) => {
   const [targetColumn, setTargetColumn] = useState('');
   const [forecastPeriods, setForecastPeriods] = useState(30);
   const [forecastMethod, setForecastMethod] = useState('prophet');
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState(cachedResults || null);
   const [datetimeColumns, setDatetimeColumns] = useState([]);
+
+  // Update results when cache changes
+  useEffect(() => {
+    if (cachedResults) {
+      setResults(cachedResults);
+    }
+  }, [cachedResults]);
 
   const detectDatetimeColumns = async () => {
     try {
