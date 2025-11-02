@@ -22,6 +22,9 @@ from app.services.chat_service import process_chat_message
 from app.services.analytics_tracking_service import track_chart_view, get_popular_charts_for_dataset_type
 from app.services.model_explainability_service import generate_shap_explanation, generate_lime_explanation, explain_prediction_in_words
 from app.services.ai_insights_service import generate_statistical_insights, generate_anomaly_detection_insights, generate_business_recommendations
+# Intelligence Services
+from app.services.chart_intelligence_service import chart_intelligence
+from app.services.variable_intelligence_service import variable_intelligence
 import os
 import logging
 
