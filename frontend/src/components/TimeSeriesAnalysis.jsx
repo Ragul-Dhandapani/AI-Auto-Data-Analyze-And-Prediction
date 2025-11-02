@@ -77,6 +77,7 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
       setProgressMessage('Analysis complete!');
       
       setResults(response.data);
+      if (onComplete) onComplete(response.data);
       toast.success('Time series analysis complete!');
     } catch (error) {
       toast.error('Analysis failed: ' + (error.response?.data?.detail || error.message));
