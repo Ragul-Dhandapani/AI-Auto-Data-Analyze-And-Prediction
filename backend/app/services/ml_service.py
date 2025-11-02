@@ -138,12 +138,21 @@ def train_multiple_models(
             
             # Feature importance (if available)
             feature_importance_dict = {}
-            if not is_lstm and hasattr(model, 'feature_importances_'):
-                importances = model.feature_importances_
-                # Sort by importance
-                feature_imp_pairs = sorted(zip(feature_cols, importances), key=lambda x: x[1], reverse=True)
-                # Convert to dict for frontend
-                feature_importance_dict = {feat: float(imp) for feat, imp in feature_imp_pairs[:10]}
+            if not is_lstm:
+                if hasattr(model, 'feature_importances_'):
+                    # For tree-based models (Random Forest, XGBoost, Decision Tree)
+                    importances = model.feature_importances_
+                    feature_imp_pairs = sorted(zip(feature_cols, importances), key=lambda x: x[1], reverse=True)
+                    feature_importance_dict = {feat: float(imp) for feat, imp in feature_imp_pairs[:10]}
+                elif hasattr(model, 'coef_'):
+                    # For Linear Regression - use absolute coefficients as importance
+                    importances = np.abs(model.coef_)
+                    feature_imp_pairs = sorted(zip(feature_cols, importances), key=lambda x: x[1], reverse=True)
+                    feature_importance_dict = {feat: float(imp) for feat, imp in feature_imp_pairs[:10]}
+            elif is_lstm:
+                # For LSTM, we can't directly get feature importance, but we can note which features were used
+                # Indicate that all features contributed equally (or leave empty)
+                pass  # Keep empty dict for LSTM
             
             # Calculate confidence level based on R² score
             if r2_test >= 0.7:
