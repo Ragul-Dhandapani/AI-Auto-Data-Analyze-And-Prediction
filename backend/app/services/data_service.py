@@ -32,7 +32,7 @@ def generate_data_profile(df: pd.DataFrame) -> Dict[str, Any]:
         # Numeric column statistics (excluding boolean)
         if pd.api.types.is_numeric_dtype(df[col]) and df[col].dtype != 'bool':
             try:
-                col_info["statistics"] = {
+                stats_dict = {
                     "mean": float(df[col].mean()) if not df[col].isna().all() else None,
                     "median": float(df[col].median()) if not df[col].isna().all() else None,
                     "std": float(df[col].std()) if not df[col].isna().all() else None,
@@ -41,12 +41,18 @@ def generate_data_profile(df: pd.DataFrame) -> Dict[str, Any]:
                     "q25": float(df[col].quantile(0.25)) if not df[col].isna().all() else None,
                     "q75": float(df[col].quantile(0.75)) if not df[col].isna().all() else None
                 }
+                col_info["statistics"] = stats_dict
+                col_info["stats"] = stats_dict  # Frontend expects 'stats' field
             except Exception as e:
                 logging.warning(f"Failed to calculate statistics for {col}: {str(e)}")
                 col_info["statistics"] = {"error": "Unable to calculate statistics"}
+                col_info["stats"] = None
         else:
             # Categorical column info (including boolean)
-            col_info["top_values"] = df[col].value_counts().head(5).to_dict()
+            top_values_dict = df[col].value_counts().head(5).to_dict()
+            # Convert to native Python types
+            col_info["top_values"] = {str(k): int(v) for k, v in top_values_dict.items()}
+            col_info["stats"] = None  # No stats for categorical
         
         columns.append(col_info)
         columns_info.append(col_info)  # Frontend expects columns_info
