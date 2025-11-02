@@ -841,7 +841,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
       {/* Variable Selection Feedback */}
       {selectionFeedback && (
-        <Card className={`p-4 border-2 ${
+        <Card id="selection-feedback-section" className={`p-4 border-2 ${
           selectionFeedback.status === 'used' 
             ? 'bg-blue-50 border-blue-300' 
             : 'bg-amber-50 border-amber-300'
