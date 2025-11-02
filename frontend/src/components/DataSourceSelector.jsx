@@ -27,7 +27,8 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
     database: "",
     username: "",
     password: "",
-    service_name: ""
+    service_name: "",
+    use_kerberos: false
   });
   const [connectionTested, setConnectionTested] = useState(false);
   const [tables, setTables] = useState([]);
