@@ -178,8 +178,15 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const runHolisticAnalysis = async () => {
     setLoading(true);
     setProgress(0);
+    setSelectionFeedback(null); // Reset feedback
     const startTime = Date.now();
-    toast.info("Running comprehensive AI/ML analysis...");
+    
+    // Show different toast based on variable selection
+    if (variableSelection && variableSelection.mode !== 'skip') {
+      toast.info(`Running analysis with your selection: Target=${variableSelection.target}, Features=${variableSelection.features.length}...`);
+    } else {
+      toast.info("Running comprehensive AI/ML analysis...");
+    }
     
     // Simulate progress for better UX - cap at 90% until response received
     progressIntervalRef.current = setInterval(() => {
@@ -194,9 +201,22 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     }, 500);
     
     try {
-      const response = await axios.post(`${API}/analysis/holistic`, {
+      // Prepare request payload with variable selection
+      const payload = {
         dataset_id: dataset.id
-      });
+      };
+      
+      // Add variable selection if provided
+      if (variableSelection && variableSelection.mode !== 'skip') {
+        payload.user_selection = {
+          target_variable: variableSelection.target,
+          selected_features: variableSelection.features,
+          mode: variableSelection.mode,
+          ai_suggestions: variableSelection.aiSuggestions
+        };
+      }
+      
+      const response = await axios.post(`${API}/analysis/holistic`, payload);
 
       const endTime = Date.now();
       const timeTaken = ((endTime - startTime) / 1000).toFixed(1); // in seconds
@@ -204,6 +224,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
       // Complete progress
       setProgress(100);
+      
+      // Check if backend returned selection feedback
+      if (response.data.selection_feedback) {
+        setSelectionFeedback(response.data.selection_feedback);
+      }
       
       setAnalysisResults(response.data);
       onAnalysisUpdate(response.data); // Cache the results
