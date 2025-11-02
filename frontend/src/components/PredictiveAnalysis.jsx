@@ -718,20 +718,96 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">📊 Volume Analysis</h3>
-              <p className="text-sm text-gray-600 italic mt-1">Analysis of data distribution across different dimensions</p>
+              <p className="text-sm text-gray-600 italic mt-1">Comprehensive data distribution and pattern analysis</p>
+              {analysisResults.volume_analysis.summary && (
+                <div className="mt-2 flex gap-4 text-xs text-gray-600">
+                  <span>📈 Total: {analysisResults.volume_analysis.total_records.toLocaleString()} rows</span>
+                  <span>📋 Columns: {analysisResults.volume_analysis.summary.total_columns}</span>
+                  <span>💾 Memory: {analysisResults.volume_analysis.summary.memory_usage_mb} MB</span>
+                </div>
+              )}
             </div>
             <Button onClick={() => toggleSection('volume')} variant="ghost" size="sm">
               <ChevronUp className="w-4 h-4" />
             </Button>
           </div>
-          <div className="space-y-4">
+          
+          {/* Categorical Volume Analysis */}
+          <div className="space-y-4 mb-6">
+            <h4 className="font-semibold text-gray-800">Categorical Distribution</h4>
             {analysisResults.volume_analysis.by_dimensions.map((item, idx) => (
-              <div key={idx} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-semibold mb-2">{String(item.dimension)}</h4>
-                <p className="text-sm text-gray-700">{String(item.insights)}</p>
+              <div key={idx} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div className="flex items-start justify-between mb-2">
+                  <h5 className="font-semibold text-gray-900">{String(item.dimension)}</h5>
+                  <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
+                    {item.total_unique} unique values
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 mb-3">{String(item.insights)}</p>
+                
+                {/* Top values breakdown */}
+                {item.breakdown && Object.keys(item.breakdown).length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">Top Values:</p>
+                    {Object.entries(item.breakdown).slice(0, 5).map(([key, value], i) => {
+                      const percentage = ((value / analysisResults.volume_analysis.total_records) * 100).toFixed(1);
+                      return (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="text-xs text-gray-700 w-32 truncate" title={key}>{key}</span>
+                          <div className="flex-1 h-5 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-blue-400 to-indigo-500"
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs text-gray-600 w-20 text-right">{value.toLocaleString()} ({percentage}%)</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ))}
           </div>
+          
+          {/* Numeric Volume Analysis */}
+          {analysisResults.volume_analysis.numeric_summary && analysisResults.volume_analysis.numeric_summary.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="font-semibold text-gray-800">Numeric Distribution</h4>
+              {analysisResults.volume_analysis.numeric_summary.map((item, idx) => (
+                <div key={idx} className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
+                  <h5 className="font-semibold text-gray-900 mb-2">{String(item.dimension)}</h5>
+                  <p className="text-sm text-gray-700 mb-3">{String(item.insights)}</p>
+                  <div className="grid grid-cols-3 gap-3 text-xs">
+                    <div className="bg-white p-2 rounded border border-green-200">
+                      <span className="text-gray-600">Min:</span>
+                      <span className="font-semibold text-gray-900 ml-1">{item.min}</span>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-green-200">
+                      <span className="text-gray-600">Mean:</span>
+                      <span className="font-semibold text-gray-900 ml-1">{item.mean}</span>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-green-200">
+                      <span className="text-gray-600">Max:</span>
+                      <span className="font-semibold text-gray-900 ml-1">{item.max}</span>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-green-200">
+                      <span className="text-gray-600">Median:</span>
+                      <span className="font-semibold text-gray-900 ml-1">{item.median}</span>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-green-200">
+                      <span className="text-gray-600">Std Dev:</span>
+                      <span className="font-semibold text-gray-900 ml-1">{item.std}</span>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-green-200">
+                      <span className="text-gray-600">Range:</span>
+                      <span className="font-semibold text-gray-900 ml-1">{item.range}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       )}
 
