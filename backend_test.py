@@ -443,17 +443,16 @@ def test_error_handling():
 
 def main():
     """Run all tests"""
-    print("🚀 Starting Backend API Tests for Custom Query Dataset Naming")
+    print("🚀 Starting Backend API Tests for Recent Datasets Fix")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now().isoformat()}")
     
     # Track test results
     results = {
         'api_health': False,
-        'query_preview': False,
-        'save_dataset': False,
-        'verify_dataset': False,
-        'error_handling': False
+        'datasets_endpoint': False,
+        'datasets_limit': False,
+        'response_performance': False
     }
     
     # Test 0: API Health Check
@@ -463,25 +462,18 @@ def main():
         print("\n❌ API is not accessible. Stopping tests.")
         return False
     
-    # Test 1: Execute Query Preview
-    results['query_preview'] = test_execute_query_preview()
+    # Test 1: Recent Datasets API
+    results['datasets_endpoint'] = test_datasets_endpoint()
     
-    # Test 2: Save Query Dataset
-    save_success, dataset_id = test_save_query_dataset()
-    results['save_dataset'] = save_success
+    # Test 2: Datasets with Limit
+    results['datasets_limit'] = test_datasets_with_limit()
     
-    # Test 3: Verify Saved Dataset (only if save was successful)
-    if save_success and dataset_id:
-        results['verify_dataset'] = test_verify_saved_dataset(dataset_id)
-    else:
-        print("\n⏭️  Skipping dataset verification (save failed)")
-    
-    # Test 4: Error Handling
-    results['error_handling'] = test_error_handling()
+    # Test 3: Response Performance
+    results['response_performance'] = test_response_performance()
     
     # Summary
     print("\n" + "="*50)
-    print("📊 TEST SUMMARY")
+    print("📊 TEST SUMMARY - RECENT DATASETS FIX")
     print("="*50)
     
     passed_tests = sum(1 for result in results.values() if result)
@@ -493,11 +485,22 @@ def main():
     
     print(f"\nOverall: {passed_tests}/{total_tests} tests passed")
     
+    # Specific summary for the fix
+    if results['datasets_endpoint']:
+        print("\n🎉 CRITICAL FIX VERIFIED:")
+        print("   ✅ /api/datasets endpoint excludes 'data' field")
+        print("   ✅ Response size is optimized for frontend")
+        print("   ✅ Frontend crashes should be resolved")
+    else:
+        print("\n❌ CRITICAL ISSUE:")
+        print("   ❌ /api/datasets endpoint may still be returning full data")
+        print("   ❌ Frontend crashes may persist")
+    
     if passed_tests == total_tests:
-        print("🎉 All tests passed!")
+        print("\n🎉 All tests passed!")
         return True
     else:
-        print("⚠️  Some tests failed. Check the details above.")
+        print("\n⚠️  Some tests failed. Check the details above.")
         return False
 
 if __name__ == "__main__":
