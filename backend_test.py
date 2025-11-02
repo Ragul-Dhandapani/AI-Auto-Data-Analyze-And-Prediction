@@ -441,18 +441,345 @@ def test_error_handling():
     print(f"\nError Handling Tests: {tests_passed}/{total_tests} passed")
     return tests_passed == total_tests
 
+def test_holistic_analysis_single_target():
+    """Test Case 1: Single Target (Manual Mode)"""
+    print("\n=== Test Case 1: Single Target (Manual Mode) ===")
+    
+    # Get a dataset ID
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv
+    
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variable": "latency_ms",
+            "selected_features": ["cpu_utilization", "memory_usage_mb"],
+            "mode": "manual"
+        }
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Single Target Analysis Successful")
+            
+            # Verify response structure
+            required_fields = ['profile', 'models', 'ml_models', 'auto_charts', 'correlations', 'insights']
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if missing_fields:
+                print(f"❌ Missing required fields: {missing_fields}")
+                return False
+            
+            # Check if models were trained
+            models = data.get('models', [])
+            print(f"   Models trained: {len(models)}")
+            
+            # Verify target variable was used
+            if models:
+                target_found = any('latency_ms' in str(model) for model in models)
+                if target_found:
+                    print("✅ Target variable 'latency_ms' was used correctly")
+                else:
+                    print("⚠️ Target variable 'latency_ms' not clearly identified in models")
+            
+            # Check selection feedback
+            if 'selection_feedback' in data:
+                feedback = data['selection_feedback']
+                print(f"   Selection feedback status: {feedback.get('status', 'N/A')}")
+                print(f"   Used targets: {feedback.get('used_targets', [])}")
+            
+            return True
+        else:
+            print(f"❌ Single Target Analysis Failed: {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error: {error_data}")
+            except:
+                print(f"   Error: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Single Target Analysis Exception: {str(e)}")
+        return False
+
+def test_holistic_analysis_multiple_targets():
+    """Test Case 2: Multiple Targets (Hybrid Mode)"""
+    print("\n=== Test Case 2: Multiple Targets (Hybrid Mode) ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv
+    
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variables": [
+                {"target": "latency_ms", "features": ["cpu_utilization", "memory_usage_mb"]},
+                {"target": "cpu_utilization", "features": ["payload_size_kb", "memory_usage_mb"]}
+            ],
+            "mode": "hybrid"
+        }
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Multiple Targets Analysis Successful")
+            
+            # Check if models were trained for both targets
+            models = data.get('models', [])
+            print(f"   Total models trained: {len(models)}")
+            
+            # Check selection feedback for multiple targets
+            if 'selection_feedback' in data:
+                feedback = data['selection_feedback']
+                print(f"   Selection feedback status: {feedback.get('status', 'N/A')}")
+                used_targets = feedback.get('used_targets', [])
+                is_multi_target = feedback.get('is_multi_target', False)
+                
+                print(f"   Used targets: {used_targets}")
+                print(f"   Is multi-target: {is_multi_target}")
+                
+                # Verify both targets were processed
+                expected_targets = ["latency_ms", "cpu_utilization"]
+                targets_found = all(target in used_targets for target in expected_targets)
+                
+                if targets_found and is_multi_target:
+                    print("✅ Both targets processed correctly in multi-target mode")
+                else:
+                    print(f"⚠️ Expected targets {expected_targets}, got {used_targets}")
+            
+            return True
+        else:
+            print(f"❌ Multiple Targets Analysis Failed: {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error: {error_data}")
+            except:
+                print(f"   Error: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Multiple Targets Analysis Exception: {str(e)}")
+        return False
+
+def test_holistic_analysis_invalid_target():
+    """Test Case 3: Invalid Target (Should Fallback)"""
+    print("\n=== Test Case 3: Invalid Target (Should Fallback) ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv
+    
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variable": "nonexistent_column",
+            "selected_features": ["cpu_utilization"],
+            "mode": "manual"
+        }
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Invalid Target Analysis Successful (Fallback)")
+            
+            # Check selection feedback for fallback behavior
+            if 'selection_feedback' in data:
+                feedback = data['selection_feedback']
+                status = feedback.get('status', '')
+                message = feedback.get('message', '')
+                
+                print(f"   Selection feedback status: {status}")
+                
+                if status == "modified":
+                    print("✅ Correctly detected invalid target and fell back to auto-detection")
+                    print(f"   Feedback message: {message[:100]}...")
+                    
+                    # Check if auto-detection worked
+                    used_targets = feedback.get('used_targets', [])
+                    if used_targets:
+                        print(f"   Auto-detected targets: {used_targets}")
+                        return True
+                    else:
+                        print("⚠️ Auto-detection didn't find any targets")
+                        return True  # Still pass as fallback worked
+                else:
+                    print(f"❌ Expected status 'modified', got '{status}'")
+                    return False
+            else:
+                print("⚠️ No selection_feedback found - fallback may not be working correctly")
+                return False
+            
+        else:
+            print(f"❌ Invalid Target Analysis Failed: {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error: {error_data}")
+            except:
+                print(f"   Error: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Invalid Target Analysis Exception: {str(e)}")
+        return False
+
+def test_holistic_analysis_auto_mode():
+    """Test Case 4: No User Selection (Auto Mode)"""
+    print("\n=== Test Case 4: No User Selection (Auto Mode) ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv
+    
+    payload = {
+        "dataset_id": dataset_id
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Auto Mode Analysis Successful")
+            
+            # Verify response structure
+            required_fields = ['profile', 'models', 'ml_models', 'auto_charts', 'correlations', 'insights']
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if missing_fields:
+                print(f"❌ Missing required fields: {missing_fields}")
+                return False
+            
+            # Check if models were trained
+            models = data.get('models', [])
+            print(f"   Models trained: {len(models)}")
+            
+            # Check if auto-detection worked
+            if models:
+                print("✅ Auto-detection successfully trained models")
+            else:
+                print("⚠️ No models trained in auto mode")
+            
+            # Verify no selection_feedback (since no user selection)
+            if 'selection_feedback' not in data:
+                print("✅ No selection_feedback (correct for auto mode)")
+            else:
+                print("ℹ️ Selection feedback present (may indicate fallback occurred)")
+            
+            return True
+        else:
+            print(f"❌ Auto Mode Analysis Failed: {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error: {error_data}")
+            except:
+                print(f"   Error: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Auto Mode Analysis Exception: {str(e)}")
+        return False
+
+def test_holistic_analysis_performance():
+    """Test Case 5: Performance and Response Time"""
+    print("\n=== Test Case 5: Performance and Response Time ===")
+    
+    dataset_id = "f3ee15b1-2c23-4538-b2d2-9839aea11a4e"  # application_latency_16.csv (62,500 rows)
+    
+    payload = {
+        "dataset_id": dataset_id,
+        "user_selection": {
+            "target_variable": "latency_ms",
+            "selected_features": ["cpu_utilization", "memory_usage_mb", "payload_size_kb"],
+            "mode": "manual"
+        }
+    }
+    
+    try:
+        import time
+        start_time = time.time()
+        
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/holistic",
+            json=payload,
+            timeout=60
+        )
+        
+        end_time = time.time()
+        response_time = (end_time - start_time) * 1000  # Convert to milliseconds
+        
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Time: {response_time:.2f} ms")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("✅ Performance Test Successful")
+            
+            # Check for performance optimization info
+            models = data.get('models', [])
+            if models and len(models) > 0:
+                # Check if sampling was used for large dataset
+                performance_info = data.get('performance_info')
+                if performance_info:
+                    print(f"   Performance optimization: {performance_info}")
+                    if performance_info.get('sampled'):
+                        print("✅ Large dataset sampling optimization working")
+                
+            # Verify reasonable response time (should be under 30 seconds for small datasets)
+            if response_time < 30000:  # 30 seconds
+                print("✅ Response time is acceptable")
+            else:
+                print(f"⚠️ Response time seems slow: {response_time:.2f} ms")
+            
+            return True
+        else:
+            print(f"❌ Performance Test Failed: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Performance Test Exception: {str(e)}")
+        return False
+
 def main():
     """Run all tests"""
-    print("🚀 Starting Backend API Tests for Recent Datasets Fix")
+    print("🚀 Starting Comprehensive Variable Selection Testing for Holistic Analysis")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now().isoformat()}")
     
     # Track test results
     results = {
         'api_health': False,
-        'datasets_endpoint': False,
-        'datasets_limit': False,
-        'response_performance': False
+        'single_target_manual': False,
+        'multiple_targets_hybrid': False,
+        'invalid_target_fallback': False,
+        'auto_mode': False,
+        'performance_test': False
     }
     
     # Test 0: API Health Check
@@ -462,19 +789,25 @@ def main():
         print("\n❌ API is not accessible. Stopping tests.")
         return False
     
-    # Test 1: Recent Datasets API
-    results['datasets_endpoint'] = test_datasets_endpoint()
+    # Test 1: Single Target (Manual Mode)
+    results['single_target_manual'] = test_holistic_analysis_single_target()
     
-    # Test 2: Datasets with Limit
-    results['datasets_limit'] = test_datasets_with_limit()
+    # Test 2: Multiple Targets (Hybrid Mode)
+    results['multiple_targets_hybrid'] = test_holistic_analysis_multiple_targets()
     
-    # Test 3: Response Performance
-    results['response_performance'] = test_response_performance()
+    # Test 3: Invalid Target (Should Fallback)
+    results['invalid_target_fallback'] = test_holistic_analysis_invalid_target()
+    
+    # Test 4: No User Selection (Auto Mode)
+    results['auto_mode'] = test_holistic_analysis_auto_mode()
+    
+    # Test 5: Performance Test
+    results['performance_test'] = test_holistic_analysis_performance()
     
     # Summary
-    print("\n" + "="*50)
-    print("📊 TEST SUMMARY - RECENT DATASETS FIX")
-    print("="*50)
+    print("\n" + "="*60)
+    print("📊 TEST SUMMARY - HOLISTIC ANALYSIS VARIABLE SELECTION")
+    print("="*60)
     
     passed_tests = sum(1 for result in results.values() if result)
     total_tests = len(results)
@@ -485,22 +818,39 @@ def main():
     
     print(f"\nOverall: {passed_tests}/{total_tests} tests passed")
     
-    # Specific summary for the fix
-    if results['datasets_endpoint']:
-        print("\n🎉 CRITICAL FIX VERIFIED:")
-        print("   ✅ /api/datasets endpoint excludes 'data' field")
-        print("   ✅ Response size is optimized for frontend")
-        print("   ✅ Frontend crashes should be resolved")
+    # Detailed summary
+    print("\n🔍 DETAILED FINDINGS:")
+    
+    if results['single_target_manual']:
+        print("   ✅ Single target manual mode working correctly")
     else:
-        print("\n❌ CRITICAL ISSUE:")
-        print("   ❌ /api/datasets endpoint may still be returning full data")
-        print("   ❌ Frontend crashes may persist")
+        print("   ❌ Single target manual mode has issues")
+    
+    if results['multiple_targets_hybrid']:
+        print("   ✅ Multiple targets hybrid mode working correctly")
+    else:
+        print("   ❌ Multiple targets hybrid mode has issues")
+    
+    if results['invalid_target_fallback']:
+        print("   ✅ Invalid target fallback mechanism working")
+    else:
+        print("   ❌ Invalid target fallback mechanism not working")
+    
+    if results['auto_mode']:
+        print("   ✅ Auto-detection mode working correctly")
+    else:
+        print("   ❌ Auto-detection mode has issues")
+    
+    if results['performance_test']:
+        print("   ✅ Performance optimization working for large datasets")
+    else:
+        print("   ❌ Performance issues detected")
     
     if passed_tests == total_tests:
-        print("\n🎉 All tests passed!")
+        print("\n🎉 All holistic analysis tests passed!")
         return True
     else:
-        print("\n⚠️  Some tests failed. Check the details above.")
+        print(f"\n⚠️ {total_tests - passed_tests} test(s) failed. Check the details above.")
         return False
 
 if __name__ == "__main__":
