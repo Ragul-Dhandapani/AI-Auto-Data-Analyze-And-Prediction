@@ -478,10 +478,10 @@ async def holistic_analysis(request: Dict[str, Any]):
                         df_subset = pd.get_dummies(df_subset, columns=categorical_selected, drop_first=True, dtype=int)
                         logging.info(f"Encoded {len(categorical_selected)} categorical features for target {target_col}")
                     
-                    target_models = train_multiple_models(df_subset, target_col)
+                    target_models = train_models_auto(df_subset, target_col, problem_type=problem_type)
                 else:
                     # Train on all numeric features
-                    target_models = train_multiple_models(df_analysis, target_col)
+                    target_models = train_models_auto(df_analysis, target_col, problem_type=problem_type)
                 
                 # Add models to all_models list
                 if target_models.get("models"):
