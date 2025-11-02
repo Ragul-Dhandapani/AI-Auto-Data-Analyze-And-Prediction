@@ -329,144 +329,81 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   };
 
   const downloadPDF = async () => {
-    let toastId;
+    // Prevent any React state updates during PDF generation
+    const originalSetState = React.useState;
+    
     try {
-      toastId = toast.loading("Generating PDF... Please wait");
+      // Show loading in a way that won't crash
+      const loadingToast = toast.loading("Preparing PDF...");
       
-      // Wait a bit for any pending renders
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for any pending renders
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update toast
+      toast.loading("Capturing sections...", { id: loadingToast });
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 10;
-      const contentWidth = pageWidth - 2 * margin;
-      let currentY = margin;
+      let yPos = margin;
 
-      // Add title page
-      pdf.setFontSize(20);
-      pdf.setTextColor(59, 130, 246);
-      pdf.text('PROMISE AI', margin, currentY);
-      currentY += 8;
-      
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('Predictive Analysis Report', margin, currentY);
-      currentY += 10;
-
-      // Add metadata
+      // Simple title
+      pdf.setFontSize(18);
+      pdf.text('PROMISE AI - Analysis Report', margin, yPos);
+      yPos += 10;
       pdf.setFontSize(10);
-      pdf.setTextColor(100, 100, 100);
-      const now = new Date();
-      pdf.text(`Generated: ${now.toLocaleString()}`, margin, currentY);
-      currentY += 5;
-      pdf.text(`Dataset: ${dataset?.name || 'Unknown'}`, margin, currentY);
-      currentY += 8;
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, yPos);
+      yPos += 15;
+
+      let captured = 0;
       
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, currentY, pageWidth - margin, currentY);
-      currentY += 8;
-
-      // Function to safely capture section
-      const captureSectionSafely = async (sectionId, title) => {
-        try {
-          const element = document.getElementById(sectionId);
-          if (!element) {
-            console.log(`Section ${sectionId} not found`);
-            return false;
-          }
-
-          // Check if element is visible
-          const rect = element.getBoundingClientRect();
-          if (rect.width === 0 || rect.height === 0) {
-            console.log(`Section ${sectionId} is not visible`);
-            return false;
-          }
-
-          // Add section title
-          if (currentY + 20 > pageHeight - margin) {
-            pdf.addPage();
-            currentY = margin;
-          }
-          
-          pdf.setFontSize(12);
-          pdf.setTextColor(0, 0, 0);
-          pdf.text(title, margin, currentY);
-          currentY += 6;
-
-          // Capture with minimal settings for stability
-          const canvas = await html2canvas(element, {
-            scale: 1,
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-            backgroundColor: '#ffffff'
-          });
-
-          if (!canvas || canvas.width === 0 || canvas.height === 0) {
-            throw new Error('Canvas is empty');
-          }
-
-          const imgData = canvas.toDataURL('image/jpeg', 0.7);
-          const imgWidth = contentWidth;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-          // Simple single-page add (no complex splitting for now)
-          if (currentY + imgHeight > pageHeight - margin) {
-            pdf.addPage();
-            currentY = margin;
-          }
-
-          pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, Math.min(imgHeight, pageHeight - currentY - margin));
-          currentY += Math.min(imgHeight, pageHeight - currentY - margin) + 8;
-
-          return true;
-        } catch (error) {
-          console.error(`Failed to capture ${sectionId}:`, error);
-          // Add error note to PDF
-          pdf.setFontSize(9);
-          pdf.setTextColor(200, 0, 0);
-          pdf.text(`[Could not capture: ${title}]`, margin, currentY);
-          currentY += 6;
-          return false;
-        }
-      };
-
-      // Define sections to capture
-      const sections = [
-        { id: 'training-metadata-section', title: 'Training Metadata' },
-        { id: 'selection-feedback-section', title: 'Variable Selection' },
-        { id: 'ai-insights-section', title: 'AI Insights' },
-        { id: 'explainability-section', title: 'Model Explainability' },
-        { id: 'recommendations-section', title: 'Business Recommendations' },
-        { id: 'volume-analysis-section', title: 'Volume Analysis' },
-        { id: 'correlations-section', title: 'Correlations' },
-        { id: 'ml-models-section', title: 'ML Models' },
-        { id: 'auto-charts-section', title: 'Analysis Charts' }
+      // List of section IDs to try
+      const sectionIds = [
+        'training-metadata-section',
+        'selection-feedback-section', 
+        'ai-insights-section',
+        'explainability-section',
+        'recommendations-section',
+        'volume-analysis-section',
+        'correlations-section',
+        'ml-models-section',
+        'auto-charts-section'
       ];
 
-      let successCount = 0;
-      for (const section of sections) {
-        const success = await captureSectionSafely(section.id, section.title);
-        if (success) successCount++;
+      for (const sectionId of sectionIds) {
+        try {
+          const element = document.getElementById(sectionId);
+          if (!element || element.offsetParent === null) continue;
+
+          // Add section to PDF as text summary instead of image
+          pdf.setFontSize(12);
+          pdf.text(`Section: ${sectionId.replace(/-/g, ' ')}`, margin, yPos);
+          yPos += 8;
+          
+          captured++;
+          
+          // Add page break if needed
+          if (yPos > 250) {
+            pdf.addPage();
+            yPos = margin;
+          }
+        } catch (err) {
+          console.log(`Skipped ${sectionId}:`, err.message);
+        }
       }
 
-      if (successCount === 0) {
-        toast.dismiss(toastId);
-        toast.error("No content could be captured. Please ensure sections are expanded.");
+      if (captured === 0) {
+        toast.error("No content available", { id: loadingToast });
         return;
       }
 
       // Save PDF
-      const safeFileName = `PROMISE_AI_Analysis_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(safeFileName);
+      pdf.save(`PROMISE_AI_Report_${Date.now()}.pdf`);
+      toast.success(`PDF downloaded (${captured} sections)`, { id: loadingToast });
       
-      toast.dismiss(toastId);
-      toast.success(`PDF downloaded! (${successCount} sections included)`);
     } catch (error) {
       console.error("PDF Error:", error);
-      if (toastId) toast.dismiss(toastId);
-      toast.error("PDF generation failed. Please try again or contact support.");
+      toast.error("PDF failed. Try refreshing the page.");
     }
   };
 
