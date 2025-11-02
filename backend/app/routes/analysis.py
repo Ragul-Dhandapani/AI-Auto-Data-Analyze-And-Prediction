@@ -605,7 +605,12 @@ async def holistic_analysis(request: Dict[str, Any]):
                 "training_count": training_count,
                 "last_trained_at": last_trained_at,
                 "dataset_size": len(df)
-            }
+            },
+            # Phase 3: Enhanced AI features
+            "ai_insights": ai_insights_list,  # Structured insights list
+            "explainability": explainability_results,  # Model explainability info
+            "business_recommendations": business_recommendations,  # AI-generated recommendations
+            "phase_3_enabled": True  # Flag to indicate Phase 3 features are available
         }
         
         # Add selection feedback if user made a selection
