@@ -624,6 +624,50 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
+      {/* Variable Selection Feedback */}
+      {selectionFeedback && (
+        <Card className={`p-4 border-2 ${
+          selectionFeedback.status === 'used' 
+            ? 'bg-blue-50 border-blue-300' 
+            : 'bg-amber-50 border-amber-300'
+        }`}>
+          <div className="flex items-start gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              selectionFeedback.status === 'used' 
+                ? 'bg-blue-100' 
+                : 'bg-amber-100'
+            }`}>
+              <Info className={`w-5 h-5 ${
+                selectionFeedback.status === 'used' 
+                  ? 'text-blue-600' 
+                  : 'text-amber-600'
+              }`} />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-800 mb-1">
+                {selectionFeedback.status === 'used' 
+                  ? '✅ Your Variable Selection Used' 
+                  : '⚠️ Variable Selection Modified'}
+              </h4>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                {selectionFeedback.message}
+              </p>
+              {selectionFeedback.used_target && (
+                <div className="mt-2 text-xs bg-white p-2 rounded border">
+                  <span className="font-semibold">Target:</span> {selectionFeedback.used_target}
+                  {selectionFeedback.used_features && selectionFeedback.used_features.length > 0 && (
+                    <>
+                      <br />
+                      <span className="font-semibold">Features ({selectionFeedback.used_features.length}):</span> {selectionFeedback.used_features.join(', ')}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Rest of sections with collapse... */}
       {/* Volume Analysis */}
       {analysisResults.volume_analysis && analysisResults.volume_analysis.by_dimensions && analysisResults.volume_analysis.by_dimensions.length > 0 && !collapsed.volume && (
