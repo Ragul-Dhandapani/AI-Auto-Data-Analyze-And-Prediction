@@ -629,7 +629,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             className="bg-blue-50 hover:bg-blue-100 border-blue-200"
           >
             <Download className="w-4 h-4 mr-2" />
-            Download PDF
+            Print/Save PDF
           </Button>
           <Button
             data-testid="refresh-analysis-btn"
