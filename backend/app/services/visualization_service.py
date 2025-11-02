@@ -113,14 +113,27 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> Tuple[List[D
             }
             if validate_chart_data(chart):
                 charts.append(chart)
+            else:
+                skipped_charts.append({
+                    "category": "Box Plots", 
+                    "reason": f"Invalid chart data for {col}"
+                })
         except Exception as e:
             logging.warning(f"Failed to generate box plot for {col}: {str(e)}")
+            skipped_charts.append({
+                "category": "Box Plots", 
+                "reason": f"Error generating box plot for {col}: {str(e)[:100]}"
+            })
     
     # 7-9: Categorical distribution
     for col in categorical_cols[:3]:
         try:
             value_counts = df[col].value_counts().head(10)
             if len(value_counts) == 0:
+                skipped_charts.append({
+                    "category": "Categorical Charts", 
+                    "reason": f"No data in categorical column {col}"
+                })
                 continue
             fig = go.Figure(data=[go.Bar(x=value_counts.index.astype(str), y=value_counts.values)])
             fig.update_layout(title=f"Top Categories in {col}", xaxis_title=col, yaxis_title="Count")
@@ -132,8 +145,23 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> Tuple[List[D
             }
             if validate_chart_data(chart):
                 charts.append(chart)
+            else:
+                skipped_charts.append({
+                    "category": "Categorical Charts", 
+                    "reason": f"Invalid chart data for {col}"
+                })
         except Exception as e:
             logging.warning(f"Failed to generate bar chart for {col}: {str(e)}")
+            skipped_charts.append({
+                "category": "Categorical Charts", 
+                "reason": f"Error generating bar chart for {col}: {str(e)[:100]}"
+            })
+    
+    if len(categorical_cols) == 0:
+        skipped_charts.append({
+            "category": "Categorical Charts", 
+            "reason": "No categorical columns found in dataset"
+        })
     
     # 10-12: Time series trends
     if datetime_cols:
@@ -142,6 +170,10 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> Tuple[List[D
                 try:
                     temp_df = df[[dt_col, num_col]].dropna().sort_values(dt_col)
                     if len(temp_df) < 2:
+                        skipped_charts.append({
+                            "category": "Time Series Charts", 
+                            "reason": f"Insufficient data for {num_col} time series"
+                        })
                         continue
                     fig = go.Figure(data=[go.Scatter(x=temp_df[dt_col], y=temp_df[num_col], mode='lines+markers', name=num_col)])
                     fig.update_layout(title=f"{num_col} Over Time", xaxis_title=dt_col, yaxis_title=num_col)
@@ -153,8 +185,22 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> Tuple[List[D
                     }
                     if validate_chart_data(chart):
                         charts.append(chart)
+                    else:
+                        skipped_charts.append({
+                            "category": "Time Series Charts", 
+                            "reason": f"Invalid chart data for {num_col}"
+                        })
                 except Exception as e:
                     logging.warning(f"Failed to generate time series for {num_col}: {str(e)}")
+                    skipped_charts.append({
+                        "category": "Time Series Charts", 
+                        "reason": f"Error generating time series: {str(e)[:100]}"
+                    })
+    else:
+        skipped_charts.append({
+            "category": "Time Series Charts", 
+            "reason": "No datetime columns found in dataset"
+        })
     
     # 13-15: Scatter plots for correlation
     if len(numeric_cols) >= 2:
