@@ -72,10 +72,34 @@ const DashboardPage = () => {
   };
 
   const handleDatasetLoaded = (dataset) => {
-    setSelectedDataset(dataset);
-    setCurrentStep("analysis");
+    // Show variable selection modal after dataset is loaded
+    setPendingDataset(dataset);
+    setShowVariableSelection(true);
     loadDatasets();
-    toast.success("Dataset loaded successfully!");
+  };
+
+  const handleVariableSelectionConfirm = (selection) => {
+    setVariableSelection(selection);
+    setSelectedDataset({
+      ...pendingDataset,
+      variableSelection: selection
+    });
+    setShowVariableSelection(false);
+    setCurrentStep("analysis");
+    
+    if (selection.mode === "skip") {
+      toast.success("Dataset loaded successfully!");
+    } else {
+      toast.success(`Target: ${selection.target}, Features: ${selection.features.length} selected`);
+    }
+  };
+
+  const handleVariableSelectionClose = () => {
+    // User closed modal without confirming - still load dataset
+    setSelectedDataset(pendingDataset);
+    setShowVariableSelection(false);
+    setCurrentStep("analysis");
+    toast.info("Dataset loaded without variable selection");
   };
 
   const handleDatasetSelect = (dataset) => {
