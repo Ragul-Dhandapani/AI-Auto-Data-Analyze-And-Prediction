@@ -30,29 +30,39 @@ const HomePage = () => {
       description: "Connect to Oracle, PostgreSQL, MongoDB, or upload CSV/Excel files"
     },
     {
-      icon: <Brain className="w-6 h-6" />,
-      title: "AI-Powered Analysis",
-      description: "Get intelligent insights and recommendations from your data"
+      icon: <Target className="w-6 h-6" />,
+      title: "Classification & Regression",
+      description: "Binary, multi-class classification and numeric prediction with 6+ ML algorithms"
     },
     {
       icon: <TrendingUp className="w-6 h-6" />,
-      title: "Predictive Analytics",
-      description: "Forecast trends with advanced machine learning models"
+      title: "Time Series Forecasting",
+      description: "Prophet and LSTM forecasting with anomaly detection and trend analysis"
     },
     {
-      icon: <BarChart3 className="w-6 h-6" />,
-      title: "Smart Visualizations",
-      description: "Auto-generate beautiful charts based on your data"
+      icon: <Brain className="w-6 h-6" />,
+      title: "AI-Powered Insights",
+      description: "Get intelligent business recommendations and model explainability with SHAP"
     },
     {
-      icon: <Zap className="w-6 h-6" />,
-      title: "Automated Cleaning",
-      description: "Detect and fix data quality issues automatically"
+      icon: <Settings className="w-6 h-6" />,
+      title: "Hyperparameter Tuning",
+      description: "Optimize model performance with grid and random search strategies"
+    },
+    {
+      icon: <MessageSquare className="w-6 h-6" />,
+      title: "Active Learning Loop",
+      description: "Continuous model improvement with user feedback and retraining"
+    },
+    {
+      icon: <Activity className="w-6 h-6" />,
+      title: "NLP & Multi-Table Support",
+      description: "Text feature extraction, relational data joins, and training metadata tracking"
     },
     {
       icon: <Shield className="w-6 h-6" />,
-      title: "Secure & Fast",
-      description: "Enterprise-grade security with lightning-fast analysis"
+      title: "Enterprise Security",
+      description: "Kerberos authentication with lightning-fast analysis and auto-visualization"
     }
   ];
 
