@@ -572,13 +572,13 @@ async def holistic_analysis(request: Dict[str, Any]):
         
         # Build enhanced volume analysis from profile data
         volume_analysis = {
-            "total_records": len(df),
+            "total_records": int(len(df)),
             "by_dimensions": [],
             "summary": {
-                "total_columns": len(df.columns),
-                "numeric_columns": len(df.select_dtypes(include=[np.number]).columns),
-                "categorical_columns": len(df.select_dtypes(include=['object', 'category']).columns),
-                "memory_usage_mb": round(df.memory_usage(deep=True).sum() / (1024 * 1024), 2)
+                "total_columns": int(len(df.columns)),
+                "numeric_columns": int(len(df.select_dtypes(include=[np.number]).columns)),
+                "categorical_columns": int(len(df.select_dtypes(include=['object', 'category']).columns)),
+                "memory_usage_mb": float(round(df.memory_usage(deep=True).sum() / (1024 * 1024), 2))
             }
         }
         
@@ -586,12 +586,14 @@ async def holistic_analysis(request: Dict[str, Any]):
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
         for col in categorical_cols[:5]:  # Top 5 categorical columns
             value_counts = df[col].value_counts()
-            value_counts_dict = value_counts.head(10).to_dict()  # Top 10 values
+            # Convert to Python native types for JSON serialization
+            value_counts_dict = {str(k): int(v) for k, v in value_counts.head(10).items()}
             
             # Calculate insights
-            total = value_counts.sum()
-            top_category = value_counts.index[0] if len(value_counts) > 0 else "N/A"
-            top_percentage = (value_counts.iloc[0] / total * 100) if len(value_counts) > 0 else 0
+            total = int(value_counts.sum())
+            top_category = str(value_counts.index[0]) if len(value_counts) > 0 else "N/A"
+            top_value = int(value_counts.iloc[0]) if len(value_counts) > 0 else 0
+            top_percentage = float((top_value / total * 100)) if len(value_counts) > 0 and total > 0 else 0.0
             
             # Check for imbalance
             imbalance_status = ""
@@ -601,8 +603,8 @@ async def holistic_analysis(request: Dict[str, Any]):
                 imbalance_status = " ⚠️ Moderately imbalanced."
             
             # Calculate diversity
-            unique_count = len(value_counts)
-            diversity_pct = (unique_count / total) * 100
+            unique_count = int(len(value_counts))
+            diversity_pct = float((unique_count / total) * 100)
             
             diversity_status = ""
             if diversity_pct > 50:
@@ -611,15 +613,15 @@ async def holistic_analysis(request: Dict[str, Any]):
                 diversity_status = " Low diversity - few unique values."
             
             volume_analysis["by_dimensions"].append({
-                "dimension": col,
+                "dimension": str(col),
                 "breakdown": value_counts_dict,
                 "total_unique": unique_count,
                 "top_value": top_category,
                 "top_percentage": round(top_percentage, 1),
                 "insights": f"Most common: {top_category} ({top_percentage:.1f}%). Total unique values: {unique_count}.{imbalance_status}{diversity_status}",
                 "chart_data": {
-                    "labels": list(value_counts_dict.keys()),
-                    "values": list(value_counts_dict.values())
+                    "labels": [str(k) for k in value_counts_dict.keys()],
+                    "values": [int(v) for v in value_counts_dict.values()]
                 }
             })
         
@@ -627,11 +629,11 @@ async def holistic_analysis(request: Dict[str, Any]):
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         numeric_volume = []
         for col in numeric_cols[:5]:  # Top 5 numeric columns
-            col_min = df[col].min()
-            col_max = df[col].max()
-            col_mean = df[col].mean()
-            col_median = df[col].median()
-            col_std = df[col].std()
+            col_min = float(df[col].min())
+            col_max = float(df[col].max())
+            col_mean = float(df[col].mean())
+            col_median = float(df[col].median())
+            col_std = float(df[col].std())
             
             # Calculate range analysis
             range_size = col_max - col_min
@@ -644,7 +646,7 @@ async def holistic_analysis(request: Dict[str, Any]):
                     range_status = " Low variability - values are consistent."
             
             numeric_volume.append({
-                "dimension": col,
+                "dimension": str(col),
                 "min": round(col_min, 2),
                 "max": round(col_max, 2),
                 "mean": round(col_mean, 2),
