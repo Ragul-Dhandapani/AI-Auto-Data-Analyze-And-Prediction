@@ -319,13 +319,34 @@ async def holistic_analysis(request: Dict[str, Any]):
         
         logging.info(f"Final target_cols: {target_cols}")
         
-        # If no valid targets from user selection, auto-detect
-        if len(target_cols) == 0 and len(numeric_cols) >= 2:
-            target_col = suggest_best_target_column(df_analysis)
-            if target_col:
-                target_cols.append(target_col)
-                target_feature_mapping[target_col] = []  # Empty means use all features
-                logging.info(f"Auto-suggested target column: {target_col}")
+        # If no valid targets from user selection, auto-detect AND inform user
+        if len(target_cols) == 0:
+            if user_selection:
+                # User provided selection but it failed - create feedback
+                selection_feedback = {
+                    "status": "modified",
+                    "message": "⚠️ Your variable selection could not be used. Possible reasons:\n" +
+                               "• Selected targets are not numeric columns\n" +
+                               "• Selected targets not found in dataset\n" +
+                               "• No targets were selected\n\n" +
+                               "Using auto-detection instead.",
+                    "used_targets": [],
+                    "is_multi_target": False
+                }
+                logging.warning("User selection failed validation, falling back to auto-detection")
+            
+            # Auto-detect target
+            if len(numeric_cols) >= 2:
+                target_col = suggest_best_target_column(df_analysis)
+                if target_col:
+                    target_cols.append(target_col)
+                    target_feature_mapping[target_col] = []  # Empty means use all features
+                    logging.info(f"Auto-suggested target column: {target_col}")
+                    
+                    # Update feedback to show what was auto-selected
+                    if selection_feedback:
+                        selection_feedback["message"] += f"\n\n✅ Auto-selected target: '{target_col}'"
+                        selection_feedback["used_targets"] = [target_col]
         
         # Process each target
         all_models = []
