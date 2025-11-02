@@ -344,10 +344,10 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
           <Button
             onClick={handleConfirm}
             className="flex-1"
-            disabled={!targetVariable || selectedFeatures.length === 0}
+            disabled={targetVariables.every(tv => !tv.target || tv.features.length === 0)}
           >
             <Check className="w-4 h-4 mr-2" />
-            Confirm Selection
+            Confirm Selection ({targetVariables.filter(tv => tv.target && tv.features.length > 0).length} target{targetVariables.filter(tv => tv.target && tv.features.length > 0).length !== 1 ? 's' : ''})
           </Button>
         </div>
       </Card>
