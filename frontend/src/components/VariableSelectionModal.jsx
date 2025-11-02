@@ -192,17 +192,55 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
           </Card>
         </div>
 
-        {/* Target Variable Selection */}
+        {/* Target Variables Selection - Support Multiple */}
         <div className="mb-6">
-          <Label className="text-lg font-semibold mb-2 block">
-            1️⃣ Select Target Variable (What to Predict)
-          </Label>
+          <div className="flex justify-between items-center mb-2">
+            <Label className="text-lg font-semibold">
+              1️⃣ Select Target Variables (What to Predict)
+            </Label>
+            <Button
+              onClick={addTargetVariable}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+            >
+              + Add Another Target
+            </Button>
+          </div>
+          
+          {/* Target Tabs */}
+          <div className="flex gap-2 mb-3 overflow-x-auto">
+            {targetVariables.map((tv, idx) => (
+              <div key={idx} className="flex items-center gap-1">
+                <Button
+                  onClick={() => setActiveTargetIndex(idx)}
+                  variant={activeTargetIndex === idx ? "default" : "outline"}
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  Target {idx + 1} {tv.target && `(${tv.target})`}
+                </Button>
+                {targetVariables.length > 1 && (
+                  <Button
+                    onClick={() => removeTargetVariable(idx)}
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {/* Active Target Selection */}
           <select
             className="w-full p-2 border rounded"
-            value={targetVariable}
-            onChange={(e) => setTargetVariable(e.target.value)}
+            value={targetVariables[activeTargetIndex].target}
+            onChange={(e) => updateTargetVariable(activeTargetIndex, 'target', e.target.value)}
           >
-            <option value="">-- Select Target Variable --</option>
+            <option value="">-- Select Target Variable {activeTargetIndex + 1} --</option>
             {numericColumns.map(col => (
               <option key={col} value={col}>{col}</option>
             ))}
@@ -215,7 +253,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
         </div>
 
         {/* AI Suggestion Button */}
-        {(mode === "ai" || mode === "hybrid") && targetVariable && (
+        {(mode === "ai" || mode === "hybrid") && targetVariables[activeTargetIndex].target && (
           <div className="mb-6">
             <Button
               onClick={fetchAISuggestions}
