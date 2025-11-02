@@ -8,6 +8,7 @@ import DataSourceSelector from "@/components/DataSourceSelector";
 import DataProfiler from "@/components/DataProfiler";
 import PredictiveAnalysis from "@/components/PredictiveAnalysis";
 import VisualizationPanel from "@/components/VisualizationPanel";
+import VariableSelectionModal from "@/components/VariableSelectionModal";
 import { Sparkles, ArrowLeft, Home, Trash2, ChevronDown, ChevronUp, Save, FolderOpen, RefreshCw, Database } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +24,11 @@ const DashboardPage = () => {
   const [selectedDatasetIds, setSelectedDatasetIds] = useState(new Set());
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [datasetSavedStates, setDatasetSavedStates] = useState({}); // Track saved states per dataset
+  
+  // Variable selection state
+  const [showVariableSelection, setShowVariableSelection] = useState(false);
+  const [pendingDataset, setPendingDataset] = useState(null);
+  const [variableSelection, setVariableSelection] = useState(null);
   
   // Lift analysis state to prevent re-analysis on tab switch
   const [predictiveAnalysisCache, setPredictiveAnalysisCache] = useState({});
