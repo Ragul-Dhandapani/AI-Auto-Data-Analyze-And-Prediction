@@ -25,11 +25,14 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
   });
 
   useEffect(() => {
-    if (dataset) {
+    if (dataset && dataset.id) {
       setOriginalRowCount(dataset.row_count);
-      runProfileAnalysis();
+      // Only run profile if we don't have data or dataset changed
+      if (!profileData || profileData.dataset_id !== dataset.id) {
+        runProfileAnalysis();
+      }
     }
-  }, [dataset]);
+  }, [dataset?.id]); // Only re-run if dataset ID changes
 
   const toggleSection = (section) => {
     setCollapsedSections(prev => ({
