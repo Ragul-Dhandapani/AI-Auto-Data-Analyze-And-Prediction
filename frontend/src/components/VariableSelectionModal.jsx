@@ -273,7 +273,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <Label className="text-lg font-semibold">
-              2️⃣ Select Features (Predictors)
+              2️⃣ Select Features for Target {activeTargetIndex + 1} (Predictors)
             </Label>
             {aiSuggestions && (
               <Button
@@ -289,10 +289,10 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
 
           <div className="max-h-96 overflow-y-auto border rounded p-4">
             {availableColumns
-              .filter(col => col !== targetVariable)
+              .filter(col => col !== targetVariables[activeTargetIndex].target)
               .map(col => {
                 const suggestion = aiSuggestions?.suggested_features?.find(s => s.feature === col);
-                const isSelected = selectedFeatures.includes(col);
+                const isSelected = targetVariables[activeTargetIndex].features.includes(col);
 
                 return (
                   <div key={col} className="mb-3">
@@ -328,7 +328,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
           </div>
 
           <p className="text-sm text-gray-600 mt-2">
-            Selected: {selectedFeatures.length} feature(s)
+            Selected: {targetVariables[activeTargetIndex].features.length} feature(s) for Target {activeTargetIndex + 1}
           </p>
         </div>
 
