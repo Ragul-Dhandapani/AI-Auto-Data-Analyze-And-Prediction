@@ -144,7 +144,7 @@ const HomePage = () => {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-20 grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"
+            className="mt-20 grid md:grid-cols-4 gap-6 max-w-7xl mx-auto"
           >
             {features.map((feature, idx) => (
               <div
