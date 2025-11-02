@@ -23,7 +23,8 @@ def generate_data_profile(df: pd.DataFrame) -> Dict[str, Any]:
         col_info = {
             "name": col,
             "dtype": str(df[col].dtype),
-            "unique_values": int(df[col].nunique()),
+            "unique_count": int(df[col].nunique()),  # Frontend expects unique_count
+            "unique_values": int(df[col].nunique()),  # Keep for backward compatibility
             "missing_count": int(df[col].isnull().sum()),
             "missing_percentage": float(df[col].isnull().sum() / len(df) * 100)
         }
