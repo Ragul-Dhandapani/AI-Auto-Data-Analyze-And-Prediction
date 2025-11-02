@@ -8,7 +8,7 @@ import DataSourceSelector from "@/components/DataSourceSelector";
 import DataProfiler from "@/components/DataProfiler";
 import PredictiveAnalysis from "@/components/PredictiveAnalysis";
 import VisualizationPanel from "@/components/VisualizationPanel";
-import { Sparkles, ArrowLeft, Home, Trash2, ChevronDown, ChevronUp, Save, FolderOpen, RefreshCw } from "lucide-react";
+import { Sparkles, ArrowLeft, Home, Trash2, ChevronDown, ChevronUp, Save, FolderOpen, RefreshCw, Database } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
