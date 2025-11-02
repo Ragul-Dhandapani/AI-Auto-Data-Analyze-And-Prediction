@@ -546,6 +546,11 @@ const DashboardPage = () => {
                   </TabsContent>
 
                   <TabsContent value="predict">
+                    {console.log('Rendering PredictiveAnalysis with:', {
+                      'selectedDataset.variableSelection': selectedDataset?.variableSelection,
+                      'variableSelection state': variableSelection,
+                      'final prop value': selectedDataset?.variableSelection || variableSelection
+                    })}
                     <PredictiveAnalysis 
                       dataset={selectedDataset}
                       analysisCache={predictiveAnalysisCache[selectedDataset.id]}
