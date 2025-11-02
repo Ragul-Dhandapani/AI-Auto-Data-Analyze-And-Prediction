@@ -442,52 +442,68 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
             </Button>
           </div>
           <Card className="p-6">
-            <Accordion type="single" collapsible className="w-full">
+            <div className="space-y-2">
+              {/* Header */}
+              <div className="grid grid-cols-12 gap-2 pb-2 border-b border-gray-300 font-semibold text-sm text-gray-700">
+                <div className="col-span-3">Column Name</div>
+                <div className="col-span-2">Data Type</div>
+                <div className="col-span-2">Unique Values</div>
+                <div className="col-span-2">Missing</div>
+                <div className="col-span-3">Statistics</div>
+              </div>
+              
+              {/* Column Rows */}
               {profileData.columns.map((col, idx) => (
-                <AccordionItem key={idx} value={`col-${idx}`}>
-                  <AccordionTrigger data-testid={`column-${idx}-trigger`}>
-                    <div className="flex items-center justify-between w-full pr-4">
-                      <span className="font-medium">{col.name}</span>
-                      <span className="text-sm text-gray-500">{col.dtype}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="grid md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="text-sm text-gray-600">Unique Values</p>
-                        <p className="text-lg font-semibold">{col.unique_count}</p>
+                <div key={idx} className="grid grid-cols-12 gap-2 py-3 border-b border-gray-200 hover:bg-gray-50 rounded transition-colors" data-testid={`column-row-${idx}`}>
+                  {/* Column Name */}
+                  <div className="col-span-3 font-medium text-gray-900 truncate" title={col.name}>
+                    {col.name}
+                  </div>
+                  
+                  {/* Data Type */}
+                  <div className="col-span-2">
+                    <span className="inline-block px-2 py-1 text-xs rounded bg-blue-100 text-blue-800 font-mono">
+                      {col.dtype}
+                    </span>
+                  </div>
+                  
+                  {/* Unique Values */}
+                  <div className="col-span-2 text-sm">
+                    <span className="font-semibold text-gray-900">{col.unique_count?.toLocaleString() || 0}</span>
+                    <span className="text-gray-500 ml-1">
+                      ({((col.unique_count / (profileData.total_rows || 1)) * 100).toFixed(1)}%)
+                    </span>
+                  </div>
+                  
+                  {/* Missing Values */}
+                  <div className="col-span-2 text-sm">
+                    <span className={`font-semibold ${col.missing_count > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {col.missing_count?.toLocaleString() || 0}
+                    </span>
+                    <span className={`ml-1 ${col.missing_count > 0 ? 'text-red-500' : 'text-gray-500'}`}>
+                      ({col.missing_percentage?.toFixed(1) || 0}%)
+                    </span>
+                  </div>
+                  
+                  {/* Statistics */}
+                  <div className="col-span-3 text-xs text-gray-600">
+                    {col.stats ? (
+                      <div className="space-y-1">
+                        <div>
+                          <span className="font-semibold">Range:</span> {col.stats.min?.toFixed(2)} - {col.stats.max?.toFixed(2)}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Mean:</span> {col.stats.mean?.toFixed(2)} | 
+                          <span className="font-semibold ml-1">Std:</span> {col.stats.std?.toFixed(2)}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Missing</p>
-                        <p className="text-lg font-semibold">{col.missing_count} ({col.missing_percentage.toFixed(1)}%)</p>
-                      </div>
-                      {col.stats && (
-                        <>
-                          <div>
-                            <p className="text-sm text-gray-600">Mean</p>
-                            <p className="text-lg font-semibold">{col.stats.mean?.toFixed(2) || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600">Median</p>
-                            <p className="text-lg font-semibold">{col.stats.median?.toFixed(2) || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600">Std Dev</p>
-                            <p className="text-lg font-semibold">{col.stats.std?.toFixed(2) || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600">Range</p>
-                            <p className="text-lg font-semibold">
-                              {col.stats.min?.toFixed(2)} - {col.stats.max?.toFixed(2)}
-                            </p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
+                    ) : (
+                      <span className="text-gray-400 italic">Categorical column</span>
+                    )}
+                  </div>
+                </div>
               ))}
-            </Accordion>
+            </div>
           </Card>
         </div>
       )}
