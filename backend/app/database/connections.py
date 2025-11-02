@@ -317,18 +317,29 @@ def get_mysql_tables(config: dict) -> List[str]:
 
 
 def get_sqlserver_tables(config: dict) -> List[str]:
-    """List tables from SQL Server database"""
+    """List tables from SQL Server database with optional Kerberos support"""
     if not HAS_PYODBC:
         raise Exception("SQL Server support not available (pyodbc not installed)")
     
     try:
-        conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={config.get('host')},{config.get('port', 1433)};"
-            f"DATABASE={config.get('database')};"
-            f"UID={config.get('username')};"
-            f"PWD={config.get('password')}"
-        )
+        use_kerberos = config.get('use_kerberos', False)
+        
+        if use_kerberos:
+            conn_str = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                f"DATABASE={config.get('database')};"
+                f"Trusted_Connection=yes;"
+            )
+        else:
+            conn_str = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config.get('host')},{config.get('port', 1433)};"
+                f"DATABASE={config.get('database')};"
+                f"UID={config.get('username')};"
+                f"PWD={config.get('password')}"
+            )
+        
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
         cursor.execute("""
