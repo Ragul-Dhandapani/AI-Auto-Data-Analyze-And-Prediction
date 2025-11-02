@@ -329,81 +329,17 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   };
 
   const downloadPDF = async () => {
-    // Prevent any React state updates during PDF generation
-    const originalSetState = React.useState;
-    
     try {
-      // Show loading in a way that won't crash
-      const loadingToast = toast.loading("Preparing PDF...");
+      toast.info("Opening print dialog... You can save as PDF from there.");
       
-      // Wait for any pending renders
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update toast
-      toast.loading("Capturing sections...", { id: loadingToast });
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 10;
-      let yPos = margin;
-
-      // Simple title
-      pdf.setFontSize(18);
-      pdf.text('PROMISE AI - Analysis Report', margin, yPos);
-      yPos += 10;
-      pdf.setFontSize(10);
-      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, yPos);
-      yPos += 15;
-
-      let captured = 0;
-      
-      // List of section IDs to try
-      const sectionIds = [
-        'training-metadata-section',
-        'selection-feedback-section', 
-        'ai-insights-section',
-        'explainability-section',
-        'recommendations-section',
-        'volume-analysis-section',
-        'correlations-section',
-        'ml-models-section',
-        'auto-charts-section'
-      ];
-
-      for (const sectionId of sectionIds) {
-        try {
-          const element = document.getElementById(sectionId);
-          if (!element || element.offsetParent === null) continue;
-
-          // Add section to PDF as text summary instead of image
-          pdf.setFontSize(12);
-          pdf.text(`Section: ${sectionId.replace(/-/g, ' ')}`, margin, yPos);
-          yPos += 8;
-          
-          captured++;
-          
-          // Add page break if needed
-          if (yPos > 250) {
-            pdf.addPage();
-            yPos = margin;
-          }
-        } catch (err) {
-          console.log(`Skipped ${sectionId}:`, err.message);
-        }
-      }
-
-      if (captured === 0) {
-        toast.error("No content available", { id: loadingToast });
-        return;
-      }
-
-      // Save PDF
-      pdf.save(`PROMISE_AI_Report_${Date.now()}.pdf`);
-      toast.success(`PDF downloaded (${captured} sections)`, { id: loadingToast });
+      // Use browser's native print which is much more stable
+      setTimeout(() => {
+        window.print();
+      }, 500);
       
     } catch (error) {
-      console.error("PDF Error:", error);
-      toast.error("PDF failed. Try refreshing the page.");
+      console.error("Print Error:", error);
+      toast.error("Failed to open print dialog");
     }
   };
 
