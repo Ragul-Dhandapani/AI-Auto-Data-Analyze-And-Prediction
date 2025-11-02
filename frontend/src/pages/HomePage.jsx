@@ -65,13 +65,23 @@ const HomePage = () => {
               PROMISE AI
             </span>
           </div>
-          <Button 
-            data-testid="nav-get-started-btn"
-            onClick={() => navigate('/dashboard')}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2 rounded-full"
-          >
-            Get Started <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button 
+              onClick={() => navigate('/documentation')}
+              variant="outline"
+              className="px-4 py-2 rounded-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              Documentation
+            </Button>
+            <Button 
+              data-testid="nav-get-started-btn"
+              onClick={() => navigate('/dashboard')}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2 rounded-full"
+            >
+              Get Started <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
         </div>
       </nav>
 
