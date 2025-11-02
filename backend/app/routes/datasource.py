@@ -24,6 +24,85 @@ from app.services.data_service import generate_data_profile
 router = APIRouter(prefix="/datasource", tags=["datasource"])
 
 
+def create_db_connection(db_type: str, config: dict):
+    """
+    Create database connection with Kerberos support
+    
+    Args:
+        db_type: Database type (postgresql, mysql, oracle, sqlserver)
+        config: Connection configuration with optional use_kerberos flag
+    
+    Returns:
+        Database connection object
+    """
+    use_kerberos = config.get('use_kerberos', False)
+    
+    if db_type == "postgresql":
+        import psycopg2
+        if use_kerberos:
+            return psycopg2.connect(
+                host=config.get("host"),
+                port=config.get("port", 5432),
+                user=config.get("username"),
+                database=config.get("database"),
+                gssencmode='prefer'  # Use GSSAPI/Kerberos
+            )
+        else:
+            return psycopg2.connect(
+                host=config.get("host"),
+                port=config.get("port", 5432),
+                user=config.get("username"),
+                password=config.get("password"),
+                database=config.get("database")
+            )
+    
+    elif db_type == "mysql":
+        import pymysql
+        if use_kerberos:
+            return pymysql.connect(
+                host=config.get("host"),
+                port=int(config.get("port", 3306)),
+                user=config.get("username"),
+                database=config.get("database"),
+                auth_plugin='authentication_kerberos_client'  # Kerberos plugin
+            )
+        else:
+            return pymysql.connect(
+                host=config.get("host"),
+                port=int(config.get("port", 3306)),
+                user=config.get("username"),
+                password=config.get("password"),
+                database=config.get("database")
+            )
+    
+    elif db_type == "oracle":
+        import cx_Oracle
+        dsn = cx_Oracle.makedsn(
+            config.get("host"),
+            config.get("port", 1521),
+            service_name=config.get("service_name")
+        )
+        return cx_Oracle.connect(
+            user=config.get("username"),
+            password=config.get("password"),
+            dsn=dsn
+        )
+    
+    elif db_type == "sqlserver":
+        import pyodbc
+        conn_str = (
+            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"SERVER={config.get('host')},{config.get('port', 1433)};"
+            f"DATABASE={config.get('database')};"
+            f"UID={config.get('username')};"
+            f"PWD={config.get('password')}"
+        )
+        return pyodbc.connect(conn_str)
+    
+    else:
+        raise ValueError(f"Unsupported database type: {db_type}")
+
+
 @router.post("/upload-file")
 async def upload_file(file: UploadFile = File(...)):
     """Upload and preview data file using GridFS for large files"""
