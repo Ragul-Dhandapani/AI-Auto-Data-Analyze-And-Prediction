@@ -285,7 +285,7 @@ async def holistic_analysis(request: Dict[str, Any]):
         
         logging.info(f"User selection received: {user_selection}")
         
-        if user_selection:
+        if user_selection and user_selection != {}:
             # Check if multiple targets provided
             user_targets = user_selection.get("target_variables", [])  # Multiple targets
             user_target = user_selection.get("target_variable")  # Single target (backward compatibility)
