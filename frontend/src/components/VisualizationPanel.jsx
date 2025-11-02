@@ -200,145 +200,18 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
     };
   }, []);
 
-  // PDF Download Function
+  // PDF Download Function - Using browser print
   const downloadPDF = async () => {
-    let toastId;
     try {
-      toastId = toast.loading("Generating PDF... Please wait");
+      toast.info("Opening print dialog... You can save as PDF from there.");
       
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setTimeout(() => {
+        window.print();
+      }, 500);
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const contentWidth = pageWidth - 2 * margin;
-      let currentY = margin;
-
-      // Title page
-      pdf.setFontSize(20);
-      pdf.setTextColor(59, 130, 246);
-      pdf.text('PROMISE AI', margin, currentY);
-      currentY += 8;
-      
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('Visualization Report', margin, currentY);
-      currentY += 10;
-
-      pdf.setFontSize(10);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, currentY);
-      currentY += 5;
-      pdf.text(`Dataset: ${dataset?.name || 'Unknown'}`, margin, currentY);
-      currentY += 5;
-      pdf.text(`Total Charts: ${(charts?.length || 0) + (customCharts?.length || 0)}`, margin, currentY);
-      currentY += 8;
-      
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, currentY, pageWidth - margin, currentY);
-      currentY += 8;
-
-      const captureChart = async (chartElement, title) => {
-        try {
-          if (!chartElement) return false;
-
-          const rect = chartElement.getBoundingClientRect();
-          if (rect.width === 0 || rect.height === 0) return false;
-
-          if (currentY + 20 > pageHeight - margin) {
-            pdf.addPage();
-            currentY = margin;
-          }
-          
-          pdf.setFontSize(11);
-          pdf.setTextColor(0, 0, 0);
-          pdf.text(title, margin, currentY);
-          currentY += 6;
-
-          const canvas = await html2canvas(chartElement, {
-            scale: 1,
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-            backgroundColor: '#ffffff'
-          });
-
-          if (!canvas || canvas.width === 0) return false;
-
-          const imgData = canvas.toDataURL('image/jpeg', 0.7);
-          const imgWidth = contentWidth;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-          if (currentY + imgHeight > pageHeight - margin) {
-            pdf.addPage();
-            currentY = margin;
-          }
-
-          pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, Math.min(imgHeight, pageHeight - currentY - margin));
-          currentY += Math.min(imgHeight, pageHeight - currentY - margin) + 6;
-
-          return true;
-        } catch (error) {
-          console.error(`Chart capture error:`, error);
-          return false;
-        }
-      };
-
-      let capturedCount = 0;
-
-      // Capture generated charts
-      if (charts && charts.length > 0 && generatedChartsOpen) {
-        pdf.setFontSize(14);
-        pdf.setTextColor(59, 130, 246);
-        pdf.text('AI-Generated Charts', margin, currentY);
-        currentY += 8;
-
-        for (let i = 0; i < charts.length; i++) {
-          const chartElement = document.querySelector(`#viz-chart-${i}`);
-          if (chartElement) {
-            const success = await captureChart(chartElement, charts[i].title || `Chart ${i + 1}`);
-            if (success) capturedCount++;
-          }
-        }
-      }
-
-      // Capture custom charts
-      if (customCharts && customCharts.length > 0 && customChartsOpen) {
-        if (currentY + 20 > pageHeight - margin) {
-          pdf.addPage();
-          currentY = margin;
-        }
-
-        pdf.setFontSize(14);
-        pdf.setTextColor(59, 130, 246);
-        pdf.text('Custom Charts', margin, currentY);
-        currentY += 8;
-
-        for (let i = 0; i < customCharts.length; i++) {
-          const chartElement = document.querySelector(`#custom-chart-${i}`);
-          if (chartElement) {
-            const success = await captureChart(chartElement, customCharts[i].title || `Custom Chart ${i + 1}`);
-            if (success) capturedCount++;
-          }
-        }
-      }
-
-      if (capturedCount === 0) {
-        toast.dismiss(toastId);
-        toast.error("No charts to export. Please generate charts first.");
-        return;
-      }
-
-      const fileName = `PROMISE_AI_Visualizations_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(fileName);
-      
-      toast.dismiss(toastId);
-      toast.success(`PDF downloaded! (${capturedCount} charts included)`);
     } catch (error) {
-      console.error("PDF Error:", error);
-      if (toastId) toast.dismiss(toastId);
-      toast.error("PDF generation failed. Please try again.");
+      console.error("Print Error:", error);
+      toast.error("Failed to open print dialog");
     }
   };
 
