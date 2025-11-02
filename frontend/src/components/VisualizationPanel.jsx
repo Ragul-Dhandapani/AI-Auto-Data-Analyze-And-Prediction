@@ -508,19 +508,31 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
               {showChat ? 'Hide' : 'Chat'}
             </Button>
             {validCharts.length > 0 && (
-              <Button 
-                data-testid="refresh-charts-btn"
-                onClick={refreshCharts}
-                disabled={loading}
-                variant="outline"
-                size="sm"
-              >
-                {loading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Refreshing...</>
-                ) : (
-                  <><BarChart3 className="w-4 h-4 mr-2" /> Refresh</>
-                )}
-              </Button>
+              <>
+                <Button 
+                  onClick={downloadPDF}
+                  disabled={loading}
+                  variant="outline"
+                  size="sm"
+                  className="bg-blue-50 hover:bg-blue-100"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
+                </Button>
+                <Button 
+                  data-testid="refresh-charts-btn"
+                  onClick={refreshCharts}
+                  disabled={loading}
+                  variant="outline"
+                  size="sm"
+                >
+                  {loading ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Refreshing...</>
+                  ) : (
+                    <><BarChart3 className="w-4 h-4 mr-2" /> Refresh</>
+                  )}
+                </Button>
+              </>
             )}
           </div>
         </div>
