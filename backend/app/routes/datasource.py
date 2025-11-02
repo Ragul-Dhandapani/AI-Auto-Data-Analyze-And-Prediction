@@ -244,6 +244,21 @@ async def load_table_endpoint(request: DataSourceTest, table_name: str):
 
 
 @router.get("/recent")
+def remove_nested_data_fields(obj):
+    """Recursively remove 'data' fields from nested structures to reduce response size"""
+    if isinstance(obj, dict):
+        # Remove 'data' key if present
+        if 'data' in obj:
+            del obj['data']
+        # Recursively process all values
+        for key, value in list(obj.items()):
+            obj[key] = remove_nested_data_fields(value)
+    elif isinstance(obj, list):
+        # Recursively process all items in list
+        return [remove_nested_data_fields(item) for item in obj]
+    return obj
+
+
 async def get_recent_datasets(limit: int = 10):
     """Get recent datasets - returns only metadata, excludes full data array for performance"""
     import json
@@ -254,6 +269,9 @@ async def get_recent_datasets(limit: int = 10):
         # Exclude _id and data fields to reduce response size and improve frontend performance
         cursor = db.datasets.find({}, {"_id": 0, "data": 0}).sort("created_at", -1).limit(limit)
         datasets = await cursor.to_list(length=limit)
+        
+        # Remove any nested 'data' fields from data_preview or other nested structures
+        datasets = remove_nested_data_fields(datasets)
         
         # Custom JSON encoder that handles NaN and Infinity
         class NanInfEncoder(json.JSONEncoder):
