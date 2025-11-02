@@ -208,6 +208,30 @@ frontend:
           agent: "testing"
           comment: "✅ COMPREHENSIVE TESTING COMPLETE: Variable Selection Modal & Predictive Analysis integration working correctly. Modal appears for NEW file uploads with all 3 modes (Manual, AI-Suggested, Hybrid) functional. Single target selection: target dropdown shows numeric columns, feature checkboxes working, confirm selection closes modal and starts analysis. Multiple targets: Add Another Target creates Target 2 tab, multi-target configuration successful, ML Model Comparison Table appears. Skip functionality: modal closes and auto-detection analysis runs. Integration: data flows correctly from modal → DashboardPage → PredictiveAnalysis → Backend. Selection feedback cards display properly. Console logs show correct variable selection data transmission. BEHAVIOR: Modal only appears for new file uploads, existing datasets go directly to analysis (intentional design). All scenarios tested and working as designed."
 
+  - task: "Phase 1 Enterprise - Problem Type Selector UI"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/frontend/src/components/VariableSelectionModal.jsx, /app/frontend/src/pages/DashboardPage.jsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "✅ PROBLEM TYPE UI IMPLEMENTED: Added problem type selector to VariableSelectionModal with 4 options: Auto-Detect (default), Regression, Classification, Time Series. Each option has distinct styling and icons. Added time column selector that appears only when Time Series is selected. Updated target column filtering: Regression/Auto shows numeric only, Classification shows all columns, Time Series shows numeric with required time column. Added problemType and timeColumn state variables. Updated handleConfirm to include problem_type and time_column in selection object. Updated DashboardPage handleVariableSelectionConfirm to pass problem_type and time_column to backend. Modified PredictiveAnalysis to send problem_type in payload to /api/analysis/holistic endpoint. All UI components properly linked for end-to-end problem type selection flow."
+
+  - task: "Phase 1 Enterprise - Classification Metrics Display"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/frontend/src/components/PredictiveAnalysis.jsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "✅ CLASSIFICATION UI IMPLEMENTED: Updated PredictiveAnalysis to dynamically display metrics based on problem_type. ML Model Comparison Table now shows different columns: Classification displays Accuracy, F1-Score, Precision (all as percentages). Regression displays R² Score and RMSE (existing). Models sort by accuracy for classification, R² for regression. Per-model tabs show: Classification - Accuracy%, F1-Score% with appropriate tooltips. Regression - R² Score, RMSE with existing tooltips. Confidence tooltips updated to reflect different thresholds (classification: >0.85 High, 0.70-0.85 Medium, <0.70 Low; regression: >0.7 High, 0.5-0.7 Medium, <0.5 Low). Tips dynamically change based on problem_type. All null-safe with fallback values. UI fully adapts to problem type for appropriate metric display."
+
 backend:
   - task: "Recent Datasets API - Exclude full data array"
     implemented: true
