@@ -92,16 +92,39 @@ def test_postgresql_connection(config: dict) -> dict:
 
 
 def test_mysql_connection(config: dict) -> dict:
-    """Test MySQL database connection"""
+    """Test MySQL database connection with optional Kerberos support"""
     try:
-        conn = pymysql.connect(
-            host=config.get('host'),
-            port=int(config.get('port', 3306)),
-            database=config.get('database'),
-            user=config.get('username'),
-            password=config.get('password'),
-            connect_timeout=10  # 10 second timeout
-        )
+        use_kerberos = config.get('use_kerberos', False)
+        
+        if use_kerberos:
+            # MySQL with Kerberos via GSSAPI plugin
+            # Note: Requires MySQL server configured with GSSAPI/Kerberos plugin
+            try:
+                conn = pymysql.connect(
+                    host=config.get('host'),
+                    port=int(config.get('port', 3306)),
+                    database=config.get('database'),
+                    user=config.get('username'),  # Kerberos principal
+                    auth_plugin='authentication_kerberos_client',  # Kerberos plugin
+                    connect_timeout=10
+                )
+            except Exception as kerb_error:
+                # Fallback message if Kerberos fails
+                return {
+                    "success": False,
+                    "message": f"Kerberos authentication failed: {str(kerb_error)}. Ensure MySQL server has GSSAPI plugin and kinit is configured."
+                }
+        else:
+            # Standard username/password authentication
+            conn = pymysql.connect(
+                host=config.get('host'),
+                port=int(config.get('port', 3306)),
+                database=config.get('database'),
+                user=config.get('username'),
+                password=config.get('password'),
+                connect_timeout=10
+            )
+        
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
         cursor.close()
