@@ -46,16 +46,21 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const progressIntervalRef = useRef(null);
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
 
-  // Use cached data if available
+  // Use cached data if available, re-run when variableSelection changes
   useEffect(() => {
-    if (analysisCache) {
+    if (analysisCache && !variableSelection) {
+      // Use cached data only if no new variable selection
       setAnalysisResults(analysisCache);
       hasRunAnalysisRef.current = true;
-    } else if (dataset && !analysisResults && !hasRunAnalysisRef.current && !loading) {
+    } else if (dataset && !hasRunAnalysisRef.current && !loading) {
+      // Run analysis for new dataset or when variable selection changes
       hasRunAnalysisRef.current = true;
       runHolisticAnalysis();
+    } else if (variableSelection && hasRunAnalysisRef.current) {
+      // Variable selection changed after initial load - re-run analysis
+      runHolisticAnalysis();
     }
-  }, [dataset, analysisCache]);
+  }, [dataset, analysisCache, variableSelection]);
 
   // Reset ref when dataset changes
   useEffect(() => {
