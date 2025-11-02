@@ -245,13 +245,14 @@ async def load_table_endpoint(request: DataSourceTest, table_name: str):
 
 @router.get("/recent")
 async def get_recent_datasets(limit: int = 10):
-    """Get recent datasets"""
+    """Get recent datasets - returns only metadata, excludes full data array for performance"""
     import json
     import math
     from fastapi.responses import Response
     
     try:
-        cursor = db.datasets.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
+        # Exclude _id and data fields to reduce response size and improve frontend performance
+        cursor = db.datasets.find({}, {"_id": 0, "data": 0}).sort("created_at", -1).limit(limit)
         datasets = await cursor.to_list(length=limit)
         
         # Custom JSON encoder that handles NaN and Infinity
