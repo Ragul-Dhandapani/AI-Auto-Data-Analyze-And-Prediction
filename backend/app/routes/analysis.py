@@ -404,7 +404,7 @@ Provide concise, actionable insights."""
                 "insights": f"Most common: {top_category} ({top_percentage:.1f}%). Total unique values: {len(value_counts)}"
             })
         
-        return {
+        response = {
             "profile": profile,
             "models": models_result.get("models", []),
             "ml_models": models_result.get("models", []),  # Frontend expects ml_models
@@ -420,6 +420,12 @@ Provide concise, actionable insights."""
                 "dataset_size": len(df)
             }
         }
+        
+        # Add selection feedback if user made a selection
+        if selection_feedback:
+            response["selection_feedback"] = selection_feedback
+        
+        return response
         
     except HTTPException:
         raise
