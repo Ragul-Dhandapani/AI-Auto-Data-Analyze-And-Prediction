@@ -329,9 +329,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   };
 
   const downloadPDF = async () => {
-    toast.info("Generating PDF... This may take a moment.");
-    
     try {
+      toast.info("Generating PDF... This may take a moment.");
+      
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -360,7 +360,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       pdf.setTextColor(100, 100, 100);
       pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, currentY);
       currentY += 5;
-      pdf.text(`Dataset: ${dataset.name || 'Unknown'}`, margin, currentY);
+      pdf.text(`Dataset: ${dataset?.name || 'Unknown'}`, margin, currentY);
       currentY += 10;
 
       // Function to capture and add section to PDF
@@ -379,62 +379,62 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
           pdf.text(title, margin, currentY);
           currentY += 8;
 
-          // Capture section as canvas
+          // Capture section as canvas with better options
           const canvas = await html2canvas(element, {
-            scale: 2,
+            scale: 1.5, // Reduced from 2 for better performance
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff',
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight
+            allowTaint: true,
+            removeContainer: true
           });
 
-          const imgData = canvas.toDataURL('image/png');
+          const imgData = canvas.toDataURL('image/jpeg', 0.85); // Use JPEG with quality for smaller size
           const imgWidth = contentWidth;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-          // Split image across pages if too tall
-          let remainingHeight = imgHeight;
-          let sourceY = 0;
+          // Check if image is too tall for one page
+          const maxHeight = pageHeight - currentY - margin;
+          
+          if (imgHeight > maxHeight) {
+            // Split across pages
+            let remainingHeight = imgHeight;
+            let offsetY = 0;
 
-          while (remainingHeight > 0) {
-            const availableHeight = pageHeight - currentY - margin;
-            const heightToAdd = Math.min(remainingHeight, availableHeight);
+            while (remainingHeight > 0) {
+              const availableHeight = pageHeight - currentY - margin;
+              const heightToAdd = Math.min(remainingHeight, availableHeight - 10);
 
-            if (heightToAdd < 20 && remainingHeight > heightToAdd) {
-              // Not enough space, move to next page
-              pdf.addPage();
-              currentY = margin;
-              continue;
+              if (heightToAdd < 20) {
+                pdf.addPage();
+                currentY = margin;
+                continue;
+              }
+
+              pdf.addImage(
+                imgData,
+                'JPEG',
+                margin,
+                currentY,
+                imgWidth,
+                heightToAdd
+              );
+
+              currentY += heightToAdd + 5;
+              remainingHeight -= heightToAdd;
+              offsetY += heightToAdd;
+
+              if (remainingHeight > 20) {
+                pdf.addPage();
+                currentY = margin;
+              }
             }
-
-            // Calculate the portion of the image to use
-            const sourceHeight = (heightToAdd / imgWidth) * canvas.width;
-
-            pdf.addImage(
-              imgData,
-              'PNG',
-              margin,
-              currentY,
-              imgWidth,
-              heightToAdd,
-              undefined,
-              'FAST',
-              0,
-              sourceY
-            );
-
-            currentY += heightToAdd + 5;
-            remainingHeight -= heightToAdd;
-            sourceY += sourceHeight;
-
-            if (remainingHeight > 0) {
-              pdf.addPage();
-              currentY = margin;
-            }
+          } else {
+            // Fits in one page
+            pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, imgHeight);
+            currentY += imgHeight + 5;
           }
 
-          currentY += 5; // Add spacing after section
         } catch (error) {
           console.error(`Error capturing section ${sectionId}:`, error);
           // Add error message to PDF
@@ -458,6 +458,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         { id: 'auto-charts-section', key: 'auto_charts', title: 'AI-Generated Analysis Charts' }
       ];
 
+      let sectionsAdded = 0;
       for (const section of sections) {
         // Check if section is expanded (not collapsed)
         if (section.key === null || !collapsed[section.key]) {
@@ -465,15 +466,21 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
           if (element && element.offsetParent !== null) {
             // Element is visible
             await addSectionToPDF(section.id, section.title);
+            sectionsAdded++;
           }
         }
       }
 
+      if (sectionsAdded === 0) {
+        toast.error("No sections to export. Please expand some sections first.");
+        return;
+      }
+
       // Save PDF
-      const fileName = `PROMISE_AI_Analysis_${dataset.name || 'Report'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `PROMISE_AI_Analysis_${dataset?.name?.replace(/[^a-z0-9]/gi, '_') || 'Report'}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
-      toast.success("PDF downloaded successfully!");
+      toast.success(`PDF downloaded successfully! (${sectionsAdded} sections included)`);
     } catch (error) {
       console.error("PDF generation error:", error);
       toast.error("Failed to generate PDF: " + error.message);
