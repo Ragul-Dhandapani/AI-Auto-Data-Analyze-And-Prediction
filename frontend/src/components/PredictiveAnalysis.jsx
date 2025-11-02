@@ -753,7 +753,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                 🤖 AI-Powered Insights
                 <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">Phase 3</span>
               </h3>
-              <p className="text-sm text-gray-600 italic mt-1">Intelligent analysis powered by Emergent LLM</p>
+              <p className="text-sm text-gray-600 italic mt-1">Intelligent analysis powered by AI</p>
             </div>
             <Button onClick={() => toggleSection('ai_insights')} variant="ghost" size="sm">
               <ChevronUp className="w-4 h-4" />
