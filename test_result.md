@@ -231,15 +231,18 @@ frontend:
   
   - task: "Custom Query - Dataset naming dialog"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/DataSourceSelector.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added dataset naming dialog (modal) that appears when user clicks 'Load Data' button after successful query execution. Dialog prompts for dataset name with Input field, Cancel and Save Dataset buttons. Calls /api/datasource/save-query-dataset endpoint with user-provided name. Added showNameDialog and datasetName state variables."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Dataset naming dialog functionality working correctly. Modal appears after clicking Load Data button, prompts for dataset name, has proper Cancel/Save buttons, and calls save-query-dataset endpoint with user-provided name. State management for showNameDialog and datasetName working properly."
   
   - task: "Custom Query - Results preview UI"
     implemented: true
