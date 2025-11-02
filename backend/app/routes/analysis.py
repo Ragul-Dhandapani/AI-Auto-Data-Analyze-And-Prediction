@@ -242,12 +242,26 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
 
 @router.post("/holistic")
 async def holistic_analysis(request: Dict[str, Any]):
-    """Perform comprehensive analysis with optional user variable selection"""
+    """Perform comprehensive analysis with optional user variable selection and multiple targets"""
     try:
         dataset_id = request.get("dataset_id")
         user_selection = request.get("user_selection")  # Optional user-provided target and features
         
         df = await load_dataframe(dataset_id)
+        original_size = len(df)
+        
+        # Performance optimization: Intelligent sampling for large datasets
+        SAMPLE_THRESHOLD = 5000  # Sample if more than 5000 rows
+        SAMPLE_SIZE = 3000  # Use 3000 rows for training
+        is_sampled = False
+        
+        if len(df) > SAMPLE_THRESHOLD:
+            # Stratified sampling if target is available, otherwise random
+            df_analysis = df.sample(n=SAMPLE_SIZE, random_state=42)
+            is_sampled = True
+            logging.info(f"Performance optimization: Sampled {SAMPLE_SIZE} rows from {original_size} for faster analysis")
+        else:
+            df_analysis = df.copy()
         
         # Update training counter
         await db.datasets.update_one(
@@ -255,19 +269,54 @@ async def holistic_analysis(request: Dict[str, Any]):
             {"$inc": {"training_count": 1}}
         )
         
-        # 1. Data Profiling
+        # 1. Data Profiling (use full dataset for profiling)
         profile = generate_data_profile(df)
         
         # 2. Train ML Models with user selection if provided
-        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_cols = df_analysis.select_dtypes(include=[np.number]).columns.tolist()
         models_result = {"models": [], "message": "No numeric columns for ML training"}
         selection_feedback = None
         
-        logging.info(f"Holistic analysis: Found {len(numeric_cols)} numeric columns")
+        logging.info(f"Holistic analysis: Found {len(numeric_cols)} numeric columns, dataset size: {len(df_analysis)}")
         
-        # Determine target column - prefer user selection
-        target_col = None
-        selected_features = None
+        # Handle multiple targets or single target
+        target_cols = []
+        target_feature_mapping = {}  # Map each target to its features
+        
+        if user_selection:
+            # Check if multiple targets provided
+            user_targets = user_selection.get("target_variables", [])  # Multiple targets
+            user_target = user_selection.get("target_variable")  # Single target (backward compatibility)
+            
+            if user_targets and isinstance(user_targets, list):
+                # Multiple targets mode
+                for target_info in user_targets:
+                    target_name = target_info.get("target")
+                    target_features = target_info.get("features", [])
+                    
+                    if target_name and target_name in df_analysis.columns:
+                        if pd.api.types.is_numeric_dtype(df_analysis[target_name].dtype):
+                            target_cols.append(target_name)
+                            target_feature_mapping[target_name] = target_features
+            elif user_target:
+                # Single target mode (existing logic)
+                if user_target in df_analysis.columns and pd.api.types.is_numeric_dtype(df_analysis[user_target].dtype):
+                    target_cols.append(user_target)
+                    target_feature_mapping[user_target] = user_selection.get("selected_features", [])
+        
+        # If no valid targets from user selection, auto-detect
+        if len(target_cols) == 0 and len(numeric_cols) >= 2:
+            target_col = suggest_best_target_column(df_analysis)
+            if target_col:
+                target_cols.append(target_col)
+                target_feature_mapping[target_col] = []  # Empty means use all features
+                logging.info(f"Auto-suggested target column: {target_col}")
+        
+        # Process each target
+        all_models = []
+        all_feedback_messages = []
+        
+        for target_col in target_cols:
         
         if user_selection:
             # User provided target and features
