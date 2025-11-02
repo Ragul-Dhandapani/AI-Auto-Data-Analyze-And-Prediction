@@ -533,7 +533,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
             )}
 
             {/* Kerberos Authentication Toggle */}
-            {(dbConfig.source_type === "postgresql" || dbConfig.source_type === "mysql") && !useConnectionString && (
+            {!useConnectionString && (
               <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <input 
                   type="checkbox"
@@ -546,6 +546,8 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
                   <span className="font-semibold">🔐 Use Kerberos Authentication</span>
                   <span className="block text-xs text-gray-600 mt-1">
                     Enable for enterprise-level secure authentication via GSSAPI
+                    {dbConfig.source_type === 'oracle' && ' (External Auth)'}
+                    {dbConfig.source_type === 'sqlserver' && ' (Windows Integrated Auth)'}
                   </span>
                 </Label>
               </div>
