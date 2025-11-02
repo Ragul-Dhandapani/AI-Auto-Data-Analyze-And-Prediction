@@ -82,11 +82,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       console.log('Running initial analysis with variableSelection:', variableSelection);
       hasRunAnalysisRef.current = true;
       runHolisticAnalysis();
-    } else if (hasValidSelection(variableSelection) && hasRunAnalysisRef.current && !loading) {
-      // Variable selection changed after initial load - re-run analysis
-      console.log('Re-running analysis due to variableSelection change:', variableSelection);
-      runHolisticAnalysis();
     }
+    // REMOVED: The condition that re-runs analysis when variableSelection changes after initial load
+    // This was causing infinite loop because analysis completion updates variableSelection
   }, [dataset, analysisCache, variableSelection]);
 
   // Reset ref when dataset changes
