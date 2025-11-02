@@ -296,10 +296,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     }
   };
 
-  const refreshAnalysis = () => {
+  const refreshAnalysis = async () => {
     setAnalysisResults(null);
     onAnalysisUpdate(null);
-    runHolisticAnalysis();
+    await runHolisticAnalysis();
   };
 
   const toggleSection = (section) => {
