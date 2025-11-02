@@ -41,8 +41,11 @@ const DashboardPage = () => {
 
   const loadDatasets = async () => {
     try {
+      console.log('Loading datasets from:', `${API}/datasets`);
       const response = await axios.get(`${API}/datasets`);
+      console.log('Datasets response:', response.data);
       const loadedDatasets = response.data.datasets || [];
+      console.log('Loaded datasets count:', loadedDatasets.length);
       setDatasets(loadedDatasets);
       
       // Load saved states for each dataset
@@ -58,6 +61,7 @@ const DashboardPage = () => {
       setDatasetSavedStates(statesMap);
     } catch (error) {
       console.error("Failed to load datasets", error);
+      toast.error("Failed to load datasets. Please refresh the page.");
     }
   };
 
