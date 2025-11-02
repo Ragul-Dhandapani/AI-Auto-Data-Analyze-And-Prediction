@@ -142,6 +142,18 @@ frontend:
           agent: "main"
           comment: "Added Kerberos authentication toggle UI in both 'Database Connection' and 'Custom SQL Query' tabs. Added use_kerberos boolean to dbConfig state. Created blue-styled checkbox with 🔐 icon and descriptive text 'Enable for enterprise-level secure authentication via GSSAPI'. Password field becomes optional and hidden when Kerberos is enabled. Username placeholder changes to 'Kerberos principal' when Kerberos is selected. Toggle only appears for PostgreSQL and MySQL database types."
 
+  - task: "Variable Selection Modal & Predictive Analysis Integration"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/VariableSelectionModal.jsx, /app/frontend/src/pages/DashboardPage.jsx, /app/frontend/src/components/PredictiveAnalysis.jsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TESTING COMPLETE: Variable Selection Modal & Predictive Analysis integration working correctly. Modal appears for NEW file uploads with all 3 modes (Manual, AI-Suggested, Hybrid) functional. Single target selection: target dropdown shows numeric columns, feature checkboxes working, confirm selection closes modal and starts analysis. Multiple targets: Add Another Target creates Target 2 tab, multi-target configuration successful, ML Model Comparison Table appears. Skip functionality: modal closes and auto-detection analysis runs. Integration: data flows correctly from modal → DashboardPage → PredictiveAnalysis → Backend. Selection feedback cards display properly. Console logs show correct variable selection data transmission. BEHAVIOR: Modal only appears for new file uploads, existing datasets go directly to analysis (intentional design). All scenarios tested and working as designed."
+
 backend:
   - task: "Recent Datasets API - Exclude full data array"
     implemented: true
