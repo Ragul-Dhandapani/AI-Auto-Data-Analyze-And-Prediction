@@ -18,13 +18,13 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
   const [activeTargetIndex, setActiveTargetIndex] = useState(0);
 
   useEffect(() => {
-    // Auto-select numeric columns as potential targets
+    // Auto-select first numeric column as potential target
     if (dataset && dataset.dtypes) {
       const numericCols = Object.keys(dataset.dtypes).filter(
         col => ['int64', 'float64', 'int32', 'float32'].includes(dataset.dtypes[col])
       );
-      if (numericCols.length > 0 && !targetVariable) {
-        setTargetVariable(numericCols[0]);
+      if (numericCols.length > 0 && !targetVariables[0].target) {
+        setTargetVariables([{ target: numericCols[0], features: [] }]);
       }
     }
   }, [dataset]);
