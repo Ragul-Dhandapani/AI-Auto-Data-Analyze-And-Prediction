@@ -102,7 +102,20 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement 3 features: 1) Fix Training Metadata Dashboard - showing correct model scores instead of 0.000 2) Custom Query Dataset Naming - execute query, show preview, enable Load Data button, prompt for name before saving 3) ML Model Comparison for multiple key correlation analysis in Predictive Analysis"
+user_problem_statement: "Fix Recent Datasets display issue - Large datasets causing frontend state update failures. Backend returns full data arrays causing browser memory/performance issues. Solution: exclude 'data' field from /api/datasets response, return only metadata and data_preview."
+
+backend:
+  - task: "Recent Datasets API - Exclude full data array"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/app/routes/datasource.py, /app/backend/app/main.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Modified get_recent_datasets() to exclude 'data' field from response using projection {'_id': 0, 'data': 0}. This returns only metadata (id, name, row_count, column_count, columns, dtypes, created_at) and data_preview (first 10 rows) for each dataset. Also fixed duplicate route definition in main.py - removed duplicate @api_router.get('/datasets') at line 69, keeping single route at line 48 that calls datasource.get_recent_datasets(). This drastically reduces API response size and should fix frontend state update issues with large datasets."
 
 backend:
   - task: "Training Metadata Dashboard - Fix score calculation"
