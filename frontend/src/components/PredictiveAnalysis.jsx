@@ -55,23 +55,36 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   useEffect(() => {
     console.log('useEffect triggered - analysisCache:', !!analysisCache, 'hasRunAnalysisRef:', hasRunAnalysisRef.current, 'loading:', loading, 'variableSelection:', variableSelection);
     
-    if (analysisCache && !variableSelection) {
+    // Helper to check if variableSelection has actual data (not just mode)
+    const hasValidSelection = (selection) => {
+      if (!selection) return false;
+      if (selection.mode === 'skip') return true; // Skip is valid
+      // Check for single target format
+      if (selection.target_variable && selection.selected_features) return true;
+      // Check for multi-target format
+      if (selection.target_variables && Array.isArray(selection.target_variables) && selection.target_variables.length > 0) return true;
+      return false;
+    };
+    
+    if (analysisCache && !hasValidSelection(variableSelection)) {
       // Use cached data only if no new variable selection
+      console.log('Using cached analysis results');
       setAnalysisResults(analysisCache);
       hasRunAnalysisRef.current = true;
     } else if (dataset && !hasRunAnalysisRef.current && !loading) {
-      // Only run if we have a dataset and haven't run yet
-      // Wait a bit for variableSelection to be set if modal was just closed
-      const timer = setTimeout(() => {
-        console.log('Running analysis after delay, variableSelection:', variableSelection);
-        hasRunAnalysisRef.current = true;
-        runHolisticAnalysis();
-      }, 100); // 100ms delay to let state settle
+      // Check if we have valid variable selection or should wait
+      if (!hasValidSelection(variableSelection) && variableSelection && variableSelection.mode) {
+        // We have partial selection (mode only) - wait for full data
+        console.log('Waiting for complete variableSelection data...');
+        return;
+      }
       
-      return () => clearTimeout(timer);
-    } else if (variableSelection && hasRunAnalysisRef.current && !loading) {
+      console.log('Running initial analysis with variableSelection:', variableSelection);
+      hasRunAnalysisRef.current = true;
+      runHolisticAnalysis();
+    } else if (hasValidSelection(variableSelection) && hasRunAnalysisRef.current && !loading) {
       // Variable selection changed after initial load - re-run analysis
-      console.log('Re-running analysis due to variableSelection change');
+      console.log('Re-running analysis due to variableSelection change:', variableSelection);
       runHolisticAnalysis();
     }
   }, [dataset, analysisCache, variableSelection]);
