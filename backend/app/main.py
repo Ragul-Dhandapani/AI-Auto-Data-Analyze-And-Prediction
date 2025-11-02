@@ -45,12 +45,6 @@ api_router.include_router(datasource.router)
 api_router.include_router(analysis.router)
 api_router.include_router(training.router)
 
-# Backward compatibility endpoint - direct access to datasets
-@api_router.get("/datasets")
-async def get_datasets_backward_compat(limit: int = 10):
-    """Backward compatibility endpoint for /api/datasets"""
-    return await datasource.get_recent_datasets(limit)
-
 # Add root endpoint
 @api_router.get("/")
 async def root():
@@ -65,17 +59,11 @@ async def root():
         }
     }
 
-# Backward compatibility - datasets endpoint
+# Backward compatibility - datasets endpoint (uses datasource.get_recent_datasets)
 @api_router.get("/datasets")
-async def get_datasets_compat():
+async def get_datasets_compat(limit: int = 10):
     """Backward compatibility for /api/datasets"""
-    from app.database.mongodb import db
-    try:
-        cursor = db.datasets.find({}, {"_id": 0}).sort("created_at", -1).limit(10)
-        datasets = await cursor.to_list(length=10)
-        return {"datasets": datasets}  # Frontend expects {datasets: [...]}
-    except Exception as e:
-        return {"datasets": []}
+    return await datasource.get_recent_datasets(limit)
 
 
 # Backward compatibility - delete dataset endpoint
