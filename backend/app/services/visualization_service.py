@@ -41,10 +41,14 @@ def validate_chart_data(chart_dict: Dict[str, Any]) -> bool:
         return False
 
 
-def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> List[Dict[str, Any]]:
-    """Generate up to 15 intelligent charts with comprehensive validation"""
+def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> Tuple[List[Dict[str, Any]], List[Dict[str, str]]]:
+    """
+    Generate up to 15 intelligent charts with comprehensive validation
+    Returns: (charts_list, skipped_charts_list)
+    """
     
     charts = []
+    skipped_charts = []  # Track why charts were skipped
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
     datetime_cols = df.select_dtypes(include=['datetime64']).columns.tolist()
@@ -54,6 +58,10 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> List[Dict[st
         try:
             col_data = df[col].dropna()
             if len(col_data) < 2:
+                skipped_charts.append({
+                    "category": "Distribution Charts", 
+                    "reason": f"Insufficient data for {col} (need at least 2 non-null values)"
+                })
                 continue
             fig = go.Figure(data=[go.Histogram(x=col_data, nbinsx=min(30, len(col_data)//2), name=col)])
             fig.update_layout(
@@ -71,8 +79,23 @@ def generate_auto_charts(df: pd.DataFrame, max_charts: int = 15) -> List[Dict[st
             }
             if validate_chart_data(chart):
                 charts.append(chart)
+            else:
+                skipped_charts.append({
+                    "category": "Distribution Charts", 
+                    "reason": f"Invalid chart data for {col}"
+                })
         except Exception as e:
             logging.warning(f"Failed to generate histogram for {col}: {str(e)}")
+            skipped_charts.append({
+                "category": "Distribution Charts", 
+                "reason": f"Error generating histogram for {col}: {str(e)[:100]}"
+            })
+    
+    if len(numeric_cols) == 0:
+        skipped_charts.append({
+            "category": "Distribution Charts", 
+            "reason": "No numeric columns found in dataset"
+        })
     
     # 4-6: Box plots for numeric columns
     for col in numeric_cols[:3]:
