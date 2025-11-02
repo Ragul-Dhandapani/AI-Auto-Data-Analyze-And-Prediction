@@ -80,15 +80,42 @@ const DashboardPage = () => {
 
   const handleVariableSelectionConfirm = (selection) => {
     setVariableSelection(selection);
+    
+    // Transform selection format for backend
+    let transformedSelection;
+    if (selection.is_multi_target && selection.targets) {
+      // Multiple targets format
+      transformedSelection = {
+        target_variables: selection.targets.map(t => ({
+          target: t.target,
+          features: t.features
+        })),
+        mode: selection.mode
+      };
+    } else if (selection.target) {
+      // Single target format (backward compatible)
+      transformedSelection = {
+        target_variable: selection.target,
+        selected_features: selection.features,
+        mode: selection.mode,
+        ai_suggestions: selection.aiSuggestions
+      };
+    } else {
+      // Skip mode
+      transformedSelection = null;
+    }
+    
     setSelectedDataset({
       ...pendingDataset,
-      variableSelection: selection
+      variableSelection: transformedSelection
     });
     setShowVariableSelection(false);
     setCurrentStep("analysis");
     
     if (selection.mode === "skip") {
       toast.success("Dataset loaded successfully!");
+    } else if (selection.is_multi_target) {
+      toast.success(`${selection.targets.length} targets selected with features`);
     } else {
       toast.success(`Target: ${selection.target}, Features: ${selection.features.length} selected`);
     }
