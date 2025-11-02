@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement 4 major phases: 1) Kerberos Authentication for Database Connections 2) Smart Variable Detection & AI Feature Selection 3) Enhanced Visualizations & Charts 4) Model Lifecycle & Export Features"
+user_problem_statement: "Phase 1 Enterprise Features: Implement Classification Support and Time Series Modeling to expand PROMISE AI from regression-only to comprehensive enterprise ML platform. Support classification targets (categorical prediction), time series forecasting (Prophet, LSTM, ARIMA), and appropriate metrics for each problem type."
 
 backend:
   - task: "Phase 1 - Kerberos Authentication for PostgreSQL & MySQL"
