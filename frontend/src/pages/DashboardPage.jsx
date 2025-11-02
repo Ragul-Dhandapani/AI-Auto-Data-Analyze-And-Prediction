@@ -624,6 +624,15 @@ const DashboardPage = () => {
         </div>
       )}
 
+      {/* Variable Selection Modal */}
+      {showVariableSelection && pendingDataset && (
+        <VariableSelectionModal
+          dataset={pendingDataset}
+          onClose={handleVariableSelectionClose}
+          onConfirm={handleVariableSelectionConfirm}
+        />
+      )}
+
     </div>
   );
 };
