@@ -286,13 +286,44 @@ async def holistic_analysis(request: Dict[str, Any]):
                     target_col = user_target
                     selected_features = [f for f in user_features if f in df.columns and f != target_col]
                     
+                    # Separate numeric and categorical selected features
+                    numeric_selected = []
+                    categorical_selected = []
+                    excluded_features = []
+                    
+                    for feat in selected_features:
+                        if feat in df.columns:
+                            if pd.api.types.is_numeric_dtype(df[feat].dtype):
+                                numeric_selected.append(feat)
+                            else:
+                                # Check cardinality for categorical features
+                                unique_count = df[feat].nunique()
+                                if unique_count <= 50:  # Reasonable for one-hot encoding
+                                    categorical_selected.append(feat)
+                                else:
+                                    excluded_features.append(f"{feat} (too many categories: {unique_count})")
+                    
+                    # Build feedback message
+                    feedback_parts = []
+                    if numeric_selected or categorical_selected:
+                        feedback_parts.append(f"✅ Using your selected target '{target_col}'")
+                        if numeric_selected:
+                            feedback_parts.append(f"   • Numeric features: {', '.join(numeric_selected)}")
+                        if categorical_selected:
+                            feedback_parts.append(f"   • Categorical features (encoded): {', '.join(categorical_selected)}")
+                        if excluded_features:
+                            feedback_parts.append(f"   • ⚠️ Excluded: {', '.join(excluded_features)}")
+                    
                     selection_feedback = {
                         "status": "used",
-                        "message": f"✅ Using your selected target variable '{target_col}' with {len(selected_features)} features.",
+                        "message": "\n".join(feedback_parts),
                         "used_target": target_col,
-                        "used_features": selected_features
+                        "used_features": numeric_selected + categorical_selected,
+                        "numeric_features": numeric_selected,
+                        "categorical_features": categorical_selected,
+                        "excluded_features": excluded_features
                     }
-                    logging.info(f"Using user selection: target={target_col}, features={selected_features}")
+                    logging.info(f"Using user selection: target={target_col}, numeric={numeric_selected}, categorical={categorical_selected}")
                 else:
                     # Target is not numeric - fallback to auto
                     target_col = suggest_best_target_column(df)
@@ -329,6 +360,14 @@ async def holistic_analysis(request: Dict[str, Any]):
                     # Create subset dataframe with selected features + target
                     train_columns = selected_features + [target_col]
                     df_subset = df[train_columns].copy()
+                    
+                    # Handle categorical features with one-hot encoding
+                    if selection_feedback and selection_feedback.get('categorical_features'):
+                        categorical_cols = selection_feedback['categorical_features']
+                        # One-hot encode categorical columns
+                        df_subset = pd.get_dummies(df_subset, columns=categorical_cols, drop_first=True, dtype=int)
+                        logging.info(f"Encoded {len(categorical_cols)} categorical features, result shape: {df_subset.shape}")
+                    
                     models_result = train_multiple_models(df_subset, target_col)
                 else:
                     # Train on all numeric features
