@@ -9,20 +9,36 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const DatabaseSwitcher = () => {
-  const [currentDb, setCurrentDb] = useState('mongodb');
+  const [currentDb, setCurrentDb] = useState(null); // null instead of 'mongodb'
   const [loading, setLoading] = useState(false);
   const [restarting, setRestarting] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true); // Add initial loading state
 
   useEffect(() => {
     loadCurrentDatabase();
   }, []);
 
   const loadCurrentDatabase = async () => {
+    setInitialLoading(true);
     try {
       const response = await axios.get(`${API}/config/current-database`);
-      setCurrentDb(response.data.current_database);
+      const dbType = response.data.current_database;
+      setCurrentDb(dbType);
+      console.log('Current database loaded:', dbType);
     } catch (error) {
       console.error('Failed to load current database:', error);
+      // Retry once after a delay
+      setTimeout(async () => {
+        try {
+          const response = await axios.get(`${API}/config/current-database`);
+          setCurrentDb(response.data.current_database);
+        } catch (err) {
+          console.error('Retry failed, defaulting to mongodb');
+          setCurrentDb('mongodb');
+        }
+      }, 2000);
+    } finally {
+      setInitialLoading(false);
     }
   };
 
