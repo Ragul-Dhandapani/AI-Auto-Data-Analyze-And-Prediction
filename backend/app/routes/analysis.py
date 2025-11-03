@@ -214,21 +214,36 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
         if gridfs_file_id:
             try:
                 data = await db_adapter.retrieve_file(gridfs_file_id)
-                logger.info(f"GridFS data loaded, size: {len(data)} bytes")
+                logger.info(f"BLOB data loaded, size: {len(data)} bytes")
                 
-                # Parse JSON data
-                import json
-                data_dict = json.loads(data.decode('utf-8'))
-                df = pd.DataFrame(data_dict)
+                # OPTIMIZED: Load original file format directly (much faster!)
+                # Check file type from original filename
+                filename = dataset.get("name", "")
                 
-                logger.info(f"DataFrame created: {df.shape}")
+                if filename.endswith('.csv'):
+                    # Load CSV directly from bytes
+                    df = pd.read_csv(io.BytesIO(data))
+                elif filename.endswith(('.xlsx', '.xls')):
+                    # Load Excel directly from bytes
+                    df = pd.read_excel(io.BytesIO(data))
+                else:
+                    # Fallback: Try to parse as JSON (backward compatibility)
+                    import json
+                    try:
+                        data_dict = json.loads(data.decode('utf-8'))
+                        df = pd.DataFrame(data_dict)
+                    except:
+                        # If JSON fails, try CSV
+                        df = pd.read_csv(io.BytesIO(data))
+                
+                logger.info(f"DataFrame created from BLOB: {df.shape}")
                 return df
                 
             except Exception as e:
-                logger.error(f"Error loading GridFS data: {str(e)}")
-                raise HTTPException(500, f"Error loading dataset from GridFS: {str(e)}")
+                logger.error(f"Error loading BLOB data: {str(e)}")
+                raise HTTPException(500, f"Error loading dataset from BLOB: {str(e)}")
         else:
-            raise HTTPException(500, "GridFS file ID not found")
+            raise HTTPException(500, "BLOB file ID not found")
     else:
         # Load from inline data
         data = dataset.get("data", [])
