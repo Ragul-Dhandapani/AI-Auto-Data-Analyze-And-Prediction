@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Loader2, Settings, Play } from 'lucide-react';
+import { Loader2, Settings, Play, Zap } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -55,19 +54,16 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
         if (value.trim()) {
           const values = value.split(',').map(v => {
             const trimmed = v.trim();
-            // Try to parse as number
             const num = parseFloat(trimmed);
             if (!isNaN(num)) return num;
-            // Try to parse as None/null
             if (trimmed.toLowerCase() === 'none') return null;
-            // Return as string
             return trimmed;
           });
           paramGrid[key] = values;
         }
       });
 
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       setProgress(40);
       setProgressMessage(`Running ${searchType} search with cross-validation...`);
@@ -85,7 +81,7 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
       setProgress(80);
       setProgressMessage('Evaluating best parameters...');
       
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       setProgress(100);
       setProgressMessage('Tuning complete!');
@@ -100,7 +96,7 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
         setLoading(false);
         setProgress(0);
         setProgressMessage('');
-      }, 500);
+      }, 300);
     }
   };
 
@@ -111,6 +107,24 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
 
   return (
     <div className="space-y-6">
+      {/* Tab Description */}
+      <Card className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-indigo-500 rounded-lg">
+            <Zap className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-indigo-900 mb-1">Hyperparameter Tuning Analysis</h3>
+            <p className="text-sm text-indigo-700">
+              <strong>What it does:</strong> Automatically finds the best model configuration by testing different parameter combinations.
+            </p>
+            <p className="text-sm text-indigo-600 mt-1">
+              <strong>Advantages:</strong> Maximize model accuracy, reduce manual trial-and-error, discover optimal settings, improve prediction quality by up to 20%.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Loading Progress */}
       {loading && (
         <Card className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50">
@@ -119,7 +133,7 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
             <h3 className="text-lg font-semibold mb-2">{progressMessage}</h3>
             <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
               <div 
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 h-3 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 h-3 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
@@ -132,7 +146,7 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <Settings className="w-6 h-6" />
-            Hyperparameter Tuning
+            Hyperparameter Configuration
           </h2>
 
           <div className="space-y-4">

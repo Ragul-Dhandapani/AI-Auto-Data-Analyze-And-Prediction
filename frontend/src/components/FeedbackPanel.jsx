@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ThumbsUp, ThumbsDown, MessageSquare, Loader2, TrendingUp } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MessageSquare, Loader2, TrendingUp, Target } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -31,7 +31,6 @@ const FeedbackPanel = ({ dataset, modelName }) => {
       setFeedbackList(response.data.feedback_data || []);
     } catch (error) {
       console.error('Failed to load feedback stats:', error);
-      // Set empty stats if API fails
       setStats({
         feedback_count: 0,
         correct_predictions: 0,
@@ -52,7 +51,7 @@ const FeedbackPanel = ({ dataset, modelName }) => {
       });
       
       toast.success('Feedback submitted!');
-      loadStats(); // Refresh stats
+      loadStats();
     } catch (error) {
       toast.error('Failed to submit feedback: ' + (error.response?.data?.detail || error.message));
     } finally {
@@ -71,12 +70,12 @@ const FeedbackPanel = ({ dataset, modelName }) => {
     setProgressMessage('Preparing feedback data...');
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       setProgress(30);
       setProgressMessage('Loading training dataset...');
       
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       setProgress(50);
       setProgressMessage('Retraining model with feedback...');
@@ -84,13 +83,13 @@ const FeedbackPanel = ({ dataset, modelName }) => {
       const response = await axios.post(`${API}/feedback/retrain`, {
         dataset_id: dataset.id,
         model_name: modelName,
-        target_column: 'target' // Adjust based on your data
+        target_column: 'target'
       });
 
       setProgress(80);
       setProgressMessage('Evaluating new model...');
       
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       setProgress(100);
       setProgressMessage('Retraining complete!');
@@ -99,7 +98,7 @@ const FeedbackPanel = ({ dataset, modelName }) => {
         `Model retrained with ${response.data.feedback_samples} feedback samples!`
       );
       
-      loadStats(); // Refresh stats
+      loadStats();
     } catch (error) {
       toast.error('Retraining failed: ' + (error.response?.data?.detail || error.message));
     } finally {
@@ -107,7 +106,7 @@ const FeedbackPanel = ({ dataset, modelName }) => {
         setRetraining(false);
         setProgress(0);
         setProgressMessage('');
-      }, 500);
+      }, 300);
     }
   };
 
@@ -124,6 +123,24 @@ const FeedbackPanel = ({ dataset, modelName }) => {
 
   return (
     <div className="space-y-6">
+      {/* Tab Description */}
+      <Card className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-green-500 rounded-lg">
+            <Target className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-green-900 mb-1">Feedback & Learning (Active Learning)</h3>
+            <p className="text-sm text-green-700">
+              <strong>What it does:</strong> Collects user feedback on predictions and retrains models to improve accuracy over time.
+            </p>
+            <p className="text-sm text-green-600 mt-1">
+              <strong>Advantages:</strong> Continuous model improvement, learn from real-world outcomes, adapt to changing patterns, increase accuracy through human-in-the-loop learning.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Retraining Progress */}
       {retraining && (
         <Card className="p-6 bg-gradient-to-r from-green-50 to-blue-50">
@@ -132,7 +149,7 @@ const FeedbackPanel = ({ dataset, modelName }) => {
             <h3 className="text-lg font-semibold mb-2">{progressMessage}</h3>
             <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
               <div 
-                className="bg-gradient-to-r from-green-600 to-blue-600 h-3 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-green-600 to-blue-600 h-3 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
