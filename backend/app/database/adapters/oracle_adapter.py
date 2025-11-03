@@ -1,4 +1,4 @@
-"""Oracle 23 Database Adapter with async support"""
+"""Oracle 19c/21c/23ai Database Adapter with async support"""
 import json
 import logging
 import gzip
@@ -10,14 +10,21 @@ from concurrent.futures import ThreadPoolExecutor
 
 try:
     import cx_Oracle
+    # Initialize Oracle Client with library path
+    try:
+        cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+        logger = logging.getLogger(__name__)
+        logger.info("✅ Oracle Client initialized")
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Oracle Client may already be initialized: {str(e)}")
     ORACLE_AVAILABLE = True
 except ImportError:
     ORACLE_AVAILABLE = False
-    logging.warning("cx_Oracle not available. Install with: pip install cx_Oracle")
+    logger = logging.getLogger(__name__)
+    logger.warning("cx_Oracle not available. Install with: pip install cx_Oracle")
 
 from .base import DatabaseAdapter
-
-logger = logging.getLogger(__name__)
 
 class OracleAdapter(DatabaseAdapter):
     """Oracle 23 implementation of DatabaseAdapter"""
