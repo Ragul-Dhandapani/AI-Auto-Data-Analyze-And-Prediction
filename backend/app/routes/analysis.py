@@ -13,7 +13,7 @@ import uuid
 import io
 
 from app.models.pydantic_models import HolisticRequest, SaveStateRequest
-from app.database.mongodb import db, fs
+from app.database.db_helper import get_db
 from app.services.data_service import generate_data_profile, get_correlation_matrix, clean_data
 from app.services.ml_service import train_multiple_models, suggest_best_target_column, train_models_auto, detect_problem_type
 from app.services.visualization_service import generate_auto_charts
