@@ -492,7 +492,7 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
             raise HTTPException(404, f"Dataset not found: {dataset_id}")
         
         # Load data based on storage type
-        if dataset.get('storage_type') == 'gridfs' and dataset.get('gridfs_file_id'):
+        if dataset.get('storage_type') == 'blob' and dataset.get('gridfs_file_id'):
             # Load from GridFS/BLOB
             data = await db_adapter.retrieve_file(dataset['gridfs_file_id'])
             df = pd.read_json(io.BytesIO(data), orient='records')
