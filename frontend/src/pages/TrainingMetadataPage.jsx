@@ -170,6 +170,11 @@ const TrainingMetadataPage = () => {
         </div>
       </div>
 
+      {/* Database Switcher - TEMPORARY FOR TESTING */}
+      <div className="mb-6">
+        <DatabaseSwitcher />
+      </div>
+
       {metadata.length === 0 ? (
         <Card className="p-12 text-center">
           <Database className="w-16 h-16 mx-auto mb-4 text-gray-400" />
