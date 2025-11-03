@@ -191,11 +191,12 @@ Provide actionable insights in bullet points about:
 
 
 async def load_dataframe(dataset_id: str) -> pd.DataFrame:
-    """Helper function to load DataFrame from dataset"""
+    """Helper function to load DataFrame from dataset - ADAPTER VERSION"""
     import logging
     logger = logging.getLogger(__name__)
     
-    db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id)
+    db_adapter = get_db()
+    dataset = await db_adapter.get_dataset(dataset_id)
     if not dataset:
         raise HTTPException(404, "Dataset not found")
     
@@ -206,49 +207,33 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
         gridfs_file_id = dataset.get("gridfs_file_id")
         if gridfs_file_id:
             try:
-                db_adapter = get_db(); data = await db_adapter.retrieve_file(gridfs_file_id)
-                # data already loaded from adapter
-                
+                data = await db_adapter.retrieve_file(gridfs_file_id)
                 logger.info(f"GridFS data loaded, size: {len(data)} bytes")
                 
-                if dataset["name"].endswith('.csv'):
-                    df = pd.read_csv(io.BytesIO(data))
-                else:
-                    df = pd.read_excel(io.BytesIO(data))
+                # Parse JSON data
+                import json
+                data_dict = json.loads(data.decode('utf-8'))
+                df = pd.DataFrame(data_dict)
                 
-                logger.info(f"DataFrame loaded from GridFS: {len(df)} rows, {len(df.columns)} columns")
+                logger.info(f"DataFrame created: {df.shape}")
+                return df
+                
             except Exception as e:
-                logger.error(f"GridFS loading failed: {str(e)}")
-                raise HTTPException(500, f"Failed to load data from GridFS: {str(e)}")
+                logger.error(f"Error loading GridFS data: {str(e)}")
+                raise HTTPException(500, f"Error loading dataset from GridFS: {str(e)}")
         else:
             raise HTTPException(500, "GridFS file ID not found")
     else:
-        # Direct storage
-        data = dataset.get("data")
-        if data is None:
-            logger.error(f"Dataset {dataset_id} has no 'data' field")
-            raise HTTPException(500, "Dataset has no data field")
-        
-        if not isinstance(data, list):
-            logger.error(f"Dataset data is not a list: {type(data)}")
-            raise HTTPException(500, "Dataset data format invalid")
-        
-        if len(data) == 0:
-            logger.warning(f"Dataset {dataset_id} has empty data array")
-            raise HTTPException(400, "Dataset is empty")
+        # Load from inline data
+        data = dataset.get("data", [])
+        if not data:
+            raise HTTPException(500, "No data found in dataset")
         
         df = pd.DataFrame(data)
-        logger.info(f"DataFrame loaded from direct storage: {len(df)} rows, {len(df.columns)} columns")
-    
-    # Validate DataFrame is not empty
-    if df.empty:
-        logger.error(f"DataFrame is empty after loading dataset {dataset_id}")
-        raise HTTPException(400, "Loaded DataFrame is empty")
-    
-    return df
+        logger.info(f"DataFrame loaded from inline data: {df.shape}")
+        return df
 
 
-@router.post("/holistic")
 async def holistic_analysis(request: Dict[str, Any]):
     """Perform comprehensive analysis with optional user variable selection and multiple targets"""
     try:
