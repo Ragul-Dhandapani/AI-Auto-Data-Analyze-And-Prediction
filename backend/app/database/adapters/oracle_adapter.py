@@ -416,10 +416,10 @@ class OracleAdapter(DatabaseAdapter):
         query = """
         INSERT INTO prediction_feedback (
             id, prediction_id, dataset_id, model_name,
-            is_correct, prediction, actual_outcome, comment, created_at
+            is_correct, prediction, actual_outcome, feedback_comment, created_at
         ) VALUES (
             :id, :prediction_id, :dataset_id, :model_name,
-            :is_correct, :prediction, :actual_outcome, :comment, :created_at
+            :is_correct, :prediction, :actual_outcome, :feedback_comment, :created_at
         )
         """
         
@@ -431,7 +431,7 @@ class OracleAdapter(DatabaseAdapter):
             'is_correct': 'Y' if feedback.get('is_correct') else 'N',
             'prediction': feedback.get('prediction'),
             'actual_outcome': feedback.get('actual_outcome'),
-            'comment': feedback.get('comment'),
+            'feedback_comment': feedback.get('comment'),  # Map 'comment' to 'feedback_comment'
             'created_at': datetime.now(timezone.utc)
         }
         
