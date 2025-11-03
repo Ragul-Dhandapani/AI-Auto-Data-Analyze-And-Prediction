@@ -1152,10 +1152,10 @@ async def time_series_analysis_endpoint(request: Dict[str, Any]):
         )
         
         # Update training counter
-        await db.datasets.update_one(
-            {"id": dataset_id},
-            {"$inc": {"training_count": 1}}
-        )
+#         await db.datasets.update_one(
+#             {"id": dataset_id},
+#             {"$inc": {"training_count": 1}}
+#         )
         
         return results
         
