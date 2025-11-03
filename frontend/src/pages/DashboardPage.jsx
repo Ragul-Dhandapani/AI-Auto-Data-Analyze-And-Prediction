@@ -41,6 +41,8 @@ const DashboardPage = () => {
   const [stateName, setStateName] = useState("");
   const [savedStates, setSavedStates] = useState([]);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveProgress, setSaveProgress] = useState(0);
 
   useEffect(() => {
     loadDatasets();
