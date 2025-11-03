@@ -5,7 +5,7 @@ Handles training history and metadata
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 
-from app.database.db_helper import get_db
+from app.database.mongodb import db, fs
 from datetime import datetime, timezone
 from bson import ObjectId
 import logging
@@ -29,12 +29,12 @@ async def download_training_metadata_pdf(dataset_id: str):
         from fastapi.responses import StreamingResponse
         
         # Get dataset
-        dataset = db_adapter = get_db(); dataset = await db_adapter.get_dataset({"id": dataset_id}, {"_id": 0})
+        dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
         if not dataset:
             raise HTTPException(404, "Dataset not found")
         
         # Get saved states for this dataset
-        saved_states = db_adapter = get_db(); saved_states = await db_adapter.list_workspaces(
+        saved_states = await db.saved_states.find(
             {"dataset_id": dataset_id},
             {"_id": 0}
         ).sort("created_at", -1).to_list(length=100)
