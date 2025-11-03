@@ -369,7 +369,7 @@ async def get_dataset(dataset_id: str):
             raise HTTPException(404, "Dataset not found")
         
         # Load data if stored in GridFS
-        if dataset.get("storage_type") == "gridfs":
+        if dataset.get("storage_type") == "blob":
             gridfs_file_id = dataset.get("gridfs_file_id")
             if gridfs_file_id:
                 from bson import ObjectId
