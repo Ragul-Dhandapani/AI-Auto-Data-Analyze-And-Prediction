@@ -313,19 +313,19 @@ class OracleAdapter(DatabaseAdapter):
                 id, filename, file_data, metadata_json,
                 file_size, compressed, original_size, created_at
             ) VALUES (
-                :id, :filename, :data, :metadata,
-                :size, :compressed, :original_size, :created_at
+                :file_id, :file_name, :file_data, :metadata_json,
+                :file_size, :is_compressed, :orig_size, :created_at
             )
             """
             
             cursor.execute(query, {
-                'id': file_id,
-                'filename': filename,
-                'data': data,
-                'metadata': json.dumps(metadata),
-                'size': len(data),
-                'compressed': 'Y' if compressed else 'N',
-                'original_size': metadata.get('original_size', len(data)),
+                'file_id': file_id,
+                'file_name': filename,
+                'file_data': data,
+                'metadata_json': json.dumps(metadata),
+                'file_size': len(data),
+                'is_compressed': 'Y' if compressed else 'N',
+                'orig_size': metadata.get('original_size', len(data)),
                 'created_at': datetime.now(timezone.utc)
             })
             conn.commit()
