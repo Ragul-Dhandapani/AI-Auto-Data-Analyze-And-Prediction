@@ -1447,6 +1447,17 @@ async def join_datasets(request: Dict[str, Any]):
         db_adapter = get_db(); await db_adapter.create_dataset(dataset_doc)
         
         # Store data
+        # Store data using adapter (as BLOB for Oracle)
+        data_dict = result_df.to_dict('records')
+        import json
+        data_json = json.dumps(data_dict)
+        file_id = await db_adapter.store_file(
+            f"joined_{joined_id}.json",
+            data_json.encode('utf-8'),
+            metadata={"dataset_id": joined_id, "type": "joined_data"}
+        )
+        # Update dataset with file reference
+        await db_adapter.update_dataset(joined_id, {"gridfs_file_id": file_id, "storage_type": "blob"})
 #         data_collection = f"data_{joined_id}"
 #         await db[data_collection].insert_many(result_df.to_dict('records'))
         
