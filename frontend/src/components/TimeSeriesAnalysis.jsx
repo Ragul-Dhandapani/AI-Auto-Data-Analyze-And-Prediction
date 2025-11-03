@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, Calendar, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Loader2, Calendar, TrendingUp, AlertTriangle, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Plot from 'react-plotly.js';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -55,7 +56,7 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
       setProgress(30);
       setProgressMessage('Preparing temporal features...');
       
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       setProgress(50);
       setProgressMessage(`Running ${forecastMethod} forecasting...`);
@@ -71,7 +72,7 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
       setProgress(80);
       setProgressMessage('Detecting anomalies...');
       
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       setProgress(100);
       setProgressMessage('Analysis complete!');
@@ -86,7 +87,7 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
         setLoading(false);
         setProgress(0);
         setProgressMessage('');
-      }, 500);
+      }, 300);
     }
   };
 
@@ -95,8 +96,38 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
     return dtype && ['int64', 'float64', 'int32', 'float32'].includes(dtype);
   }) || [];
 
+  // Tooltip content for metrics
+  const getMetricTooltip = (metric, value) => {
+    const tooltips = {
+      mape: `Mean Absolute Percentage Error (MAPE): ${value}%. Lower is better. Measures average prediction accuracy. <10% = Excellent, 10-20% = Good, >20% = Needs improvement.`,
+      rmse: `Root Mean Squared Error (RMSE): ${value}. Lower is better. Measures prediction errors in original units. Penalizes large errors more heavily than small ones.`,
+      anomaly_count: `Anomalies Found: ${value}. Data points that deviate significantly from expected patterns. May indicate outliers, errors, or unusual events in your time series.`,
+      total_points: `Total Data Points: ${value}. The complete number of observations analyzed in your time series dataset.`,
+      anomaly_percentage: `Anomaly Percentage: ${value}%. Proportion of data points flagged as anomalies. <5% is typical for most datasets.`
+    };
+    return tooltips[metric] || 'Metric information';
+  };
+
   return (
     <div className="space-y-6">
+      {/* Tab Description */}
+      <Card className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-blue-500 rounded-lg">
+            <TrendingUp className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-blue-900 mb-1">Time Series Forecasting & Anomaly Detection</h3>
+            <p className="text-sm text-blue-700">
+              <strong>What it does:</strong> Predicts future values and detects unusual patterns in temporal data.
+            </p>
+            <p className="text-sm text-blue-600 mt-1">
+              <strong>Advantages:</strong> Plan ahead with accurate forecasts, identify data quality issues, detect anomalies early, support time-based decision making.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Loading Progress */}
       {loading && (
         <Card className="p-6 bg-gradient-to-r from-blue-50 to-purple-50">
@@ -105,7 +136,7 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
             <h3 className="text-lg font-semibold mb-2">{progressMessage}</h3>
             <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
               <div 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
@@ -118,7 +149,7 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <Calendar className="w-6 h-6" />
-            Time Series Forecasting & Anomaly Detection
+            Time Series Configuration
           </h2>
 
           <div className="space-y-4">
@@ -165,21 +196,21 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
             <Label>Forecast Method</Label>
             <div className="grid grid-cols-3 gap-3 mt-2">
               <Card
-                className={`p-3 cursor-pointer border-2 ${forecastMethod === 'prophet' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                className={`p-3 cursor-pointer border-2 transition-all ${forecastMethod === 'prophet' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
                 onClick={() => setForecastMethod('prophet')}
               >
                 <div className="font-semibold">📈 Prophet</div>
                 <div className="text-xs text-gray-600">Facebook's forecasting</div>
               </Card>
               <Card
-                className={`p-3 cursor-pointer border-2 ${forecastMethod === 'lstm' ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}
+                className={`p-3 cursor-pointer border-2 transition-all ${forecastMethod === 'lstm' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'}`}
                 onClick={() => setForecastMethod('lstm')}
               >
                 <div className="font-semibold">🧠 LSTM</div>
                 <div className="text-xs text-gray-600">Deep learning</div>
               </Card>
               <Card
-                className={`p-3 cursor-pointer border-2 ${forecastMethod === 'both' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                className={`p-3 cursor-pointer border-2 transition-all ${forecastMethod === 'both' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'}`}
                 onClick={() => setForecastMethod('both')}
               >
                 <div className="font-semibold">🔄 Both</div>
@@ -220,174 +251,250 @@ const TimeSeriesAnalysis = ({ dataset, cachedResults, onComplete }) => {
 
       {/* Results Display */}
       {results && (
-        <div className="space-y-6">
-          {/* Prophet Results */}
-          {results.prophet_forecast && results.prophet_forecast.success && (
-            <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                📈 Prophet Forecast Results
-              </h3>
-              
-              {/* Metrics */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-blue-50 p-4 rounded">
-                  <div className="text-sm text-gray-600">MAPE</div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {results.prophet_forecast.metrics?.mape?.toFixed(2)}%
-                  </div>
-                </div>
-                <div className="bg-purple-50 p-4 rounded">
-                  <div className="text-sm text-gray-600">RMSE</div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {results.prophet_forecast.metrics?.rmse?.toFixed(2)}
-                  </div>
-                </div>
-              </div>
+        <TooltipProvider>
+          <div className="space-y-6">
+            {/* Prophet Results */}
+            {results.prophet_forecast && results.prophet_forecast.success && (
+              <Card className="p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  📈 Prophet Forecast Results
+                </h3>
+                
+                {/* Metrics with Tooltips */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-blue-50 p-4 rounded cursor-help hover:bg-blue-100 transition-colors">
+                        <div className="text-sm text-gray-600 flex items-center gap-1">
+                          MAPE
+                          <Info className="w-3 h-3" />
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {results.prophet_forecast.metrics?.mape?.toFixed(2)}%
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{getMetricTooltip('mape', results.prophet_forecast.metrics?.mape?.toFixed(2))}</p>
+                    </TooltipContent>
+                  </Tooltip>
 
-              {/* Forecast Chart */}
-              {results.prophet_forecast.forecast_data && (
-                <Plot
-                  data={[
-                    {
-                      x: results.prophet_forecast.historical_data.dates,
-                      y: results.prophet_forecast.historical_data.values,
-                      type: 'scatter',
-                      mode: 'lines',
-                      name: 'Historical',
-                      line: { color: 'blue' }
-                    },
-                    {
-                      x: results.prophet_forecast.forecast_data.dates,
-                      y: results.prophet_forecast.forecast_data.values,
-                      type: 'scatter',
-                      mode: 'lines',
-                      name: 'Forecast',
-                      line: { color: 'red', dash: 'dash' }
-                    },
-                    {
-                      x: results.prophet_forecast.forecast_data.dates,
-                      y: results.prophet_forecast.forecast_data.upper_bound,
-                      type: 'scatter',
-                      mode: 'lines',
-                      name: 'Upper Bound',
-                      line: { color: 'rgba(255,0,0,0.2)', width: 0 },
-                      fill: 'tonexty',
-                      fillcolor: 'rgba(255,0,0,0.1)'
-                    },
-                    {
-                      x: results.prophet_forecast.forecast_data.dates,
-                      y: results.prophet_forecast.forecast_data.lower_bound,
-                      type: 'scatter',
-                      mode: 'lines',
-                      name: 'Lower Bound',
-                      line: { color: 'rgba(255,0,0,0.2)' }
-                    }
-                  ]}
-                  layout={{
-                    title: `${targetColumn} Forecast`,
-                    xaxis: { title: 'Date' },
-                    yaxis: { title: targetColumn },
-                    height: 400
-                  }}
-                  config={{ responsive: true }}
-                  style={{ width: '100%' }}
-                />
-              )}
-            </Card>
-          )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-purple-50 p-4 rounded cursor-help hover:bg-purple-100 transition-colors">
+                        <div className="text-sm text-gray-600 flex items-center gap-1">
+                          RMSE
+                          <Info className="w-3 h-3" />
+                        </div>
+                        <div className="text-2xl font-bold text-purple-600">
+                          {results.prophet_forecast.metrics?.rmse?.toFixed(2)}
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{getMetricTooltip('rmse', results.prophet_forecast.metrics?.rmse?.toFixed(2))}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
 
-          {/* LSTM Results */}
-          {results.lstm_forecast && results.lstm_forecast.success && (
-            <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                🧠 LSTM Forecast Results
-              </h3>
-              
-              {/* Metrics */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-purple-50 p-4 rounded">
-                  <div className="text-sm text-gray-600">MAPE</div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {results.lstm_forecast.metrics?.mape?.toFixed(2)}%
-                  </div>
-                </div>
-                <div className="bg-blue-50 p-4 rounded">
-                  <div className="text-sm text-gray-600">RMSE</div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {results.lstm_forecast.metrics?.rmse?.toFixed(2)}
-                  </div>
-                </div>
-              </div>
+                {/* Forecast Chart */}
+                {results.prophet_forecast.forecast_data && (
+                  <Plot
+                    data={[
+                      {
+                        x: results.prophet_forecast.historical_data.dates,
+                        y: results.prophet_forecast.historical_data.values,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Historical',
+                        line: { color: 'blue' }
+                      },
+                      {
+                        x: results.prophet_forecast.forecast_data.dates,
+                        y: results.prophet_forecast.forecast_data.values,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Forecast',
+                        line: { color: 'red', dash: 'dash' }
+                      },
+                      {
+                        x: results.prophet_forecast.forecast_data.dates,
+                        y: results.prophet_forecast.forecast_data.upper_bound,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Upper Bound',
+                        line: { color: 'rgba(255,0,0,0.2)', width: 0 },
+                        fill: 'tonexty',
+                        fillcolor: 'rgba(255,0,0,0.1)'
+                      },
+                      {
+                        x: results.prophet_forecast.forecast_data.dates,
+                        y: results.prophet_forecast.forecast_data.lower_bound,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Lower Bound',
+                        line: { color: 'rgba(255,0,0,0.2)' }
+                      }
+                    ]}
+                    layout={{
+                      title: `${targetColumn} Forecast`,
+                      xaxis: { title: 'Date' },
+                      yaxis: { title: targetColumn },
+                      height: 400
+                    }}
+                    config={{ responsive: true }}
+                    style={{ width: '100%' }}
+                  />
+                )}
+              </Card>
+            )}
 
-              {/* Forecast Chart */}
-              {results.lstm_forecast.forecast_data && (
-                <Plot
-                  data={[
-                    {
-                      x: results.lstm_forecast.historical_data.dates,
-                      y: results.lstm_forecast.historical_data.values,
-                      type: 'scatter',
-                      mode: 'lines',
-                      name: 'Historical',
-                      line: { color: 'blue' }
-                    },
-                    {
-                      x: results.lstm_forecast.forecast_data.dates,
-                      y: results.lstm_forecast.forecast_data.values,
-                      type: 'scatter',
-                      mode: 'lines',
-                      name: 'LSTM Forecast',
-                      line: { color: 'purple', dash: 'dash' }
-                    }
-                  ]}
-                  layout={{
-                    title: `${targetColumn} LSTM Forecast`,
-                    xaxis: { title: 'Date' },
-                    yaxis: { title: targetColumn },
-                    height: 400
-                  }}
-                  config={{ responsive: true }}
-                  style={{ width: '100%' }}
-                />
-              )}
-            </Card>
-          )}
+            {/* LSTM Results */}
+            {results.lstm_forecast && results.lstm_forecast.success && (
+              <Card className="p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  🧠 LSTM Forecast Results
+                </h3>
+                
+                {/* Metrics with Tooltips */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-purple-50 p-4 rounded cursor-help hover:bg-purple-100 transition-colors">
+                        <div className="text-sm text-gray-600 flex items-center gap-1">
+                          MAPE
+                          <Info className="w-3 h-3" />
+                        </div>
+                        <div className="text-2xl font-bold text-purple-600">
+                          {results.lstm_forecast.metrics?.mape?.toFixed(2)}%
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{getMetricTooltip('mape', results.lstm_forecast.metrics?.mape?.toFixed(2))}</p>
+                    </TooltipContent>
+                  </Tooltip>
 
-          {/* Anomaly Detection */}
-          {results.anomaly_detection && results.anomaly_detection.success && (
-            <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-6 h-6 text-orange-600" />
-                Anomaly Detection
-              </h3>
-              
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-orange-50 p-4 rounded">
-                  <div className="text-sm text-gray-600">Anomalies Found</div>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {results.anomaly_detection.anomaly_count}
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-blue-50 p-4 rounded cursor-help hover:bg-blue-100 transition-colors">
+                        <div className="text-sm text-gray-600 flex items-center gap-1">
+                          RMSE
+                          <Info className="w-3 h-3" />
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {results.lstm_forecast.metrics?.rmse?.toFixed(2)}
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{getMetricTooltip('rmse', results.lstm_forecast.metrics?.rmse?.toFixed(2))}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <div className="bg-gray-50 p-4 rounded">
-                  <div className="text-sm text-gray-600">Total Points</div>
-                  <div className="text-2xl font-bold text-gray-600">
-                    {results.anomaly_detection.total_points}
-                  </div>
-                </div>
-                <div className="bg-red-50 p-4 rounded">
-                  <div className="text-sm text-gray-600">Anomaly %</div>
-                  <div className="text-2xl font-bold text-red-600">
-                    {results.anomaly_detection.anomaly_percentage?.toFixed(2)}%
-                  </div>
-                </div>
-              </div>
 
-              <div className="text-sm text-gray-600">
-                <strong>Method:</strong> {results.anomaly_detection.method}
-              </div>
-            </Card>
-          )}
-        </div>
+                {/* Forecast Chart */}
+                {results.lstm_forecast.forecast_data && (
+                  <Plot
+                    data={[
+                      {
+                        x: results.lstm_forecast.historical_data.dates,
+                        y: results.lstm_forecast.historical_data.values,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Historical',
+                        line: { color: 'blue' }
+                      },
+                      {
+                        x: results.lstm_forecast.forecast_data.dates,
+                        y: results.lstm_forecast.forecast_data.values,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'LSTM Forecast',
+                        line: { color: 'purple', dash: 'dash' }
+                      }
+                    ]}
+                    layout={{
+                      title: `${targetColumn} LSTM Forecast`,
+                      xaxis: { title: 'Date' },
+                      yaxis: { title: targetColumn },
+                      height: 400
+                    }}
+                    config={{ responsive: true }}
+                    style={{ width: '100%' }}
+                  />
+                )}
+              </Card>
+            )}
+
+            {/* Anomaly Detection */}
+            {results.anomaly_detection && results.anomaly_detection.success && (
+              <Card className="p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <AlertTriangle className="w-6 h-6 text-orange-600" />
+                  Anomaly Detection
+                </h3>
+                
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-orange-50 p-4 rounded cursor-help hover:bg-orange-100 transition-colors">
+                        <div className="text-sm text-gray-600 flex items-center gap-1">
+                          Anomalies Found
+                          <Info className="w-3 h-3" />
+                        </div>
+                        <div className="text-2xl font-bold text-orange-600">
+                          {results.anomaly_detection.anomaly_count}
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{getMetricTooltip('anomaly_count', results.anomaly_detection.anomaly_count)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-gray-50 p-4 rounded cursor-help hover:bg-gray-100 transition-colors">
+                        <div className="text-sm text-gray-600 flex items-center gap-1">
+                          Total Points
+                          <Info className="w-3 h-3" />
+                        </div>
+                        <div className="text-2xl font-bold text-gray-600">
+                          {results.anomaly_detection.total_points}
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{getMetricTooltip('total_points', results.anomaly_detection.total_points)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-red-50 p-4 rounded cursor-help hover:bg-red-100 transition-colors">
+                        <div className="text-sm text-gray-600 flex items-center gap-1">
+                          Anomaly %
+                          <Info className="w-3 h-3" />
+                        </div>
+                        <div className="text-2xl font-bold text-red-600">
+                          {results.anomaly_detection.anomaly_percentage?.toFixed(2)}%
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{getMetricTooltip('anomaly_percentage', results.anomaly_detection.anomaly_percentage?.toFixed(2))}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  <strong>Method:</strong> {results.anomaly_detection.method}
+                </div>
+              </Card>
+            )}
+          </div>
+        </TooltipProvider>
       )}
     </div>
   );
