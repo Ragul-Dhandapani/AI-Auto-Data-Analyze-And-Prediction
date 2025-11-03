@@ -140,6 +140,16 @@ const HomePage = () => {
             </div>
           </motion.div>
 
+          {/* Database Switcher - TEMPORARY FOR TESTING */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="mt-16 max-w-4xl mx-auto"
+          >
+            <DatabaseSwitcher />
+          </motion.div>
+
           {/* Feature Preview Cards */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
