@@ -31,6 +31,14 @@ const FeedbackPanel = ({ dataset, modelName }) => {
       setFeedbackList(response.data.feedback_data || []);
     } catch (error) {
       console.error('Failed to load feedback stats:', error);
+      // Set empty stats if API fails
+      setStats({
+        feedback_count: 0,
+        correct_predictions: 0,
+        incorrect_predictions: 0,
+        accuracy: null
+      });
+      setFeedbackList([]);
     }
   };
 
