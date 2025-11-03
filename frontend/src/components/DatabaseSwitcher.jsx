@@ -154,53 +154,63 @@ const DatabaseSwitcher = () => {
         </div>
       </div>
 
-      {/* Current Database Display */}
-      <div className="bg-white rounded-lg p-4 mb-4 border-2 border-blue-200">
-        <div className="text-sm text-gray-600 mb-1">Currently Active Database:</div>
-        <div className="text-2xl font-bold text-blue-600 uppercase flex items-center gap-2">
-          <Database className="w-6 h-6" />
-          {currentDb}
+      {/* Loading State */}
+      {initialLoading ? (
+        <div className="bg-white rounded-lg p-8 mb-4 border-2 border-blue-200 text-center">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
+          <div className="text-sm text-gray-600">Loading current database...</div>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Current Database Display */}
+          <div className="bg-white rounded-lg p-4 mb-4 border-2 border-blue-200">
+            <div className="text-sm text-gray-600 mb-1">Currently Active Database:</div>
+            <div className="text-2xl font-bold text-blue-600 uppercase flex items-center gap-2">
+              <Database className="w-6 h-6" />
+              {currentDb || 'Loading...'}
+            </div>
+          </div>
 
-      {/* Database Selection Buttons */}
-      <div className="grid grid-cols-2 gap-4">
-        <Button
-          onClick={() => switchDatabase('mongodb')}
-          disabled={loading || restarting || currentDb === 'mongodb'}
-          className={`h-20 text-lg font-semibold ${
-            currentDb === 'mongodb'
-              ? 'bg-green-600 hover:bg-green-700'
-              : 'bg-gray-600 hover:bg-gray-700'
-          }`}
-        >
-          {loading && currentDb !== 'mongodb' ? (
-            <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-          ) : (
-            <Database className="w-5 h-5 mr-2" />
-          )}
-          MongoDB
-          {currentDb === 'mongodb' && <span className="ml-2 text-xs">(Active)</span>}
-        </Button>
+          {/* Database Selection Buttons */}
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              onClick={() => switchDatabase('mongodb')}
+              disabled={loading || restarting || currentDb === 'mongodb' || !currentDb}
+              className={`h-20 text-lg font-semibold ${
+                currentDb === 'mongodb'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-gray-600 hover:bg-gray-700'
+              }`}
+            >
+              {loading && currentDb !== 'mongodb' ? (
+                <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+              ) : (
+                <Database className="w-5 h-5 mr-2" />
+              )}
+              MongoDB
+              {currentDb === 'mongodb' && <span className="ml-2 text-xs">(Active)</span>}
+            </Button>
 
-        <Button
-          onClick={() => switchDatabase('oracle')}
-          disabled={loading || restarting || currentDb === 'oracle'}
-          className={`h-20 text-lg font-semibold ${
-            currentDb === 'oracle'
-              ? 'bg-red-600 hover:bg-red-700'
-              : 'bg-gray-600 hover:bg-gray-700'
-          }`}
-        >
-          {loading && currentDb !== 'oracle' ? (
-            <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-          ) : (
-            <Database className="w-5 h-5 mr-2" />
-          )}
-          Oracle 23
-          {currentDb === 'oracle' && <span className="ml-2 text-xs">(Active)</span>}
-        </Button>
-      </div>
+            <Button
+              onClick={() => switchDatabase('oracle')}
+              disabled={loading || restarting || currentDb === 'oracle' || !currentDb}
+              className={`h-20 text-lg font-semibold ${
+                currentDb === 'oracle'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-gray-600 hover:bg-gray-700'
+              }`}
+            >
+              {loading && currentDb !== 'oracle' ? (
+                <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+              ) : (
+                <Database className="w-5 h-5 mr-2" />
+              )}
+              Oracle 23
+              {currentDb === 'oracle' && <span className="ml-2 text-xs">(Active)</span>}
+            </Button>
+          </div>
+        </>
+      )}
 
       {/* Status Messages */}
       {restarting && (
