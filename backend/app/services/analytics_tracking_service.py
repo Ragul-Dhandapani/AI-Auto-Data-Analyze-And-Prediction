@@ -5,7 +5,7 @@ Tracks user interactions for self-learning visualization system
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 import logging
-from app.database.mongodb import db
+from app.database.db_helper import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,11 @@ async def track_chart_view(
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.analytics_tracking.insert_one(tracking_data)
+        # Use adapter pattern - for now, access MongoDB directly through adapter
+        db_adapter = get_db()
+        if hasattr(db_adapter, 'db'):  # MongoDB adapter
+            await db_adapter.db.analytics_tracking.insert_one(tracking_data)
+        
         logger.info(f"Tracked chart view: {chart_type} for dataset {dataset_id}")
     except Exception as e:
         logger.error(f"Error tracking chart view: {str(e)}")
@@ -61,7 +65,10 @@ async def track_chart_export(
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.analytics_tracking.insert_one(tracking_data)
+        db_adapter = get_db()
+        if hasattr(db_adapter, 'db'):  # MongoDB adapter
+            await db_adapter.db.analytics_tracking.insert_one(tracking_data)
+        
         logger.info(f"Tracked chart export: {chart_type} as {export_format}")
     except Exception as e:
         logger.error(f"Error tracking chart export: {str(e)}")
@@ -86,7 +93,10 @@ async def track_insight_interaction(
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.analytics_tracking.insert_one(tracking_data)
+        db_adapter = get_db()
+        if hasattr(db_adapter, 'db'):  # MongoDB adapter
+            await db_adapter.db.analytics_tracking.insert_one(tracking_data)
+        
         logger.info(f"Tracked insight interaction for dataset {dataset_id}")
     except Exception as e:
         logger.error(f"Error tracking insight interaction: {str(e)}")
@@ -156,8 +166,12 @@ async def get_popular_charts_for_dataset_type(
             }
         ]
         
-        cursor = db.analytics_tracking.aggregate(pipeline)
-        recommendations = await cursor.to_list(length=limit)
+        db_adapter = get_db()
+        if hasattr(db_adapter, 'db'):  # MongoDB adapter
+            cursor = db_adapter.db.analytics_tracking.aggregate(pipeline)
+            recommendations = await cursor.to_list(length=limit)
+        else:
+            recommendations = []  # Oracle adapter would need different implementation
         
         return [
             {
@@ -187,8 +201,12 @@ async def get_dataset_analytics_summary(dataset_id: str) -> Dict:
             }
         ]
         
-        cursor = db.analytics_tracking.aggregate(pipeline)
-        results = await cursor.to_list(length=100)
+        db_adapter = get_db()
+        if hasattr(db_adapter, 'db'):  # MongoDB adapter
+            cursor = db_adapter.db.analytics_tracking.aggregate(pipeline)
+            results = await cursor.to_list(length=100)
+        else:
+            results = []  # Oracle adapter would need different implementation
         
         summary = {
             "total_views": 0,
@@ -239,7 +257,9 @@ async def learn_from_user_feedback(
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.analytics_tracking.insert_one(feedback_data)
+        db_adapter = get_db()
+        if hasattr(db_adapter, 'db'):  # MongoDB adapter
+            await db_adapter.db.analytics_tracking.insert_one(feedback_data)
         
         # Update chart recommendation weights based on feedback
         if feedback_type == "rating" and isinstance(feedback_value, (int, float)):
@@ -254,15 +274,17 @@ async def learn_from_user_feedback(
 async def update_chart_weights(chart_type: str, rating: float):
     """Update internal weights for chart recommendations based on ratings"""
     try:
-        # Store or update weights in a separate collection
-        await db.chart_weights.update_one(
-            {"chart_type": chart_type},
-            {
-                "$inc": {"total_ratings": 1, "rating_sum": rating},
-                "$set": {"last_updated": datetime.now(timezone.utc).isoformat()}
-            },
-            upsert=True
-        )
+        db_adapter = get_db()
+        if hasattr(db_adapter, 'db'):  # MongoDB adapter
+            # Store or update weights in a separate collection
+            await db_adapter.db.chart_weights.update_one(
+                {"chart_type": chart_type},
+                {
+                    "$inc": {"total_ratings": 1, "rating_sum": rating},
+                    "$set": {"last_updated": datetime.now(timezone.utc).isoformat()}
+                },
+                upsert=True
+            )
         
         logger.info(f"Updated weights for chart type: {chart_type}")
     
