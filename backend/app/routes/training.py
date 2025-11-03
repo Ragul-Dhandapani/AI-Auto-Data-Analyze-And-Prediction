@@ -257,7 +257,7 @@ async def get_training_metadata(dataset_id: str):
                     "state_name": state.get("state_name"),
                     "created_at": state.get("created_at"),
                     "size_bytes": state.get("size_bytes", 0),
-                    "storage_type": state.get("storage_type", "inline")
+                    "storage_type": state.get("storage_type", "direct")
                 }
                 for state in saved_states
             ]
