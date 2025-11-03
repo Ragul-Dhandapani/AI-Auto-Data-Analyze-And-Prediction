@@ -259,6 +259,9 @@ async def holistic_analysis(request: Dict[str, Any]):
             df_analysis = df.copy()
         
         # Update training counter
+        # Update training counter using adapter
+        db_adapter = get_db()
+        await db_adapter.increment_training_count(dataset_id)
 #         await db.datasets.update_one(
 #             {"id": dataset_id},
 #             {"$inc": {"training_count": 1}}
