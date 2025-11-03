@@ -140,7 +140,7 @@ CREATE TABLE prediction_feedback (
     is_correct CHAR(1) NOT NULL,
     prediction VARCHAR2(500),
     actual_outcome VARCHAR2(500),
-    comment CLOB,
+    "comment" CLOB,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
