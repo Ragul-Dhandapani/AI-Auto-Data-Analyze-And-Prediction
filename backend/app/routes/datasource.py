@@ -13,7 +13,7 @@ import psycopg2
 import pymysql
 
 from app.models.pydantic_models import DataSourceConfig, DataSourceTest
-from app.database.mongodb import db, fs
+from app.database.db_helper import get_db
 from app.database.connections import (
     test_oracle_connection, test_postgresql_connection, test_mysql_connection,
     test_sqlserver_connection, get_oracle_tables, get_postgresql_tables,
