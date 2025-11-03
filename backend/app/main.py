@@ -63,7 +63,7 @@ async def shutdown_event():
         logger.error(f"❌ Error closing database: {str(e)}")
 
 # Import and include routers
-from app.routes import datasource, analysis, training
+from app.routes import datasource, analysis, training, config
 
 # Create main API router
 from fastapi import APIRouter
@@ -73,6 +73,7 @@ api_router = APIRouter(prefix="/api")
 api_router.include_router(datasource.router)
 api_router.include_router(analysis.router)
 api_router.include_router(training.router)
+api_router.include_router(config.router)  # Temporary database switcher
 
 # Add root endpoint
 @api_router.get("/")
