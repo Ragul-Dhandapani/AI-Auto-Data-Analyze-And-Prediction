@@ -55,7 +55,7 @@ async def run_analysis(request: Dict[str, Any]):
             # Update dataset with cleaned data if changes were made
             if cleaning_report:
                 # Store cleaned data
-                dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+                db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id)
                 if dataset:
                     data_dict = cleaned_df.to_dict('records')
                     await db.datasets.update_one(
@@ -195,7 +195,7 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
     import logging
     logger = logging.getLogger(__name__)
     
-    dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+    db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id)
     if not dataset:
         raise HTTPException(404, "Dataset not found")
     
@@ -206,8 +206,8 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
         gridfs_file_id = dataset.get("gridfs_file_id")
         if gridfs_file_id:
             try:
-                grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
-                data = await grid_out.read()
+                db_adapter = get_db(); data = await db_adapter.retrieve_file(gridfs_file_id)
+                # data already loaded from adapter
                 
                 logger.info(f"GridFS data loaded, size: {len(data)} bytes")
                 
@@ -671,7 +671,7 @@ async def holistic_analysis(request: Dict[str, Any]):
             logging.error(f"Business recommendations failed: {str(e)}", exc_info=True)
         
         # Get dataset info for training metadata
-        dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+        db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id)
         training_count = dataset.get("training_count", 1)
         last_trained_at = dataset.get("updated_at", datetime.now(timezone.utc).isoformat())
         
@@ -926,7 +926,7 @@ async def save_analysis_state(request: SaveStateRequest):
             logger.info(f"Stored directly in MongoDB: {state_size / 1024:.2f} KB")
         
         # Insert with timeout protection
-        await db.saved_states.insert_one(state_doc)
+        db_adapter = get_db(); await db_adapter.save_workspace(state_doc)
         
         return {
             "state_id": state_id,
@@ -945,7 +945,7 @@ async def save_analysis_state(request: SaveStateRequest):
 async def load_analysis_state(state_id: str):
     """Load saved analysis state - OPTIMIZED"""
     try:
-        state = await db.saved_states.find_one({"id": state_id}, {"_id": 0})
+        db_adapter = get_db(); state = await db_adapter.get_workspace(state_id)
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
@@ -953,8 +953,8 @@ async def load_analysis_state(state_id: str):
         if state.get("storage_type") == "gridfs":
             gridfs_file_id = state.get("gridfs_file_id")
             if gridfs_file_id:
-                grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
-                data = await grid_out.read()
+                db_adapter = get_db(); data = await db_adapter.retrieve_file(gridfs_file_id)
+                # data already loaded from adapter
                 
                 # Check if data is compressed
                 metadata = await grid_out.metadata
@@ -983,8 +983,8 @@ async def load_analysis_state(state_id: str):
 async def get_saved_states(dataset_id: str):
     """Get all saved states for a dataset"""
     try:
-        cursor = db.saved_states.find({"dataset_id": dataset_id}, {"_id": 0})
-        states = await cursor.to_list(length=None)
+        db_adapter = get_db(); states = await db_adapter.list_workspaces(dataset_id); cursor = states
+        states = cursor  # already a list from adapter
         return {"states": states}
     except Exception as e:
         raise HTTPException(500, f"Failed to fetch saved states: {str(e)}")
@@ -994,19 +994,19 @@ async def get_saved_states(dataset_id: str):
 async def delete_analysis_state(state_id: str):
     """Delete saved analysis state"""
     try:
-        state = await db.saved_states.find_one({"id": state_id}, {"_id": 0})
+        db_adapter = get_db(); state = await db_adapter.get_workspace(state_id)
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
         # Delete GridFS file if exists
         if state.get("storage_type") == "gridfs" and state.get("gridfs_file_id"):
             try:
-                await fs.delete(ObjectId(state["gridfs_file_id"]))
+                db_adapter = get_db(); await db_adapter.delete_file(state["gridfs_file_id"])
             except:
                 pass
         
         # Delete metadata
-        result = await db.saved_states.delete_one({"id": state_id})
+        db_adapter = get_db(); success = await db_adapter.delete_workspace(state_id); result = type("Result", (), {"deleted_count": 1 if success else 0})()
         if result.deleted_count == 0:
             raise HTTPException(404, "Analysis state not found")
         
@@ -1038,13 +1038,13 @@ async def validate_chart_request(request: Dict[str, Any]):
             raise HTTPException(400, "Missing required fields: dataset_id, chart_type, column")
         
         # Load dataset
-        dataset = await db.datasets.find_one({"id": dataset_id})
+        db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id)
         if not dataset:
             raise HTTPException(404, "Dataset not found")
         
         # Load data
         if dataset.get("gridfs_file_id"):
-            grid_out = await fs.open_download_stream(ObjectId(dataset["gridfs_file_id"]))
+            db_adapter = get_db(); data = await db_adapter.retrieve_file(dataset["gridfs_file_id"])
             data_bytes = await grid_out.read()
             df = pd.read_json(io.BytesIO(data_bytes))
         else:
@@ -1085,13 +1085,13 @@ async def validate_variables(request: Dict[str, Any]):
             target_variables = [target_variables] if target_variables else []
         
         # Load dataset
-        dataset = await db.datasets.find_one({"id": dataset_id})
+        db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id)
         if not dataset:
             raise HTTPException(404, "Dataset not found")
         
         # Load data
         if dataset.get("gridfs_file_id"):
-            grid_out = await fs.open_download_stream(ObjectId(dataset["gridfs_file_id"]))
+            db_adapter = get_db(); data = await db_adapter.retrieve_file(dataset["gridfs_file_id"])
             data_bytes = await grid_out.read()
             df = pd.read_json(io.BytesIO(data_bytes))
         else:
@@ -1446,7 +1446,7 @@ async def join_datasets(request: Dict[str, Any]):
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.datasets.insert_one(dataset_doc)
+        db_adapter = get_db(); await db_adapter.create_dataset(dataset_doc)
         
         # Store data
         data_collection = f"data_{joined_id}"
