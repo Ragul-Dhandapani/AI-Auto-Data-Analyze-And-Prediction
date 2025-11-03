@@ -1447,8 +1447,8 @@ async def join_datasets(request: Dict[str, Any]):
         db_adapter = get_db(); await db_adapter.create_dataset(dataset_doc)
         
         # Store data
-        data_collection = f"data_{joined_id}"
-        await db[data_collection].insert_many(result_df.to_dict('records'))
+#         data_collection = f"data_{joined_id}"
+#         await db[data_collection].insert_many(result_df.to_dict('records'))
         
         return {
             "success": True,
