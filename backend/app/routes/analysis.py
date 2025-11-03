@@ -221,7 +221,7 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
                 filename = dataset.get("name", "")
                 
                 # Get stored dtypes from dataset metadata
-                stored_dtypes = dataset.get("data_types", {})
+                stored_dtypes = dataset.get("dtypes", {})
                 
                 if filename.endswith('.csv'):
                     # Load CSV directly from bytes
