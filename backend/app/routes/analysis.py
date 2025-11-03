@@ -203,7 +203,7 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
     logger.info(f"Loading dataset {dataset_id}, storage_type: {dataset.get('storage_type', 'direct')}")
     
     # Load data based on storage type
-    if dataset.get("storage_type") == "gridfs":
+    if dataset.get("storage_type") == "blob":
         gridfs_file_id = dataset.get("gridfs_file_id")
         if gridfs_file_id:
             try:
