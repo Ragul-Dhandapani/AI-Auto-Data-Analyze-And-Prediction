@@ -259,10 +259,10 @@ async def holistic_analysis(request: Dict[str, Any]):
             df_analysis = df.copy()
         
         # Update training counter
-        await db.datasets.update_one(
-            {"id": dataset_id},
-            {"$inc": {"training_count": 1}}
-        )
+#         await db.datasets.update_one(
+#             {"id": dataset_id},
+#             {"$inc": {"training_count": 1}}
+#         )
         
         # 1. Data Profiling (use full dataset for profiling)
         profile = generate_data_profile(df)
