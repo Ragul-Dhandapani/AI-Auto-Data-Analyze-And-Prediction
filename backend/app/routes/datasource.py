@@ -13,7 +13,7 @@ import psycopg2
 import pymysql
 
 from app.models.pydantic_models import DataSourceConfig, DataSourceTest
-from app.database.db_helper import get_db
+from app.database.mongodb import db, fs
 from app.database.connections import (
     test_oracle_connection, test_postgresql_connection, test_mysql_connection,
     test_sqlserver_connection, get_oracle_tables, get_postgresql_tables,
@@ -140,7 +140,7 @@ async def upload_file(file: UploadFile = File(...)):
         
         # Handle duplicate filenames
         filename = file.filename
-        existing = db_adapter = get_db(); existing = await db_adapter.db.datasets.find_one({"name": filename}) if hasattr(db_adapter, "db") else None; existing
+        existing = await db.datasets.find_one({"name": filename})
         if existing:
             name_parts = filename.rsplit('.', 1)
             counter = 1
@@ -149,7 +149,7 @@ async def upload_file(file: UploadFile = File(...)):
                     filename = f"{name_parts[0]}_{counter}.{name_parts[1]}"
                 else:
                     filename = f"{filename}_{counter}"
-                existing = db_adapter = get_db(); existing = await db_adapter.db.datasets.find_one({"name": filename}) if hasattr(db_adapter, "db") else None; existing
+                existing = await db.datasets.find_one({"name": filename})
                 counter += 1
         
         # Prepare dataset metadata
@@ -182,7 +182,7 @@ async def upload_file(file: UploadFile = File(...)):
             dataset_doc["data_preview"] = df.head(10).to_dict('records')
         
         # Save to database
-        db_adapter = get_db(); await db_adapter.create_dataset(dataset_doc)
+        await db.datasets.insert_one(dataset_doc)
         
         # Remove _id for response
         dataset_doc.pop("_id", None)
@@ -208,7 +208,7 @@ async def test_connection(request: DataSourceTest):
         elif request.source_type == 'sqlserver':
             result = test_sqlserver_connection(request.config)
         elif request.source_type == 'mongodb':
-            db_adapter = get_db(); await db_adapter.db.command("ping") if hasattr(db_adapter, "db") else {"ok": 1}
+            await db.command('ping')
             result = {"success": True, "message": "Connection successful"}
         else:
             result = {"success": False, "message": "Unsupported database type"}
@@ -231,7 +231,7 @@ async def list_tables(request: DataSourceTest):
         elif request.source_type == 'sqlserver':
             tables = get_sqlserver_tables(request.config)
         elif request.source_type == 'mongodb':
-            collections = db_adapter = get_db(); collections = await db_adapter.db.list_collection_names() if hasattr(db_adapter, "db") else []; collections
+            collections = await db.list_collection_names()
             tables = [c for c in collections if not c.startswith('system.')]
         else:
             raise HTTPException(400, "Unsupported database type")
@@ -316,7 +316,7 @@ async def load_table_endpoint(request: DataSourceTest, table_name: str):
             dataset_doc["gridfs_file_id"] = str(file_id)
         
         # Save to database
-        db_adapter = get_db(); await db_adapter.create_dataset(dataset_doc)
+        await db.datasets.insert_one(dataset_doc)
         dataset_doc.pop("_id", None)
         
         return {
@@ -406,7 +406,7 @@ async def get_dataset(dataset_id: str):
             from bson import ObjectId
             gridfs_file_id = dataset.get("gridfs_file_id")
             if gridfs_file_id:
-                grid_out = db_adapter = get_db(); data = await db_adapter.retrieve_file(gridfs_file_id); io.BytesIO(data)
+                grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
                 data = await grid_out.read()
                 # Parse based on file type
                 if dataset["name"].endswith('.csv'):
@@ -438,16 +438,16 @@ async def delete_dataset(dataset_id: str):
             gridfs_file_id = dataset.get("gridfs_file_id")
             if gridfs_file_id:
                 try:
-                    db_adapter = get_db(); await db_adapter.delete_file(gridfs_file_id)
+                    await fs.delete(ObjectId(gridfs_file_id))
                 except Exception as e:
                     print(f"Warning: Failed to delete GridFS file: {str(e)}")
         
         # Delete all saved workspaces for this dataset
-        workspaces_result = db_adapter = get_db(); await db_adapter.db.saved_states.delete_many({"dataset_id": dataset_id}) if hasattr(db_adapter, "db") else None
+        workspaces_result = await db.saved_states.delete_many({"dataset_id": dataset_id})
         print(f"Deleted {workspaces_result.deleted_count} workspaces for dataset {dataset_id}")
         
         # Delete the dataset itself
-        result = db_adapter = get_db(); await db_adapter.delete_dataset(dataset_id)
+        result = await db.datasets.delete_one({"id": dataset_id})
         
         if result.deleted_count == 0:
             raise HTTPException(404, "Dataset not found")
@@ -553,7 +553,7 @@ async def execute_custom_query(config: dict):
             dataset_doc["gridfs_file_id"] = str(file_id)
         
         # Save to MongoDB
-        db_adapter = get_db(); await db_adapter.create_dataset(dataset_doc)
+        await db.datasets.insert_one(dataset_doc)
         
         # Remove MongoDB-specific fields from response
         dataset_doc.pop("_id", None)
@@ -721,7 +721,7 @@ async def save_query_dataset(config: dict):
             dataset_doc["gridfs_file_id"] = str(file_id)
         
         # Save to MongoDB
-        db_adapter = get_db(); await db_adapter.create_dataset(dataset_doc)
+        await db.datasets.insert_one(dataset_doc)
         
         # Remove MongoDB-specific fields from response
         dataset_doc.pop("_id", None)
@@ -765,7 +765,7 @@ async def suggest_features(request: dict):
             raise HTTPException(400, "dataset_id and target_column are required")
         
         # Fetch dataset from MongoDB
-        dataset = db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id); dataset
+        dataset = await db.datasets.find_one({"id": dataset_id})
         if not dataset:
             raise HTTPException(404, f"Dataset not found: {dataset_id}")
         
