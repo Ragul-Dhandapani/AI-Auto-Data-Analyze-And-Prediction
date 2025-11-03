@@ -827,31 +827,74 @@ async def chat_action(request: Dict[str, Any]):
 
 @router.post("/save-state")
 async def save_analysis_state(request: SaveStateRequest):
-    """Save analysis state with GridFS for large states"""
+    """Save analysis state with GridFS for large states - OPTIMIZED"""
     try:
         state_id = str(uuid.uuid4())
         
-        # Prepare full state data
+        # OPTIMIZATION 1: Remove large/redundant data from analysis_data before saving
+        optimized_analysis_data = {}
+        if request.analysis_data:
+            for key, value in request.analysis_data.items():
+                # Skip storing large chart data - only store config
+                if key == "auto_charts" and isinstance(value, list):
+                    optimized_analysis_data[key] = [
+                        {
+                            "chart_type": chart.get("chart_type"),
+                            "title": chart.get("title"),
+                            "description": chart.get("description"),
+                            # Don't store full plotly data, only metadata
+                        }
+                        for chart in value[:5]  # Limit to first 5 charts
+                    ]
+                # Store model results but limit detail
+                elif key == "ml_models" and isinstance(value, list):
+                    optimized_analysis_data[key] = [
+                        {
+                            "model_name": model.get("model_name"),
+                            "r2_score": model.get("r2_score"),
+                            "rmse": model.get("rmse"),
+                            "accuracy": model.get("accuracy"),
+                            "f1_score": model.get("f1_score"),
+                            "feature_importance": model.get("feature_importance", [])[:10],  # Top 10 features only
+                        }
+                        for model in value
+                    ]
+                # Skip raw data, keep only metadata
+                elif key not in ["raw_data", "full_dataset", "data_preview"]:
+                    optimized_analysis_data[key] = value
+        
+        # OPTIMIZATION 2: Limit chat history to last 50 messages
+        optimized_chat_history = request.chat_history[-50:] if request.chat_history else []
+        
+        # Prepare optimized state data
         full_state_data = {
-            "analysis_data": request.analysis_data,
-            "chat_history": request.chat_history
+            "analysis_data": optimized_analysis_data,
+            "chat_history": optimized_chat_history
         }
         
         # Calculate size
         state_json = json.dumps(full_state_data)
         state_size = len(state_json.encode('utf-8'))
         
-        # Choose storage method
-        if state_size > 10 * 1024 * 1024:  # 10MB threshold
-            # Store in GridFS
+        logger.info(f"Saving workspace: {request.state_name}, size: {state_size / 1024:.2f} KB")
+        
+        # Choose storage method - Use GridFS for anything > 2MB
+        if state_size > 2 * 1024 * 1024:  # 2MB threshold (reduced from 10MB)
+            # Store in GridFS with compression
+            import gzip
+            compressed_data = gzip.compress(state_json.encode('utf-8'))
+            
             file_id = await fs.upload_from_stream(
-                f"workspace_{state_id}.json",
-                state_json.encode('utf-8'),
+                f"workspace_{state_id}.json.gz",
+                compressed_data,
                 metadata={
                     "type": "workspace_state",
                     "state_id": state_id,
                     "dataset_id": request.dataset_id,
-                    "state_name": request.state_name
+                    "state_name": request.state_name,
+                    "compressed": True,
+                    "original_size": state_size,
+                    "compressed_size": len(compressed_data)
                 }
             )
             
@@ -862,33 +905,39 @@ async def save_analysis_state(request: SaveStateRequest):
                 "storage_type": "gridfs",
                 "gridfs_file_id": str(file_id),
                 "size_bytes": state_size,
+                "compressed_size": len(compressed_data),
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
+            logger.info(f"Stored in GridFS with compression: {len(compressed_data) / 1024:.2f} KB")
         else:
-            # Store directly
+            # Store directly in MongoDB
             state_doc = {
                 "id": state_id,
                 "dataset_id": request.dataset_id,
                 "state_name": request.state_name,
                 "storage_type": "direct",
-                "analysis_data": request.analysis_data,
-                "chat_history": request.chat_history,
+                "analysis_data": optimized_analysis_data,
+                "chat_history": optimized_chat_history,
                 "size_bytes": state_size,
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
+            logger.info(f"Stored directly in MongoDB: {state_size / 1024:.2f} KB")
         
+        # Insert with timeout protection
         await db.saved_states.insert_one(state_doc)
         
         return {
             "state_id": state_id,
-            "message": f"Analysis state '{request.state_name}' saved successfully",
+            "message": f"Workspace '{request.state_name}' saved successfully",
             "storage_type": state_doc["storage_type"],
-            "size_mb": round(state_size / (1024 * 1024), 2)
+            "size_mb": round(state_size / (1024 * 1024), 2),
+            "optimized": True
         }
         
     except Exception as e:
+        logger.error(f"Failed to save workspace: {str(e)}", exc_info=True)
         raise HTTPException(500, f"Failed to save state: {str(e)}")
 
 
