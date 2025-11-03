@@ -630,25 +630,45 @@ const DashboardPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-96 p-6">
             <h3 className="text-lg font-semibold mb-4">Save Workspace State</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              This will save Data Profiler, Predictive Analysis, and Visualizations
-            </p>
-            <input
-              type="text"
-              value={stateName}
-              onChange={(e) => setStateName(e.target.value)}
-              placeholder="Enter workspace name..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
-              onKeyPress={(e) => e.key === 'Enter' && saveWorkspaceState()}
-            />
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={saveWorkspaceState} disabled={!stateName.trim()}>
-                Save
-              </Button>
-            </div>
+            
+            {isSaving ? (
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                  <p className="text-sm text-gray-600 mb-2">Saving workspace...</p>
+                  <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                    <div 
+                      className="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${saveProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-sm font-semibold text-blue-600">{saveProgress}%</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600 mb-4">
+                  This will save Data Profiler, Predictive Analysis, and Visualizations
+                </p>
+                <input
+                  type="text"
+                  value={stateName}
+                  onChange={(e) => setStateName(e.target.value)}
+                  placeholder="Enter workspace name..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
+                  onKeyPress={(e) => e.key === 'Enter' && !isSaving && saveWorkspaceState()}
+                  disabled={isSaving}
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => setShowSaveDialog(false)} disabled={isSaving}>
+                    Cancel
+                  </Button>
+                  <Button onClick={saveWorkspaceState} disabled={!stateName.trim() || isSaving}>
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              </>
+            )}
           </Card>
         </div>
       )}
