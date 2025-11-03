@@ -32,33 +32,28 @@ const DatabaseSwitcher = () => {
       return;
     }
 
-    if (!confirm(`Switch to ${dbType.toUpperCase()}?\n\nThis will restart the backend (5-10 seconds downtime).`)) {
+    if (!confirm(`Switch to ${dbType.toUpperCase()}?\n\nThis will restart the backend (takes about 10 seconds).`)) {
       return;
     }
 
     setLoading(true);
 
     try {
-      // Step 1: Switch database type
+      // Step 1: Switch database type (backend will auto-restart)
+      toast.info('Switching database...');
+      
       const switchResponse = await axios.post(`${API}/config/switch-database`, {
         db_type: dbType
       });
 
       toast.success(switchResponse.data.message);
 
-      // Step 2: Restart backend
+      // Step 2: Wait for backend to restart
       setRestarting(true);
-      toast.info('Restarting backend...');
+      toast.info('Backend is restarting... Please wait 10 seconds');
 
-      try {
-        await axios.post(`${API}/config/restart-backend`);
-      } catch (error) {
-        // Ignore errors during restart (connection will be lost)
-      }
-
-      // Wait for backend to restart
-      toast.info('Waiting for backend to restart...');
-      await new Promise(resolve => setTimeout(resolve, 8000));
+      // Wait 10 seconds for restart
+      await new Promise(resolve => setTimeout(resolve, 10000));
 
       // Step 3: Verify new database
       let retries = 0;
@@ -73,19 +68,29 @@ const DatabaseSwitcher = () => {
           if (verifyResponse.data.current_database === dbType) {
             setCurrentDb(dbType);
             success = true;
-            toast.success(`✅ Successfully switched to ${dbType.toUpperCase()}!`);
+            toast.success(`✅ Successfully switched to ${dbType.toUpperCase()}!`, {
+              duration: 5000
+            });
+            
+            // Reload page to ensure everything is fresh
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
           }
         } catch (error) {
           retries++;
+          if (retries >= maxRetries) {
+            toast.warning('Backend restarted but taking longer than expected. Please refresh the page manually.', {
+              duration: 8000
+            });
+          }
         }
       }
 
-      if (!success) {
-        toast.error('Backend restarted but verification failed. Please refresh the page.');
-      }
-
     } catch (error) {
-      toast.error('Failed to switch database: ' + (error.response?.data?.detail || error.message));
+      const errorMsg = error.response?.data?.detail || error.message || 'Unknown error';
+      toast.error('Failed to switch database: ' + errorMsg);
+      console.error('Switch error:', error);
     } finally {
       setLoading(false);
       setRestarting(false);
