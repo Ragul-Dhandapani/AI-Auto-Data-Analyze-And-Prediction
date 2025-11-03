@@ -58,14 +58,14 @@ async def run_analysis(request: Dict[str, Any]):
                 db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id)
                 if dataset:
                     data_dict = cleaned_df.to_dict('records')
-                    await db.datasets.update_one(
-                        {"id": dataset_id},
-                        {"$set": {
-                            "data": data_dict,
-                            "row_count": len(cleaned_df),
-                            "updated_at": datetime.now(timezone.utc).isoformat()
-                        }}
-                    )
+#                     await db.datasets.update_one(
+#                         {"id": dataset_id},
+#                         {"$set": {
+#                             "data": data_dict,
+#                             "row_count": len(cleaned_df),
+#                             "updated_at": datetime.now(timezone.utc).isoformat()
+#                         }}
+#                     )
             
             return {
                 "cleaning_report": cleaning_report,
