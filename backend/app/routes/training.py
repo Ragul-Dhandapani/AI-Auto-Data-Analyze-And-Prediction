@@ -29,7 +29,7 @@ async def download_training_metadata_pdf(dataset_id: str):
         from fastapi.responses import StreamingResponse
         
         # Get dataset
-        dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+        dataset = db_adapter = get_db(); dataset = await db_adapter.get_dataset({"id": dataset_id}, {"_id": 0})
         if not dataset:
             raise HTTPException(404, "Dataset not found")
         
