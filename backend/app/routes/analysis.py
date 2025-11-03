@@ -220,11 +220,36 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
                 # Check file type from original filename
                 filename = dataset.get("name", "")
                 
+                # Get stored dtypes from dataset metadata
+                stored_dtypes = dataset.get("data_types", {})
+                
                 if filename.endswith('.csv'):
                     # Load CSV directly from bytes
                     df = pd.read_csv(io.BytesIO(data))
+                    
+                    # Apply stored dtypes to ensure correct types
+                    if stored_dtypes:
+                        for col, dtype_str in stored_dtypes.items():
+                            if col in df.columns:
+                                try:
+                                    # Convert dtype string to pandas dtype
+                                    if 'int' in dtype_str:
+                                        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype('int64')
+                                    elif 'float' in dtype_str:
+                                        df[col] = pd.to_numeric(df[col], errors='coerce')
+                                    elif 'object' in dtype_str or 'str' in dtype_str:
+                                        df[col] = df[col].astype(str)
+                                    elif 'bool' in dtype_str:
+                                        df[col] = df[col].astype(bool)
+                                    elif 'datetime' in dtype_str:
+                                        df[col] = pd.to_datetime(df[col], errors='coerce')
+                                except Exception as e:
+                                    logger.warning(f"Could not convert column {col} to {dtype_str}: {e}")
+                        
+                        logger.info(f"Applied stored dtypes to {len(stored_dtypes)} columns")
+                    
                 elif filename.endswith(('.xlsx', '.xls')):
-                    # Load Excel directly from bytes
+                    # Load Excel directly from bytes (Excel preserves types better)
                     df = pd.read_excel(io.BytesIO(data))
                 else:
                     # Fallback: Try to parse as JSON (backward compatibility)
@@ -236,7 +261,7 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
                         # If JSON fails, try CSV
                         df = pd.read_csv(io.BytesIO(data))
                 
-                logger.info(f"DataFrame created from BLOB: {df.shape}")
+                logger.info(f"DataFrame created from BLOB: {df.shape}, dtypes: {df.dtypes.to_dict()}")
                 return df
                 
             except Exception as e:
