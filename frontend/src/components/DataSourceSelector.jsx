@@ -332,7 +332,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
       
       toast.success(`Dataset "${datasetName}" loaded successfully!`);
       
-      onDatasetLoaded(response.data);
+      onDatasetLoaded(response.data.dataset || response.data);
       
       // Clear state
       setCustomQuery("");
