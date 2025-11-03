@@ -199,7 +199,7 @@ async def upload_file(file: UploadFile = File(...)):
                     "original_filename": file.filename
                 }
             )
-            dataset_doc["storage_type"] = "gridfs"
+            dataset_doc["storage_type"] = "blob"
             dataset_doc["gridfs_file_id"] = file_id
         else:
             # Store directly in document
@@ -325,7 +325,7 @@ async def load_table(
                 metadata={"dataset_id": dataset_id, "source_table": table_name}
             )
             
-            dataset_doc["storage_type"] = "gridfs"
+            dataset_doc["storage_type"] = "blob"
             dataset_doc["gridfs_file_id"] = file_id
         else:
             dataset_doc["data"] = data_dict
@@ -460,7 +460,7 @@ async def execute_query(
                 metadata={"dataset_id": dataset_id, "query": query}
             )
             
-            dataset_doc["storage_type"] = "gridfs"
+            dataset_doc["storage_type"] = "blob"
             dataset_doc["gridfs_file_id"] = file_id
         else:
             dataset_doc["data"] = data_dict
