@@ -96,6 +96,14 @@ async def get_datasets_compat(limit: int = 10):
     return await datasource.get_recent_datasets(limit)
 
 
+# Backward compatibility - get dataset endpoint
+@api_router.get("/datasets/{dataset_id}")
+async def get_dataset_compat(dataset_id: str):
+    """Backward compatibility for /api/datasets/{dataset_id}"""
+    from app.routes.datasource import get_dataset
+    return await get_dataset(dataset_id)
+
+
 # Backward compatibility - delete dataset endpoint
 @api_router.delete("/datasets/{dataset_id}")
 async def delete_dataset_compat(dataset_id: str):
