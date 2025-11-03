@@ -58,6 +58,12 @@ async def run_analysis(request: Dict[str, Any]):
                 db_adapter = get_db(); dataset = await db_adapter.get_dataset(dataset_id)
                 if dataset:
                     data_dict = cleaned_df.to_dict('records')
+                    # Update dataset with cleaned data using adapter
+                    updates = {
+                        "row_count": len(cleaned_df),
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    await db_adapter.update_dataset(dataset_id, updates)
 #                     await db.datasets.update_one(
 #                         {"id": dataset_id},
 #                         {"$set": {
