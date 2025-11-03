@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Recent Datasets Fix
-Tests the /api/datasets endpoint to verify large dataset response optimization
+PROMISE AI Oracle Integration Testing
+Tests Oracle RDS 19c integration, database switching, and dual-database functionality
 """
 
 import requests
 import json
 import sys
 import os
+import time
 from datetime import datetime
 
 # Get backend URL from environment
