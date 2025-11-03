@@ -180,7 +180,7 @@ async def upload_file(file: UploadFile = File(...)):
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": list(df.columns),
-            "data_types": df.dtypes.astype(str).to_dict(),
+            "dtypes": df.dtypes.astype(str).to_dict(),  # Changed from data_types to dtypes
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "file_size": len(contents),
@@ -312,7 +312,7 @@ async def load_table(
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": list(df.columns),
-            "data_types": df.dtypes.astype(str).to_dict(),
+            "dtypes": df.dtypes.astype(str).to_dict(),  # Changed from data_types to dtypes
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "source_type": source_type,
@@ -448,7 +448,7 @@ async def execute_query(
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": list(df.columns),
-            "data_types": df.dtypes.astype(str).to_dict(),
+            "dtypes": df.dtypes.astype(str).to_dict(),  # Changed from data_types to dtypes
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "source_type": f"{source_type}_query",
