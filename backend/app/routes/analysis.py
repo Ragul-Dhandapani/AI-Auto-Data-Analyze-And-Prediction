@@ -234,6 +234,7 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
         return df
 
 
+@router.post("/holistic")
 async def holistic_analysis(request: Dict[str, Any]):
     """Perform comprehensive analysis with optional user variable selection and multiple targets"""
     try:
