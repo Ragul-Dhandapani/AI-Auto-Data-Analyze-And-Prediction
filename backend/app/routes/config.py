@@ -15,14 +15,32 @@ class DatabaseSwitchRequest(BaseModel):
 
 @router.get("/current-database")
 async def get_current_database():
-    """Get currently active database type"""
-    db_type = os.getenv('DB_TYPE', 'mongodb')
-    
-    return {
-        "current_database": db_type,
-        "available_databases": ["mongodb", "oracle"],
-        "note": "Switching requires backend restart"
-    }
+    """Get currently active database type - reads from .env file"""
+    try:
+        # Read directly from .env file to get current setting
+        env_path = '/app/backend/.env'
+        db_type = 'mongodb'  # default
+        
+        with open(env_path, 'r') as f:
+            for line in f:
+                if line.startswith('DB_TYPE='):
+                    db_type = line.split('=')[1].strip().strip('"')
+                    break
+        
+        return {
+            "current_database": db_type,
+            "available_databases": ["mongodb", "oracle"],
+            "note": "Switching requires backend restart"
+        }
+    except Exception as e:
+        logger.error(f"Failed to read DB_TYPE: {str(e)}")
+        # Fallback to environment variable
+        db_type = os.getenv('DB_TYPE', 'mongodb')
+        return {
+            "current_database": db_type,
+            "available_databases": ["mongodb", "oracle"],
+            "note": "Switching requires backend restart"
+        }
 
 @router.post("/switch-database")
 async def switch_database(request: DatabaseSwitchRequest):
