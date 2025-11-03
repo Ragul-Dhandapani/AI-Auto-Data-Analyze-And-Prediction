@@ -943,7 +943,7 @@ async def save_analysis_state(request: SaveStateRequest):
 
 @router.get("/load-state/{state_id}")
 async def load_analysis_state(state_id: str):
-    """Load saved analysis state"""
+    """Load saved analysis state - OPTIMIZED"""
     try:
         state = await db.saved_states.find_one({"id": state_id}, {"_id": 0})
         if not state:
@@ -955,6 +955,13 @@ async def load_analysis_state(state_id: str):
             if gridfs_file_id:
                 grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
                 data = await grid_out.read()
+                
+                # Check if data is compressed
+                metadata = await grid_out.metadata
+                if metadata and metadata.get("compressed"):
+                    import gzip
+                    data = gzip.decompress(data)
+                
                 full_state_data = json.loads(data.decode('utf-8'))
                 
                 state["analysis_data"] = full_state_data.get("analysis_data", {})
@@ -967,6 +974,8 @@ async def load_analysis_state(state_id: str):
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Failed to load workspace: {str(e)}", exc_info=True)
+        raise HTTPException(500, f"Failed to load state: {str(e)}")
         raise HTTPException(500, f"Failed to load state: {str(e)}")
 
 
