@@ -1,6 +1,6 @@
 """
 Main Application Entry Point
-Refactored modular FastAPI application
+Refactored modular FastAPI application with dual-database support
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,10 +17,12 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
+logger = logging.getLogger(__name__)
+
 # Create FastAPI app
 app = FastAPI(
     title="PROMISE AI API",
-    description="AI-powered data analysis and prediction platform",
+    description="AI-powered data analysis and prediction platform with dual-database support (MongoDB/Oracle)",
     version="2.0.0"
 )
 
@@ -32,6 +34,33 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Startup event: Initialize database connection
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database connection on startup"""
+    from app.database.adapters.factory import initialize_database
+    
+    try:
+        db_type = os.getenv('DB_TYPE', 'mongodb')
+        logger.info(f"🚀 Starting PROMISE AI with {db_type.upper()} database...")
+        await initialize_database()
+        logger.info(f"✅ {db_type.upper()} database initialized successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize database: {str(e)}")
+        raise
+
+# Shutdown event: Close database connection
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close database connection on shutdown"""
+    from app.database.adapters.factory import close_database
+    
+    try:
+        await close_database()
+        logger.info("✅ Database connection closed successfully")
+    except Exception as e:
+        logger.error(f"❌ Error closing database: {str(e)}")
 
 # Import and include routers
 from app.routes import datasource, analysis, training
