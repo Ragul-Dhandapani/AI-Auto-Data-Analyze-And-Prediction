@@ -466,7 +466,7 @@ class OracleAdapter(DatabaseAdapter):
         """List feedback records"""
         query = """
         SELECT id, prediction_id, is_correct, prediction, 
-               actual_outcome, comment, created_at
+               actual_outcome, feedback_comment as comment, created_at
         FROM prediction_feedback
         WHERE dataset_id = :dataset_id AND model_name = :model_name
         ORDER BY created_at DESC
