@@ -34,7 +34,7 @@ async def download_training_metadata_pdf(dataset_id: str):
             raise HTTPException(404, "Dataset not found")
         
         # Get saved states for this dataset
-        saved_states = await db.saved_states.find(
+        saved_states = db_adapter = get_db(); saved_states = await db_adapter.list_workspaces(
             {"dataset_id": dataset_id},
             {"_id": 0}
         ).sort("created_at", -1).to_list(length=100)
