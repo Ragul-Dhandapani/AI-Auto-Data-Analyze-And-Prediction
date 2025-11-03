@@ -504,3 +504,13 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
         return df
     except Exception as e:
         raise HTTPException(500, f"Error loading dataframe: {str(e)}")
+
+
+async def get_recent_datasets(limit: int = 10):
+    """Get recent datasets - compatibility function"""
+    try:
+        db_adapter = get_db()
+        datasets = await db_adapter.list_datasets(limit)
+        return {"datasets": datasets}
+    except Exception as e:
+        raise HTTPException(500, f"Error fetching datasets: {str(e)}")
