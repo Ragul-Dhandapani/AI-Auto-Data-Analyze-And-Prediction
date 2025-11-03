@@ -111,7 +111,7 @@ const FeedbackPanel = ({ dataset, modelName }) => {
     }
   };
 
-  if (!stats && !loading) {
+  if (!stats && !loading && !retraining) {
     return (
       <Card className="p-6">
         <div className="text-center text-gray-500">
