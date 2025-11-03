@@ -260,8 +260,8 @@ async def holistic_analysis(request: Dict[str, Any]):
         original_size = len(df)
         
         # Performance optimization: Intelligent sampling for large datasets
-        SAMPLE_THRESHOLD = 5000  # Sample if more than 5000 rows
-        SAMPLE_SIZE = 3000  # Use 3000 rows for training
+        SAMPLE_THRESHOLD = 10000  # Sample if more than 10000 rows (increased from 5000)
+        SAMPLE_SIZE = 5000  # Use 5000 rows for training (increased from 3000)
         is_sampled = False
         
         if len(df) > SAMPLE_THRESHOLD:
