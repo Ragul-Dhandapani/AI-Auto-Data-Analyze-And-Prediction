@@ -226,6 +226,56 @@ async def download_training_metadata_pdf(dataset_id: str):
         raise HTTPException(500, f"Error generating PDF: {str(e)}")
 
 
+@router.get("/metadata")
+async def get_all_training_metadata():
+    """Get comprehensive training metadata for all datasets"""
+    try:
+        db_adapter = get_db()
+        
+        # Get all datasets
+        datasets = await db_adapter.list_datasets(limit=1000)
+        
+        # Organize metadata
+        metadata_list = []
+        
+        for dataset in datasets:
+            dataset_id = dataset.get("id")
+            dataset_name = dataset.get("name")
+            
+            # Get workspaces for this dataset
+            workspaces = await db_adapter.list_workspaces(dataset_id)
+            
+            if len(workspaces) == 0:
+                # Skip datasets with no training history
+                continue
+            
+            # Prepare dataset metadata
+            dataset_metadata = {
+                "dataset_id": dataset_id,
+                "dataset_name": dataset_name,
+                "training_count": len(workspaces),
+                "workspaces": []
+            }
+            
+            # Add workspace details
+            for workspace in workspaces:
+                workspace_info = {
+                    "workspace_id": workspace.get("id"),
+                    "workspace_name": workspace.get("state_name"),
+                    "saved_at": workspace.get("created_at"),
+                    "size_bytes": workspace.get("size_bytes", 0)
+                }
+                dataset_metadata["workspaces"].append(workspace_info)
+            
+            metadata_list.append(dataset_metadata)
+        
+        return {"metadata": metadata_list}
+    
+    except Exception as e:
+        logger.error(f"Failed to fetch training metadata: {str(e)}", exc_info=True)
+        raise HTTPException(500, f"Failed to fetch training metadata: {str(e)}")
+
+
 @router.get("/metadata/{dataset_id}")
 async def get_training_metadata(dataset_id: str):
     """Get training metadata for a dataset"""
