@@ -240,8 +240,19 @@ const DashboardPage = () => {
       return;
     }
 
+    setIsSaving(true);
+    setSaveProgress(0);
+
     try {
-      await axios.post(`${API}/analysis/save-state`, {
+      // Simulate progress for better UX
+      setSaveProgress(20);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      setSaveProgress(40);
+      toast.info("Preparing workspace data...");
+      
+      // Make the API call
+      const response = await axios.post(`${API}/analysis/save-state`, {
         dataset_id: selectedDataset.id,
         state_name: stateName,
         analysis_data: {
@@ -252,7 +263,16 @@ const DashboardPage = () => {
         chat_history: []
       });
       
-      toast.success(`Workspace saved as "${stateName}"`);
+      setSaveProgress(80);
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      setSaveProgress(100);
+      
+      const savedInfo = response.data;
+      const sizeInfo = savedInfo.size_mb ? ` (${savedInfo.size_mb} MB)` : '';
+      const optimizedInfo = savedInfo.optimized ? ' - Optimized & Compressed' : '';
+      
+      toast.success(`✅ Workspace saved as "${stateName}"${sizeInfo}${optimizedInfo}`);
       setStateName("");
       setShowSaveDialog(false);
       loadSavedStates();
@@ -262,8 +282,13 @@ const DashboardPage = () => {
             ? error.response.data.detail 
             : JSON.stringify(error.response.data.detail))
         : error.message || "Unknown error occurred";
-      toast.error("Failed to save workspace: " + errorMessage);
+      toast.error("❌ Failed to save workspace: " + errorMessage);
       console.error("Save error:", error);
+    } finally {
+      setTimeout(() => {
+        setIsSaving(false);
+        setSaveProgress(0);
+      }, 500);
     }
   };
 
