@@ -935,7 +935,7 @@ async def load_analysis_state(state_id: str):
             raise HTTPException(404, "Analysis state not found")
         
         # Load from GridFS if needed
-        if state.get("storage_type") == "gridfs":
+        if state.get("storage_type") == "blob":
             gridfs_file_id = state.get("gridfs_file_id")
             if gridfs_file_id:
                 db_adapter = get_db(); data = await db_adapter.retrieve_file(gridfs_file_id)
