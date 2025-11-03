@@ -402,6 +402,9 @@ const DashboardPage = () => {
 
           {!selectedDataset ? (
             <div>
+              {/* Database Switcher - TEMPORARY FOR TESTING */}
+              <DatabaseSwitcher />
+
               <DataSourceSelector onDatasetLoaded={handleDatasetLoaded} />
               
               {datasets.length > 0 ? (
