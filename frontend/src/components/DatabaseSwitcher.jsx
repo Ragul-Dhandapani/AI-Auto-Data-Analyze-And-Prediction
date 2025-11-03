@@ -32,59 +32,77 @@ const DatabaseSwitcher = () => {
       return;
     }
 
-    if (!confirm(`Switch to ${dbType.toUpperCase()}?\n\nThis will restart the backend (takes about 10 seconds).`)) {
+    if (!confirm(`Switch to ${dbType.toUpperCase()}?\n\nThis will restart the backend (takes about 10-15 seconds).`)) {
       return;
     }
 
     setLoading(true);
+    setRestarting(true);
 
     try {
-      // Step 1: Switch database type (backend will auto-restart)
-      toast.info('Switching database...');
+      // Step 1: Call switch endpoint (may get 502 due to restart - that's OK!)
+      toast.info(`Switching to ${dbType.toUpperCase()}...`);
       
-      const switchResponse = await axios.post(`${API}/config/switch-database`, {
-        db_type: dbType
-      });
+      try {
+        await axios.post(`${API}/config/switch-database`, {
+          db_type: dbType
+        }, { timeout: 3000 }); // Short timeout since backend will restart
+      } catch (error) {
+        // 502 or timeout is EXPECTED because backend restarts
+        if (error.code === 'ECONNABORTED' || error.response?.status === 502 || error.message.includes('timeout')) {
+          console.log('Backend is restarting (expected)');
+        } else {
+          throw error; // Re-throw unexpected errors
+        }
+      }
 
-      toast.success(switchResponse.data.message);
+      toast.success('Database switch initiated!');
+      toast.info('Backend is restarting... Please wait 15 seconds', { duration: 15000 });
 
-      // Step 2: Wait for backend to restart
-      setRestarting(true);
-      toast.info('Backend is restarting... Please wait 10 seconds');
+      // Step 2: Wait for backend to restart (longer wait)
+      await new Promise(resolve => setTimeout(resolve, 12000));
 
-      // Wait 10 seconds for restart
-      await new Promise(resolve => setTimeout(resolve, 10000));
-
-      // Step 3: Verify new database
+      // Step 3: Poll for backend to be ready
+      toast.info('Checking if backend is ready...');
       let retries = 0;
-      const maxRetries = 5;
+      const maxRetries = 8;
       let success = false;
 
       while (retries < maxRetries && !success) {
         try {
           await new Promise(resolve => setTimeout(resolve, 2000));
-          const verifyResponse = await axios.get(`${API}/config/current-database`);
           
-          if (verifyResponse.data.current_database === dbType) {
+          const verifyResponse = await axios.get(`${API}/config/current-database`, {
+            timeout: 5000
+          });
+          
+          const newDb = verifyResponse.data.current_database;
+          
+          if (newDb === dbType) {
             setCurrentDb(dbType);
             success = true;
             toast.success(`✅ Successfully switched to ${dbType.toUpperCase()}!`, {
               duration: 5000
             });
             
-            // Reload page to ensure everything is fresh
+            // Reload page to ensure fresh state
             setTimeout(() => {
+              toast.info('Reloading page with new database...');
               window.location.reload();
-            }, 1000);
+            }, 1500);
+          } else {
+            console.log(`Backend responded but still showing ${newDb}, retrying...`);
           }
         } catch (error) {
           retries++;
-          if (retries >= maxRetries) {
-            toast.warning('Backend restarted but taking longer than expected. Please refresh the page manually.', {
-              duration: 8000
-            });
-          }
+          console.log(`Retry ${retries}/${maxRetries}:`, error.message);
         }
+      }
+
+      if (!success) {
+        toast.warning('Backend is taking longer than expected. Please refresh the page manually in a few seconds.', {
+          duration: 10000
+        });
       }
 
     } catch (error) {
