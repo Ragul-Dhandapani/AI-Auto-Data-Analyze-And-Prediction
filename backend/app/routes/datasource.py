@@ -205,7 +205,7 @@ async def upload_file(file: UploadFile = File(...)):
             # Store directly in document
             data_dict = df.to_dict('records')
             dataset_doc["data"] = data_dict
-            dataset_doc["storage_type"] = "inline"
+            dataset_doc["storage_type"] = "direct"
         
         # Save to database using adapter
         await db_adapter.create_dataset(dataset_doc)
@@ -329,7 +329,7 @@ async def load_table(
             dataset_doc["gridfs_file_id"] = file_id
         else:
             dataset_doc["data"] = data_dict
-            dataset_doc["storage_type"] = "inline"
+            dataset_doc["storage_type"] = "direct"
         
         # Save to database
         db_adapter = get_db()
@@ -464,7 +464,7 @@ async def execute_query(
             dataset_doc["gridfs_file_id"] = file_id
         else:
             dataset_doc["data"] = data_dict
-            dataset_doc["storage_type"] = "inline"
+            dataset_doc["storage_type"] = "direct"
         
         # Save to database
         db_adapter = get_db()
