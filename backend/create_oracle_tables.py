@@ -131,7 +131,7 @@ CREATE TABLE prediction_feedback (
     CONSTRAINT chk_is_correct CHECK (is_correct IN ('Y', 'N'))
 )
 """)
-cursor.execute("CREATE INDEX idx_feedback_prediction ON prediction_feedback(prediction_id)")
+# idx_feedback_prediction not needed - UNIQUE constraint already creates index
 cursor.execute("CREATE INDEX idx_feedback_dataset_model ON prediction_feedback(dataset_id, model_name)")
 cursor.execute("CREATE INDEX idx_feedback_created ON prediction_feedback(created_at DESC)")
 print("✅ PREDICTION_FEEDBACK table created")
