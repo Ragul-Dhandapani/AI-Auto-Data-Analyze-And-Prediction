@@ -193,14 +193,19 @@ async def upload_file(file: UploadFile = File(...)):
         is_oracle = hasattr(db_adapter, 'pool')  # Oracle adapter has pool attribute
         
         if file_size > 5 * 1024 * 1024 or is_oracle:  # 5MB threshold OR Oracle database
-            # Store in GridFS/BLOB
+            # Store in GridFS/BLOB as JSON
+            data_dict = df.to_dict('records')
+            import json
+            data_json = json.dumps(data_dict)
+            
             file_id = await db_adapter.store_file(
-                filename,
-                contents,
+                f"{filename}.json",
+                data_json.encode('utf-8'),
                 metadata={
                     "dataset_id": dataset_id,
-                    "content_type": file.content_type,
-                    "original_filename": file.filename
+                    "content_type": "application/json",
+                    "original_filename": file.filename,
+                    "original_content_type": file.content_type
                 }
             )
             dataset_doc["storage_type"] = "blob"
