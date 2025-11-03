@@ -188,7 +188,11 @@ async def upload_file(file: UploadFile = File(...)):
         
         file_size = len(contents)
         
-        if file_size > 5 * 1024 * 1024:  # 5MB threshold
+        # Check if we're using Oracle adapter (always use BLOB storage for Oracle)
+        db_adapter = get_db()
+        is_oracle = hasattr(db_adapter, 'pool')  # Oracle adapter has pool attribute
+        
+        if file_size > 5 * 1024 * 1024 or is_oracle:  # 5MB threshold OR Oracle database
             # Store in GridFS/BLOB
             file_id = await db_adapter.store_file(
                 filename,
@@ -202,7 +206,7 @@ async def upload_file(file: UploadFile = File(...)):
             dataset_doc["storage_type"] = "blob"
             dataset_doc["gridfs_file_id"] = file_id
         else:
-            # Store directly in document
+            # Store directly in document (MongoDB only)
             data_dict = df.to_dict('records')
             dataset_doc["data"] = data_dict
             dataset_doc["storage_type"] = "direct"
