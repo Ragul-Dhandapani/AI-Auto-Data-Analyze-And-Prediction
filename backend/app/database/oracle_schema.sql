@@ -149,7 +149,7 @@ CREATE TABLE prediction_feedback (
     CONSTRAINT chk_is_correct CHECK (is_correct IN ('Y', 'N'))
 );
 
-CREATE INDEX idx_feedback_prediction ON prediction_feedback(prediction_id);
+-- Note: UNIQUE constraint on prediction_id automatically creates index
 CREATE INDEX idx_feedback_dataset_model ON prediction_feedback(dataset_id, model_name);
 CREATE INDEX idx_feedback_created ON prediction_feedback(created_at DESC);
 
