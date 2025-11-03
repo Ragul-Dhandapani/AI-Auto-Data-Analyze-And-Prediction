@@ -54,13 +54,42 @@ class OracleAdapter(DatabaseAdapter):
     
     def _create_pool(self):
         """Create Oracle connection pool (sync)"""
-        return cx_Oracle.SessionPool(
-            self.connection_string,
-            min=2,
-            max=self.pool_size,
-            increment=1,
-            threaded=True
-        )
+        try:
+            # Parse connection string for better error handling
+            # Format: user/password@host:port/service_name
+            parts = self.connection_string.split('@')
+            if len(parts) == 2:
+                user_pass = parts[0].split('/')
+                host_info = parts[1]
+                
+                # Create DSN properly
+                dsn = cx_Oracle.makedsn(
+                    host_info.split(':')[0],  # host
+                    int(host_info.split(':')[1].split('/')[0]),  # port
+                    service_name=host_info.split('/')[-1]  # service name
+                )
+                
+                return cx_Oracle.SessionPool(
+                    user=user_pass[0],
+                    password=user_pass[1],
+                    dsn=dsn,
+                    min=2,
+                    max=self.pool_size,
+                    increment=1,
+                    threaded=True
+                )
+            else:
+                # Fallback to direct connection string
+                return cx_Oracle.SessionPool(
+                    self.connection_string,
+                    min=2,
+                    max=self.pool_size,
+                    increment=1,
+                    threaded=True
+                )
+        except Exception as e:
+            logger.error(f"Failed to create connection pool: {str(e)}")
+            raise
     
     async def disconnect(self):
         """Close Oracle connection pool"""
