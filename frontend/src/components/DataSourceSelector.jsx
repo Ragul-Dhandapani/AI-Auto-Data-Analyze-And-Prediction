@@ -220,7 +220,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
         description: response.data.storage_type === 'gridfs' ? 'Stored in GridFS' : 'Stored directly'
       });
       
-      onDatasetLoaded(response.data);
+      onDatasetLoaded(response.data.dataset || response.data);
     } catch (error) {
       console.error("Table load error:", error.response?.data);
       let errorMsg = "Table load failed";
