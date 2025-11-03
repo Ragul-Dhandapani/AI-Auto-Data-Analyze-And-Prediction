@@ -51,7 +51,7 @@ async def switch_database(request: DatabaseSwitchRequest):
             else:
                 updated_lines.append(line)
         
-        # If DB_TYPE not found, add it
+        # If DB_TYPE not found, add it at the beginning
         if not found:
             updated_lines.insert(0, f'DB_TYPE="{db_type}"\n')
         
@@ -61,12 +61,20 @@ async def switch_database(request: DatabaseSwitchRequest):
         
         logger.info(f"✅ Database type switched to: {db_type}")
         
+        # Trigger background restart using system command
+        import subprocess
+        subprocess.Popen(
+            ['bash', '-c', 'sleep 1 && sudo supervisorctl restart backend'],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True
+        )
+        
         return {
             "success": True,
-            "message": f"Database type set to {db_type}",
+            "message": f"Database switched to {db_type}. Backend is restarting...",
             "new_database": db_type,
-            "action_required": "Please restart the backend: sudo supervisorctl restart backend",
-            "note": "This is a temporary feature for testing purposes"
+            "note": "Backend will restart in 1 second. Page may become unresponsive briefly."
         }
         
     except Exception as e:
