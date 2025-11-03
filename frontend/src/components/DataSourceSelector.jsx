@@ -106,7 +106,8 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
       response.data.upload_time = uploadTime;
       
       toast.success(`File uploaded in ${uploadTime.toFixed(1)}s!`);
-      onDatasetLoaded(response.data);
+      // Pass the dataset object, not the wrapper
+      onDatasetLoaded(response.data.dataset || response.data);
     } catch (error) {
       if (axios.isCancel(error)) {
         toast.info("Upload cancelled");
