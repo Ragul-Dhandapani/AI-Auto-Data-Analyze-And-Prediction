@@ -887,7 +887,7 @@ async def save_analysis_state(request: SaveStateRequest):
                 "id": state_id,
                 "dataset_id": request.dataset_id,
                 "state_name": request.state_name,
-                "storage_type": "gridfs",
+                "storage_type": "blob",
                 "gridfs_file_id": str(file_id),
                 "size_bytes": state_size,
                 "compressed_size": len(compressed_data),
