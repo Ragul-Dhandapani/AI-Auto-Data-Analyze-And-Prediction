@@ -191,7 +191,7 @@ async def download_training_metadata_pdf(dataset_id: str):
                 created_at = state.get("created_at", "Unknown")
                 size_bytes = state.get("size_bytes", 0)
                 size_kb = f"{size_bytes / 1024:.2f}" if size_bytes else "0"
-                storage_type = state.get("storage_type", "inline")
+                storage_type = state.get("storage_type", "direct")
                 
                 history_data.append([state_name, created_at, size_kb, storage_type])
             
