@@ -123,6 +123,7 @@ def create_db_connection(db_type: str, config: dict):
 
 
 @router.post("/upload")
+@router.post("/upload-file")  # Alias for backward compatibility
 async def upload_file(file: UploadFile = File(...)):
     """Upload CSV/Excel file and create dataset"""
     try:
