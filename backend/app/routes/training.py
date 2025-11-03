@@ -54,7 +54,7 @@ async def download_training_metadata_pdf(dataset_id: str):
             if "initial_scores" in state_name.lower():
                 try:
                     # Load state data if needed
-                    if state.get("storage_type") == "gridfs":
+                    if state.get("storage_type") == "blob":
                         state_data = await db_adapter.retrieve_file(state.get("gridfs_file_id"))
                         import json
                         state_content = json.loads(state_data.decode('utf-8'))
@@ -69,7 +69,7 @@ async def download_training_metadata_pdf(dataset_id: str):
             elif "current_scores" in state_name.lower() or "final_scores" in state_name.lower():
                 try:
                     # Load state data if needed
-                    if state.get("storage_type") == "gridfs":
+                    if state.get("storage_type") == "blob":
                         state_data = await db_adapter.retrieve_file(state.get("gridfs_file_id"))
                         import json
                         state_content = json.loads(state_data.decode('utf-8'))
