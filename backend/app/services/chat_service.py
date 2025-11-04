@@ -352,3 +352,138 @@ Provide a helpful, concise answer based on the dataset structure."""
             "action": "message",
             "message": "I can help you create visualizations. Try asking for pie charts, bar charts, correlations, or scatter plots!"
         }
+
+
+def handle_scatter_chart_request_v2(df: pd.DataFrame, x_col: str, y_col: str, message: str) -> Dict[str, Any]:
+    """Enhanced scatter chart with exact columns"""
+    try:
+        # Validate columns are numeric
+        if not pd.api.types.is_numeric_dtype(df[x_col]):
+            return {"type": "error", "message": f"❌ Column '{x_col}' is not numeric. Scatter plots require numeric data.", "success": False}
+        if not pd.api.types.is_numeric_dtype(df[y_col]):
+            return {"type": "error", "message": f"❌ Column '{y_col}' is not numeric. Scatter plots require numeric data.", "success": False}
+        
+        chart_data = {
+            "x": df[x_col].dropna().tolist(),
+            "y": df[y_col].dropna().tolist(),
+            "type": "scatter",
+            "mode": "markers",
+            "name": f"{y_col} vs {x_col}",
+            "marker": {"size": 8, "color": "rgba(55, 128, 191, 0.7)"}
+        }
+        
+        layout = {
+            "title": f"{y_col} vs {x_col}",
+            "xaxis": {"title": x_col},
+            "yaxis": {"title": y_col},
+            "hovermode": "closest"
+        }
+        
+        return {
+            "type": "chart",
+            "chart_type": "scatter",
+            "data": [chart_data],
+            "layout": layout,
+            "message": f"✅ Created scatter plot: {y_col} vs {x_col}",
+            "success": True
+        }
+    except Exception as e:
+        return {"type": "error", "message": f"❌ Error creating scatter plot: {str(e)}", "success": False}
+
+
+def handle_line_chart_request_v2(df: pd.DataFrame, x_col: str, y_col: Optional[str], message: str) -> Dict[str, Any]:
+    """Enhanced line chart with exact columns"""
+    try:
+        if y_col:
+            chart_data = {
+                "x": df[x_col].tolist(),
+                "y": df[y_col].tolist(),
+                "type": "scatter",
+                "mode": "lines+markers",
+                "name": y_col
+            }
+            title = f"{y_col} over {x_col}"
+        else:
+            chart_data = {
+                "y": df[x_col].tolist(),
+                "type": "scatter",
+                "mode": "lines+markers",
+                "name": x_col
+            }
+            title = f"{x_col} Trend"
+        
+        layout = {
+            "title": title,
+            "xaxis": {"title": x_col if y_col else "Index"},
+            "yaxis": {"title": y_col if y_col else x_col}
+        }
+        
+        return {
+            "type": "chart",
+            "chart_type": "line",
+            "data": [chart_data],
+            "layout": layout,
+            "message": f"✅ Created line chart: {title}",
+            "success": True
+        }
+    except Exception as e:
+        return {"type": "error", "message": f"❌ Error creating line chart: {str(e)}", "success": False}
+
+
+def handle_bar_chart_request_v2(df: pd.DataFrame, col: str, message: str) -> Dict[str, Any]:
+    """Enhanced bar chart with exact column"""
+    try:
+        value_counts = df[col].value_counts().head(20)
+        
+        chart_data = {
+            "x": value_counts.index.tolist(),
+            "y": value_counts.values.tolist(),
+            "type": "bar",
+            "name": col,
+            "marker": {"color": "rgba(55, 128, 191, 0.7)"}
+        }
+        
+        layout = {
+            "title": f"Distribution of {col}",
+            "xaxis": {"title": col},
+            "yaxis": {"title": "Count"}
+        }
+        
+        return {
+            "type": "chart",
+            "chart_type": "bar",
+            "data": [chart_data],
+            "layout": layout,
+            "message": f"✅ Created bar chart for {col}",
+            "success": True
+        }
+    except Exception as e:
+        return {"type": "error", "message": f"❌ Error creating bar chart: {str(e)}", "success": False}
+
+
+def handle_pie_chart_request_v2(df: pd.DataFrame, col: str, message: str) -> Dict[str, Any]:
+    """Enhanced pie chart with exact column"""
+    try:
+        value_counts = df[col].value_counts().head(10)
+        
+        chart_data = {
+            "labels": value_counts.index.tolist(),
+            "values": value_counts.values.tolist(),
+            "type": "pie",
+            "name": col
+        }
+        
+        layout = {
+            "title": f"Distribution of {col}"
+        }
+        
+        return {
+            "type": "chart",
+            "chart_type": "pie",
+            "data": [chart_data],
+            "layout": layout,
+            "message": f"✅ Created pie chart for {col}",
+            "success": True
+        }
+    except Exception as e:
+        return {"type": "error", "message": f"❌ Error creating pie chart: {str(e)}", "success": False}
