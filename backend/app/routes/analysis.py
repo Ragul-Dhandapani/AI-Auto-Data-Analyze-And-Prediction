@@ -191,59 +191,108 @@ Provide actionable insights in bullet points about:
 
 
 async def load_dataframe(dataset_id: str) -> pd.DataFrame:
-    """Helper function to load DataFrame from dataset"""
-    import logging
-    logger = logging.getLogger(__name__)
+    """Load dataset into DataFrame with caching for performance"""
+    from cachetools import TTLCache
+    import time
     
-    dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+    # DataFrame cache: Stores loaded DataFrames for 30 minutes
+    if not hasattr(load_dataframe, 'cache'):
+        load_dataframe.cache = TTLCache(maxsize=100, ttl=1800)
+    
+    # Check cache first
+    if dataset_id in load_dataframe.cache:
+        logger.info(f"✅ DataFrame loaded from cache for dataset {dataset_id}")
+        return load_dataframe.cache[dataset_id].copy()
+    
+    logger.info(f"Loading dataset {dataset_id} from database...")
+    start_time = time.time()
+    
+    from app.database.db_helper import get_db
+    db_adapter = get_db()
+    dataset = await db_adapter.get_dataset(dataset_id)
+    
     if not dataset:
         raise HTTPException(404, "Dataset not found")
     
     logger.info(f"Loading dataset {dataset_id}, storage_type: {dataset.get('storage_type', 'direct')}")
     
     # Load data based on storage type
-    if dataset.get("storage_type") == "gridfs":
-        gridfs_file_id = dataset.get("gridfs_file_id")
-        if gridfs_file_id:
+    if dataset.get("storage_type") == "blob":
+        file_id = dataset.get("gridfs_file_id") or dataset.get("file_id")
+        if file_id:
             try:
-                grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
-                data = await grid_out.read()
+                data = await db_adapter.retrieve_file(file_id)
+                logger.info(f"BLOB data loaded, size: {len(data)} bytes")
                 
-                logger.info(f"GridFS data loaded, size: {len(data)} bytes")
+                # Get stored dtypes from dataset metadata
+                stored_dtypes = dataset.get("dtypes", {})
                 
-                if dataset["name"].endswith('.csv'):
+                # Check file type from original filename
+                filename = dataset.get("name", "")
+                
+                if filename.endswith('.csv'):
+                    # Load CSV directly from bytes
                     df = pd.read_csv(io.BytesIO(data))
-                else:
-                    df = pd.read_excel(io.BytesIO(data))
+                    
+                    # Apply stored dtypes to ensure correct types
+                    if stored_dtypes:
+                        for col, dtype_str in stored_dtypes.items():
+                            if col in df.columns:
+                                try:
+                                    if 'int' in dtype_str:
+                                        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype('int64')
+                                    elif 'float' in dtype_str:
+                                        df[col] = pd.to_numeric(df[col], errors='coerce')
+                                    elif 'object' in dtype_str or 'str' in dtype_str:
+                                        df[col] = df[col].astype(str)
+                                    elif 'bool' in dtype_str:
+                                        df[col] = df[col].astype(bool)
+                                    elif 'datetime' in dtype_str:
+                                        df[col] = pd.to_datetime(df[col], errors='coerce')
+                                except Exception as e:
+                                    logger.warning(f"Could not convert column {col} to {dtype_str}: {e}")
+                        
+                        logger.info(f"Applied stored dtypes to {len(stored_dtypes)} columns")
                 
-                logger.info(f"DataFrame loaded from GridFS: {len(df)} rows, {len(df.columns)} columns")
+                elif filename.endswith(('.xlsx', '.xls')):
+                    # Load Excel directly from bytes
+                    df = pd.read_excel(io.BytesIO(data))
+                else:
+                    # Fallback: Try to parse as JSON (backward compatibility)
+                    import json
+                    try:
+                        data_dict = json.loads(data.decode('utf-8'))
+                        df = pd.DataFrame(data_dict)
+                    except:
+                        # If JSON fails, try CSV
+                        df = pd.read_csv(io.BytesIO(data))
+                
+                logger.info(f"DataFrame created from BLOB: {df.shape}, dtypes: {df.dtypes.to_dict()}")
+                
             except Exception as e:
-                logger.error(f"GridFS loading failed: {str(e)}")
-                raise HTTPException(500, f"Failed to load data from GridFS: {str(e)}")
+                logger.error(f"Error loading BLOB data: {str(e)}")
+                raise HTTPException(500, f"Error loading dataset from BLOB: {str(e)}")
         else:
-            raise HTTPException(500, "GridFS file ID not found")
+            raise HTTPException(500, "BLOB file ID not found")
     else:
-        # Direct storage
-        data = dataset.get("data")
-        if data is None:
-            logger.error(f"Dataset {dataset_id} has no 'data' field")
-            raise HTTPException(500, "Dataset has no data field")
-        
-        if not isinstance(data, list):
-            logger.error(f"Dataset data is not a list: {type(data)}")
-            raise HTTPException(500, "Dataset data format invalid")
-        
-        if len(data) == 0:
-            logger.warning(f"Dataset {dataset_id} has empty data array")
-            raise HTTPException(400, "Dataset is empty")
+        # Load from inline data
+        data = dataset.get("data", [])
+        if not data:
+            raise HTTPException(500, "No data found in dataset")
         
         df = pd.DataFrame(data)
-        logger.info(f"DataFrame loaded from direct storage: {len(df)} rows, {len(df.columns)} columns")
+        logger.info(f"DataFrame loaded from inline data: {df.shape}")
     
     # Validate DataFrame is not empty
     if df.empty:
         logger.error(f"DataFrame is empty after loading dataset {dataset_id}")
         raise HTTPException(400, "Loaded DataFrame is empty")
+    
+    # Cache the DataFrame
+    load_dataframe.cache[dataset_id] = df.copy()
+    
+    load_time = time.time() - start_time
+    logger.info(f"✅ Cached DataFrame for dataset {dataset_id} (load time: {load_time:.2f}s)")
     
     return df
 
