@@ -369,6 +369,9 @@ const DashboardPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Compact Database Toggle */}
+            <CompactDatabaseToggle />
+            
             {selectedDataset && (
               <>
                 <Button
@@ -393,12 +396,13 @@ const DashboardPage = () => {
                 )}
               </>
             )}
-          </div>
-          <div className="text-sm text-gray-600">
+            
             {selectedDataset && (
-              <span data-testid="current-dataset-name">
-                Current: <strong>{selectedDataset.name}</strong>
-              </span>
+              <div className="text-sm text-gray-600">
+                <span data-testid="current-dataset-name">
+                  Current: <strong>{selectedDataset.name}</strong>
+                </span>
+              </div>
             )}
           </div>
         </div>
