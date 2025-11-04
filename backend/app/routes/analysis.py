@@ -1093,9 +1093,9 @@ async def validate_chart_request(request: Dict[str, Any]):
             raise HTTPException(404, "Dataset not found")
         
         # Load data
-        if dataset.get("gridfs_file_id"):
-            grid_out = await fs.open_download_stream(ObjectId(dataset["gridfs_file_id"]))
-            data_bytes = await grid_out.read()
+        if dataset.get("gridfs_file_id") or dataset.get("file_id"):
+            file_id = dataset.get("gridfs_file_id") or dataset.get("file_id")
+            data_bytes = await db_adapter.retrieve_file(file_id)
             df = pd.read_json(io.BytesIO(data_bytes))
         else:
             df = pd.DataFrame(dataset.get("data", []))
