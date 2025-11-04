@@ -1309,6 +1309,120 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             return null;
           })()}
           
+          {/* Single Target Comparison Table - Show for all single target scenarios */}
+          {(() => {
+            const uniqueTargets = [...new Set(analysisResults.ml_models.map(m => m.target_column))];
+            
+            if (uniqueTargets.length === 1) {
+              // Single target - show simple comparison table
+              const sortedModels = [...analysisResults.ml_models].sort((a, b) => {
+                if (analysisResults.problem_type === 'classification') {
+                  return (b.accuracy || 0) - (a.accuracy || 0);
+                } else {
+                  return (b.r2_score || 0) - (a.r2_score || 0);
+                }
+              });
+              
+              return (
+                <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Model Performance Comparison ({sortedModels.length} Models Trained)
+                  </h4>
+                  <p className="text-sm text-blue-700 mb-4">
+                    Comparing {analysisResults.problem_type === 'classification' ? 'Classification' : 'Regression'} models for target: <strong>{uniqueTargets[0]}</strong>
+                  </p>
+                  
+                  <div className="overflow-x-auto bg-white rounded-lg border border-blue-300">
+                    <table className="w-full text-sm">
+                      <thead className="bg-blue-100">
+                        <tr>
+                          <th className="p-3 text-left font-semibold">Rank</th>
+                          <th className="p-3 text-left font-semibold">Model</th>
+                          {analysisResults.problem_type === 'classification' ? (
+                            <>
+                              <th className="p-3 text-right font-semibold">Accuracy</th>
+                              <th className="p-3 text-right font-semibold">Precision</th>
+                              <th className="p-3 text-right font-semibold">Recall</th>
+                              <th className="p-3 text-right font-semibold">F1-Score</th>
+                            </>
+                          ) : (
+                            <>
+                              <th className="p-3 text-right font-semibold">R² Score</th>
+                              <th className="p-3 text-right font-semibold">RMSE</th>
+                              <th className="p-3 text-right font-semibold">MAE</th>
+                            </>
+                          )}
+                          <th className="p-3 text-right font-semibold">Training Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedModels.map((model, idx) => {
+                          const isTopModel = idx === 0;
+                          return (
+                            <tr key={idx} className={`border-b hover:bg-blue-50 ${isTopModel ? 'bg-yellow-50' : ''}`}>
+                              <td className="p-3 text-center">
+                                {isTopModel ? '🏆' : `${idx + 1}`}
+                              </td>
+                              <td className="p-3 font-medium">
+                                {model.model_name}
+                                {isTopModel && <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded">Best</span>}
+                              </td>
+                              {analysisResults.problem_type === 'classification' ? (
+                                <>
+                                  <td className="p-3 text-right font-semibold text-blue-700">
+                                    {(model.accuracy * 100).toFixed(2)}%
+                                  </td>
+                                  <td className="p-3 text-right text-gray-600">
+                                    {model.precision ? (model.precision * 100).toFixed(2) + '%' : 'N/A'}
+                                  </td>
+                                  <td className="p-3 text-right text-gray-600">
+                                    {model.recall ? (model.recall * 100).toFixed(2) + '%' : 'N/A'}
+                                  </td>
+                                  <td className="p-3 text-right text-gray-600">
+                                    {model.f1_score ? (model.f1_score * 100).toFixed(2) + '%' : 'N/A'}
+                                  </td>
+                                </>
+                              ) : (
+                                <>
+                                  <td className="p-3 text-right font-semibold text-blue-700">
+                                    {model.r2_score?.toFixed(4) || 'N/A'}
+                                  </td>
+                                  <td className="p-3 text-right text-gray-600">
+                                    {model.rmse?.toFixed(4) || 'N/A'}
+                                  </td>
+                                  <td className="p-3 text-right text-gray-600">
+                                    {model.mae?.toFixed(4) || 'N/A'}
+                                  </td>
+                                </>
+                              )}
+                              <td className="p-3 text-right text-gray-600">
+                                {model.training_time ? `${model.training_time.toFixed(2)}s` : 'N/A'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <div className="mt-3 text-xs text-blue-700">
+                    {analysisResults.problem_type === 'classification' ? (
+                      <>💡 <strong>Quick Guide:</strong> Higher accuracy means better overall predictions. F1-score balances precision and recall. 
+                      The 🏆 model performed best on your data.</>
+                    ) : (
+                      <>💡 <strong>Quick Guide:</strong> R² closer to 1.0 is better (explains variance). Lower RMSE/MAE means fewer errors. 
+                      The 🏆 model performed best on your data.</>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+          
           {/* Group models by target column */}
           {(() => {
             const modelsByTarget = {};
