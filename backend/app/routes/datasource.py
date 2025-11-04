@@ -180,7 +180,8 @@ async def upload_file(file: UploadFile = File(...)):
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": list(df.columns),
-            "dtypes": df.dtypes.astype(str).to_dict(),  # Changed from data_types to dtypes
+            "dtypes": df.dtypes.astype(str).to_dict(),
+            "data_preview": df.head(10).to_dict('records'),  # First 10 rows as preview
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "file_size": len(contents),
