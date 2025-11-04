@@ -174,12 +174,6 @@ Provide actionable insights in bullet points about:
                         "categorical_columns": categorical_count
                     }
                 }
-            except Exception as e:
-                logger.error(f"AI insights generation failed: {str(e)}", exc_info=True)
-                return {
-                    "insights": f"Unable to generate AI insights: {str(e)}. You can still explore the data using profile statistics and visualizations.",
-                    "error": str(e)
-                }
         
         else:
             raise HTTPException(400, f"Unknown analysis type: {analysis_type}")
