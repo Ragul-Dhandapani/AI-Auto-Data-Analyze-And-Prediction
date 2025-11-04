@@ -27,7 +27,8 @@ def get_database_adapter() -> DatabaseAdapter:
     if _adapter_instance is not None:
         return _adapter_instance
     
-    db_type = os.getenv('DB_TYPE', 'mongodb').lower()
+    # DEFAULT TO ORACLE (user preference - Issue #7)
+    db_type = os.getenv('DB_TYPE', 'oracle').lower()
     
     logger.info(f"🔧 Initializing database adapter: {db_type}")
     
