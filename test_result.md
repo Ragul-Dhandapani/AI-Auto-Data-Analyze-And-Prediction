@@ -570,6 +570,40 @@ if pd.api.types.is_datetime64_any_dtype(df_prophet['ds']):
 
 ---
 
+## 🔧 ADDITIONAL FIX - Nov 4, 2025 (10:35 AM)
+
+### Issue 6: Workspace Save Failed - Oracle Check Constraint Violation
+**Reported By**: User during manual testing
+**Status**: ✅ FIXED
+
+**Error**: 
+```
+Failed to save workspace: Failed to save state: 
+ORA-02290: check constraint (TESTUSER.CHK_WS_STORAGE_TYPE) violated
+```
+
+**Root Cause**:
+The code was using `storage_type = "gridfs"` for large workspaces (> 2MB), but Oracle's schema constraint only allows `'direct'` or `'blob'`. GridFS is MongoDB-specific terminology.
+
+**Solution**: 
+Normalized storage type handling to use `'blob'` instead of `'gridfs'` for cross-database compatibility:
+- Changed `storage_type` from `"gridfs"` to `"blob"` for large workspaces
+- Renamed field from `gridfs_file_id` to `file_id` (with backward compatibility)
+- Updated load-state and delete-state endpoints to handle both old and new field names
+
+**Files Modified**: 
+- `/app/backend/app/routes/analysis.py` 
+  - `save-state` endpoint (lines 927-971)
+  - `load-state` endpoint (lines 998-1020)
+  - `delete-state` endpoint (lines 1050-1055)
+
+**Backward Compatibility**: ✅ Code supports both old `gridfs_file_id` and new `file_id` field names
+
+**Status**: ✅ Backend restarted, fix applied
+**Testing Required**: User should try saving workspace again - should now succeed
+
+---
+
 ## 🔍 TRAINING METADATA INVESTIGATION - Nov 3, 2025
 
 ### Investigation: "Latency_2_Oracle" Workspace Missing from Training Metadata
