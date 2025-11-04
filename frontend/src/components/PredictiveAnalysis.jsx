@@ -1180,12 +1180,27 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">🤖 ML Model Comparison</h3>
-              <p className="text-sm text-gray-600 italic mt-1">Compare performance of different machine learning models</p>
+              <p className="text-sm text-gray-600 italic mt-1">
+                Compare performance of different machine learning models 
+                {analysisResults.problem_type && (
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
+                    {analysisResults.problem_type === 'classification' ? 'Classification' : 'Regression'}
+                  </span>
+                )}
+              </p>
             </div>
             <Button onClick={() => toggleSection('ml_models')} variant="ghost" size="sm">
               <ChevronUp className="w-4 h-4" />
             </Button>
           </div>
+          
+          {/* DEBUG INFO - Remove after testing */}
+          {console.log('ML Models Debug:', {
+            problem_type: analysisResults.problem_type,
+            ml_models_count: analysisResults.ml_models?.length,
+            unique_targets: [...new Set(analysisResults.ml_models.map(m => m.target_column))],
+            first_model: analysisResults.ml_models[0]
+          })}
           
           {/* Model Comparison Table - Show when multiple targets exist */}
           {(() => {
