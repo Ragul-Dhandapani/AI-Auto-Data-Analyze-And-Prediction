@@ -198,11 +198,22 @@ const DashboardPage = () => {
     if (window.confirm(`Are you sure you want to delete ${selectedDatasetIds.size} dataset(s)?`)) {
       try {
         const deletePromises = Array.from(selectedDatasetIds).map(id => 
-          axios.delete(`${API}/datasets/${id}`)
+          axios.delete(`${API}/datasets/${id}`).catch(err => ({ error: err, id }))
         );
-        await Promise.all(deletePromises);
         
-        toast.success(`${selectedDatasetIds.size} dataset(s) deleted successfully`);
+        // Use Promise.allSettled to handle partial failures
+        const results = await Promise.allSettled(deletePromises);
+        
+        // Count successes and failures
+        const succeeded = results.filter(r => r.status === 'fulfilled' && !r.value?.error).length;
+        const failed = results.filter(r => r.status === 'rejected' || r.value?.error).length;
+        
+        if (failed > 0) {
+          toast.warning(`Deleted ${succeeded} dataset(s). Failed to delete ${failed} dataset(s).`);
+        } else {
+          toast.success(`${succeeded} dataset(s) deleted successfully`);
+        }
+        
         setSelectedDatasetIds(new Set());
         setIsMultiSelectMode(false);
         loadDatasets();
@@ -212,7 +223,7 @@ const DashboardPage = () => {
           setCurrentStep("data-source");
         }
       } catch (error) {
-        toast.error("Failed to delete some datasets");
+        toast.error("Failed to delete datasets: " + error.message);
       }
     }
   };
