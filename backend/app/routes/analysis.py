@@ -998,9 +998,8 @@ async def load_analysis_state(state_id: str):
             if gridfs_file_id:
                 data = await db_adapter.retrieve_file(gridfs_file_id)
                 
-                # Check if data is compressed
-                metadata = await grid_out.metadata
-                if metadata and metadata.get("compressed"):
+                # Check if data is compressed (assume it is if filename ends with .gz)
+                if gridfs_file_id and str(gridfs_file_id).endswith('.gz'):
                     import gzip
                     data = gzip.decompress(data)
                 
