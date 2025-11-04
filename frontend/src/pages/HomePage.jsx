@@ -82,6 +82,9 @@ const HomePage = () => {
             </span>
           </div>
           <div className="flex items-center gap-3">
+            {/* Compact Database Toggle */}
+            <CompactDatabaseToggle />
+            
             <Button 
               onClick={() => navigate('/documentation')}
               variant="outline"
