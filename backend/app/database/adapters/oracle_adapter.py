@@ -55,6 +55,16 @@ class OracleAdapter(DatabaseAdapter):
     def _create_pool(self):
         """Create Oracle connection pool (sync)"""
         try:
+            # Initialize Oracle Instant Client
+            try:
+                cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+                logger.info("✅ Oracle Client initialized")
+            except cx_Oracle.ProgrammingError as e:
+                # Already initialized
+                logger.info("⚠️ Oracle Client already initialized")
+            except Exception as e:
+                logger.warning(f"Oracle Client init warning: {e}")
+            
             # Parse connection string for better error handling
             # Format: user/password@host:port/service_name
             parts = self.connection_string.split('@')
