@@ -323,7 +323,9 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
                     <h4 className="font-semibold mb-2">Data Cleaned Successfully</h4>
                     <ul className="space-y-2">
                       {cleaningReport.cleaning_report.map((item, idx) => (
-                        <li key={idx} className="text-sm text-gray-700">✓ {item}</li>
+                        <li key={idx} className="text-sm text-gray-700">
+                          ✓ {typeof item === 'object' ? `${item.action}: ${item.details}` : item}
+                        </li>
                       ))}
                     </ul>
                   </div>
