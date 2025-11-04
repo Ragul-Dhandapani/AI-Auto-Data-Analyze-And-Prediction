@@ -66,10 +66,11 @@ def tune_hyperparameters_grid(
     model_type: str,
     problem_type: str,
     param_grid: Dict[str, List] = None,
-    cv: int = 3
+    cv: int = 2  # OPTIMIZED: Reduced from 3 to 2 for speed
 ) -> Dict[str, Any]:
     """
     Perform grid search hyperparameter tuning
+    ULTRA-OPTIMIZED: CV=2, minimal param grid for < 60s execution
     
     Args:
         X_train: Training features
@@ -77,7 +78,7 @@ def tune_hyperparameters_grid(
         model_type: Type of model to tune
         problem_type: "regression" or "classification"
         param_grid: Custom parameter grid (if None, use defaults)
-        cv: Number of cross-validation folds
+        cv: Number of cross-validation folds (default 2 for speed)
     
     Returns:
         Dictionary with best parameters and scores
