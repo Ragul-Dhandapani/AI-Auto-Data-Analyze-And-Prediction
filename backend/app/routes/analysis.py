@@ -57,7 +57,7 @@ async def run_analysis(request: Dict[str, Any]):
             if cleaning_report:
                 # Store cleaned data
                 db_adapter = get_db()
-        dataset = await db_adapter.get_dataset(dataset_id)
+                dataset = await db_adapter.get_dataset(dataset_id)
                 if dataset:
                     # Update dataset with cleaned data
                     updates = {
