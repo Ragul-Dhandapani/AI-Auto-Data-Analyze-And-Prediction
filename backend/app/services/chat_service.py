@@ -1,23 +1,29 @@
 """
 Chat Service
 Handles AI-powered chat interactions and dynamic analysis
+NOW WITH LLM-POWERED CHART INTELLIGENCE
 """
 import pandas as pd
 from typing import Dict, Any, List, Optional
 from emergentintegrations.llm.chat import LlmChat
 import os
 import logging
+import asyncio
+
+logger = logging.getLogger(__name__)
 
 
-def process_chat_message(
+async def process_chat_message_async(
     df: pd.DataFrame,
     message: str,
     conversation_history: List[Dict[str, str]],
     llm_key: str = None
 ) -> Dict[str, Any]:
-    """Process chat message and determine action with enhanced intelligence"""
-    
-    from app.services.enhanced_chart_intelligence import enhanced_chart_intelligence
+    """
+    Process chat message with LLM-powered intelligence (async version)
+    This version uses LLM to intelligently understand user intent
+    """
+    from app.services.llm_chart_intelligence import get_llm_chart_intelligence
     
     message_lower = message.lower()
     
@@ -28,43 +34,67 @@ def process_chat_message(
     # Check if it's a chart request (contains chart keywords or column names)
     chart_keywords = ['chart', 'plot', 'graph', 'show', 'display', 'visualize', 'vs', 'versus', 'against', 'over', 'compare']
     if any(keyword in message_lower for keyword in chart_keywords):
-        # Use enhanced intelligence to parse request
-        parsed = enhanced_chart_intelligence.parse_chart_request(message, df)
+        # Use LLM-powered intelligence to parse request
+        llm_intelligence = get_llm_chart_intelligence()
+        parsed = await llm_intelligence.parse_chart_request(message, df)
         
-        if parsed['error']:
+        if parsed.get('error'):
             # Failed to parse - return helpful error
             return {
                 "type": "error",
                 "message": parsed['error'],
-                "suggestions": parsed['suggestions'],
+                "suggestions": parsed.get('suggestions', []),
                 "success": False
             }
         
         # Successfully parsed - generate chart
         chart_type = parsed['chart_type']
         x_col = parsed['x_column']
-        y_col = parsed['y_column']
+        y_col = parsed.get('y_column')
+        explanation = parsed.get('explanation', '')
+        
+        logger.info(f"LLM parsed chart request: type={chart_type}, x={x_col}, y={y_col}")
         
         if chart_type == 'scatter' and y_col:
-            return handle_scatter_chart_request_v2(df, x_col, y_col, message)
+            return handle_scatter_chart_request_v2(df, x_col, y_col, explanation)
         elif chart_type == 'line':
-            return handle_line_chart_request_v2(df, x_col, y_col, message)
+            return handle_line_chart_request_v2(df, x_col, y_col, explanation)
         elif chart_type == 'bar':
-            return handle_bar_chart_request_v2(df, x_col, message)
+            return handle_bar_chart_request_v2(df, x_col, explanation)
         elif chart_type == 'pie':
-            return handle_pie_chart_request_v2(df, x_col, message)
+            return handle_pie_chart_request_v2(df, x_col, explanation)
+        elif chart_type == 'histogram':
+            return handle_histogram_chart_request(df, x_col, explanation)
         else:
             # Default to scatter if we have 2 columns
             if y_col:
-                return handle_scatter_chart_request_v2(df, x_col, y_col, message)
+                return handle_scatter_chart_request_v2(df, x_col, y_col, explanation)
             else:
-                return handle_bar_chart_request_v2(df, x_col, message)
+                return handle_bar_chart_request_v2(df, x_col, explanation)
     
     elif any(keyword in message_lower for keyword in ['correlation', 'correlations']):
         return handle_correlation_request(df)
     else:
         # General conversation - use LLM
         return handle_general_query(df, message, conversation_history, llm_key)
+
+
+def process_chat_message(
+    df: pd.DataFrame,
+    message: str,
+    conversation_history: List[Dict[str, str]],
+    llm_key: str = None
+) -> Dict[str, Any]:
+    """Synchronous wrapper for async chat processing"""
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    return loop.run_until_complete(
+        process_chat_message_async(df, message, conversation_history, llm_key)
+    )
 
 
 def handle_pie_chart_request(df: pd.DataFrame, message: str) -> Dict[str, Any]:
