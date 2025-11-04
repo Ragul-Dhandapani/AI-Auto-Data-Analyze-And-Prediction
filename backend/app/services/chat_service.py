@@ -3,7 +3,7 @@ Chat Service
 Handles AI-powered chat interactions and dynamic analysis
 """
 import pandas as pd
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from emergentintegrations.llm.chat import LlmChat
 import os
 import logging
