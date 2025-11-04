@@ -10,7 +10,6 @@ import PredictiveAnalysis from "@/components/PredictiveAnalysis";
 import AnalysisTabs from "@/components/AnalysisTabs";
 import VisualizationPanel from "@/components/VisualizationPanel";
 import VariableSelectionModal from "@/components/VariableSelectionModal";
-import DatabaseSwitcher from "@/components/DatabaseSwitcher";
 import CompactDatabaseToggle from "@/components/CompactDatabaseToggle";
 import { Sparkles, ArrowLeft, Home, Trash2, ChevronDown, ChevronUp, Save, FolderOpen, RefreshCw, Database } from "lucide-react";
 import { useNavigate } from "react-router-dom";
