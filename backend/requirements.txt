@@ -156,3 +156,4 @@ tensorflow>=2.16.0
 lime==0.2.0.1
 shap==0.49.1
 cachetools==6.2.1
+emergentintegrations>=1.0.0
