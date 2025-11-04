@@ -15,22 +15,51 @@ def process_chat_message(
     conversation_history: List[Dict[str, str]],
     llm_key: str = None
 ) -> Dict[str, Any]:
-    """Process chat message and determine action"""
+    """Process chat message and determine action with enhanced intelligence"""
+    
+    from app.services.enhanced_chart_intelligence import enhanced_chart_intelligence
     
     message_lower = message.lower()
     
     # IMPORTANT: Check for removal first to avoid false positives
     if any(keyword in message_lower for keyword in ['remove', 'delete']):
         return handle_remove_request(message)
-    # Detect chart requests
-    elif any(keyword in message_lower for keyword in ['pie chart', 'pie']):
-        return handle_pie_chart_request(df, message)
-    elif any(keyword in message_lower for keyword in ['bar chart', 'bar', 'distribution']):
-        return handle_bar_chart_request(df, message)
-    elif any(keyword in message_lower for keyword in ['line chart', 'line', 'trend']):
-        return handle_line_chart_request(df, message)
-    elif any(keyword in message_lower for keyword in ['scatter', 'relationship', 'vs']):
-        return handle_scatter_chart_request(df, message)
+    
+    # Check if it's a chart request (contains chart keywords or column names)
+    chart_keywords = ['chart', 'plot', 'graph', 'show', 'display', 'visualize', 'vs', 'versus', 'against', 'over', 'compare']
+    if any(keyword in message_lower for keyword in chart_keywords):
+        # Use enhanced intelligence to parse request
+        parsed = enhanced_chart_intelligence.parse_chart_request(message, df)
+        
+        if parsed['error']:
+            # Failed to parse - return helpful error
+            return {
+                "type": "error",
+                "message": parsed['error'],
+                "suggestions": parsed['suggestions'],
+                "success": False
+            }
+        
+        # Successfully parsed - generate chart
+        chart_type = parsed['chart_type']
+        x_col = parsed['x_column']
+        y_col = parsed['y_column']
+        
+        if chart_type == 'scatter' and y_col:
+            return handle_scatter_chart_request_v2(df, x_col, y_col, message)
+        elif chart_type == 'line':
+            return handle_line_chart_request_v2(df, x_col, y_col, message)
+        elif chart_type == 'bar':
+            return handle_bar_chart_request_v2(df, x_col, message)
+        elif chart_type == 'pie':
+            return handle_pie_chart_request_v2(df, x_col, message)
+        else:
+            # Default to scatter if we have 2 columns
+            if y_col:
+                return handle_scatter_chart_request_v2(df, x_col, y_col, message)
+            else:
+                return handle_bar_chart_request_v2(df, x_col, message)
+    
     elif any(keyword in message_lower for keyword in ['correlation', 'correlations']):
         return handle_correlation_request(df)
     else:
