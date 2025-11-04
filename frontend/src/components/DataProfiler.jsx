@@ -537,7 +537,7 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {dataset.data_preview.map((row, idx) => (
+                  {(dataset.data_preview || []).map((row, idx) => (
                     <tr key={idx} className="border-b hover:bg-gray-50">
                       {dataset.columns.slice(0, 10).map((col, colIdx) => (
                         <td key={colIdx} className="p-2">{String(row[col] || '-')}</td>
