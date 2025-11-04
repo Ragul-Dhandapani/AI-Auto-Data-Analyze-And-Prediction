@@ -1049,12 +1049,14 @@ async def delete_analysis_state(state_id: str):
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
-        # Delete GridFS file if exists
-        if state.get("storage_type") == "gridfs" and state.get("gridfs_file_id"):
-            try:
-                await db_adapter.delete_file(state["gridfs_file_id"])
-            except:
-                pass
+        # Delete BLOB/GridFS file if exists
+        if state.get("storage_type") in ["blob", "gridfs"]:
+            file_id = state.get("file_id") or state.get("gridfs_file_id")
+            if file_id:
+                try:
+                    await db_adapter.delete_file(file_id)
+                except:
+                    pass
         
         # Delete metadata
         db_adapter = get_db()
