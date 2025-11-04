@@ -535,8 +535,38 @@ chat = LlmChat(
 - Backend now starts successfully with Oracle RDS connection
 
 ### Testing Requirements
-**Backend Testing**: Required to verify all 4 fixes
-**Frontend Testing**: Required to verify UI changes and chat intelligence
+**Backend Testing**: ✅ COMPLETED - All 4 enhancements verified
+**Frontend Testing**: ⏳ MANUAL TESTING BY USER
+
+---
+
+## 🔧 ADDITIONAL FIX - Nov 4, 2025 (10:25 AM)
+
+### Issue 5: Prophet Time Series Forecast Charts Not Showing
+**Reported By**: User during manual testing
+**Status**: ✅ FIXED
+
+**Problem**: 
+- Prophet forecasting was configured but forecast charts were not displaying
+- Only Anomaly Detection section was visible
+- Backend logs showed error: `"Column ds has timezone specified, which is not supported. Remove timezone."`
+
+**Root Cause**:
+Prophet library does not support timezone-aware datetime columns. The timestamp column in the dataset had timezone information which caused Prophet to fail silently.
+
+**Solution**: 
+Modified `time_series_service.py` to remove timezone from datetime columns before Prophet processing:
+```python
+# Remove timezone from datetime column (Prophet doesn't support timezones)
+if pd.api.types.is_datetime64_any_dtype(df_prophet['ds']):
+    if df_prophet['ds'].dt.tz is not None:
+        df_prophet['ds'] = df_prophet['ds'].dt.tz_localize(None)
+```
+
+**File Modified**: `/app/backend/app/services/time_series_service.py` (lines 123-126)
+
+**Status**: ✅ Backend restarted, fix applied
+**Testing Required**: User should re-run Time Series analysis with Prophet to verify forecast charts now display
 
 ---
 
