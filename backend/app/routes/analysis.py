@@ -926,6 +926,7 @@ async def save_analysis_state(request: SaveStateRequest):
             import gzip
             compressed_data = gzip.compress(state_json.encode('utf-8'))
             
+            db_adapter = get_db()
             file_id = await db_adapter.store_file(
                 f"workspace_{state_id}.json.gz",
                 compressed_data,
