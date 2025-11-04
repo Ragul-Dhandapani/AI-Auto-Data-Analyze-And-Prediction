@@ -114,13 +114,23 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
             <Zap className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-indigo-900 mb-1">Hyperparameter Tuning Analysis</h3>
-            <p className="text-sm text-indigo-700">
-              <strong>What it does:</strong> Automatically finds the best model configuration by testing different parameter combinations.
-            </p>
-            <p className="text-sm text-indigo-600 mt-1">
-              <strong>Advantages:</strong> Maximize model accuracy, reduce manual trial-and-error, discover optimal settings, improve prediction quality by up to 20%.
-            </p>
+            <h3 className="font-semibold text-indigo-900 mb-2 flex items-center gap-2">
+              🎯 Hyperparameter Tuning - Optimize Your ML Models
+            </h3>
+            <div className="space-y-2">
+              <p className="text-sm text-indigo-700">
+                <strong>🔧 What it does:</strong> Automatically finds the best configuration for your ML models by intelligently testing different parameter combinations using cross-validation.
+              </p>
+              <p className="text-sm text-indigo-700">
+                <strong>✅ How it helps:</strong> The tuned hyperparameters are <span className="font-semibold underline">automatically applied</span> to improve your Predictive Analysis models, potentially boosting accuracy by 10-30%.
+              </p>
+              <p className="text-sm text-indigo-600 mt-2">
+                <strong>💡 Benefits:</strong> Maximum accuracy, optimal settings discovery, reduced overfitting, better generalization, time-saving automation.
+              </p>
+              <p className="text-xs text-indigo-500 italic mt-2">
+                Note: After tuning, re-run Predictive Analysis to see the improvements with optimized parameters.
+              </p>
+            </div>
           </div>
         </div>
       </Card>
