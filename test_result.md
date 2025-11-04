@@ -604,6 +604,78 @@ Normalized storage type handling to use `'blob'` instead of `'gridfs'` for cross
 
 ---
 
+## 🔧 ADDITIONAL FIXES - Nov 4, 2025 (12:40 PM)
+
+### Issue 7: Database Defaulting to MongoDB on Restart
+**Reported By**: User during manual testing
+**Status**: ✅ FIXED
+
+**Problem**: Backend was reverting to MongoDB as default after every restart
+
+**Root Cause**: 
+In `factory.py` line 30: `os.getenv('DB_TYPE', 'mongodb')` - default was hardcoded to 'mongodb'
+
+**Solution**: Changed default to 'oracle' per user requirement:
+```python
+db_type = os.getenv('DB_TYPE', 'oracle').lower()  # DEFAULT TO ORACLE
+```
+
+**File Modified**: `/app/backend/app/database/adapters/factory.py` (line 30)
+
+---
+
+### Issue 8: Compact Database Toggle Button
+**Reported By**: User requested small toggle instead of big screen display
+**Status**: ✅ IMPLEMENTED
+
+**New Component**: `CompactDatabaseToggle.jsx`
+- Compact button design (MongoDB | Oracle toggle)
+- Shows active database with colored indicator
+- Integrated into all page headers
+- 15-second backend restart on switch
+
+**Pages Updated**:
+- ✅ DashboardPage.jsx (top nav)
+- ✅ HomePage.jsx (top nav)
+- ✅ TrainingMetadataPage.jsx (header)
+
+---
+
+### Issue 9: Bulk Dataset Deletion Failure
+**Reported By**: User - "Select All" deletion fails, individual works
+**Status**: ✅ FIXED
+
+**Problem**: `Promise.all()` fails completely if ANY single deletion fails
+
+**Solution**: Changed to `Promise.allSettled()` for graceful partial failure handling:
+```javascript
+const results = await Promise.allSettled(deletePromises);
+const succeeded = results.filter(r => r.status === 'fulfilled').length;
+const failed = results.filter(r => r.status === 'rejected').length;
+```
+
+**File Modified**: `/app/frontend/src/pages/DashboardPage.jsx` (lines 192-218)
+**Behavior**: Now shows "Deleted X dataset(s). Failed to delete Y dataset(s)." for partial failures
+
+---
+
+### Issue 10: Auto Clean Data React Error
+**Reported By**: User - "Objects are not valid as a React child" error
+**Status**: ✅ FIXED
+
+**Error**: `Objects are not valid as a React child (found: object with keys {action, details})`
+
+**Root Cause**: Backend returns cleaning_report items as objects `{action, details}` but frontend was rendering them directly
+
+**Solution**: Added object type check and proper rendering:
+```jsx
+<li>✓ {typeof item === 'object' ? `${item.action}: ${item.details}` : item}</li>
+```
+
+**File Modified**: `/app/frontend/src/components/DataProfiler.jsx` (line 326)
+
+---
+
 ## 🔍 TRAINING METADATA INVESTIGATION - Nov 3, 2025
 
 ### Investigation: "Latency_2_Oracle" Workspace Missing from Training Metadata
