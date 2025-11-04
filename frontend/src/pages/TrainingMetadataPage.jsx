@@ -168,12 +168,10 @@ const TrainingMetadataPage = () => {
               </p>
             </div>
           </div>
+          
+          {/* Compact Database Toggle */}
+          <CompactDatabaseToggle />
         </div>
-      </div>
-
-      {/* Database Switcher - TEMPORARY FOR TESTING */}
-      <div className="mb-6">
-        <DatabaseSwitcher />
       </div>
 
       {metadata.length === 0 ? (
