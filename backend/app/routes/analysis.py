@@ -932,7 +932,7 @@ async def save_analysis_state(request: SaveStateRequest):
             import gzip
             compressed_data = gzip.compress(state_json.encode('utf-8'))
             
-            file_id = await fs.upload_from_stream(
+            file_id = await db_adapter.store_file(
                 f"workspace_{state_id}.json.gz",
                 compressed_data,
                 metadata={
@@ -940,9 +940,7 @@ async def save_analysis_state(request: SaveStateRequest):
                     "state_id": state_id,
                     "dataset_id": request.dataset_id,
                     "state_name": request.state_name,
-                    "compressed": True,
-                    "original_size": state_size,
-                    "compressed_size": len(compressed_data)
+                    "compressed": True
                 }
             )
             
@@ -1003,8 +1001,7 @@ async def load_analysis_state(state_id: str):
         if state.get("storage_type") == "gridfs":
             gridfs_file_id = state.get("gridfs_file_id")
             if gridfs_file_id:
-                grid_out = await fs.open_download_stream(ObjectId(gridfs_file_id))
-                data = await grid_out.read()
+                data = await db_adapter.retrieve_file(gridfs_file_id)
                 
                 # Check if data is compressed
                 metadata = await grid_out.metadata
@@ -1052,7 +1049,7 @@ async def delete_analysis_state(state_id: str):
         # Delete GridFS file if exists
         if state.get("storage_type") == "gridfs" and state.get("gridfs_file_id"):
             try:
-                await fs.delete(ObjectId(state["gridfs_file_id"]))
+                await db_adapter.delete_file(state["gridfs_file_id"])
             except:
                 pass
         
