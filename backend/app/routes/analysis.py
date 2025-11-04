@@ -204,9 +204,15 @@ Provide actionable insights in bullet points about:
 
 
 async def load_dataframe(dataset_id: str) -> pd.DataFrame:
-    """Helper function to load DataFrame from dataset - ADAPTER VERSION"""
-    import logging
-    logger = logging.getLogger(__name__)
+    """Load dataset into DataFrame with caching for performance"""
+    
+    # Check cache first
+    if dataset_id in dataframe_cache:
+        logger.info(f"✅ DataFrame loaded from cache for dataset {dataset_id}")
+        return dataframe_cache[dataset_id].copy()  # Return a copy to prevent mutations
+    
+    logger.info(f"Loading dataset {dataset_id} from database...")
+    start_time = time.time()
     
     db_adapter = get_db()
     dataset = await db_adapter.get_dataset(dataset_id)
