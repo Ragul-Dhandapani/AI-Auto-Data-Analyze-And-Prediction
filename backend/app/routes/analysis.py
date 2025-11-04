@@ -11,6 +11,9 @@ from bson import ObjectId
 import json
 import uuid
 import io
+from functools import lru_cache
+from cachetools import TTLCache
+import time
 
 from app.models.pydantic_models import HolisticRequest, SaveStateRequest
 from app.database.db_helper import get_db
@@ -28,6 +31,10 @@ from app.services.chart_intelligence_service import chart_intelligence
 from app.services.variable_intelligence_service import variable_intelligence
 import os
 import logging
+
+# DataFrame cache: Stores loaded DataFrames for 30 minutes to avoid redundant BLOB retrievals
+# Cache size: 100 datasets max, TTL: 1800 seconds (30 min)
+dataframe_cache = TTLCache(maxsize=100, ttl=1800)
 
 logger = logging.getLogger(__name__)
 
