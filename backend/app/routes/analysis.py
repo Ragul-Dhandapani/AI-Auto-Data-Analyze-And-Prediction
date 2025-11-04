@@ -296,6 +296,12 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
         
         df = pd.DataFrame(data)
         logger.info(f"DataFrame loaded from inline data: {df.shape}")
+        
+        # Cache the DataFrame for future use
+        dataframe_cache[dataset_id] = df.copy()
+        load_time = time.time() - start_time
+        logger.info(f"✅ DataFrame cached for dataset {dataset_id} (load time: {load_time:.2f}s)")
+        
         return df
 
 
