@@ -845,7 +845,7 @@ async def holistic_analysis(request: Dict[str, Any]):
 
 @router.post("/chat-action")
 async def chat_action(request: Dict[str, Any]):
-    """Handle chat-based analysis actions"""
+    """Handle chat-based analysis actions with LLM-powered intelligence"""
     try:
         dataset_id = request.get("dataset_id")
         message = request.get("message", "")
@@ -856,14 +856,18 @@ async def chat_action(request: Dict[str, Any]):
         # Get LLM key
         llm_key = os.environ.get('EMERGENT_LLM_KEY')
         
-        # Process message
-        result = process_chat_message(df, message, conversation_history, llm_key)
+        # Import the async version
+        from app.services.chat_service import process_chat_message_async
+        
+        # Process message with LLM intelligence
+        result = await process_chat_message_async(df, message, conversation_history, llm_key)
         
         return result
         
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Chat action error: {str(e)}")
         raise HTTPException(500, f"Chat action failed: {str(e)}")
 
 
