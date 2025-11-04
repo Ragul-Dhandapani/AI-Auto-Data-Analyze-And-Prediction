@@ -120,6 +120,11 @@ def forecast_with_prophet(
         if not pd.api.types.is_datetime64_any_dtype(df_prophet['ds']):
             df_prophet['ds'] = pd.to_datetime(df_prophet['ds'])
         
+        # CRITICAL FIX: Remove timezone from datetime column (Prophet doesn't support timezones)
+        if pd.api.types.is_datetime64_any_dtype(df_prophet['ds']):
+            if df_prophet['ds'].dt.tz is not None:
+                df_prophet['ds'] = df_prophet['ds'].dt.tz_localize(None)
+        
         # Remove missing values
         df_prophet = df_prophet.dropna()
         
