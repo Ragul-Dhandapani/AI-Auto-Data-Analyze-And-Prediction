@@ -1,0 +1,11 @@
+id,name,age,salary,department,performance_score,years_experience
+1,John Smith,28,65000,Engineering,8.5,3
+2,Sarah Johnson,32,75000,Marketing,9.2,5
+3,Mike Brown,25,55000,Engineering,7.8,2
+4,Lisa Davis,29,68000,Sales,8.9,4
+5,Tom Wilson,35,82000,Engineering,9.5,7
+6,Emma Garcia,27,62000,Marketing,8.1,3
+7,David Lee,31,71000,Sales,8.7,5
+8,Anna Martinez,26,58000,Engineering,7.9,2
+9,Chris Taylor,33,79000,Marketing,9.1,6
+10,Jessica White,30,73000,Sales,8.6,4
