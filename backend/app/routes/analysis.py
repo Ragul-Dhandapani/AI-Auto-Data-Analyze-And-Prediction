@@ -1498,11 +1498,8 @@ async def join_datasets(request: Dict[str, Any]):
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.datasets.insert_one(dataset_doc)
-        
-        # Store data
-        data_collection = f"data_{joined_id}"
-        await db[data_collection].insert_many(result_df.to_dict('records'))
+        db_adapter = get_db()
+        dataset_id = await db_adapter.create_dataset(dataset_doc)
         
         return {
             "success": True,
