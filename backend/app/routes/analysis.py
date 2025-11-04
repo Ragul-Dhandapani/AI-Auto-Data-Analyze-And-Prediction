@@ -89,7 +89,7 @@ async def run_analysis(request: Dict[str, Any]):
                         "data": chart.get("plotly_data")  # Frontend expects 'data' field
                     })
                 else:
-                    skipped.append({
+                    skipped_charts.append({
                         "title": chart.get("title", "Chart"),
                         "reason": "Missing or invalid plotly data"
                     })
