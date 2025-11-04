@@ -148,11 +148,12 @@ def tune_hyperparameters_random(
     model_type: str,
     problem_type: str,
     param_distributions: Dict[str, List] = None,
-    n_iter: int = 20,
-    cv: int = 3
+    n_iter: int = 10,  # OPTIMIZED: Reduced from 20 to 10
+    cv: int = 2        # OPTIMIZED: Reduced from 3 to 2
 ) -> Dict[str, Any]:
     """
     Perform random search hyperparameter tuning
+    ULTRA-OPTIMIZED: n_iter=10, CV=2 for maximum speed
     
     Args:
         X_train: Training features
@@ -160,8 +161,8 @@ def tune_hyperparameters_random(
         model_type: Type of model to tune
         problem_type: "regression" or "classification"
         param_distributions: Custom parameter distributions
-        n_iter: Number of random combinations to try
-        cv: Number of cross-validation folds
+        n_iter: Number of random combinations to try (default 10)
+        cv: Number of cross-validation folds (default 2)
     
     Returns:
         Dictionary with best parameters and scores
