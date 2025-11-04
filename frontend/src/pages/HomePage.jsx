@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import DatabaseSwitcher from "@/components/DatabaseSwitcher";
+import CompactDatabaseToggle from "@/components/CompactDatabaseToggle";
 import { 
   Database, 
   Upload, 
