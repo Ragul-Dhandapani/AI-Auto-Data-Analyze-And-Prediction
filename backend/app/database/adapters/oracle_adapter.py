@@ -257,11 +257,28 @@ class OracleAdapter(DatabaseAdapter):
         return rows_affected > 0
     
     async def delete_dataset(self, dataset_id: str) -> bool:
-        """Delete dataset (cascade deletes workspaces and feedback)"""
-        query = "DELETE FROM datasets WHERE id = :id"
-        rows_affected = await self._execute(query, {'id': dataset_id})
-        logger.info(f"✅ Deleted dataset: {dataset_id}")
-        return rows_affected > 0
+        """Delete dataset (cascade deletes workspaces, files, and feedback)"""
+        try:
+            # First, get the dataset to find associated file_id
+            dataset = await self.get_dataset(dataset_id)
+            
+            if dataset and dataset.get('file_id'):
+                # Delete associated file from BLOB storage
+                try:
+                    await self.delete_file(dataset['file_id'])
+                    logger.info(f"✅ Deleted associated file: {dataset['file_id']}")
+                except Exception as e:
+                    logger.warning(f"Could not delete file {dataset['file_id']}: {e}")
+            
+            # Delete the dataset (CASCADE constraints will handle workspaces/feedback)
+            query = "DELETE FROM datasets WHERE id = :id"
+            rows_affected = await self._execute(query, {'id': dataset_id})
+            logger.info(f"✅ Deleted dataset: {dataset_id}")
+            return rows_affected > 0
+            
+        except Exception as e:
+            logger.error(f"Error deleting dataset {dataset_id}: {e}")
+            raise
     
     async def increment_training_count(self, dataset_id: str) -> bool:
         """Increment training count"""
