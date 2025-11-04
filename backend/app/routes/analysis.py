@@ -56,7 +56,8 @@ async def run_analysis(request: Dict[str, Any]):
             # Update dataset with cleaned data if changes were made
             if cleaning_report:
                 # Store cleaned data
-                dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+                db_adapter = get_db()
+        dataset = await db_adapter.get_dataset(dataset_id)
                 if dataset:
                     data_dict = cleaned_df.to_dict('records')
                     await db.datasets.update_one(
@@ -323,10 +324,8 @@ async def holistic_analysis(request: Dict[str, Any]):
             df_analysis = df.copy()
         
         # Update training counter
-        await db.datasets.update_one(
-            {"id": dataset_id},
-            {"$inc": {"training_count": 1}}
-        )
+        db_adapter = get_db()
+        await db_adapter.increment_training_count(dataset_id)
         
         # 1. Data Profiling (use full dataset for profiling)
         profile = generate_data_profile(df)
@@ -721,7 +720,8 @@ async def holistic_analysis(request: Dict[str, Any]):
             logging.error(f"Business recommendations failed: {str(e)}", exc_info=True)
         
         # Get dataset info for training metadata
-        dataset = await db.datasets.find_one({"id": dataset_id}, {"_id": 0})
+        db_adapter = get_db()
+        dataset = await db_adapter.get_dataset(dataset_id)
         training_count = dataset.get("training_count", 1)
         last_trained_at = dataset.get("updated_at", datetime.now(timezone.utc).isoformat())
         
@@ -976,7 +976,8 @@ async def save_analysis_state(request: SaveStateRequest):
             logger.info(f"Stored directly in MongoDB: {state_size / 1024:.2f} KB")
         
         # Insert with timeout protection
-        await db.saved_states.insert_one(state_doc)
+        db_adapter = get_db()
+        await db_adapter.save_workspace(state_doc)
         
         return {
             "state_id": state_id,
@@ -995,7 +996,8 @@ async def save_analysis_state(request: SaveStateRequest):
 async def load_analysis_state(state_id: str):
     """Load saved analysis state - OPTIMIZED"""
     try:
-        state = await db.saved_states.find_one({"id": state_id}, {"_id": 0})
+        db_adapter = get_db()
+        state = await db_adapter.get_workspace(state_id)
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
@@ -1044,7 +1046,8 @@ async def get_saved_states(dataset_id: str):
 async def delete_analysis_state(state_id: str):
     """Delete saved analysis state"""
     try:
-        state = await db.saved_states.find_one({"id": state_id}, {"_id": 0})
+        db_adapter = get_db()
+        state = await db_adapter.get_workspace(state_id)
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
@@ -1056,7 +1059,8 @@ async def delete_analysis_state(state_id: str):
                 pass
         
         # Delete metadata
-        result = await db.saved_states.delete_one({"id": state_id})
+        db_adapter = get_db()
+        result = await db_adapter.delete_workspace(state_id)
         if result.deleted_count == 0:
             raise HTTPException(404, "Analysis state not found")
         
@@ -1088,7 +1092,8 @@ async def validate_chart_request(request: Dict[str, Any]):
             raise HTTPException(400, "Missing required fields: dataset_id, chart_type, column")
         
         # Load dataset
-        dataset = await db.datasets.find_one({"id": dataset_id})
+        db_adapter = get_db()
+        dataset = await db_adapter.get_dataset(dataset_id)
         if not dataset:
             raise HTTPException(404, "Dataset not found")
         
@@ -1135,7 +1140,8 @@ async def validate_variables(request: Dict[str, Any]):
             target_variables = [target_variables] if target_variables else []
         
         # Load dataset
-        dataset = await db.datasets.find_one({"id": dataset_id})
+        db_adapter = get_db()
+        dataset = await db_adapter.get_dataset(dataset_id)
         if not dataset:
             raise HTTPException(404, "Dataset not found")
         
@@ -1207,10 +1213,8 @@ async def time_series_analysis_endpoint(request: Dict[str, Any]):
         )
         
         # Update training counter
-        await db.datasets.update_one(
-            {"id": dataset_id},
-            {"$inc": {"training_count": 1}}
-        )
+        db_adapter = get_db()
+        await db_adapter.increment_training_count(dataset_id)
         
         return results
         
