@@ -517,3 +517,35 @@ def handle_pie_chart_request_v2(df: pd.DataFrame, col: str, message: str) -> Dic
         }
     except Exception as e:
         return {"type": "error", "message": f"❌ Error creating pie chart: {str(e)}", "success": False}
+
+
+def handle_histogram_chart_request(df: pd.DataFrame, col: str, message: str) -> Dict[str, Any]:
+    """Create histogram for numeric column distribution"""
+    try:
+        # Check if column is numeric
+        if df[col].dtype not in ['int64', 'float64', 'int32', 'float32']:
+            return {"type": "error", "message": f"❌ Column '{col}' is not numeric. Histograms require numeric data.", "success": False}
+        
+        chart_data = {
+            "x": df[col].dropna().tolist(),
+            "type": "histogram",
+            "name": col,
+            "marker": {"color": "rgba(100, 200, 102, 0.7)"}
+        }
+        
+        layout = {
+            "title": f"Distribution of {col}",
+            "xaxis": {"title": col},
+            "yaxis": {"title": "Frequency"}
+        }
+        
+        return {
+            "type": "chart",
+            "chart_type": "histogram",
+            "data": [chart_data],
+            "layout": layout,
+            "message": f"✅ Created histogram showing distribution of {col}",
+            "success": True
+        }
+    except Exception as e:
+        return {"type": "error", "message": f"❌ Error creating histogram: {str(e)}", "success": False}
