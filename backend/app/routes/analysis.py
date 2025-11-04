@@ -999,14 +999,15 @@ async def load_analysis_state(state_id: str):
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
-        # Load from GridFS if needed
-        if state.get("storage_type") == "gridfs":
-            gridfs_file_id = state.get("gridfs_file_id")
-            if gridfs_file_id:
-                data = await db_adapter.retrieve_file(gridfs_file_id)
+        # Load from BLOB/GridFS if needed
+        if state.get("storage_type") in ["blob", "gridfs"]:
+            # Support both old 'gridfs_file_id' and new 'file_id' field names
+            file_id = state.get("file_id") or state.get("gridfs_file_id")
+            if file_id:
+                data = await db_adapter.retrieve_file(file_id)
                 
                 # Check if data is compressed (assume it is if filename ends with .gz)
-                if gridfs_file_id and str(gridfs_file_id).endswith('.gz'):
+                if file_id and str(file_id).endswith('.gz'):
                     import gzip
                     data = gzip.decompress(data)
                 
@@ -1015,6 +1016,7 @@ async def load_analysis_state(state_id: str):
                 state["analysis_data"] = full_state_data.get("analysis_data", {})
                 state["chat_history"] = full_state_data.get("chat_history", [])
                 state.pop("gridfs_file_id", None)
+                state.pop("file_id", None)
                 state.pop("storage_type", None)
         
         return state
