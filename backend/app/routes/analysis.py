@@ -924,9 +924,9 @@ async def save_analysis_state(request: SaveStateRequest):
         
         logger.info(f"Saving workspace: {request.state_name}, size: {state_size / 1024:.2f} KB")
         
-        # Choose storage method - Use GridFS for anything > 2MB
+        # Choose storage method - Use BLOB/GridFS for anything > 2MB
         if state_size > 2 * 1024 * 1024:  # 2MB threshold (reduced from 10MB)
-            # Store in GridFS with compression
+            # Store in BLOB/GridFS with compression
             import gzip
             compressed_data = gzip.compress(state_json.encode('utf-8'))
             
@@ -943,20 +943,23 @@ async def save_analysis_state(request: SaveStateRequest):
                 }
             )
             
+            # Use 'blob' for Oracle, 'gridfs' is MongoDB-specific but we normalize to 'blob'
+            storage_type = "blob"  # Works for both MongoDB (GridFS) and Oracle (BLOB)
+            
             state_doc = {
                 "id": state_id,
                 "dataset_id": request.dataset_id,
                 "state_name": request.state_name,
-                "storage_type": "gridfs",
-                "gridfs_file_id": str(file_id),
+                "storage_type": storage_type,
+                "file_id": str(file_id),  # Renamed from gridfs_file_id for compatibility
                 "size_bytes": state_size,
                 "compressed_size": len(compressed_data),
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
-            logger.info(f"Stored in GridFS with compression: {len(compressed_data) / 1024:.2f} KB")
+            logger.info(f"Stored in BLOB storage with compression: {len(compressed_data) / 1024:.2f} KB")
         else:
-            # Store directly in MongoDB
+            # Store directly in database
             state_doc = {
                 "id": state_id,
                 "dataset_id": request.dataset_id,
@@ -968,7 +971,7 @@ async def save_analysis_state(request: SaveStateRequest):
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
-            logger.info(f"Stored directly in MongoDB: {state_size / 1024:.2f} KB")
+            logger.info(f"Stored directly in database: {state_size / 1024:.2f} KB")
         
         # Insert with timeout protection
         db_adapter = get_db()
