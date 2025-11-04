@@ -913,13 +913,13 @@ async def save_analysis_state(request: SaveStateRequest):
         
         logger.info(f"Saving workspace: {request.state_name}, size: {state_size / 1024:.2f} KB")
         
-        # Choose storage method - Use GridFS for anything > 2MB
+        # Choose storage method - Use BLOB for anything > 2MB
         if state_size > 2 * 1024 * 1024:  # 2MB threshold (reduced from 10MB)
-            # Store in GridFS with compression
+            # Store in BLOB with compression
             import gzip
             compressed_data = gzip.compress(state_json.encode('utf-8'))
             
-            file_id = await fs.upload_from_stream(
+            file_id = await db_adapter.store_file(
                 f"workspace_{state_id}.json.gz",
                 compressed_data,
                 metadata={
