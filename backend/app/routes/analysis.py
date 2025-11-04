@@ -7,13 +7,14 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any
 from datetime import datetime, timezone
-from bson import ObjectId
 import json
 import uuid
 import io
+from cachetools import TTLCache
+import time
 
 from app.models.pydantic_models import HolisticRequest, SaveStateRequest
-from app.database.mongodb import db, fs
+from app.database.db_helper import get_db
 from app.services.data_service import generate_data_profile, get_correlation_matrix, clean_data
 from app.services.ml_service import train_multiple_models, suggest_best_target_column, train_models_auto, detect_problem_type
 from app.services.visualization_service import generate_auto_charts
