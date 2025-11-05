@@ -329,16 +329,33 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
     }
   };
 
-  // Filter charts to only show those with valid data
-  const validCharts = charts.filter(chart => 
-    chart && 
-    chart.data
-  );
+  // Filter charts to only show those with valid data - ENHANCED ERROR HANDLING
+  const validCharts = Array.isArray(charts) ? charts.filter(chart => {
+    try {
+      return chart && 
+             chart.data && 
+             chart.plotly_data &&
+             chart.plotly_data.data &&
+             Array.isArray(chart.plotly_data.data) &&
+             chart.plotly_data.data.length > 0;
+    } catch (e) {
+      console.warn('Invalid chart detected:', e);
+      return false;
+    }
+  }) : [];
 
-  const validCustomCharts = customCharts.filter(chart =>
-    chart && 
-    chart.plotly_data
-  );
+  const validCustomCharts = Array.isArray(customCharts) ? customCharts.filter(chart => {
+    try {
+      return chart && 
+             chart.plotly_data &&
+             chart.plotly_data.data &&
+             Array.isArray(chart.plotly_data.data) &&
+             chart.plotly_data.data.length > 0;
+    } catch (e) {
+      console.warn('Invalid custom chart detected:', e);
+      return false;
+    }
+  }) : [];
 
   if (loading && validCharts.length === 0) {
     return (
