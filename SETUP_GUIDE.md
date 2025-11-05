@@ -1,548 +1,498 @@
-# PROMISE AI - Complete Setup Guide
+# PROMISE AI - Complete Setup Guide (Oracle Edition)
 
-This guide provides detailed step-by-step instructions for setting up PROMISE AI on your local machine.
+**Last Updated**: November 5, 2025  
+**Version**: 2.0 (Oracle Primary Database)
 
-## 📋 Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-### Required Software
-
-| Software | Version | Download Link | Verification Command |
-|----------|---------|---------------|----------------------|
-| Python | 3.11.x or higher | [python.org](https://www.python.org/downloads/) | `python --version` |
-| pip | 23.0 or higher | Included with Python | `pip --version` |
-| Node.js | 18.x or higher | [nodejs.org](https://nodejs.org/) | `node --version` |
-| npm | 9.x or higher | Included with Node.js | `npm --version` |
-| yarn | 1.22.x or higher | `npm install -g yarn` | `yarn --version` |
-| MongoDB | 5.0 or higher | [mongodb.com](https://www.mongodb.com/try/download/community) | `mongod --version` |
-| Git | Latest | [git-scm.com](https://git-scm.com/) | `git --version` |
-
-### Optional Software
-
-- **Docker**: For containerized deployment
-- **MongoDB Compass**: GUI for MongoDB
-- **Postman**: API testing
-
-## 🔧 System Requirements
-
-### Minimum Requirements
-- **OS**: Linux (Ubuntu 20.04+), macOS (10.15+), Windows 10+
-- **RAM**: 8 GB
-- **Storage**: 10 GB free space
-- **CPU**: 4 cores
-
-### Recommended Requirements
-- **OS**: Linux (Ubuntu 22.04+), macOS (12+)
-- **RAM**: 16 GB or more
-- **Storage**: 50 GB free space
-- **CPU**: 8 cores or more
-
-## 📥 Installation Steps
-
-### Step 1: Install Python 3.11
-
-#### On Ubuntu/Debian:
-```bash
-sudo apt update
-sudo apt install software-properties-common
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt update
-sudo apt install python3.11 python3.11-venv python3.11-dev
-
-# Verify installation
-python3.11 --version
-```
-
-#### On macOS:
-```bash
-# Using Homebrew
-brew install python@3.11
-
-# Verify installation
-python3.11 --version
-```
-
-#### On Windows:
-1. Download Python 3.11 installer from [python.org](https://www.python.org/downloads/)
-2. Run installer and check "Add Python to PATH"
-3. Verify: `python --version`
-
-### Step 2: Install pip (Latest Version)
-
-```bash
-# Upgrade pip
-python3.11 -m pip install --upgrade pip
-
-# Verify
-pip --version
-# Should show: pip 23.x or higher
-```
-
-### Step 3: Install Node.js 18.x
-
-#### On Ubuntu/Debian:
-```bash
-# Using NodeSource
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Verify
-node --version  # Should show v18.x.x
-npm --version
-```
-
-#### On macOS:
-```bash
-# Using Homebrew
-brew install node@18
-
-# Verify
-node --version
-npm --version
-```
-
-#### On Windows:
-1. Download Node.js 18.x LTS from [nodejs.org](https://nodejs.org/)
-2. Run installer
-3. Verify in Command Prompt: `node --version`
-
-### Step 4: Install Yarn
-
-```bash
-# Install globally via npm
-npm install -g yarn
-
-# Verify
-yarn --version
-# Should show: 1.22.x or higher
-```
-
-### Step 5: Install MongoDB
-
-#### On Ubuntu/Debian:
-```bash
-# Import MongoDB public key
-wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
-
-# Add MongoDB repository
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
-
-# Install MongoDB
-sudo apt-get update
-sudo apt-get install -y mongodb-org
-
-# Start MongoDB
-sudo systemctl start mongod
-sudo systemctl enable mongod
-
-# Verify
-sudo systemctl status mongod
-mongod --version
-```
-
-#### On macOS:
-```bash
-# Using Homebrew
-brew tap mongodb/brew
-brew install mongodb-community@5.0
-
-# Start MongoDB
-brew services start mongodb-community@5.0
-
-# Verify
-mongosh --version
-```
-
-#### On Windows:
-1. Download MongoDB Community Server from [mongodb.com](https://www.mongodb.com/try/download/community)
-2. Run installer (choose "Complete" installation)
-3. Install as Windows Service
-4. Verify: Open Command Prompt and run `mongod --version`
-
-## 🚀 Project Setup
-
-### Step 1: Clone Repository
-
-```bash
-# Clone the repository
-git clone <your-repository-url>
-cd promise-ai
-```
-
-### Step 2: Backend Setup
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Create Python virtual environment
-python3.11 -m venv venv
-
-# Activate virtual environment
-# On Linux/macOS:
-source venv/bin/activate
-
-# On Windows:
-venv\Scripts\activate
-
-# Upgrade pip in virtual environment
-pip install --upgrade pip
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# This will install:
-# - fastapi==0.104.1
-# - uvicorn[standard]==0.24.0
-# - motor==3.3.2
-# - pandas==2.1.3
-# - numpy==1.26.2
-# - scikit-learn==1.3.2
-# - xgboost==2.0.2
-# - tensorflow==2.15.0
-# - prophet==1.1.5
-# - shap==0.43.0
-# - lime==0.2.0.1
-# - And many more...
-```
-
-### Step 3: Backend Configuration
-
-```bash
-# Create .env file
-cp .env.example .env
-
-# Edit .env file with your settings
-nano .env  # or use any text editor
-```
-
-**Backend .env Configuration:**
-```env
-# MongoDB Configuration
-MONGO_URL=mongodb://localhost:27017
-DB_NAME=autopredict_db
-
-# LLM Configuration (Optional - for AI insights)
-EMERGENT_LLM_KEY=your_emergent_llm_key_here
-LLM_PROVIDER=emergent
-LLM_MODEL=gpt-4
-
-# Server Configuration
-PORT=8001
-HOST=0.0.0.0
-
-# Environment
-ENV=development
-LOG_LEVEL=INFO
-```
-
-### Step 4: Create MongoDB Indexes
-
-```bash
-# Still in backend directory with venv activated
-python create_indexes.py
-
-# Expected output:
-# 🔧 Creating MongoDB indexes for performance optimization...
-# 📊 Creating indexes for 'datasets' collection...
-#    ✅ Created indexes on: id, created_at, name
-# ...
-# ✨ All indexes created successfully!
-```
-
-### Step 5: Frontend Setup
-
-```bash
-# Open new terminal, navigate to frontend
-cd frontend
-
-# Install dependencies using yarn (recommended)
-yarn install
-
-# OR using npm
-npm install
-
-# This will install:
-# - react@18.2.0
-# - vite@5.0.0
-# - axios@1.6.2
-# - plotly.js@2.27.1
-# - And many more...
-```
-
-### Step 6: Frontend Configuration
-
-```bash
-# Create .env file
-cp .env.example .env
-
-# Edit .env file
-nano .env
-```
-
-**Frontend .env Configuration:**
-```env
-# Backend API URL
-REACT_APP_BACKEND_URL=http://localhost:8001
-
-# Optional: Other configurations
-VITE_APP_NAME=PROMISE AI
-```
-
-## ▶️ Running the Application
-
-### Start Backend
-
-```bash
-# Terminal 1: Backend
-cd backend
-source venv/bin/activate  # Activate venv
-python server.py
-
-# Expected output:
-# INFO:     Uvicorn running on http://0.0.0.0:8001
-# INFO:     Application startup complete.
-```
-
-**Backend will be available at:** `http://localhost:8001`
-
-### Start Frontend
-
-```bash
-# Terminal 2: Frontend
-cd frontend
-yarn dev  # or npm run dev
-
-# Expected output:
-# VITE v5.0.0  ready in 1234 ms
-# ➜  Local:   http://localhost:3000/
-```
-
-**Frontend will be available at:** `http://localhost:3000`
-
-### Verify Installation
-
-1. **Check Backend API:**
-   ```bash
-   curl http://localhost:8001/api/datasets
-   # Should return: {"datasets": []}
-   ```
-
-2. **Check Frontend:**
-   - Open browser: `http://localhost:3000`
-   - You should see PROMISE AI homepage
-
-3. **Check MongoDB:**
-   ```bash
-   mongosh
-   use autopredict_db
-   show collections
-   ```
-
-## 🔍 Troubleshooting
-
-### Python Issues
-
-**Problem:** `python3.11: command not found`
-```bash
-# Solution: Verify Python installation
-which python3.11
-python3 --version
-
-# Try using python3 instead
-python3 -m venv venv
-```
-
-**Problem:** `ModuleNotFoundError`
-```bash
-# Solution: Ensure venv is activated and reinstall
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-### Node.js Issues
-
-**Problem:** `node: command not found`
-```bash
-# Solution: Verify Node installation
-which node
-node --version
-
-# Add Node to PATH (on Linux/macOS)
-export PATH="$PATH:/usr/local/bin"
-```
-
-**Problem:** `yarn: command not found`
-```bash
-# Solution: Install yarn globally
-npm install -g yarn
-```
-
-### MongoDB Issues
-
-**Problem:** `Connection refused to MongoDB`
-```bash
-# Solution 1: Start MongoDB
-sudo systemctl start mongod  # Linux
-brew services start mongodb-community  # macOS
-
-# Solution 2: Check MongoDB status
-sudo systemctl status mongod
-
-# Solution 3: Check MongoDB logs
-sudo tail -f /var/log/mongodb/mongod.log
-```
-
-**Problem:** `Authentication failed`
-```bash
-# Solution: If you have authentication enabled
-# Update MONGO_URL in .env:
-MONGO_URL=mongodb://username:password@localhost:27017/autopredict_db
-```
-
-### Port Already in Use
-
-**Problem:** `Address already in use: 8001`
-```bash
-# Solution: Kill process using port
-# On Linux/macOS:
-lsof -ti:8001 | xargs kill -9
-
-# On Windows:
-netstat -ano | findstr :8001
-taskkill /PID <PID> /F
-```
-
-### Frontend Not Loading
-
-**Problem:** Blank page or errors in browser
-```bash
-# Solution 1: Clear cache
-# Chrome: Ctrl+Shift+Del, clear cache
-
-# Solution 2: Check backend URL in .env
-# frontend/.env should have correct REACT_APP_BACKEND_URL
-
-# Solution 3: Rebuild frontend
-cd frontend
-rm -rf node_modules
-yarn install
-yarn dev
-```
-
-## 🎯 Quick Start Script
-
-Create `start.sh` in project root:
-
-```bash
-#!/bin/bash
-
-# Start MongoDB
-if ! pgrep -x "mongod" > /dev/null
-then
-    echo "Starting MongoDB..."
-    sudo systemctl start mongod
-fi
-
-# Start Backend
-echo "Starting Backend..."
-cd backend
-source venv/bin/activate
-python server.py &
-BACKEND_PID=$!
-
-# Wait for backend
-sleep 3
-
-# Start Frontend
-echo "Starting Frontend..."
-cd ../frontend
-yarn dev &
-FRONTEND_PID=$!
-
-echo "✅ PROMISE AI is running!"
-echo "Frontend: http://localhost:3000"
-echo "Backend: http://localhost:8001"
-echo ""
-echo "Press Ctrl+C to stop"
-
-# Wait and cleanup on exit
-trap "kill $BACKEND_PID $FRONTEND_PID; exit" INT TERM
-wait
-```
-
-Make it executable and run:
-```bash
-chmod +x start.sh
-./start.sh
-```
-
-## 📦 Production Deployment
-
-### Using Docker
-
-```bash
-# Build images
-docker-compose build
-
-# Start services
-docker-compose up -d
-```
-
-### Using Supervisor (Linux)
-
-```bash
-# Install supervisor
-sudo apt install supervisor
-
-# Copy config files
-sudo cp deploy/backend.conf /etc/supervisor/conf.d/
-sudo cp deploy/frontend.conf /etc/supervisor/conf.d/
-
-# Reload supervisor
-sudo supervisorctl reread
-sudo supervisorctl update
-
-# Start services
-sudo supervisorctl start backend
-sudo supervisorctl start frontend
-```
-
-## ✅ Verification Checklist
-
-- [ ] Python 3.11+ installed and verified
-- [ ] pip 23.0+ installed and verified
-- [ ] Node.js 18.x+ installed and verified
-- [ ] npm 9.x+ installed and verified
-- [ ] yarn 1.22.x+ installed and verified
-- [ ] MongoDB 5.0+ installed and running
-- [ ] Backend dependencies installed
-- [ ] Frontend dependencies installed
-- [ ] MongoDB indexes created
-- [ ] .env files configured
-- [ ] Backend running on port 8001
-- [ ] Frontend running on port 3000
-- [ ] Can access application in browser
-- [ ] Can upload dataset and run analysis
-
-## 🎓 Next Steps
-
-After successful setup:
-
-1. Read [API Documentation](API_DOCUMENTATION.md) for backend API reference
-2. Review [Database Schema](DATABASE_SCHEMA.md) for data structure
-3. Explore [MCP Server](MCP_SERVER.md) for AI assistant integration
-4. Upload a sample dataset and run your first analysis!
-
-## 📞 Support
-
-If you encounter any issues:
-1. Check this guide's troubleshooting section
-2. Review application logs
-3. Check GitHub issues
-4. Contact support team
+This guide provides detailed step-by-step instructions for setting up PROMISE AI with Oracle RDS as the primary database.
 
 ---
 
-**Happy Analyzing! 🚀**
+## 📋 Overview
+
+PROMISE AI is a full-stack AI/ML platform featuring:
+- **Backend**: FastAPI (Python 3.11)
+- **Frontend**: React.js with Vite
+- **Primary Database**: Oracle 19c RDS (AWS)
+- **Secondary Database**: MongoDB (optional)
+- **AI Integration**: Emergent LLM key (GPT-4o-mini, Claude Sonnet 4)
+- **ML Libraries**: scikit-learn, XGBoost, Prophet, LSTM
+
+---
+
+## 🎯 Quick Start (Production Environment)
+
+The application is already deployed and running in a Kubernetes container with:
+- ✅ Backend: FastAPI on port 8001
+- ✅ Frontend: React on port 3000
+- ✅ Oracle RDS: Connected and operational
+- ✅ Oracle Instant Client: Pre-installed (may need reinstallation after restarts)
+
+### Service Management
+
+```bash
+# Check status
+sudo supervisorctl status
+
+# Restart services
+sudo supervisorctl restart backend
+sudo supervisorctl restart frontend
+sudo supervisorctl restart all
+
+# View logs
+tail -n 100 /var/log/supervisor/backend.err.log
+tail -n 100 /var/log/supervisor/frontend.err.log
+```
+
+---
+
+## 🔧 Oracle Instant Client Setup
+
+### Current Configuration
+
+**Location**: `/opt/oracle/`  
+**Version**: Oracle Instant Client 19.23 (ARM64)  
+**Main Library**: `libclntsh.so.19.1` (50 MB)
+
+### Installation Script
+
+```bash
+# Install dependencies
+apt-get install -y unzip libaio1
+
+# Create directory
+mkdir -p /opt/oracle
+
+# Download Oracle Instant Client
+cd /tmp
+wget https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
+
+# Extract and install
+unzip instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
+mv instantclient_19_23/* /opt/oracle/
+rmdir instantclient_19_23
+rm instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
+
+# Configure system linker
+echo "/opt/oracle" > /etc/ld.so.conf.d/oracle-instantclient.conf
+ldconfig
+
+# Restart backend
+sudo supervisorctl restart backend
+```
+
+### Verification
+
+```bash
+# Check if library exists
+ls -lh /opt/oracle/libclntsh.so.19.1
+
+# Check system linker
+ldconfig -p | grep oracle
+
+# Check backend logs
+tail -n 20 /var/log/supervisor/backend.err.log | grep -i oracle
+```
+
+**Expected Output**:
+```
+✅ Oracle Client initialized
+✅ Oracle connection pool created successfully
+✅ ORACLE database initialized successfully
+```
+
+---
+
+## 🗄️ Database Configuration
+
+### Oracle RDS (Primary Database)
+
+**File**: `/app/backend/.env`
+
+```bash
+# Database Type (PRIMARY)
+DB_TYPE="oracle"
+
+# Oracle RDS Configuration
+ORACLE_HOST="promise-ai-test-oracle.cgxf9inhpsec.us-east-1.rds.amazonaws.com"
+ORACLE_PORT="1521"
+ORACLE_SERVICE="ORCL"
+ORACLE_USER="testuser"
+ORACLE_PASSWORD="<your-password>"
+ORACLE_POOL_SIZE="10"
+```
+
+### MongoDB (Secondary/Optional)
+
+```bash
+# MongoDB Configuration (when DB_TYPE=mongodb)
+MONGO_URL="mongodb://localhost:27017"
+MONGO_DB_NAME="autopredict_db"
+```
+
+### Switching Databases
+
+**Via UI**: Use the compact database toggle (top navigation bar)
+
+**Via Backend**:
+```bash
+# Change DB_TYPE in .env
+nano /app/backend/.env
+
+# Set to oracle or mongodb
+DB_TYPE="oracle"
+
+# Restart backend
+sudo supervisorctl restart backend
+```
+
+**Note**: Oracle is now the default database. Even without DB_TYPE in .env, the system defaults to Oracle.
+
+---
+
+## 🚀 Application Architecture
+
+### Backend Structure
+
+```
+/app/backend/
+├── .env                          # Environment variables (Oracle config)
+├── requirements.txt              # Python dependencies
+├── server.py                     # FastAPI entry point
+├── app/
+│   ├── main.py                   # Application initialization
+│   ├── config.py                 # Configuration management
+│   ├── database/
+│   │   ├── adapters/
+│   │   │   ├── base.py          # Abstract database interface
+│   │   │   ├── oracle_adapter.py # Oracle RDS implementation
+│   │   │   └── mongodb_adapter.py # MongoDB implementation
+│   │   ├── factory.py           # Database adapter factory (defaults to Oracle)
+│   │   └── oracle_schema.sql   # Oracle DDL (19c compatible)
+│   ├── routes/
+│   │   ├── analysis.py          # ML analysis endpoints
+│   │   ├── datasource.py        # Dataset upload/management
+│   │   ├── training.py          # Training metadata
+│   │   └── config.py            # Database switching API
+│   └── services/
+│       ├── ml_service.py        # Machine learning models
+│       ├── visualization_service_v2.py # Chart generation (25+ charts)
+│       ├── llm_chart_intelligence.py   # LLM-powered chat
+│       ├── hyperparameter_service.py   # Tuning (optimized)
+│       └── time_series_service.py      # Prophet & LSTM
+```
+
+### Frontend Structure
+
+```
+/app/frontend/
+├── .env                          # REACT_APP_BACKEND_URL
+├── package.json                  # Node dependencies
+├── src/
+│   ├── App.js                   # Main application
+│   ├── components/
+│   │   ├── CompactDatabaseToggle.jsx  # Database switcher
+│   │   ├── DataProfiler.jsx           # Data profiling
+│   │   ├── PredictiveAnalysis.jsx     # ML models
+│   │   ├── VisualizationPanel.jsx     # Charts (25+ intelligent)
+│   │   ├── TimeSeriesAnalysis.jsx     # Forecasting
+│   │   └── HyperparameterTuning.jsx   # Model tuning
+│   └── pages/
+│       ├── HomePage.jsx                # Landing page
+│       ├── DashboardPage.jsx          # Main dashboard
+│       └── TrainingMetadataPage.jsx   # Metrics tracking
+```
+
+---
+
+## 📦 Dependencies
+
+### Backend Python Packages
+
+```txt
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database
+cx_Oracle==8.3.0              # Oracle RDS connector
+motor==3.3.2                  # MongoDB async driver
+pymongo==4.6.0
+
+# Machine Learning
+scikit-learn==1.3.2
+xgboost==2.0.2
+prophet==1.1.5
+tensorflow==2.15.0            # For LSTM
+
+# Data Processing
+pandas==2.1.3
+numpy==1.26.2
+plotly==5.18.0
+
+# AI Integration
+emergentintegrations==0.1.0   # Emergent LLM key support
+
+# Utilities
+python-dotenv==1.0.0
+pydantic==2.5.0
+```
+
+### Frontend Node Packages
+
+```json
+{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0",
+    "axios": "^1.6.2",
+    "plotly.js": "^2.27.0",
+    "sonner": "^1.2.0",
+    "lucide-react": "^0.294.0"
+  }
+}
+```
+
+---
+
+## 🔐 Environment Variables
+
+### Backend (.env)
+
+```bash
+# === DATABASE CONFIGURATION ===
+DB_TYPE="oracle"                    # PRIMARY: oracle | mongodb
+
+# Oracle RDS (PRIMARY)
+ORACLE_HOST="promise-ai-test-oracle.cgxf9inhpsec.us-east-1.rds.amazonaws.com"
+ORACLE_PORT="1521"
+ORACLE_SERVICE="ORCL"
+ORACLE_USER="testuser"
+ORACLE_PASSWORD="<password>"
+ORACLE_POOL_SIZE="10"
+
+# MongoDB (SECONDARY)
+MONGO_URL="mongodb://localhost:27017"
+MONGO_DB_NAME="autopredict_db"
+
+# === AI INTEGRATION ===
+EMERGENT_LLM_KEY="sk-emergent-<key>"  # Universal key for GPT-4o-mini, Claude
+
+# === APPLICATION ===
+BACKEND_PORT="8001"
+FRONTEND_URL="https://your-domain.preview.emergentagent.com"
+```
+
+### Frontend (.env)
+
+```bash
+REACT_APP_BACKEND_URL="https://your-domain.preview.emergentagent.com"
+```
+
+**⚠️ CRITICAL**: Never modify `REACT_APP_BACKEND_URL` - it's pre-configured for Kubernetes ingress.
+
+---
+
+## 🧪 Testing the Setup
+
+### 1. Backend Health Check
+
+```bash
+curl https://your-domain.preview.emergentagent.com/api/config/current-database
+```
+
+**Expected Response**:
+```json
+{
+  "current_database": "oracle",
+  "available_databases": ["mongodb", "oracle"]
+}
+```
+
+### 2. Database Connection Test
+
+```bash
+# Check backend logs for Oracle connection
+tail -n 50 /var/log/supervisor/backend.err.log | grep -E "Oracle|database"
+```
+
+**Expected Output**:
+```
+✅ Oracle Client initialized
+✅ Oracle connection pool created successfully
+✅ ORACLE database initialized successfully
+```
+
+### 3. Upload Test Dataset
+
+1. Navigate to Dashboard
+2. Click "Upload File"
+3. Select CSV/Excel file
+4. Verify dataset appears in "Recent Datasets"
+
+### 4. Run Predictive Analysis
+
+1. Select dataset
+2. Click "Predictive Analysis" tab
+3. Select target variable
+4. Click "Run Analysis"
+5. Verify ML models appear
+
+---
+
+## 🐛 Common Issues & Solutions
+
+### Issue 1: Oracle Client Not Found
+
+**Error**: `DPI-1047: Cannot locate a 64-bit Oracle Client library`
+
+**Solution**:
+```bash
+# Reinstall Oracle Instant Client
+apt-get install -y unzip libaio1
+mkdir -p /opt/oracle
+cd /tmp
+wget -q https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
+unzip -q instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
+mv instantclient_19_23/* /opt/oracle/
+rm -rf instantclient_19_23 instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
+echo "/opt/oracle" > /etc/ld.so.conf.d/oracle-instantclient.conf
+ldconfig
+sudo supervisorctl restart backend
+```
+
+### Issue 2: Backend Not Starting
+
+**Check logs**:
+```bash
+tail -n 100 /var/log/supervisor/backend.err.log
+```
+
+**Common causes**:
+- Oracle client missing
+- Environment variables incorrect
+- Port 8001 already in use
+
+### Issue 3: Frontend Can't Connect to Backend
+
+**Check**:
+1. Backend is running: `sudo supervisorctl status backend`
+2. Backend URL in `/app/frontend/.env` is correct
+3. All API routes use `/api` prefix
+
+### Issue 4: Database Switching Not Working
+
+**Solution**:
+1. Use compact toggle button (top navigation)
+2. Wait 15 seconds for backend restart
+3. Refresh page if needed
+
+### Issue 5: Training Metadata Shows N/A
+
+**Solution**:
+Run a fresh Predictive Analysis after the recent fix. Old analyses didn't save metadata.
+
+---
+
+## 📊 Feature Summary
+
+### ✅ Implemented Features (17 Issues Resolved)
+
+1. **Classification ML Model Comparison** - Shows accuracy, precision, recall, F1-score
+2. **Hyperparameter Tuning** - Optimized to <30 seconds, auto-applies to models
+3. **LLM Chat Intelligence** - GPT-4o-mini powered chart generation
+4. **Prophet Time Series** - Fixed timezone issues, shows forecast charts
+5. **Workspace Save/Load** - Compressed storage in Oracle BLOB
+6. **Oracle Primary Database** - Defaults to Oracle on restart
+7. **Compact Database Toggle** - On all pages for easy switching
+8. **Bulk Dataset Deletion** - Graceful failure handling
+9. **Auto Clean Data** - Fixed React rendering error
+10. **Visualization Enhancements** - 25+ intelligent charts, no empty charts
+11. **Training Metadata** - Now properly records all analysis runs
+12. **Multi-Target Prediction** - Supports multiple target variables
+13. **NLP Support** - Text data analysis capabilities
+14. **Feedback Loop** - Active learning integration
+15. **Model Explainability** - SHAP values for interpretability
+
+---
+
+## 🔄 Maintenance
+
+### Daily Tasks
+
+```bash
+# Check service status
+sudo supervisorctl status
+
+# Monitor logs
+tail -f /var/log/supervisor/backend.err.log
+```
+
+### Weekly Tasks
+
+```bash
+# Verify Oracle client
+ls -lh /opt/oracle/libclntsh.so.19.1
+
+# Check database connection
+curl https://your-domain/api/config/current-database
+
+# Review disk usage
+df -h
+```
+
+### As-Needed Tasks
+
+```bash
+# Reinstall Oracle client (if missing)
+# Use script from "Common Issues" section
+
+# Clear browser cache (if UI issues)
+# Hard refresh: Ctrl+Shift+R (Windows/Linux) or Cmd+Shift+R (Mac)
+
+# Restart all services
+sudo supervisorctl restart all
+```
+
+---
+
+## 📝 Additional Resources
+
+- **API Documentation**: `/app/API_DOCUMENTATION.md`
+- **Database Schema**: `/app/DATABASE_SCHEMA.md`
+- **Dual Database Guide**: `/app/DUAL_DATABASE_GUIDE.md`
+- **Test Results**: `/app/test_result.md`
+- **Oracle Configuration**: `/app/ORACLE_DEFAULT_COMPLETE.md`
+
+---
+
+## 🎉 Success Criteria
+
+Your setup is successful when:
+
+- [x] Backend responds to API calls
+- [x] Oracle database shows as "active" in UI toggle
+- [x] Datasets can be uploaded
+- [x] Predictive Analysis generates ML models
+- [x] Visualizations display 20+ charts
+- [x] Chat can create and append charts
+- [x] Workspaces can be saved and loaded
+- [x] Training metadata records analysis runs
+
+---
+
+## 🆘 Support
+
+If you encounter issues not covered in this guide:
+
+1. Check `/app/test_result.md` for known issues and fixes
+2. Review backend logs: `tail -n 200 /var/log/supervisor/backend.err.log`
+3. Verify Oracle client: `test -f /opt/oracle/libclntsh.so.19.1 && echo "OK" || echo "MISSING"`
+4. Check database connection: `curl <backend-url>/api/config/current-database`
+
+---
+
+**Last Updated**: November 5, 2025  
+**Maintained By**: AI Engineering Team  
+**Version**: 2.0 (Oracle Primary Edition)
