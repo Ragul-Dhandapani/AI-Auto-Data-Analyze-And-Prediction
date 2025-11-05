@@ -711,11 +711,22 @@ async def holistic_analysis(request: Dict[str, Any]):
         except Exception as e:
             logging.error(f"Business recommendations failed: {str(e)}", exc_info=True)
         
-        # Get dataset info for training metadata
+        # Update dataset training metadata
         db_adapter = get_db()
         dataset = await db_adapter.get_dataset(dataset_id)
-        training_count = dataset.get("training_count", 1)
-        last_trained_at = dataset.get("updated_at", datetime.now(timezone.utc).isoformat())
+        training_count = dataset.get("training_count", 0) + 1
+        last_trained_at = datetime.now(timezone.utc).isoformat()
+        
+        # Update dataset with new training metadata
+        try:
+            await db_adapter.update_dataset(dataset_id, {
+                "training_count": training_count,
+                "last_trained_at": last_trained_at,
+                "updated_at": last_trained_at
+            })
+            logger.info(f"Updated training metadata: count={training_count}, last_trained={last_trained_at}")
+        except Exception as e:
+            logger.warning(f"Failed to update training metadata: {str(e)}")
         
         # Build enhanced volume analysis from profile data
         volume_analysis = {
