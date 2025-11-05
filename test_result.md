@@ -867,3 +867,94 @@ All 4 requested enhancements have been successfully implemented and tested:
 - ✅ ML models API returning proper classification/regression metrics
 
 **Status**: Enhancement testing complete. All core functionality verified and working correctly.
+
+---
+
+## 🔧 VISUALIZATION ENHANCEMENTS - Nov 5, 2025 (12:30 AM)
+
+### Issue 11: Visualization Tab Crash on Tab Switch
+**Reported By**: User - app crashes when returning to Visualization tab after Predictive Analysis
+**Status**: ✅ FIXED
+
+**Root Cause**: 
+- Improper useEffect dependencies causing re-renders
+- Missing error handling for invalid chart data
+- State not properly reset when cache is missing
+
+**Solution**:
+1. Enhanced useEffect with proper dependencies and cache checking
+2. Added comprehensive error handling for chart validation
+3. Added try-catch blocks around chart filtering
+4. Reset state when no cache exists for dataset
+
+**Files Modified**: `/app/frontend/src/components/VisualizationPanel.jsx`
+
+---
+
+### Issue 12: Chart Generation Speed
+**Reported By**: User - chart generation is slow
+**Status**: ✅ OPTIMIZED
+
+**Solution**: Created `visualization_service_v2.py` with:
+- Optimized chart generation algorithms
+- Reduced unnecessary computations
+- Parallel-ready structure
+- Better data sampling for large datasets
+
+**Files Created**: `/app/backend/app/services/visualization_service_v2.py`
+**Files Modified**: `/app/backend/app/routes/analysis.py` (uses v2 service)
+
+---
+
+### Issue 13: More Intelligent Chart Generation
+**Reported By**: User wants 20+ meaningful charts (not just 11), avoid empty charts
+**Status**: ✅ ENHANCED
+
+**Previous**: Max 15 charts, basic combinations
+**New**: Up to 25+ charts with intelligent combinations
+
+**8 Chart Categories Implemented**:
+1. **Distribution Charts** (5 histograms for top numeric columns)
+2. **Box Plots** (4 for outlier detection)
+3. **Categorical Distributions** (5 bar charts)
+4. **Numeric Correlations** (6 scatter plots from meaningful pairs)
+5. **Grouped Analysis** (4 categorical vs numeric)
+6. **Time Series** (up to 6 if datetime columns exist)
+7. **Correlation Heatmap** (if 3+ numeric columns)
+8. **Pie Charts** (3 for low-cardinality categorical)
+
+**Validation**: All charts validated before adding - NO empty charts
+
+**File**: `/app/backend/app/services/visualization_service_v2.py`
+
+---
+
+### Issue 14: Chat-Created Charts Not Appearing on Main Page
+**Reported By**: User - chat says "created" but chart doesn't show
+**Status**: ✅ FIXED
+
+**Root Cause**: Frontend was checking for old format:
+```javascript
+// OLD (wrong)
+if (response.data.action === 'add_chart' && response.data.chart_data)
+
+// Backend actually returns:
+{type: "chart", data: [...], layout: {...}}
+```
+
+**Solution**: Updated to correctly parse backend response format:
+```javascript
+if (response.data.type === 'chart' && response.data.data && response.data.layout) {
+  const chartData = {
+    title: response.data.layout.title,
+    plotly_data: {data: response.data.data, layout: response.data.layout}
+  };
+  setCustomCharts(prev => [...prev, chartData]);
+}
+```
+
+**Result**: Chat-created charts now properly append to main Visualization panel
+
+**File Modified**: `/app/frontend/src/components/VisualizationPanel.jsx`
+
+---
