@@ -137,14 +137,21 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
 
   // Restore from cache when dataset changes
   useEffect(() => {
-    if (chartsCache) {
+    if (chartsCache && dataset?.id) {
       setCharts(chartsCache.charts || []);
       setSkippedCharts(chartsCache.skipped || []);
       setChatMessages(chartsCache.chatMessages || []);
       setCustomCharts(chartsCache.customCharts || []);
       setHasGenerated(true);
+    } else if (!chartsCache && dataset?.id) {
+      // Reset state if no cache for this dataset
+      setCharts([]);
+      setSkippedCharts([]);
+      setChatMessages([]);
+      setCustomCharts([]);
+      setHasGenerated(false);
     }
-  }, [dataset?.id]);
+  }, [dataset?.id, chartsCache]);
 
   const generateCharts = async () => {
     setLoading(true);
