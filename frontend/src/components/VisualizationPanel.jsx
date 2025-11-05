@@ -285,8 +285,23 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
       const assistantMsg = { role: 'assistant', content: response.data.message || response.data.response };
       setChatMessages(prev => [...prev, assistantMsg]);
 
-      // Handle chart additions
-      if (response.data.action === 'add_chart' && response.data.chart_data) {
+      // Handle chart additions - FIXED to properly detect chart responses
+      if (response.data.type === 'chart' && response.data.data && response.data.layout) {
+        // Convert backend format to frontend format
+        const chartData = {
+          title: response.data.layout.title || "Custom Chart",
+          type: response.data.chart_type || "custom",
+          plotly_data: {
+            data: response.data.data,
+            layout: response.data.layout
+          },
+          description: response.data.message || "Chart created from chat"
+        };
+        setCustomCharts(prev => [...prev, chartData]);
+        toast.success("Chart added to visualization panel!");
+      }
+      // Legacy support for old format
+      else if (response.data.action === 'add_chart' && response.data.chart_data) {
         setCustomCharts(prev => [...prev, response.data.chart_data]);
         toast.success("Chart added!");
       }
