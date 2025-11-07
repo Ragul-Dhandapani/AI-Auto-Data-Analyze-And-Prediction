@@ -687,29 +687,51 @@ async def holistic_analysis(request: Dict[str, Any]):
         # PHASE 3: Enhanced AI Insights & Explainability
         # ==========================================
         
-        # 5A. Generate comprehensive AI insights using Phase 3 service
+        # 5A. Generate comprehensive AI insights using Azure OpenAI
         ai_insights_list = []
         insights = "Analysis complete. Explore the charts and model results above."
         
         try:
-            # Prepare correlation matrix for insights
-            corr_dict = {}
-            if correlations.get('matrix'):
-                for key_corr in correlations['correlations']:
-                    target = key_corr.get('target', '')
-                    if target and target not in corr_dict:
-                        corr_dict[target] = {}
-                    for feat, corr_val in key_corr.get('correlations', {}).items():
-                        if target:
-                            corr_dict[target][feat] = corr_val
-            
-            # Generate statistical insights using AI
-            target_for_insights = target_cols[0] if target_cols else None
-            ai_insights_list = await generate_statistical_insights(
-                df_analysis,
-                target_column=target_for_insights,
-                correlation_matrix=corr_dict
-            )
+            # Try Azure OpenAI first for enterprise insights
+            azure_service = get_azure_openai_service()
+            if azure_service.is_available():
+                data_summary = {
+                    'row_count': len(df_analysis),
+                    'column_count': len(df_analysis.columns),
+                    'target_column': target_cols[0] if target_cols else None
+                }
+                analysis_results = {
+                    'target_column': target_cols[0] if target_cols else None,
+                    'problem_type': problem_type,
+                    'ml_models': all_models[:3]  # Top 3 models
+                }
+                
+                insights = await azure_service.generate_insights(
+                    data_summary=data_summary,
+                    analysis_results=analysis_results,
+                    context='business'
+                )
+                logger.info("✅ Azure OpenAI insights generated")
+            else:
+                # Fallback to existing insights
+                # Prepare correlation matrix for insights
+                corr_dict = {}
+                if correlations.get('matrix'):
+                    for key_corr in correlations['correlations']:
+                        target = key_corr.get('target', '')
+                        if target and target not in corr_dict:
+                            corr_dict[target] = {}
+                        for feat, corr_val in key_corr.get('correlations', {}).items():
+                            if target:
+                                corr_dict[target][feat] = corr_val
+                
+                # Generate statistical insights using AI
+                target_for_insights = target_cols[0] if target_cols else None
+                ai_insights_list = await generate_statistical_insights(
+                    df_analysis,
+                    target_column=target_for_insights,
+                    correlation_matrix=corr_dict
+                )
             
             # Generate anomaly detection insights
             numeric_columns_list = df_analysis.select_dtypes(include=[np.number]).columns.tolist()
