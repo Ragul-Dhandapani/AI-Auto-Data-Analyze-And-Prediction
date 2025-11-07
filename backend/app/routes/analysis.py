@@ -113,48 +113,40 @@ async def run_analysis(request: Dict[str, Any]):
             }
         
         elif analysis_type == "insights":
-            # Generate AI insights
-            llm_key = os.environ.get('EMERGENT_LLM_KEY')
-            
-            if not llm_key:
-                return {
-                    "insights": "AI insights require EMERGENT_LLM_KEY to be configured. Please set up the API key to generate intelligent insights about your data."
-                }
-            
+            # Generate AI insights using Azure OpenAI
             try:
-                from emergentintegrations.llm.chat import LlmChat
+                from app.services.azure_openai_service import get_azure_openai_service
+                
+                azure_service = get_azure_openai_service()
+                
+                if not azure_service.is_available():
+                    return {
+                        "insights": "AI insights require Azure OpenAI to be configured. Please set up Azure OpenAI credentials to generate intelligent insights about your data."
+                    }
                 
                 # Prepare data summary
                 profile = generate_data_profile(df)
                 numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
                 categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
                 
-                # Initialize LLM chat with required arguments
-                llm = LlmChat(
-                    api_key=llm_key,
-                    session_id="insights_generation",
-                    system_message="You are a data analyst expert. Provide clear, actionable insights about datasets in bullet points."
+                data_summary = {
+                    'row_count': len(df),
+                    'column_count': len(df.columns)
+                }
+                
+                analysis_results = {
+                    'numeric_columns': numeric_cols[:5],
+                    'categorical_columns': categorical_cols[:5],
+                    'missing_values': profile.get('missing_values_total', 0),
+                    'duplicate_rows': profile.get('duplicate_rows', 0)
+                }
+                
+                # Generate insights using Azure OpenAI
+                insights_text = await azure_service.generate_insights(
+                    data_summary=data_summary,
+                    analysis_results=analysis_results,
+                    context='general'
                 )
-                
-                prompt = f"""Analyze this dataset and provide 4-5 key insights:
-
-Dataset Statistics:
-- Total Records: {len(df):,}
-- Columns: {len(df.columns)}
-- Numeric Columns: {', '.join(numeric_cols[:5])}
-- Categorical Columns: {', '.join(categorical_cols[:5])}
-- Missing Values: {profile.get('missing_values_total', 0)}
-- Duplicate Rows: {profile.get('duplicate_rows', 0)}
-
-Provide actionable insights in bullet points about:
-1. Data quality and completeness
-2. Interesting patterns or distributions
-3. Potential relationships between variables
-4. Recommendations for analysis"""
-                
-                # Send message and get response
-                response = await llm.send_message(prompt)
-                insights_text = response if isinstance(response, str) else str(response)
                 
                 return {
                     "insights": insights_text,
