@@ -57,7 +57,7 @@ class OracleAdapter(DatabaseAdapter):
         try:
             # Initialize Oracle Instant Client
             try:
-                cx_Oracle.init_oracle_client(lib_dir='/opt/oracle')
+                cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
                 logger.info("✅ Oracle Client initialized")
             except cx_Oracle.ProgrammingError:
                 # Already initialized
