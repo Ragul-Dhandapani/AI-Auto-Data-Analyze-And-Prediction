@@ -191,6 +191,7 @@ BEGIN
     DBMS_STATS.GATHER_TABLE_STATS(USER, 'FILE_STORAGE');
     DBMS_STATS.GATHER_TABLE_STATS(USER, 'WORKSPACE_STATES');
     DBMS_STATS.GATHER_TABLE_STATS(USER, 'PREDICTION_FEEDBACK');
+    DBMS_STATS.GATHER_TABLE_STATS(USER, 'TRAINING_METADATA');
 END;
 /
 
@@ -199,6 +200,7 @@ COMMENT ON TABLE datasets IS 'Stores dataset metadata and references to file sto
 COMMENT ON TABLE file_storage IS 'Stores large files (datasets > 1MB, workspaces > 2MB) as BLOBs';
 COMMENT ON TABLE workspace_states IS 'Stores saved analysis workspaces with results and chat history';
 COMMENT ON TABLE prediction_feedback IS 'Stores user feedback on model predictions for active learning';
+COMMENT ON TABLE training_metadata IS 'Tracks ML training sessions for reproducibility and experiment tracking';
 
 -- Add column comments
 COMMENT ON COLUMN datasets.columns_json IS 'JSON array of column names';
