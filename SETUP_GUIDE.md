@@ -281,13 +281,13 @@ EMERGENT_LLM_KEY="sk-emergent-<key>"  # Universal key for GPT-4o-mini, Claude
 
 # === APPLICATION ===
 BACKEND_PORT="8001"
-FRONTEND_URL="https://promise-oracle.preview.emergentagent.com"
+FRONTEND_URL="https://azure-ml-hub.preview.emergentagent.com"
 ```
 
 ### Frontend (.env)
 
 ```bash
-REACT_APP_BACKEND_URL="https://promise-oracle.preview.emergentagent.com"
+REACT_APP_BACKEND_URL="https://azure-ml-hub.preview.emergentagent.com"
 ```
 
 **⚠️ CRITICAL**: Never modify `REACT_APP_BACKEND_URL` - it's pre-configured for Kubernetes ingress.
@@ -299,7 +299,7 @@ REACT_APP_BACKEND_URL="https://promise-oracle.preview.emergentagent.com"
 ### 1. Backend Health Check
 
 ```bash
-curl https://promise-oracle.preview.emergentagent.com/api/config/current-database
+curl https://azure-ml-hub.preview.emergentagent.com/api/config/current-database
 ```
 
 **Expected Response**:

@@ -89,8 +89,8 @@ sudo supervisorctl restart all
 
 ### Access Points
 
-- **Frontend**: https://promise-oracle.preview.emergentagent.com
-- **Backend API**: https://promise-oracle.preview.emergentagent.com/api
+- **Frontend**: https://azure-ml-hub.preview.emergentagent.com
+- **Backend API**: https://azure-ml-hub.preview.emergentagent.com/api
 - **Database Config**: Top navigation compact toggle (Oracle | MongoDB)
 
 ---
@@ -277,7 +277,7 @@ BACKEND_PORT="8001"
 **File**: `/app/frontend/.env`
 
 ```bash
-REACT_APP_BACKEND_URL="https://promise-oracle.preview.emergentagent.com"
+REACT_APP_BACKEND_URL="https://azure-ml-hub.preview.emergentagent.com"
 ```
 
 **⚠️ CRITICAL**: Never modify `REACT_APP_BACKEND_URL` - pre-configured for Kubernetes ingress.
@@ -353,7 +353,7 @@ REACT_APP_BACKEND_URL="https://promise-oracle.preview.emergentagent.com"
 
 ### Base URL
 ```
-https://promise-oracle.preview.emergentagent.com/api
+https://azure-ml-hub.preview.emergentagent.com/api
 ```
 
 ### Key Endpoints
