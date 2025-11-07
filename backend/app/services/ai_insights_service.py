@@ -71,12 +71,20 @@ Focus on:
 5. Actionable recommendations
 """
         
-        user_message = UserMessage(text=prompt)
-        response = await chat.send_message(user_message)
+        # Use Azure OpenAI to generate insights
+        response = azure_service.client.chat.completions.create(
+            model=azure_service.deployment,
+            messages=[
+                {"role": "system", "content": "You are an expert data analyst. Provide insights in JSON format."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
         
         # Parse response
-        insights = _parse_llm_response(response)
-        logger.info(f"Generated {len(insights)} AI insights")
+        insights = _parse_llm_response(response.choices[0].message.content)
+        logger.info(f"Generated {len(insights)} AI insights using Azure OpenAI")
         return insights
     
     except Exception as e:
