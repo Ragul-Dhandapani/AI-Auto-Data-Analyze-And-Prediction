@@ -227,49 +227,73 @@ async def download_training_metadata_pdf(dataset_id: str):
 
 
 @router.get("/metadata")
-async def get_all_training_metadata():
-    """Get comprehensive training metadata for all datasets"""
+async def get_all_training_metadata(limit: int = 100):
+    """Get comprehensive training metadata for ALL models trained (35+ models supported)"""
     try:
         db_adapter = get_db()
         
-        # Get all datasets
-        datasets = await db_adapter.list_datasets(limit=1000)
+        # Get training metadata directly from training_metadata table
+        training_records = await db_adapter.get_training_metadata(dataset_id=None, limit=limit)
         
-        # Organize metadata
-        metadata_list = []
+        logger.info(f"✅ Retrieved {len(training_records)} training metadata records")
         
-        for dataset in datasets:
-            dataset_id = dataset.get("id")
-            dataset_name = dataset.get("name")
+        # Group by dataset for organized display
+        grouped_metadata = {}
+        
+        for record in training_records:
+            dataset_id = record.get("dataset_id")
+            dataset_name = record.get("dataset_name", "Unknown Dataset")
             
-            # Get workspaces for this dataset
-            workspaces = await db_adapter.list_workspaces(dataset_id)
-            
-            if len(workspaces) == 0:
-                # Skip datasets with no training history
-                continue
-            
-            # Prepare dataset metadata
-            dataset_metadata = {
-                "dataset_id": dataset_id,
-                "dataset_name": dataset_name,
-                "training_count": len(workspaces),
-                "workspaces": []
-            }
-            
-            # Add workspace details
-            for workspace in workspaces:
-                workspace_info = {
-                    "workspace_id": workspace.get("id"),
-                    "workspace_name": workspace.get("state_name"),
-                    "saved_at": workspace.get("created_at"),
-                    "size_bytes": workspace.get("size_bytes", 0)
+            if dataset_id not in grouped_metadata:
+                grouped_metadata[dataset_id] = {
+                    "dataset_id": dataset_id,
+                    "dataset_name": dataset_name,
+                    "training_count": 0,
+                    "models_trained": [],
+                    "unique_models": set(),
+                    "last_training": None,
+                    "problem_types": set()
                 }
-                dataset_metadata["workspaces"].append(workspace_info)
             
-            metadata_list.append(dataset_metadata)
+            # Add to count
+            grouped_metadata[dataset_id]["training_count"] += 1
+            grouped_metadata[dataset_id]["unique_models"].add(record.get("model_type"))
+            grouped_metadata[dataset_id]["problem_types"].add(record.get("problem_type"))
+            
+            # Update last training
+            if not grouped_metadata[dataset_id]["last_training"] or record.get("created_at") > grouped_metadata[dataset_id]["last_training"]:
+                grouped_metadata[dataset_id]["last_training"] = record.get("created_at")
+            
+            # Add model details
+            model_info = {
+                "id": record.get("id"),
+                "model_type": record.get("model_type"),
+                "problem_type": record.get("problem_type"),
+                "target_variable": record.get("target_variable"),
+                "feature_variables": record.get("feature_variables"),
+                "metrics": record.get("metrics", {}),
+                "training_duration": record.get("training_duration", 0.0),
+                "created_at": record.get("created_at")
+            }
+            grouped_metadata[dataset_id]["models_trained"].append(model_info)
         
-        return {"metadata": metadata_list}
+        # Convert to list and clean up
+        metadata_list = []
+        for dataset_id, data in grouped_metadata.items():
+            data["unique_models"] = len(data["unique_models"])
+            data["problem_types"] = list(data["problem_types"])
+            # Sort models by created_at descending
+            data["models_trained"].sort(key=lambda x: x.get("created_at", ""), reverse=True)
+            metadata_list.append(data)
+        
+        # Sort by last_training descending
+        metadata_list.sort(key=lambda x: x.get("last_training", ""), reverse=True)
+        
+        return {
+            "metadata": metadata_list,
+            "total_training_sessions": len(training_records),
+            "total_datasets": len(grouped_metadata)
+        }
     
     except Exception as e:
         logger.error(f"Failed to fetch training metadata: {str(e)}", exc_info=True)
