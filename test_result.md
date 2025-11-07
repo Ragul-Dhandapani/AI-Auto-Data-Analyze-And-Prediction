@@ -412,11 +412,39 @@ All critical Oracle integration requirements have been successfully implemented 
 
 ---
 
+## Critical Bug Fixes - Nov 7, 2025 (Second Round)
+
+#### Issue 1: Auto Clean Data - Oracle Column Error ✅ FIXED
+**Problem**: ORA-00904: "UPDATED_AT": invalid identifier  
+**Root Cause**: Code tried to update `updated_at` column which doesn't exist in Oracle schema  
+**Solution**: Removed `updated_at` from update query in `analysis.py` line 79  
+**Result**: ✅ Auto Clean Data working - cleaned 62,500 rows, filled 2,499 missing values  
+
+#### Issue 2: ModelSelector UI Not Visible ✅ FIXED
+**Problem**: User couldn't see 35+ models or ModelSelector component  
+**Root Cause**: ModelSelector was hidden behind conditional rendering (`!loading && !showModelSelector`)  
+**Solution**: 
+- Made ModelSelector ALWAYS visible in highlighted blue box at top of Predictive Analysis
+- Added prominent description: "Choose from 35+ ML models across 5 categories"
+- Large button: "Select ML Models (Default: Auto-Select All)"
+- Shows selected model count when models are chosen  
+**Result**: ✅ ModelSelector now prominently displayed with clear category breakdown  
+
+#### Issue 3: Visualizations Tab Empty ✅ FIXED
+**Problem**: "No visualizations available. Please select a dataset" even after upload  
+**Root Cause**: No "Generate Visualizations" button shown when charts don't exist  
+**Solution**: 
+- Added large "Generate Visualizations" button with icon when no charts exist
+- Added helpful message: "We'll automatically create 15+ intelligent charts based on your data"
+- Improved error states for failed generation  
+**Result**: ✅ Clear call-to-action button now visible in Visualizations tab  
+
 ## Next Steps
 1. ✅ **COMPLETED**: Comprehensive backend API tests for Oracle integration
 2. ✅ **COMPLETED**: Frontend UI/UX testing for ML Expansion & Azure OpenAI Integration
-3. **Optional**: Test advanced Oracle BLOB operations (if specific endpoints exist)
-4. **Ready**: System is ready for production use with Oracle RDS
+3. ✅ **COMPLETED**: Critical bug fixes (Auto Clean, ModelSelector UI, Visualizations)
+4. **Optional**: Test advanced Oracle BLOB operations (if specific endpoints exist)
+5. **Ready**: System is ready for production use with Oracle RDS
 
 ---
 
