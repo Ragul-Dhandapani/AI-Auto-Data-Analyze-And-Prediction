@@ -401,9 +401,12 @@ def handle_scatter_chart_request_v2(df: pd.DataFrame, x_col: str, y_col: str, me
         if not pd.api.types.is_numeric_dtype(df[y_col]):
             return {"type": "error", "message": f"❌ Column '{y_col}' is not numeric. Scatter plots require numeric data.", "success": False}
         
+        # Clean data: remove NaN and Inf values
+        clean_df = df[[x_col, y_col]].replace([np.inf, -np.inf], np.nan).dropna()
+        
         chart_data = {
-            "x": df[x_col].dropna().tolist(),
-            "y": df[y_col].dropna().tolist(),
+            "x": clean_df[x_col].tolist(),
+            "y": clean_df[y_col].tolist(),
             "type": "scatter",
             "mode": "markers",
             "name": f"{y_col} vs {x_col}",
