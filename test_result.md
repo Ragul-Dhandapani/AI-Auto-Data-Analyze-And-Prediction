@@ -1910,3 +1910,278 @@ if dataset is None or (isinstance(dataset, pd.DataFrame) and dataset.empty):
 
 ---
 
+
+---
+
+## 🧪 CHART CREATION RE-TEST - Nov 7, 2025 (22:40 UTC)
+
+### Testing Agent: Chart Creation JSON Mode Fix Verification
+**Test Time**: 2025-11-07T22:40:54
+**Backend URL**: https://ai-insight-hub-3.preview.emergentagent.com/api
+**Database Active**: Oracle RDS 19c
+**Test Dataset**: Credit Card Clustering GENERAL.csv (8,950 rows, 18 columns)
+**Tests Performed**: 7 comprehensive chart creation tests
+**Overall Result**: ❌ 0/7 TESTS PASSED (0% Success Rate)
+
+### 🔴 CRITICAL FINDING: Azure OpenAI JSON Mode NOT WORKING
+
+**Problem**: Despite implementing `json_mode=True` in the code, Azure OpenAI is **NOT** returning JSON format. Instead, it returns:
+- Full explanatory text
+- Python code examples with matplotlib
+- Markdown formatted responses
+- NO structured JSON output
+
+### Test Results by Category
+
+#### ❌ 1. Valid Chart Requests (0/5 - 0%)
+**Status**: ❌ COMPLETELY BROKEN
+
+**Test 1: Scatter Plot**
+- Request: "create a scatter plot of CUST_ID vs BALANCE"
+- Expected: Chart with Plotly format
+- Actual: HTTP 500 Internal Server Error
+- **FAIL**: Server error during chart generation
+
+**Test 2: Line Chart**
+- Request: "show line chart for BALANCE over CUST_ID"
+- Expected: Chart with Plotly format
+- Actual: Long explanatory text with Python matplotlib code
+- Response excerpt: "To display a line chart for `BALANCE` over `CUST_ID`, we need to plot... Below is the Python code snippet using Matplotlib..."
+- **FAIL**: Azure OpenAI returned explanation instead of JSON
+
+**Test 3: Bar Chart**
+- Request: "create bar chart for CUST_ID"
+- Expected: Chart with Plotly format
+- Actual: Explanatory text about aggregation strategies
+- Response excerpt: "To create a bar chart for `CUST_ID`, you need to determine what aspect or aggregation... Here's an example of how you could create a bar chart using Python..."
+- **FAIL**: Azure OpenAI returned explanation instead of JSON
+
+**Test 4: Histogram**
+- Request: "show histogram of CUST_ID"
+- Expected: Chart with Plotly format
+- Actual: Explanatory text about why histogram doesn't make sense for IDs
+- Response excerpt: "To create a histogram of `CUST_ID`, you should first consider whether it makes sense... If you are looking to analyze customer data, try creating histograms for numerical columns..."
+- **FAIL**: Azure OpenAI returned explanation instead of JSON
+
+**Test 5: Box Plot**
+- Request: "create box plot for CUST_ID"
+- Expected: Chart with Plotly format
+- Actual: Error message "❌ Unable to create box chart with the specified columns."
+- **FAIL**: Chart generation failed
+
+#### ❌ 2. Invalid Column Handling (0/1 - 0%)
+**Status**: ❌ NOT WORKING
+
+**Test 6: Invalid Column Names**
+- Request: "create scatter plot of nonexistent_col1 vs nonexistent_col2"
+- Expected: Error with list of available columns
+- Actual: Generic error "❌ Unable to create scatter chart with the specified columns."
+- **FAIL**: Does not show available columns list
+
+#### ❌ 3. Natural Language Variations (0/4 - 0%)
+**Status**: ❌ COMPLETELY BROKEN
+
+**Variation 1**: "plot CUST_ID against BALANCE"
+- Result: HTTP 500 Internal Server Error
+- **FAIL**
+
+**Variation 2**: "visualize CUST_ID vs BALANCE"
+- Result: HTTP 500 Internal Server Error
+- **FAIL**
+
+**Variation 3**: "show distribution of CUST_ID"
+- Result: Long explanatory text about uniqueness checks
+- **FAIL**: Azure OpenAI returned explanation instead of JSON
+
+**Variation 4**: "draw chart for CUST_ID"
+- Result: Generic error message
+- **FAIL**
+
+### 🔍 ROOT CAUSE ANALYSIS
+
+#### Issue 1: Azure OpenAI JSON Mode Not Enforced ❌ CRITICAL
+**Status**: ❌ NOT WORKING
+**Severity**: CRITICAL - Blocks entire chart creation feature
+
+**Evidence**:
+1. Code has `json_mode=True` on line 550 of `enhanced_chat_service.py`
+2. Azure OpenAI is returning full explanatory text instead of JSON
+3. Responses include Python code examples, markdown formatting, and natural language explanations
+
+**Root Cause**:
+The Azure OpenAI deployment is **NOT respecting the JSON mode parameter**. Possible reasons:
+1. API version `2024-12-01-preview` may not support JSON mode properly
+2. The deployment `gpt-4o` may not have JSON mode enabled
+3. The `response_format={"type": "json_object"}` parameter may not be working with this specific deployment
+
+**Example of Actual Response** (should be JSON):
+```
+To display a line chart for `BALANCE` over `CUST_ID`, we need to plot `CUST_ID` on the x-axis and `BALANCE` on the y-axis. Since there are 8,950 rows in the dataset, plotting all customer IDs on the x-axis may result in a cluttered visualization...
+
+Below is the Python code snippet using Matplotlib to generate the line chart:
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+...
+```
+```
+
+**Expected JSON Response**:
+```json
+{
+  "chart_type": "line",
+  "x_col": "CUST_ID",
+  "y_col": "BALANCE"
+}
+```
+
+#### Issue 2: HTTP 500 Errors on Some Requests ❌ HIGH PRIORITY
+**Status**: ❌ SERVER ERRORS
+**Severity**: HIGH - Causes complete request failure
+
+**Affected Requests**:
+- "create a scatter plot of CUST_ID vs BALANCE"
+- "plot CUST_ID against BALANCE"
+- "visualize CUST_ID vs BALANCE"
+
+**Impact**: Some chart requests cause server crashes instead of graceful error handling
+
+#### Issue 3: Fallback Pattern Matching Not Triggering ⚠️ MEDIUM PRIORITY
+**Status**: ⚠️ PARTIALLY WORKING
+**Severity**: MEDIUM - Fallback should work when AI fails
+
+**Problem**: When Azure OpenAI fails to return JSON, the fallback pattern matching in `_parse_chart_fallback()` should activate, but it's not working correctly.
+
+**Evidence**: Requests return generic error messages instead of attempting pattern-based parsing
+
+### 📊 COMPARISON WITH PREVIOUS TEST (Nov 7, 2025 - 22:35 UTC)
+
+| Category | Previous Test | Current Test | Change |
+|----------|--------------|--------------|--------|
+| Chart Creation | 0% (0/5) | 0% (0/5) | No change ❌ |
+| Invalid Column Handling | N/A | 0% (0/1) | New test ❌ |
+| Natural Language | N/A | 0% (0/4) | New test ❌ |
+| **Overall** | **0%** | **0%** | **NO IMPROVEMENT** ❌ |
+
+**Conclusion**: The `json_mode=True` fix has **NOT resolved the issue**. Azure OpenAI is still not returning JSON format.
+
+### 🎯 CRITICAL ASSESSMENT
+
+#### Chart Creation Status: ❌ 0% FUNCTIONAL
+- ✅ Code implementation: CORRECT (`json_mode=True` is set)
+- ❌ Azure OpenAI behavior: NOT WORKING (ignores JSON mode)
+- ❌ Fallback mechanism: NOT TRIGGERING
+- ❌ Error handling: INCOMPLETE (500 errors on some requests)
+- ❌ Confirmation workflow: CANNOT TEST (no charts created)
+
+#### Azure OpenAI JSON Mode Fix: ❌ FAILED
+The fix applied by the main agent (`json_mode=True`) is **NOT working** because:
+1. Azure OpenAI deployment is not respecting the `response_format` parameter
+2. API version or deployment configuration may not support JSON mode
+3. The deployment may need to be reconfigured in Azure Portal
+
+### 🔧 RECOMMENDED SOLUTIONS
+
+#### Solution 1: Change Azure OpenAI API Version ⚠️ HIGH PRIORITY
+**Current**: `AZURE_OPENAI_API_VERSION="2024-12-01-preview"`
+**Recommended**: Try `2024-08-01-preview` or `2024-02-15-preview`
+
+**Reason**: JSON mode support varies by API version. Some versions have better JSON mode enforcement.
+
+#### Solution 2: Use Different Deployment ⚠️ HIGH PRIORITY
+**Current**: `AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4o"`
+**Recommended**: Verify deployment supports JSON mode in Azure Portal
+
+**Action**: Check if deployment has JSON mode enabled in Azure OpenAI Studio
+
+#### Solution 3: Add Stronger JSON Enforcement in Prompt 🔧 MEDIUM PRIORITY
+**Current Prompt**: "You are a JSON-only API. Respond ONLY with valid JSON, no explanations or markdown."
+**Recommended**: Add more explicit instructions:
+```python
+system_prompt = """You MUST respond with ONLY valid JSON. 
+NO explanations. NO markdown. NO code examples. 
+ONLY the JSON object specified in the format below.
+If you include ANY text outside the JSON object, the system will fail."""
+```
+
+#### Solution 4: Implement Robust Fallback Pattern Matching 🔧 MEDIUM PRIORITY
+**Current**: Fallback exists but not triggering correctly
+**Recommended**: Strengthen fallback to handle all chart types without AI
+
+**Implementation**:
+```python
+# Always try fallback first, then enhance with AI if available
+chart_config = self._parse_chart_fallback(message, dataset)
+if azure_service.is_available() and not chart_config:
+    # Only use AI if fallback fails
+    chart_config = await self._parse_chart_request_with_ai(message, dataset, azure_service)
+```
+
+#### Solution 5: Use Emergent LLM as Primary Provider 🔧 LOW PRIORITY
+**Alternative**: Switch to Emergent LLM which may have better JSON mode support
+**Trade-off**: May have different capabilities than Azure OpenAI
+
+### 📋 TESTING SUMMARY
+
+**Tests Executed**: 7
+**Tests Passed**: 0
+**Tests Failed**: 7
+**Success Rate**: 0.0%
+
+**Critical Issues**: 3
+- Azure OpenAI JSON mode not working
+- HTTP 500 errors on some requests
+- Fallback pattern matching not triggering
+
+**High Priority Issues**: 2
+- API version may not support JSON mode
+- Deployment configuration may be incorrect
+
+**Medium Priority Issues**: 2
+- Prompt engineering needs improvement
+- Fallback mechanism needs strengthening
+
+### 🚨 FINAL VERDICT
+
+**Chart Creation Feature**: ❌ **NOT PRODUCTION READY**
+
+**Reason**: Azure OpenAI is not returning JSON format despite the fix. The feature is **0% functional** and requires:
+1. Azure OpenAI configuration changes (API version or deployment)
+2. OR: Complete fallback to pattern matching without AI
+3. OR: Switch to different AI provider (Emergent LLM)
+
+**Recommendation**: **DO NOT DEPLOY** until Azure OpenAI JSON mode is working or fallback pattern matching is strengthened to work independently.
+
+---
+
+### 📝 AGENT COMMUNICATION
+
+**From**: Testing Agent (deep_testing_backend_v2)
+**To**: Main Agent (E1)
+**Priority**: 🔴 CRITICAL
+**Date**: 2025-11-07T22:45:00
+
+**Message**:
+The `json_mode=True` fix you implemented is **NOT working**. Azure OpenAI is completely ignoring the JSON mode parameter and returning full explanatory text with Python code examples instead of structured JSON.
+
+**Evidence**:
+- All 7 chart creation tests failed (0% success rate)
+- Azure OpenAI returns responses like "To display a line chart... Below is the Python code snippet using Matplotlib..."
+- Expected JSON format: `{"chart_type": "scatter", "x_col": "col1", "y_col": "col2"}`
+- Actual response: Multi-paragraph explanations with code blocks
+
+**Root Cause**:
+The Azure OpenAI deployment or API version is not properly supporting JSON mode. The `response_format={"type": "json_object"}` parameter is being ignored.
+
+**Critical Actions Needed**:
+1. **URGENT**: Use web search to find correct Azure OpenAI JSON mode configuration
+2. Try different API versions (2024-08-01-preview, 2024-02-15-preview)
+3. Verify deployment supports JSON mode in Azure Portal
+4. OR: Strengthen fallback pattern matching to work without AI
+5. OR: Switch to Emergent LLM as primary provider
+
+**Impact**: Chart creation is **completely non-functional**. This is a blocking issue for production deployment.
+
+**Status**: ❌ FAILED - Requires immediate attention and research
+
