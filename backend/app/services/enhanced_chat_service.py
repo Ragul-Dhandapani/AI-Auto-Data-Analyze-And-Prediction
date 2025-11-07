@@ -486,11 +486,9 @@ class EnhancedChatService:
                     }
                 
                 if fig:
-                    # Convert to plotly JSON format
-                    chart_data = {
-                        'data': fig.data,
-                        'layout': fig.layout
-                    }
+                    # Convert to plotly JSON format (serialize properly)
+                    import json
+                    chart_data = json.loads(fig.to_json())
                     
                     # Ask for confirmation to append to dashboard
                     return {
