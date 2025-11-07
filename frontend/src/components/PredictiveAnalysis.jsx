@@ -356,6 +356,17 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
   const refreshAnalysis = async () => {
     console.log('Refresh button clicked - resetting analysis');
+    
+    // Clear localStorage cache for this dataset
+    if (dataset?.id) {
+      try {
+        localStorage.removeItem(`analysis_${dataset.id}`);
+        console.log('🗑️ Cleared localStorage cache');
+      } catch (e) {
+        console.warn('Failed to clear localStorage:', e);
+      }
+    }
+    
     setAnalysisResults(null);
     onAnalysisUpdate(null);
     // Reset the ref to allow fresh run
