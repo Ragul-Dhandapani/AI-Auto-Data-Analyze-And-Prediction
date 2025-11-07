@@ -523,23 +523,34 @@ class EnhancedChatService:
             columns_list = ', '.join(list(dataset.columns)[:30])
             numeric_cols = ', '.join(dataset.select_dtypes(include=[np.number]).columns.tolist()[:20])
             
-            system_prompt = "You are a JSON-only API. Respond ONLY with valid JSON, no explanations or markdown."
+            system_prompt = "You are a helpful assistant that responds in JSON format. Always return valid JSON objects."
             
-            prompt = f"""Parse this chart request into JSON format.
+            prompt = f"""Parse the following chart request and return a JSON object.
 
 User request: "{message}"
 
-Available columns: {columns_list}
+Available columns in the dataset: {columns_list}
 Numeric columns: {numeric_cols}
 
-Return ONLY this JSON structure (no markdown, no explanations):
+Analyze the request and determine:
+1. What type of chart is requested (scatter, line, bar, histogram, box, or pie)
+2. Which columns should be used for X and Y axes
+
+Return your response as a JSON object with this exact structure:
 {{
-    "chart_type": "scatter|line|bar|histogram|box|pie",
-    "x_col": "exact_column_name_or_null",
-    "y_col": "exact_column_name_or_null"
+    "chart_type": "scatter",
+    "x_col": "column_name",
+    "y_col": "column_name"
 }}
 
-Match column names EXACTLY from the available list."""
+Rules:
+- Use exact column names from the available list
+- For histogram, box, or pie charts, only x_col is needed (set y_col to null)
+- For scatter, line, or bar charts, both x_col and y_col are needed
+- Match column names exactly, including case and underscores
+- If columns can't be determined, set to null
+
+Return ONLY the JSON object, no other text."""
 
             if azure_service.is_available():
                 response = await azure_service.generate_completion(
