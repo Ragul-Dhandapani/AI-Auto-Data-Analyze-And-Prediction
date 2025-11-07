@@ -465,46 +465,399 @@ class EnhancedChatService:
     
     # Placeholder methods for remaining handlers
     async def _handle_target_info(self, analysis_results: Dict) -> Dict:
-        return {'response': 'Target info handler', 'action': 'message', 'data': {}, 'requires_confirmation': False, 'suggestions': []}
+        """Show current prediction target"""
+        ml_models = analysis_results.get('ml_models', [])
+        if not ml_models:
+            return {
+                'response': "❌ No models have been trained yet. Run Predictive Analysis first.",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': ['Train models', 'Select target variable']
+            }
+        
+        # Get target from first model
+        target = ml_models[0].get('target_column', 'Unknown')
+        problem_type = analysis_results.get('problem_type', 'unknown')
+        
+        response = f"🎯 **Current Prediction Target**\n\n"
+        response += f"• **Target Variable:** {target}\n"
+        response += f"• **Problem Type:** {problem_type.capitalize()}\n"
+        response += f"• **Models Trained:** {len(ml_models)}"
+        
+        return {
+            'response': response,
+            'action': 'message',
+            'data': {'target': target, 'problem_type': problem_type},
+            'requires_confirmation': False,
+            'suggestions': [
+                'Show model metrics',
+                'Which model is best?',
+                'Show feature importance'
+            ]
+        }
     
     async def _handle_metrics(self, analysis_results: Dict) -> Dict:
-        return {'response': 'Metrics handler', 'action': 'message', 'data': {}, 'requires_confirmation': False, 'suggestions': []}
+        """Display model evaluation metrics"""
+        ml_models = analysis_results.get('ml_models', [])
+        if not ml_models:
+            return {
+                'response': "❌ No models trained yet. Train models first to see metrics.",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': ['Start training']
+            }
+        
+        problem_type = analysis_results.get('problem_type', 'unknown')
+        response = f"📊 **Model Performance Metrics**\n\n"
+        
+        for i, model in enumerate(ml_models[:5], 1):
+            model_name = model.get('model_name', 'Unknown')
+            response += f"**{i}. {model_name}**"
+            if model.get('is_best'):
+                response += " 🏆"
+            response += "\n"
+            
+            if problem_type == 'regression':
+                response += f"   • R² Score: {model.get('r2_score', 0):.4f}\n"
+                response += f"   • RMSE: {model.get('rmse', 0):.2f}\n"
+                response += f"   • MAE: {model.get('mae', 0):.2f}\n"
+            else:
+                response += f"   • Accuracy: {model.get('accuracy', 0):.4f}\n"
+                response += f"   • F1 Score: {model.get('f1_score', 0):.4f}\n"
+                response += f"   • Precision: {model.get('precision', 0):.4f}\n"
+            response += "\n"
+        
+        if len(ml_models) > 5:
+            response += f"_...and {len(ml_models) - 5} more models_"
+        
+        return {
+            'response': response,
+            'action': 'message',
+            'data': {'models': ml_models},
+            'requires_confirmation': False,
+            'suggestions': [
+                'Show best model',
+                'Compare top 3 models',
+                'Show feature importance'
+            ]
+        }
     
     async def _handle_best_model(self, analysis_results: Dict) -> Dict:
-        return {'response': 'Best model handler', 'action': 'message', 'data': {}, 'requires_confirmation': False, 'suggestions': []}
+        """Identify and describe the best performing model"""
+        ml_models = analysis_results.get('ml_models', [])
+        best_model = next((m for m in ml_models if m.get('is_best')), None)
+        
+        if not best_model:
+            best_model = ml_models[0] if ml_models else None
+        
+        if not best_model:
+            return {
+                'response': "❌ No models available to compare.",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': []
+            }
+        
+        model_name = best_model.get('model_name', 'Unknown')
+        problem_type = analysis_results.get('problem_type', 'unknown')
+        
+        response = f"🏆 **Best Model: {model_name}**\n\n"
+        
+        if problem_type == 'regression':
+            r2 = best_model.get('r2_score', 0)
+            rmse = best_model.get('rmse', 0)
+            response += f"• **R² Score:** {r2:.4f} (explains {r2*100:.1f}% of variance)\n"
+            response += f"• **RMSE:** {rmse:.2f}\n"
+            response += f"• **MAE:** {best_model.get('mae', 0):.2f}\n"
+        else:
+            acc = best_model.get('accuracy', 0)
+            response += f"• **Accuracy:** {acc:.4f} ({acc*100:.1f}% correct predictions)\n"
+            response += f"• **F1 Score:** {best_model.get('f1_score', 0):.4f}\n"
+            response += f"• **Precision:** {best_model.get('precision', 0):.4f}\n"
+        
+        response += f"\n💡 **Why {model_name}?**\n"
+        response += f"This model achieved the highest performance among {len(ml_models)} models tested."
+        
+        return {
+            'response': response,
+            'action': 'message',
+            'data': {'best_model': best_model},
+            'requires_confirmation': False,
+            'suggestions': [
+                'Compare with other models',
+                'Show feature importance',
+                'Explain this model'
+            ]
+        }
     
     async def _handle_feature_importance(self, analysis_results: Dict) -> Dict:
-        return {'response': 'Feature importance handler', 'action': 'message', 'data': {}, 'requires_confirmation': False, 'suggestions': []}
+        """Show feature importance ranking"""
+        feature_importance = analysis_results.get('feature_importance', {})
+        
+        if not feature_importance:
+            return {
+                'response': "❌ Feature importance data not available for this analysis.",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': ['Show model metrics', 'Show best model']
+            }
+        
+        # Sort by importance
+        sorted_features = sorted(feature_importance.items(), key=lambda x: abs(x[1]), reverse=True)
+        
+        response = f"🎯 **Feature Importance Rankings**\n\n"
+        response += "Top features driving predictions:\n\n"
+        
+        for i, (feature, importance) in enumerate(sorted_features[:10], 1):
+            bar_length = int(importance * 20)
+            bar = "█" * bar_length
+            response += f"{i}. **{feature}**: {importance:.3f} {bar}\n"
+        
+        if len(sorted_features) > 10:
+            response += f"\n_...and {len(sorted_features) - 10} more features_"
+        
+        return {
+            'response': response,
+            'action': 'message',
+            'data': {'feature_importance': dict(sorted_features)},
+            'requires_confirmation': False,
+            'suggestions': [
+                f'Show correlation with {sorted_features[0][0]}',
+                'Create feature importance chart',
+                'Explain top features'
+            ]
+        }
     
     async def _handle_model_comparison(self, analysis_results: Dict) -> Dict:
-        return {'response': 'Model comparison handler', 'action': 'message', 'data': {}, 'requires_confirmation': False, 'suggestions': []}
+        """Compare multiple models"""
+        ml_models = analysis_results.get('ml_models', [])
+        if len(ml_models) < 2:
+            return {
+                'response': "❌ Need at least 2 models to compare. Train more models first.",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': []
+            }
+        
+        problem_type = analysis_results.get('problem_type', 'unknown')
+        response = f"📊 **Model Comparison**\n\n"
+        
+        # Sort by performance
+        if problem_type == 'regression':
+            sorted_models = sorted(ml_models, key=lambda x: x.get('r2_score', 0), reverse=True)
+            metric = 'R² Score'
+        else:
+            sorted_models = sorted(ml_models, key=lambda x: x.get('accuracy', 0), reverse=True)
+            metric = 'Accuracy'
+        
+        response += f"Ranking by {metric}:\n\n"
+        
+        for i, model in enumerate(sorted_models[:10], 1):
+            name = model.get('model_name', 'Unknown')
+            score = model.get('r2_score' if problem_type == 'regression' else 'accuracy', 0)
+            
+            response += f"{i}. **{name}**: {score:.4f}"
+            if i == 1:
+                response += " 🏆"
+            response += "\n"
+        
+        return {
+            'response': response,
+            'action': 'message',
+            'data': {'sorted_models': sorted_models},
+            'requires_confirmation': False,
+            'suggestions': [
+                'Show best model details',
+                'Create comparison chart',
+                'Show metrics for all models'
+            ]
+        }
     
     async def _handle_anomaly_detection(self, dataset: pd.DataFrame, message: str) -> Dict:
-        return {'response': 'Anomaly detection handler', 'action': 'message', 'data': {}, 'requires_confirmation': False, 'suggestions': []}
+        """Detect anomalies/outliers in data"""
+        numeric_cols = dataset.select_dtypes(include=[np.number]).columns
+        
+        if len(numeric_cols) == 0:
+            return {
+                'response': "❌ No numeric columns found for anomaly detection.",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': []
+            }
+        
+        # Use IQR method for outlier detection
+        outliers_summary = {}
+        
+        for col in numeric_cols[:10]:  # Limit to first 10 columns
+            Q1 = dataset[col].quantile(0.25)
+            Q3 = dataset[col].quantile(0.75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - 1.5 * IQR
+            upper_bound = Q3 + 1.5 * IQR
+            
+            outliers = dataset[(dataset[col] < lower_bound) | (dataset[col] > upper_bound)]
+            outlier_count = len(outliers)
+            outlier_pct = (outlier_count / len(dataset)) * 100
+            
+            if outlier_count > 0:
+                outliers_summary[col] = {
+                    'count': outlier_count,
+                    'percentage': outlier_pct
+                }
+        
+        response = f"🔍 **Anomaly Detection Results**\n\n"
+        
+        if not outliers_summary:
+            response += "✅ No significant outliers detected using IQR method."
+        else:
+            response += f"Found outliers in {len(outliers_summary)} columns:\n\n"
+            
+            for col, info in list(outliers_summary.items())[:5]:
+                status = "🔴" if info['percentage'] > 10 else "🟡" if info['percentage'] > 5 else "🟢"
+                response += f"{status} **{col}:** {info['count']:,} outliers ({info['percentage']:.1f}%)\n"
+        
+        return {
+            'response': response,
+            'action': 'message',
+            'data': {'outliers': outliers_summary},
+            'requires_confirmation': False,
+            'suggestions': [
+                'Visualize outliers',
+                'Remove outliers',
+                'Show statistics excluding outliers'
+            ]
+        }
     
     async def _handle_trend_analysis(self, dataset: pd.DataFrame, message: str) -> Dict:
-        return {'response': 'Trend analysis handler', 'action': 'message', 'data': {}, 'requires_confirmation': False, 'suggestions': []}
+        """Analyze trends over time"""
+        # Look for date/time columns
+        date_cols = []
+        for col in dataset.columns:
+            if 'date' in col.lower() or 'time' in col.lower():
+                date_cols.append(col)
+        
+        if not date_cols:
+            return {
+                'response': "❌ No date/time columns found in the dataset. Add a datetime column for trend analysis.",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': ['Show column names', 'Check data types']
+            }
+        
+        response = f"📈 **Trend Analysis**\n\n"
+        response += f"Found {len(date_cols)} temporal column(s): {', '.join(date_cols)}\n\n"
+        response += "💡 To analyze trends:\n"
+        response += "• Use Time Series Analysis tab\n"
+        response += "• Specify target variable for forecasting\n"
+        response += "• Choose Prophet or LSTM method"
+        
+        return {
+            'response': response,
+            'action': 'message',
+            'data': {'date_columns': date_cols},
+            'requires_confirmation': False,
+            'suggestions': [
+                'Go to Time Series tab',
+                'Show me date column values',
+                'Create time series chart'
+            ]
+        }
     
     async def _handle_interpretation(self, dataset: Optional[pd.DataFrame], analysis_results: Optional[Dict], message: str) -> Dict:
-        return {'response': 'Interpretation handler', 'action': 'message', 'data': {}, 'requires_confirmation': False, 'suggestions': []}
+        """Interpret results or charts using Azure OpenAI"""
+        try:
+            from app.services.azure_openai_service import get_azure_openai_service
+            
+            azure_service = get_azure_openai_service()
+            
+            if not azure_service.is_available():
+                return {
+                    'response': "Interpretation requires Azure OpenAI. Please check configuration.",
+                    'action': 'message',
+                    'data': {},
+                    'requires_confirmation': False,
+                    'suggestions': []
+                }
+            
+            # Build context
+            context = f"User asked for interpretation: {message}\n\n"
+            
+            if analysis_results:
+                ml_models = analysis_results.get('ml_models', [])
+                if ml_models:
+                    best = next((m for m in ml_models if m.get('is_best')), ml_models[0])
+                    context += f"Best model: {best.get('model_name')}\n"
+                    context += f"Performance: {best.get('r2_score', best.get('accuracy', 0)):.3f}\n"
+            
+            context += "\nProvide a clear, business-friendly interpretation in 2-3 sentences."
+            
+            interpretation = await azure_service.generate_completion(
+                prompt=context,
+                max_tokens=300,
+                temperature=0.7
+            )
+            
+            return {
+                'response': f"💡 **Interpretation:**\n\n{interpretation}",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': ['Tell me more', 'What should I do next?']
+            }
+            
+        except Exception as e:
+            logger.error(f"Interpretation failed: {str(e)}")
+            return {
+                'response': "I can help interpret results. Please be more specific about what you'd like me to explain.",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': []
+            }
     
     async def _handle_suggestions(self, dataset: Optional[pd.DataFrame], analysis_results: Optional[Dict]) -> Dict:
+        """Provide smart analytical suggestions"""
         suggestions = []
         
         if dataset is not None:
-            suggestions.append("Check for missing values and data quality issues")
-            suggestions.append("Explore correlations between variables")
-            suggestions.append("Create visualizations to understand distributions")
+            # Check data quality
+            null_pct = (dataset.isnull().sum().sum() / (len(dataset) * len(dataset.columns))) * 100
+            if null_pct > 5:
+                suggestions.append("🔴 Address missing values (data is {:.1f}% incomplete)".format(null_pct))
+            
+            # Check for numeric columns
+            numeric_cols = dataset.select_dtypes(include=[np.number]).columns
+            if len(numeric_cols) >= 2:
+                suggestions.append("📊 Explore correlations between numeric variables")
+            
+            # Check for outliers
+            suggestions.append("🔍 Run anomaly detection to identify outliers")
+            
+            # Suggest visualizations
+            suggestions.append("📈 Create visualizations to understand distributions")
         
-        if analysis_results:
-            suggestions.append("Compare model performance metrics")
-            suggestions.append("Analyze feature importance")
-            suggestions.append("Review prediction accuracy")
+        if analysis_results and analysis_results.get('ml_models'):
+            suggestions.append("🏆 Review best performing model")
+            suggestions.append("🎯 Analyze feature importance")
+            suggestions.append("📊 Compare model performance")
+        
+        if not analysis_results or not analysis_results.get('ml_models'):
+            suggestions.append("🚀 Train ML models for predictions")
+        
+        response = f"💡 **Recommended Next Steps:**\n\n"
+        response += "\n".join([f"{i+1}. {s}" for i, s in enumerate(suggestions[:5])])
         
         return {
-            'response': f"💡 **Suggested Next Steps:**\n\n" + "\n".join([f"• {s}" for s in suggestions[:5]]),
+            'response': response,
             'action': 'message',
             'data': {},
             'requires_confirmation': False,
-            'suggestions': suggestions[:3]
+            'suggestions': [s.split(']')[-1].split(')')[0].strip() if ']' in s or ')' in s else s.replace('🔴 ', '').replace('📊 ', '').replace('🔍 ', '')[:50] for s in suggestions[:3]]
         }
