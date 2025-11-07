@@ -50,7 +50,7 @@ Focus on:
             temperature=0.7,
             max_tokens=150
         )
-        insight = response if isinstance(response, str) else str(response)
+        insight = response.choices[0].message.content
         
         # Ensure insight is concise (limit to 200 chars)
         if len(insight) > 200:
