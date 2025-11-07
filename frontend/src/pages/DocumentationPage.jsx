@@ -1360,10 +1360,11 @@ const DocumentationPage = () => {
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-3 py-2">
                       <p className="text-gray-700 text-sm">
-                        <strong>A:</strong> PROMISE AI is an enterprise-grade machine learning platform that automates the entire ML workflow. 
-                        It supports regression, classification, and time series forecasting with 6+ algorithms including Random Forest, XGBoost, 
-                        LightGBM, and LSTM neural networks. The platform provides automated feature selection, hyperparameter tuning, 
-                        model explainability (SHAP/LIME), AI-powered insights, and active learning capabilities.
+                        <strong>A:</strong> PROMISE AI is an enterprise-grade machine learning platform with dual-database support (Oracle RDS 19c & MongoDB). 
+                        It features 35+ ML models including XGBoost, LightGBM, CatBoost, Random Forest, SVC, and more for regression, classification, 
+                        time series, clustering, dimensionality reduction, and anomaly detection. The platform integrates Azure OpenAI (GPT-4o) for 
+                        AI-powered insights, natural language chart generation, and model recommendations. Additional features include hyperparameter tuning, 
+                        training metadata tracking, and localStorage persistence for analysis results.
                       </p>
                     </CollapsibleContent>
                   </Collapsible>
