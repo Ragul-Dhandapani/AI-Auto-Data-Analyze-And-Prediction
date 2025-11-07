@@ -328,21 +328,23 @@ const DocumentationPage = () => {
                         <div className="bg-white p-3 rounded">
                           <strong className="text-sm">Services</strong>
                           <div className="text-xs space-y-1 mt-1">
-                            <div>• ml_service</div>
+                            <div>• ml_service_enhanced (35+ models)</div>
+                            <div>• azure_openai_service</div>
+                            <div>• chat_service</div>
                             <div>• time_series_service</div>
-                            <div>• nlp_service</div>
                             <div>• hyperparameter_service</div>
-                            <div>• feedback_service</div>
-                            <div>• relational_service</div>
+                            <div>• analytics_tracking_service</div>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded">
-                          <strong className="text-sm">AI/ML</strong>
+                          <strong className="text-sm">AI/ML Features</strong>
                           <div className="text-xs space-y-1 mt-1">
-                            <div>• Model Training</div>
-                            <div>• Feature Engineering</div>
-                            <div>• Explainability (SHAP)</div>
-                            <div>• LLM Insights</div>
+                            <div>• 35+ Model Training</div>
+                            <div>• NaN Handling</div>
+                            <div>• Training Time Tracking</div>
+                            <div>• Azure OpenAI Insights</div>
+                            <div>• Model Explainability (SHAP)</div>
+                            <div>• Training Metadata Recording</div>
                           </div>
                         </div>
                       </div>
