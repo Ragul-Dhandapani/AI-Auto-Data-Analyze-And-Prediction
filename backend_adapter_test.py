@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Get backend URL from environment
-BACKEND_URL = "https://azure-ml-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://ai-insight-hub-3.preview.emergentagent.com/api"
 
 def test_api_health():
     """Test 0: Basic Health Check"""
