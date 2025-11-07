@@ -381,15 +381,17 @@ const DocumentationPage = () => {
 
                     {/* Data Flow */}
                     <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-400">
-                      <h4 className="font-bold text-yellow-900 mb-2">📊 Data Flow</h4>
+                      <h4 className="font-bold text-yellow-900 mb-2">📊 Complete ML Workflow</h4>
                       <div className="text-sm space-y-1">
-                        <div>1. User uploads data or connects to database</div>
-                        <div>2. Data stored/cached in MongoDB</div>
-                        <div>3. Variable selection modal appears (Manual/AI/Hybrid)</div>
-                        <div>4. Backend trains multiple ML models</div>
-                        <div>5. Results with visualizations sent to frontend</div>
-                        <div>6. AI generates insights and recommendations</div>
-                        <div>7. User can provide feedback for active learning</div>
+                        <div><strong>1.</strong> User uploads CSV or connects to external database (PostgreSQL, MySQL, Oracle, etc.)</div>
+                        <div><strong>2.</strong> Data stored in Oracle RDS 19c (default) or MongoDB with metadata tracking</div>
+                        <div><strong>3.</strong> Variable Selection Modal appears - Manual/AI-Suggested/Hybrid/Skip modes</div>
+                        <div><strong>4.</strong> Model Selector (always visible) - Select specific models or use "AI Recommend"</div>
+                        <div><strong>5.</strong> Backend trains selected models (35+ available) with NaN handling & training time tracking</div>
+                        <div><strong>6.</strong> Results ranked by performance (🏆 best model) - stored in localStorage for persistence</div>
+                        <div><strong>7.</strong> Azure OpenAI generates insights, business recommendations, and chart suggestions</div>
+                        <div><strong>8.</strong> Training metadata saved to database - view in Training Metadata dashboard</div>
+                        <div><strong>9.</strong> User can chat with AI, generate visualizations, or provide feedback</div>
                       </div>
                     </div>
                   </div>
