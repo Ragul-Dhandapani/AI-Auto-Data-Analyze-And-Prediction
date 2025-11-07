@@ -335,6 +335,19 @@ def train_models_with_selection(df, target_column, problem_type, selected_models
     X = X[numeric_cols]
     logger.info(f"Training with {len(numeric_cols)} numeric features: {numeric_cols[:10]}")
     
+    # Handle missing values - drop rows with NaN
+    initial_len = len(X)
+    valid_indices = ~(X.isna().any(axis=1) | y.isna())
+    X = X[valid_indices]
+    y = y[valid_indices]
+    
+    if len(X) < 10:
+        logger.warning(f"Insufficient data after removing NaN values: {len(X)} rows")
+        return {'models': [], 'problem_type': problem_type, 'best_score': 0}
+    
+    if len(X) < initial_len:
+        logger.info(f"Removed {initial_len - len(X)} rows with NaN values")
+    
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
     # Train with enhanced service
