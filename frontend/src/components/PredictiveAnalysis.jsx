@@ -30,8 +30,27 @@ const loadPlotly = () => {
 };
 
 const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection }) => {
+  // Load analysis results from localStorage on mount (for page refresh persistence)
+  const getInitialAnalysisResults = () => {
+    if (analysisCache) return analysisCache;
+    
+    // Try to restore from localStorage if dataset ID matches
+    try {
+      const savedResults = localStorage.getItem(`analysis_${dataset?.id}`);
+      if (savedResults) {
+        const parsed = JSON.parse(savedResults);
+        console.log('✅ Restored analysis results from localStorage');
+        return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to restore analysis from localStorage:', e);
+    }
+    
+    return null;
+  };
+  
   const [loading, setLoading] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState(analysisCache || null);
+  const [analysisResults, setAnalysisResults] = useState(getInitialAnalysisResults());
   const [analysisTime, setAnalysisTime] = useState(null);  // Track analysis time
   const [progress, setProgress] = useState(0);  // Track progress percentage
   const [collapsed, setCollapsed] = useState({});
