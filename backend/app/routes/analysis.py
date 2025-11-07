@@ -948,7 +948,7 @@ async def holistic_analysis(request: Dict[str, Any]):
 
 @router.post("/chat-action")
 async def chat_action(request: Dict[str, Any]):
-    """Handle chat-based analysis actions with LLM-powered intelligence"""
+    """Handle chat-based analysis actions with Azure OpenAI intelligence"""
     try:
         dataset_id = request.get("dataset_id")
         message = request.get("message", "")
@@ -956,16 +956,58 @@ async def chat_action(request: Dict[str, Any]):
         
         df = await load_dataframe(dataset_id)
         
-        # Get LLM key
-        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        # Try Azure OpenAI first
+        azure_service = get_azure_openai_service()
         
-        # Import the async version
-        from app.services.chat_service import process_chat_message_async
-        
-        # Process message with LLM intelligence
-        result = await process_chat_message_async(df, message, conversation_history, llm_key)
-        
-        return result
+        if azure_service.is_available():
+            # Check if it's a chart request
+            if any(keyword in message.lower() for keyword in ['chart', 'plot', 'graph', 'visualize', 'show']):
+                # Parse chart request with Azure OpenAI
+                columns = df.columns.tolist()
+                parsed = await azure_service.parse_chart_request(message, columns)
+                
+                if parsed.get('columns_found'):
+                    # Generate chart
+                    from app.services.chat_service import (
+                        handle_scatter_chart_request_v2,
+                        handle_line_chart_request_v2,
+                        handle_bar_chart_request_v2,
+                        handle_histogram_chart_request
+                    )
+                    
+                    chart_type = parsed['chart_type']
+                    x_col = parsed.get('x_column')
+                    y_col = parsed.get('y_column')
+                    
+                    if chart_type == 'scatter' and x_col and y_col:
+                        return handle_scatter_chart_request_v2(df, x_col, y_col, parsed.get('explanation', ''))
+                    elif chart_type == 'line':
+                        return handle_line_chart_request_v2(df, x_col, y_col, parsed.get('explanation', ''))
+                    elif chart_type == 'bar' and x_col:
+                        return handle_bar_chart_request_v2(df, x_col, parsed.get('explanation', ''))
+                    elif chart_type == 'histogram' and x_col:
+                        return handle_histogram_chart_request(df, x_col, parsed.get('explanation', ''))
+                else:
+                    return {
+                        "type": "error",
+                        "message": parsed.get('error', 'Could not parse chart request'),
+                        "success": False
+                    }
+            else:
+                # General Q&A with Azure OpenAI
+                data_context = {
+                    'columns': df.columns.tolist(),
+                    'row_count': len(df),
+                    'problem_type': 'general'
+                }
+                result = await azure_service.chat_with_data(message, data_context, conversation_history)
+                return result
+        else:
+            # Fallback to existing chat service
+            llm_key = os.environ.get('EMERGENT_LLM_KEY')
+            from app.services.chat_service import process_chat_message_async
+            result = await process_chat_message_async(df, message, conversation_history, llm_key)
+            return result
         
     except HTTPException:
         raise
