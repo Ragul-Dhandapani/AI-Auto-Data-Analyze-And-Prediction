@@ -660,6 +660,68 @@ async def holistic_analysis(request: Dict[str, Any]):
             
             # Update models_result
             models_result = {"models": all_models}
+            
+            # ==========================================
+            # SAVE ALL TRAINING METADATA TO DATABASE
+            # ==========================================
+            try:
+                logger.info(f"💾 Saving training metadata for {len(all_models)} models...")
+                db_adapter = get_db()
+                
+                for model in all_models:
+                    # Extract feature variables used
+                    feature_vars = []
+                    target_var = model.get('target_column', target_cols[0] if target_cols else 'unknown')
+                    
+                    # Get features from target_feature_mapping or use all numeric columns except target
+                    if target_var in target_feature_mapping:
+                        feature_vars = target_feature_mapping[target_var]
+                    else:
+                        # Use all numeric columns except target
+                        feature_vars = [col for col in numeric_cols if col != target_var]
+                    
+                    # Prepare metrics
+                    metrics = {}
+                    if problem_type == 'regression':
+                        metrics = {
+                            'r2_score': model.get('r2_score'),
+                            'rmse': model.get('rmse'),
+                            'mae': model.get('mae'),
+                            'mse': model.get('mse')
+                        }
+                    else:  # classification
+                        metrics = {
+                            'accuracy': model.get('accuracy'),
+                            'precision': model.get('precision'),
+                            'recall': model.get('recall'),
+                            'f1_score': model.get('f1_score')
+                        }
+                    
+                    # Add confidence if available
+                    if model.get('confidence'):
+                        metrics['confidence'] = model.get('confidence')
+                    
+                    # Create training metadata record
+                    metadata = {
+                        'dataset_id': dataset_id,
+                        'problem_type': problem_type,
+                        'target_variable': target_var,
+                        'feature_variables': feature_vars,
+                        'model_type': model.get('model_name', 'Unknown'),
+                        'model_params': model.get('hyperparameters', {}),
+                        'metrics': metrics,
+                        'training_duration': model.get('training_time', 0.0)
+                    }
+                    
+                    # Save to database
+                    metadata_id = await db_adapter.save_training_metadata(metadata)
+                    logger.info(f"✅ Saved metadata for {model.get('model_name')}: {metadata_id}")
+                
+                logger.info(f"✅ Successfully saved training metadata for ALL {len(all_models)} models!")
+                
+            except Exception as e:
+                logger.error(f"⚠️ Failed to save training metadata: {str(e)}")
+                # Don't fail the entire request if metadata saving fails
         
         # Add performance info if sampled
         if is_sampled:
