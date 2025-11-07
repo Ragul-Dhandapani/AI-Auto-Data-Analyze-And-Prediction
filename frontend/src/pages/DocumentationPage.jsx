@@ -1376,10 +1376,10 @@ const DocumentationPage = () => {
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-3 py-2">
                       <p className="text-gray-700 text-sm">
-                        <strong>A:</strong> PROMISE AI automatically trains multiple models and ranks them by performance. 
-                        The top-performing model is highlighted with 🏆. Generally, ensemble methods (Random Forest, XGBoost, LightGBM) 
-                        perform well on most datasets. LSTM works best for large datasets with complex patterns or time series data. 
-                        You can also use the Hyperparameter Tuning tab to optimize your chosen model for even better results.
+                        <strong>A:</strong> Use the always-visible Model Selector to choose specific models or click "AI Recommend" to let Azure OpenAI 
+                        suggest the best models for your dataset. PROMISE AI trains all selected models and ranks them by performance (🏆 marks the best). 
+                        Generally, XGBoost, LightGBM, and CatBoost excel on most datasets. For large time series data, use Prophet or LSTM. 
+                        Results persist in localStorage and include training time for each model. Use Hyperparameter Tuning to further optimize performance.
                       </p>
                     </CollapsibleContent>
                   </Collapsible>
