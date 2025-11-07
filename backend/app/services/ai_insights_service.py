@@ -208,20 +208,12 @@ async def generate_business_recommendations(
     Returns:
         List of business recommendations
     """
-    if not HAS_EMERGENT_LLM:
+    azure_service = get_azure_openai_service()
+    
+    if not azure_service.is_available():
         return _generate_rule_based_recommendations(insights, target_column, model_performance)
     
     try:
-        api_key = os.environ.get('EMERGENT_LLM_KEY')
-        if not api_key:
-            return _generate_rule_based_recommendations(insights, target_column, model_performance)
-        
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"recommendations_{id(insights)}",
-            system_message="You are a business strategist who translates data insights into actionable business recommendations."
-        ).with_model("openai", "gpt-4o-mini")
-        
         # Prepare context
         insights_text = "\n".join([f"- {ins['title']}: {ins['description']}" for ins in insights[:5]])
         
@@ -248,11 +240,19 @@ Provide recommendations in JSON format:
 }}
 """
         
-        user_message = UserMessage(text=prompt)
-        response = await chat.send_message(user_message)
+        # Use Azure OpenAI
+        response = azure_service.client.chat.completions.create(
+            model=azure_service.deployment,
+            messages=[
+                {"role": "system", "content": "You are a business strategist who translates data insights into actionable business recommendations."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=800
+        )
         
-        recommendations = _parse_llm_response(response)
-        logger.info(f"Generated {len(recommendations)} business recommendations")
+        recommendations = _parse_llm_response(response.choices[0].message.content)
+        logger.info(f"Generated {len(recommendations)} business recommendations using Azure OpenAI")
         return recommendations
     
     except Exception as e:
