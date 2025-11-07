@@ -561,3 +561,227 @@ class OracleAdapter(DatabaseAdapter):
             result['is_correct'] = result.get('is_correct') == 'Y'
         
         return results
+
+    
+    # ==================== Training Metadata Operations ====================
+    
+    async def save_training_metadata(self, metadata: Dict[str, Any]) -> str:
+        """
+        Save training metadata for ML model training session
+        
+        Args:
+            metadata: {
+                'id': str (optional, will generate if not provided),
+                'dataset_id': str,
+                'problem_type': str,
+                'target_variable': str,
+                'feature_variables': List[str] or str,
+                'model_type': str,
+                'model_params': dict (optional),
+                'metrics': dict,
+                'training_duration': float
+            }
+        
+        Returns:
+            str: metadata_id
+        """
+        import json
+        from datetime import datetime, timezone
+        
+        metadata_id = metadata.get('id', str(uuid.uuid4()))
+        
+        # Convert feature_variables to string if list
+        feature_vars = metadata.get('feature_variables', [])
+        if isinstance(feature_vars, list):
+            feature_vars = ', '.join(feature_vars)
+        
+        # Convert dicts to JSON strings
+        model_params_json = json.dumps(metadata.get('model_params', {}))
+        metrics_json = json.dumps(metadata.get('metrics', {}))
+        
+        query = """
+        INSERT INTO training_metadata (
+            id, dataset_id, problem_type, target_variable, feature_variables,
+            model_type, model_params_json, metrics_json, training_duration, created_at
+        ) VALUES (
+            :id, :dataset_id, :problem_type, :target_variable, :feature_variables,
+            :model_type, :model_params_json, :metrics_json, :training_duration, :created_at
+        )
+        """
+        
+        params = {
+            'id': metadata_id,
+            'dataset_id': metadata['dataset_id'],
+            'problem_type': metadata['problem_type'],
+            'target_variable': metadata['target_variable'],
+            'feature_variables': feature_vars,
+            'model_type': metadata['model_type'],
+            'model_params_json': model_params_json,
+            'metrics_json': metrics_json,
+            'training_duration': metadata.get('training_duration', 0.0),
+            'created_at': datetime.now(timezone.utc)
+        }
+        
+        await self._execute(query, params)
+        logger.info(f"✅ Saved training metadata: {metadata_id} for model {metadata['model_type']}")
+        return metadata_id
+    
+    async def get_training_metadata(
+        self, 
+        dataset_id: Optional[str] = None,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """
+        Get training metadata with optional filtering
+        
+        Args:
+            dataset_id: Optional filter by dataset
+            limit: Maximum number of records to return
+        
+        Returns:
+            List of training metadata records
+        """
+        import json
+        
+        if dataset_id:
+            query = """
+            SELECT 
+                tm.id, tm.dataset_id, tm.problem_type, tm.target_variable,
+                tm.feature_variables, tm.model_type, tm.model_params_json,
+                tm.metrics_json, tm.training_duration, tm.created_at,
+                d.name as dataset_name
+            FROM training_metadata tm
+            LEFT JOIN datasets d ON tm.dataset_id = d.id
+            WHERE tm.dataset_id = :dataset_id
+            ORDER BY tm.created_at DESC
+            FETCH FIRST :limit ROWS ONLY
+            """
+            params = {'dataset_id': dataset_id, 'limit': limit}
+        else:
+            query = """
+            SELECT 
+                tm.id, tm.dataset_id, tm.problem_type, tm.target_variable,
+                tm.feature_variables, tm.model_type, tm.model_params_json,
+                tm.metrics_json, tm.training_duration, tm.created_at,
+                d.name as dataset_name
+            FROM training_metadata tm
+            LEFT JOIN datasets d ON tm.dataset_id = d.id
+            ORDER BY tm.created_at DESC
+            FETCH FIRST :limit ROWS ONLY
+            """
+            params = {'limit': limit}
+        
+        results = await self._execute(query, params, fetch_all=True)
+        
+        # Parse JSON fields
+        for result in results:
+            if result.get('model_params_json'):
+                try:
+                    result['model_params'] = json.loads(result['model_params_json'])
+                except:
+                    result['model_params'] = {}
+                del result['model_params_json']
+            
+            if result.get('metrics_json'):
+                try:
+                    result['metrics'] = json.loads(result['metrics_json'])
+                except:
+                    result['metrics'] = {}
+                del result['metrics_json']
+            
+            # Convert created_at to string if datetime
+            if result.get('created_at'):
+                result['created_at'] = str(result['created_at'])
+        
+        return results
+    
+    async def get_training_stats(self, dataset_id: str) -> Dict[str, Any]:
+        """
+        Get training statistics for a dataset
+        
+        Args:
+            dataset_id: Dataset ID
+        
+        Returns:
+            Training statistics
+        """
+        query = """
+        SELECT 
+            COUNT(*) as total_trainings,
+            COUNT(DISTINCT model_type) as unique_models,
+            MAX(created_at) as last_training,
+            MIN(created_at) as first_training
+        FROM training_metadata
+        WHERE dataset_id = :dataset_id
+        """
+        
+        result = await self._execute(query, {'dataset_id': dataset_id}, fetch_one=True)
+        
+        return {
+            'total_trainings': result.get('total_trainings', 0) if result else 0,
+            'unique_models': result.get('unique_models', 0) if result else 0,
+            'last_training': str(result.get('last_training')) if result and result.get('last_training') else None,
+            'first_training': str(result.get('first_training')) if result and result.get('first_training') else None
+        }
+    
+    async def delete_training_metadata(self, metadata_id: str) -> bool:
+        """Delete training metadata by ID"""
+        query = "DELETE FROM training_metadata WHERE id = :id"
+        rows_affected = await self._execute(query, {'id': metadata_id})
+        return rows_affected > 0
+    
+    async def get_best_model_for_dataset(self, dataset_id: str, problem_type: str) -> Optional[Dict[str, Any]]:
+        """
+        Get the best performing model for a dataset based on problem type
+        
+        Args:
+            dataset_id: Dataset ID
+            problem_type: 'regression' or 'classification'
+        
+        Returns:
+            Best model metadata or None
+        """
+        import json
+        
+        # For regression, best model has highest R2
+        # For classification, best model has highest accuracy
+        if problem_type == 'regression':
+            query = """
+            SELECT 
+                tm.id, tm.dataset_id, tm.model_type, tm.metrics_json,
+                tm.training_duration, tm.created_at
+            FROM training_metadata tm
+            WHERE tm.dataset_id = :dataset_id 
+              AND tm.problem_type = :problem_type
+            ORDER BY 
+                CAST(JSON_VALUE(tm.metrics_json, '$.r2_score') AS NUMBER) DESC NULLS LAST
+            FETCH FIRST 1 ROW ONLY
+            """
+        else:  # classification
+            query = """
+            SELECT 
+                tm.id, tm.dataset_id, tm.model_type, tm.metrics_json,
+                tm.training_duration, tm.created_at
+            FROM training_metadata tm
+            WHERE tm.dataset_id = :dataset_id 
+              AND tm.problem_type = :problem_type
+            ORDER BY 
+                CAST(JSON_VALUE(tm.metrics_json, '$.accuracy') AS NUMBER) DESC NULLS LAST
+            FETCH FIRST 1 ROW ONLY
+            """
+        
+        result = await self._execute(
+            query, 
+            {'dataset_id': dataset_id, 'problem_type': problem_type}, 
+            fetch_one=True
+        )
+        
+        if result and result.get('metrics_json'):
+            try:
+                result['metrics'] = json.loads(result['metrics_json'])
+                del result['metrics_json']
+            except:
+                result['metrics'] = {}
+        
+        return result
+
