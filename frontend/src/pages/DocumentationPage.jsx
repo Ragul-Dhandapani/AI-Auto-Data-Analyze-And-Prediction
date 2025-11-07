@@ -87,31 +87,37 @@ const DocumentationPage = () => {
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
                     <div>
-                      <strong>Multiple Problem Types:</strong> Regression, Classification (Binary & Multi-class), Time Series Forecasting
+                      <strong>35+ ML Models:</strong> Regression (XGBoost, LightGBM, Random Forest, CatBoost, etc.), Classification (SVC, Gradient Boosting, AdaBoost, etc.)
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
                     <div>
-                      <strong>Data Source Flexibility:</strong> CSV upload, PostgreSQL, MySQL, SQL Server, Oracle, MongoDB (with Kerberos)
+                      <strong>Problem Types:</strong> Regression, Classification (Binary & Multi-class), Time Series, Clustering, Dimensionality Reduction, Anomaly Detection
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
                     <div>
-                      <strong>Advanced Features:</strong> Hyperparameter tuning, NLP/text processing, multi-target prediction, relational joins
+                      <strong>Dual Database Support:</strong> Oracle RDS 19c (default) with MongoDB alternative - seamless switching with compact toggle
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
                     <div>
-                      <strong>Active Learning:</strong> Feedback loop for continuous model improvement
+                      <strong>Azure OpenAI Integration:</strong> GPT-4o powered insights, chat-based analysis, and natural language chart generation
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
                     <div>
-                      <strong>Model Explainability:</strong> SHAP and LIME for interpretable AI
+                      <strong>Enhanced UI/UX:</strong> Always-visible Model Selector, localStorage persistence, Training Metadata dashboard, improved visualizations
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
+                    <div>
+                      <strong>Data Sources:</strong> CSV upload, PostgreSQL, MySQL, SQL Server, Oracle (with Kerberos authentication support)
                     </div>
                   </div>
                 </div>
