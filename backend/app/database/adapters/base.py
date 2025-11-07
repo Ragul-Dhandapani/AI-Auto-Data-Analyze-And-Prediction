@@ -98,3 +98,31 @@ class DatabaseAdapter(ABC):
     async def list_feedback(self, dataset_id: str, model_name: str, limit: int = 100) -> List[Dict[str, Any]]:
         """List feedback records"""
         pass
+
+    
+    # Training Metadata Operations
+    @abstractmethod
+    async def save_training_metadata(self, metadata: Dict[str, Any]) -> str:
+        """Save training metadata. Returns metadata_id"""
+        pass
+    
+    @abstractmethod
+    async def get_training_metadata(self, dataset_id: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get training metadata with optional filtering"""
+        pass
+    
+    @abstractmethod
+    async def get_training_stats(self, dataset_id: str) -> Dict[str, Any]:
+        """Get training statistics for a dataset"""
+        pass
+    
+    @abstractmethod
+    async def delete_training_metadata(self, metadata_id: str) -> bool:
+        """Delete training metadata by ID"""
+        pass
+    
+    @abstractmethod
+    async def get_best_model_for_dataset(self, dataset_id: str, problem_type: str) -> Optional[Dict[str, Any]]:
+        """Get the best performing model for a dataset"""
+        pass
+
