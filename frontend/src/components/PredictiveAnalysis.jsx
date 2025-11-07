@@ -672,40 +672,54 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </div>
       </div>
 
-      {/* Model Selector - NEW */}
-      {!loading && showModelSelector && (
-        <ModelSelector
-          problemType={analysisResults?.problem_type || 'classification'}
-          dataSummary={{
-            row_count: dataset?.row_count || 0,
-            feature_count: Object.keys(dataset?.data_preview?.[0] || {}).length,
-            missing_percentage: 0
-          }}
-          onModelSelection={(models) => {
-            setSelectedModels(models);
-            setShowModelSelector(false);
-            if (models) {
-              toast.success(models.length > 0 ? `${models.length} models selected` : 'All models selected');
-            }
-          }}
-          className="mb-4"
-        />
-      )}
-
-      {!loading && !showModelSelector && (
-        <div className="mb-4">
-          <Button
-            onClick={() => setShowModelSelector(true)}
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            {selectedModels && selectedModels.length > 0 
-              ? `🎯 Using ${selectedModels.length} Selected Models - Click to Change`
-              : '🤖 Advanced: Select Specific ML Models'}
-          </Button>
-        </div>
-      )}
+      {/* Model Selector - ALWAYS VISIBLE */}
+      <div className="mb-6 border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-blue-600" />
+          Select ML Models (35+ Available)
+        </h3>
+        
+        {showModelSelector ? (
+          <ModelSelector
+            problemType={analysisResults?.problem_type || 'classification'}
+            dataSummary={{
+              row_count: dataset?.row_count || 0,
+              feature_count: Object.keys(dataset?.data_preview?.[0] || {}).length,
+              missing_percentage: 0
+            }}
+            onModelSelection={(models) => {
+              setSelectedModels(models);
+              setShowModelSelector(false);
+              if (models) {
+                toast.success(models.length > 0 ? `${models.length} models selected` : 'All models selected');
+              }
+            }}
+            className="mb-2"
+          />
+        ) : (
+          <div>
+            <p className="text-sm text-gray-600 mb-3">
+              Choose from 35+ ML models across 5 categories: Classification (11), Regression (13), Clustering (5), Dimensionality (3), Anomaly (3)
+            </p>
+            <Button
+              onClick={() => setShowModelSelector(true)}
+              variant="default"
+              size="lg"
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={loading}
+            >
+              {selectedModels && selectedModels.length > 0 
+                ? `✅ ${selectedModels.length} Models Selected - Click to Change`
+                : '🚀 Select ML Models (Default: Auto-Select All)'}
+            </Button>
+            {selectedModels && selectedModels.length > 0 && (
+              <p className="text-xs text-blue-600 mt-2 font-medium">
+                Selected: {selectedModels.join(', ')}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* AI Summary - TOP POSITION */}
       {analysisResults.ai_summary && !collapsed.summary && (
