@@ -16,7 +16,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
   const [aiSuggestions, setAiSuggestions] = useState(null);
   const [showExplanations, setShowExplanations] = useState(false);
   const [activeTargetIndex, setActiveTargetIndex] = useState(0);
-  const [problemType, setProblemType] = useState("auto"); // "auto", "regression", "classification", "time_series"
+  const [problemType, setProblemType] = useState("auto"); // "auto", "regression", "classification", "time_series", "clustering", "dimensionality", "anomaly"
   const [timeColumn, setTimeColumn] = useState(""); // For time series
 
   useEffect(() => {
