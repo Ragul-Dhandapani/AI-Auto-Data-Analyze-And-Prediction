@@ -1359,9 +1359,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                               <td className="p-3 text-center">
                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                   model.confidence === 'High' ? 'bg-green-100 text-green-800' : 
-                                  model.confidence === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                                  model.confidence === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 
+                                  model.confidence === 'Low' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'
                                 }`}>
-                                  {model.confidence}
+                                  {model.confidence || 'N/A'}
                                 </span>
                               </td>
                               <td className="p-3 text-right text-gray-600">{model.n_train_samples}</td>
