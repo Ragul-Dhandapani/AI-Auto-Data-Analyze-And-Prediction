@@ -1620,8 +1620,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                             </div>
                             <div className={`text-2xl font-bold ${
                               model.confidence === 'High' ? 'text-green-600' : 
-                              model.confidence === 'Medium' ? 'text-yellow-600' : 'text-red-600'
-                            }`}>{model.confidence}</div>
+                              model.confidence === 'Medium' ? 'text-yellow-600' : 
+                              model.confidence === 'Low' ? 'text-red-600' : 'text-gray-400'
+                            }`}>{model.confidence || 'N/A'}</div>
                           </div>
                         </div>
                         
