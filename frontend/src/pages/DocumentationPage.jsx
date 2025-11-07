@@ -42,6 +42,63 @@ const DocumentationPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Quick Links to Documentation Files */}
+        <Card className="p-6 mb-6 bg-gradient-to-r from-blue-50 to-purple-50">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-blue-600" />
+            Documentation Resources
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <a href="/SETUP.md" target="_blank" rel="noopener noreferrer" className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-2">
+                <Settings className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold text-green-900">Setup Guide</h3>
+              </div>
+              <p className="text-sm text-gray-600">Local machine setup, installation, and configuration</p>
+            </a>
+            
+            <a href="/ARCHITECTURE_FLOW.md" target="_blank" rel="noopener noreferrer" className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-2">
+                <Activity className="w-5 h-5 text-purple-600" />
+                <h3 className="font-semibold text-purple-900">Architecture & Flow</h3>
+              </div>
+              <p className="text-sm text-gray-600">System architecture, data flow, and component relationships</p>
+            </a>
+            
+            <a href="/FRONTEND.md" target="_blank" rel="noopener noreferrer" className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-2">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-blue-900">Frontend Documentation</h3>
+              </div>
+              <p className="text-sm text-gray-600">React components, UI patterns, and frontend architecture</p>
+            </a>
+            
+            <a href="/BACKEND.md" target="_blank" rel="noopener noreferrer" className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-2">
+                <Database className="w-5 h-5 text-orange-600" />
+                <h3 className="font-semibold text-orange-900">Backend API Documentation</h3>
+              </div>
+              <p className="text-sm text-gray-600">API endpoints, services, ML models, and Azure OpenAI integration</p>
+            </a>
+            
+            <a href="/DATABASE.md" target="_blank" rel="noopener noreferrer" className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-2">
+                <Database className="w-5 h-5 text-indigo-600" />
+                <h3 className="font-semibold text-indigo-900">Database Schema</h3>
+              </div>
+              <p className="text-sm text-gray-600">Oracle & MongoDB schemas, DDL, DML, and ERD diagrams</p>
+            </a>
+            
+            <div className="bg-white p-4 rounded-lg shadow opacity-75">
+              <div className="flex items-center gap-3 mb-2">
+                <Link2 className="w-5 h-5 text-gray-600" />
+                <h3 className="font-semibold text-gray-900">More Coming Soon</h3>
+              </div>
+              <p className="text-sm text-gray-600">Additional guides and tutorials in development</p>
+            </div>
+          </div>
+        </Card>
+
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-7 mb-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
