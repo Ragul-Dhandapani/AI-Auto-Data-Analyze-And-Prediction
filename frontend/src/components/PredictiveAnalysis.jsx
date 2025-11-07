@@ -1587,7 +1587,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
               <div key={targetCol} className="mb-6">
                 <h4 className="font-semibold mb-3">Predicting: {targetCol}</h4>
                 <Tabs defaultValue={models[0].model_name} className="w-full">
-                  <TabsList className="grid w-full grid-cols-5 mb-4">
+                  <TabsList className="flex flex-wrap gap-2 mb-4 h-auto bg-transparent p-0">
                     {models.map((model) => {
                       const modelDescriptions = {
                         "Linear Regression": "Simple model that assumes a linear relationship between features and target. Best for: Basic trends, interpretable results, linear patterns.",
