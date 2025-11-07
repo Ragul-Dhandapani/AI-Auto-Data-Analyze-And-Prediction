@@ -72,11 +72,10 @@ async def run_analysis(request: Dict[str, Any]):
                 db_adapter = get_db()
                 dataset = await db_adapter.get_dataset(dataset_id)
                 if dataset:
-                    # Update dataset with cleaned data
+                    # Update dataset with cleaned data (removed updated_at - not in Oracle schema)
                     updates = {
                         "data": cleaned_df.to_dict('records'),
-                        "row_count": len(cleaned_df),
-                        "updated_at": datetime.now(timezone.utc).isoformat()
+                        "row_count": len(cleaned_df)
                     }
                     await db_adapter.update_dataset(dataset_id, updates)
             
