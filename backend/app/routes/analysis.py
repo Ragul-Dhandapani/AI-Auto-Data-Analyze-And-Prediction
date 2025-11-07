@@ -17,6 +17,19 @@ from app.models.pydantic_models import HolisticRequest, SaveStateRequest
 from app.database.db_helper import get_db
 from app.services.data_service import generate_data_profile, get_correlation_matrix, clean_data
 from app.services.ml_service import train_multiple_models, suggest_best_target_column, train_models_auto, detect_problem_type
+# Enhanced ML Service with 30+ models
+try:
+    from app.services.ml_service_enhanced import (
+        train_classification_models_enhanced,
+        train_regression_models_enhanced,
+        get_available_models,
+        get_model_recommendations
+    )
+    HAS_ENHANCED_ML = True
+    logger.info("✅ Enhanced ML service loaded (30+ models)")
+except ImportError:
+    HAS_ENHANCED_ML = False
+    logger.warning("Enhanced ML service not available, using standard models")
 from app.services.visualization_service_v2 import generate_auto_charts_v2 as generate_auto_charts
 from app.services import time_series_service
 from app.services.chat_service import process_chat_message
