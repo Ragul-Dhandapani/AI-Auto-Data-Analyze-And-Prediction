@@ -397,24 +397,48 @@ const DocumentationPage = () => {
                   </div>
                 </div>
 
+                {/* External Services */}
+                <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border-2 border-blue-300">
+                  <h4 className="font-bold text-blue-900 mb-3">☁️ External Services Integration</h4>
+                  <div className="bg-white p-4 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-blue-100 p-3 rounded">
+                        <strong className="text-blue-700">Azure OpenAI (GPT-4o)</strong>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>Endpoint:</strong> User-provided Azure resource
+                        </p>
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>API Version:</strong> 2024-12-01-preview
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          <strong>Features:</strong> AI insights generation, model recommendations, natural language chart generation, 
+                          chat-based analysis, business recommendations
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Key Features */}
                 <div className="mt-6 grid md:grid-cols-3 gap-4">
                   <div className="bg-blue-50 p-4 rounded border-l-4 border-blue-600">
                     <strong className="text-blue-900">🔒 Security</strong>
                     <p className="text-sm text-gray-700 mt-2">
-                      Kerberos authentication, secure connections, data encryption
+                      Kerberos authentication, parameterized queries (SQL injection protection), API key encryption, CORS configuration
                     </p>
                   </div>
                   <div className="bg-green-50 p-4 rounded border-l-4 border-green-600">
                     <strong className="text-green-900">⚡ Performance</strong>
                     <p className="text-sm text-gray-700 mt-2">
-                      Async processing, intelligent sampling, optimized queries
+                      Async FastAPI, Oracle connection pooling (2-10), localStorage caching, intelligent data sampling, NaN handling
                     </p>
                   </div>
                   <div className="bg-purple-50 p-4 rounded border-l-4 border-purple-600">
                     <strong className="text-purple-900">🔄 Scalability</strong>
                     <p className="text-sm text-gray-700 mt-2">
-                      Kubernetes ready, horizontal scaling, load balancing
+                      Kubernetes deployment, horizontal pod autoscaling, load balancing, CDN for static assets, supervisor process management
                     </p>
                   </div>
                 </div>
