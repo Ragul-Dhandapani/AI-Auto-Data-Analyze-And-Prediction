@@ -262,3 +262,121 @@ class MongoDBAdapter(DatabaseAdapter):
         
         feedback_list = await cursor.to_list(length=limit)
         return feedback_list
+
+    
+    # ==================== Training Metadata Operations ====================
+    
+    async def save_training_metadata(self, metadata: Dict[str, Any]) -> str:
+        """Save training metadata"""
+        from datetime import datetime, timezone
+        
+        metadata_id = metadata.get('id', str(uuid.uuid4()))
+        
+        # Convert feature_variables to string if list
+        feature_vars = metadata.get('feature_variables', [])
+        if isinstance(feature_vars, list):
+            feature_vars = ', '.join(feature_vars)
+        
+        doc = {
+            '_id': metadata_id,
+            'dataset_id': metadata['dataset_id'],
+            'problem_type': metadata['problem_type'],
+            'target_variable': metadata['target_variable'],
+            'feature_variables': feature_vars,
+            'model_type': metadata['model_type'],
+            'model_params': metadata.get('model_params', {}),
+            'metrics': metadata.get('metrics', {}),
+            'training_duration': metadata.get('training_duration', 0.0),
+            'created_at': datetime.now(timezone.utc)
+        }
+        
+        await self.db.training_metadata.insert_one(doc)
+        logger.info(f"✅ Saved training metadata: {metadata_id} for model {metadata['model_type']}")
+        return metadata_id
+    
+    async def get_training_metadata(
+        self, 
+        dataset_id: Optional[str] = None,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """Get training metadata with optional filtering"""
+        query = {}
+        if dataset_id:
+            query['dataset_id'] = dataset_id
+        
+        cursor = self.db.training_metadata.find(query).sort('created_at', -1).limit(limit)
+        results = await cursor.to_list(length=limit)
+        
+        # Get dataset names
+        for result in results:
+            result['id'] = result.pop('_id')
+            if result.get('dataset_id'):
+                dataset = await self.db.datasets.find_one({'_id': result['dataset_id']})
+                result['dataset_name'] = dataset.get('name') if dataset else 'Unknown'
+            
+            # Convert datetime to string
+            if result.get('created_at'):
+                result['created_at'] = result['created_at'].isoformat()
+        
+        return results
+    
+    async def get_training_stats(self, dataset_id: str) -> Dict[str, Any]:
+        """Get training statistics for a dataset"""
+        pipeline = [
+            {'$match': {'dataset_id': dataset_id}},
+            {'$group': {
+                '_id': None,
+                'total_trainings': {'$sum': 1},
+                'unique_models': {'$addToSet': '$model_type'},
+                'last_training': {'$max': '$created_at'},
+                'first_training': {'$min': '$created_at'}
+            }}
+        ]
+        
+        result = await self.db.training_metadata.aggregate(pipeline).to_list(length=1)
+        
+        if result:
+            return {
+                'total_trainings': result[0]['total_trainings'],
+                'unique_models': len(result[0]['unique_models']),
+                'last_training': result[0]['last_training'].isoformat() if result[0].get('last_training') else None,
+                'first_training': result[0]['first_training'].isoformat() if result[0].get('first_training') else None
+            }
+        
+        return {
+            'total_trainings': 0,
+            'unique_models': 0,
+            'last_training': None,
+            'first_training': None
+        }
+    
+    async def delete_training_metadata(self, metadata_id: str) -> bool:
+        """Delete training metadata by ID"""
+        result = await self.db.training_metadata.delete_one({'_id': metadata_id})
+        return result.deleted_count > 0
+    
+    async def get_best_model_for_dataset(self, dataset_id: str, problem_type: str) -> Optional[Dict[str, Any]]:
+        """Get the best performing model for a dataset"""
+        query = {
+            'dataset_id': dataset_id,
+            'problem_type': problem_type
+        }
+        
+        # Sort by appropriate metric
+        if problem_type == 'regression':
+            sort_field = 'metrics.r2_score'
+        else:
+            sort_field = 'metrics.accuracy'
+        
+        result = await self.db.training_metadata.find_one(
+            query,
+            sort=[(sort_field, -1)]
+        )
+        
+        if result:
+            result['id'] = result.pop('_id')
+            if result.get('created_at'):
+                result['created_at'] = result['created_at'].isoformat()
+        
+        return result
+
