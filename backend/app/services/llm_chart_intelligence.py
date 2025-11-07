@@ -28,8 +28,8 @@ class LLMChartIntelligence:
     def __init__(self):
         self.endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         self.api_key = os.getenv("AZURE_OPENAI_KEY")
-        self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
-        self.deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4")
+        self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
+        self.deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o")
         
         if not self.endpoint or not self.api_key:
             logger.warning("Azure OpenAI not configured - chart intelligence will be limited")
