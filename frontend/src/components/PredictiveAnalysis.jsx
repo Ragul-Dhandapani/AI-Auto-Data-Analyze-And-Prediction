@@ -672,6 +672,41 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </div>
       </div>
 
+      {/* Model Selector - NEW */}
+      {!loading && showModelSelector && (
+        <ModelSelector
+          problemType={analysisResults?.problem_type || 'classification'}
+          dataSummary={{
+            row_count: dataset?.row_count || 0,
+            feature_count: Object.keys(dataset?.data_preview?.[0] || {}).length,
+            missing_percentage: 0
+          }}
+          onModelSelection={(models) => {
+            setSelectedModels(models);
+            setShowModelSelector(false);
+            if (models) {
+              toast.success(models.length > 0 ? `${models.length} models selected` : 'All models selected');
+            }
+          }}
+          className="mb-4"
+        />
+      )}
+
+      {!loading && !showModelSelector && (
+        <div className="mb-4">
+          <Button
+            onClick={() => setShowModelSelector(true)}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            {selectedModels && selectedModels.length > 0 
+              ? `🎯 Using ${selectedModels.length} Selected Models - Click to Change`
+              : '🤖 Advanced: Select Specific ML Models'}
+          </Button>
+        </div>
+      )}
+
       {/* AI Summary - TOP POSITION */}
       {analysisResults.ai_summary && !collapsed.summary && (
         <Card className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
