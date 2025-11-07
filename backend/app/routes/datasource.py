@@ -228,10 +228,20 @@ async def upload_file(file: UploadFile = File(...)):
         # Save to database using adapter
         await db_adapter.create_dataset(dataset_doc)
         
-        # Remove internal fields for response
-        response_doc = dataset_doc.copy()
-        response_doc.pop("data", None)
-        response_doc.pop("gridfs_file_id", None)
+        # Remove internal fields and potentially problematic data for response
+        response_doc = {
+            "id": dataset_doc.get("id"),
+            "name": dataset_doc.get("name"),
+            "row_count": dataset_doc.get("row_count"),
+            "column_count": dataset_doc.get("column_count"),
+            "columns": dataset_doc.get("columns"),
+            "dtypes": dataset_doc.get("dtypes"),
+            "created_at": dataset_doc.get("created_at"),
+            "file_size": dataset_doc.get("file_size"),
+            "source_type": dataset_doc.get("source_type"),
+            "storage_type": dataset_doc.get("storage_type")
+            # Don't include data_preview in response to avoid JSON serialization issues
+        }
         
         return {"message": "File uploaded successfully", "dataset": response_doc}
         
