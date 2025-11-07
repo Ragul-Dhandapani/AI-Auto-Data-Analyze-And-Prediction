@@ -546,18 +546,23 @@ Match column names EXACTLY from the available list."""
                     prompt=prompt,
                     max_tokens=150,
                     temperature=0.1,
-                    system_message=system_prompt
+                    system_message=system_prompt,
+                    json_mode=True  # Enable JSON mode for strict JSON output
                 )
                 
-                # Parse JSON from response
+                # Parse JSON from response (Azure OpenAI returns valid JSON in JSON mode)
                 import json
-                import re
                 
-                # Extract JSON from response (handle markdown code blocks)
-                json_match = re.search(r'\{[^}]+\}', response, re.DOTALL)
-                if json_match:
-                    chart_config = json.loads(json_match.group())
+                try:
+                    chart_config = json.loads(response)
                     return chart_config
+                except json.JSONDecodeError:
+                    # Fallback: try to extract JSON if response has extra text
+                    import re
+                    json_match = re.search(r'\{[^}]+\}', response, re.DOTALL)
+                    if json_match:
+                        chart_config = json.loads(json_match.group())
+                        return chart_config
             
             # Fallback to pattern matching
             return self._parse_chart_fallback(message, dataset)
