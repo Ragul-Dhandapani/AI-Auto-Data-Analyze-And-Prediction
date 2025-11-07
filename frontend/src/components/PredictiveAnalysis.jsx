@@ -1599,7 +1599,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                       };
                       
                       return (
-                        <TabsTrigger key={model.model_name} value={model.model_name} className="relative">
+                        <TabsTrigger 
+                          key={model.model_name} 
+                          value={model.model_name} 
+                          className="relative px-4 py-2 text-sm whitespace-nowrap bg-white border border-gray-200 rounded-md hover:bg-gray-50 data-[state=active]:bg-blue-50 data-[state=active]:border-blue-500"
+                        >
                           <div className="flex items-center gap-1">
                             <span>{model.model_name}</span>
                             <div className="group relative inline-block">
