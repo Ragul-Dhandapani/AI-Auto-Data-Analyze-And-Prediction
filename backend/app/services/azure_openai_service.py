@@ -42,6 +42,47 @@ class AzureOpenAIService:
         """Check if Azure OpenAI is available"""
         return self.client is not None
     
+    async def generate_completion(
+        self,
+        prompt: str,
+        max_tokens: int = 500,
+        temperature: float = 0.7,
+        system_message: str = None
+    ) -> str:
+        """
+        Generate a completion from Azure OpenAI
+        
+        Args:
+            prompt: The prompt to send
+            max_tokens: Maximum tokens in response
+            temperature: Sampling temperature
+            system_message: Optional system message
+        
+        Returns:
+            Generated text response
+        """
+        if not self.is_available():
+            raise Exception("Azure OpenAI not available")
+        
+        try:
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+            
+            response = self.client.chat.completions.create(
+                model=self.deployment,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            logger.error(f"Azure OpenAI completion error: {str(e)}")
+            raise
+    
     async def generate_insights(
         self,
         data_summary: Dict,
