@@ -8,7 +8,7 @@ from typing import List, Optional, Dict, Any
 import logging
 
 from app.services.enhanced_chat_service import EnhancedChatService
-from app.database.adapters.factory import get_db
+from app.database.adapters.factory import get_database_adapter
 
 router = APIRouter(prefix="/enhanced-chat", tags=["enhanced-chat"])
 logger = logging.getLogger(__name__)
