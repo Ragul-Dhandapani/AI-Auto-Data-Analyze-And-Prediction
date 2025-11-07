@@ -247,6 +247,8 @@ class OracleAdapter(DatabaseAdapter):
     
     async def update_dataset(self, dataset_id: str, updates: Dict[str, Any]) -> bool:
         """Update dataset"""
+        from datetime import datetime
+        
         # Build dynamic UPDATE query
         set_clauses = []
         params = {'id': dataset_id}
@@ -255,9 +257,21 @@ class OracleAdapter(DatabaseAdapter):
             if key in ['columns', 'dtypes', 'data_preview']:
                 set_clauses.append(f"{key}_json = :{key}_json")
                 params[f"{key}_json"] = json.dumps(value)
-            elif key in ['training_count', 'last_trained_at', 'row_count', 'column_count']:
+            elif key in ['training_count', 'row_count', 'column_count']:
                 set_clauses.append(f"{key} = :{key}")
                 params[key] = value
+            elif key in ['last_trained_at', 'created_at', 'updated_at']:
+                # Handle datetime fields - convert ISO string to Oracle format
+                set_clauses.append(f"{key} = :{key}")
+                if isinstance(value, str):
+                    # Parse ISO format and convert to Python datetime
+                    try:
+                        dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                        params[key] = dt
+                    except:
+                        params[key] = value
+                else:
+                    params[key] = value
         
         if not set_clauses:
             return True
