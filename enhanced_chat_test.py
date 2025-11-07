@@ -59,7 +59,14 @@ class EnhancedChatTester:
         try:
             response = requests.get(f"{BACKEND_URL}/datasets", timeout=10)
             if response.status_code == 200:
-                datasets = response.json()
+                data = response.json()
+                # Handle both formats: direct list or {'datasets': [...]}
+                if isinstance(data, dict) and 'datasets' in data:
+                    datasets = data['datasets']
+                elif isinstance(data, list):
+                    datasets = data
+                else:
+                    datasets = []
                 print(f"\n📊 Found {len(datasets)} datasets in Oracle database")
                 return datasets
             else:
