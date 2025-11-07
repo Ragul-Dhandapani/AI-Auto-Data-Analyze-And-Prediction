@@ -392,20 +392,227 @@ class EnhancedChatService:
         }
     
     async def _handle_chart_creation(self, dataset: pd.DataFrame, message: str, analysis_results: Optional[Dict]) -> Dict:
-        """Handle chart creation requests"""
-        # This will be implemented in the next part
-        # For now, return a placeholder
-        return {
-            'response': "📊 Chart creation feature is being enhanced. Use the 'Generate Visualizations' button for now.",
-            'action': 'message',
-            'data': {},
-            'requires_confirmation': False,
-            'suggestions': [
-                'Click Generate Visualizations button',
-                'Ask about dataset statistics',
-                'Request correlation analysis'
-            ]
-        }
+        """Handle chart creation requests with Azure OpenAI intelligence"""
+        try:
+            from app.services.azure_openai_service import get_azure_openai_service
+            import plotly.graph_objects as go
+            import plotly.express as px
+            
+            azure_service = get_azure_openai_service()
+            
+            # Parse chart request using Azure OpenAI
+            chart_config = await self._parse_chart_request_with_ai(message, dataset, azure_service)
+            
+            if not chart_config:
+                return {
+                    'response': "❌ I couldn't understand the chart request. Please try something like:\n• 'Create a scatter plot of price vs quantity'\n• 'Show histogram for revenue'\n• 'Plot latency over time'",
+                    'action': 'message',
+                    'data': {},
+                    'requires_confirmation': False,
+                    'suggestions': [
+                        'Show me available columns',
+                        'Create a chart for the first numeric column',
+                        'Generate visualizations automatically'
+                    ]
+                }
+            
+            # Validate columns exist
+            missing_cols = []
+            if chart_config.get('x_col') and chart_config['x_col'] not in dataset.columns:
+                missing_cols.append(chart_config['x_col'])
+            if chart_config.get('y_col') and chart_config['y_col'] not in dataset.columns:
+                missing_cols.append(chart_config['y_col'])
+            
+            if missing_cols:
+                available = ', '.join(list(dataset.columns)[:10])
+                return {
+                    'response': f"❌ Column(s) not found: {', '.join(missing_cols)}\n\n**Available columns:**\n{available}",
+                    'action': 'message',
+                    'data': {'available_columns': list(dataset.columns)},
+                    'requires_confirmation': False,
+                    'suggestions': [
+                        'Show all column names',
+                        f'Create chart with {dataset.columns[0]}',
+                        'Check data types'
+                    ]
+                }
+            
+            # Generate the chart
+            fig = None
+            chart_type = chart_config.get('chart_type', 'scatter')
+            
+            try:
+                if chart_type == 'scatter' and chart_config.get('x_col') and chart_config.get('y_col'):
+                    fig = px.scatter(dataset, x=chart_config['x_col'], y=chart_config['y_col'],
+                                    title=f"{chart_config['y_col']} vs {chart_config['x_col']}")
+                
+                elif chart_type == 'line' and chart_config.get('x_col') and chart_config.get('y_col'):
+                    fig = px.line(dataset, x=chart_config['x_col'], y=chart_config['y_col'],
+                                 title=f"{chart_config['y_col']} over {chart_config['x_col']}")
+                
+                elif chart_type == 'bar' and chart_config.get('x_col') and chart_config.get('y_col'):
+                    fig = px.bar(dataset, x=chart_config['x_col'], y=chart_config['y_col'],
+                                title=f"{chart_config['y_col']} by {chart_config['x_col']}")
+                
+                elif chart_type == 'histogram' and chart_config.get('x_col'):
+                    fig = px.histogram(dataset, x=chart_config['x_col'],
+                                      title=f"Distribution of {chart_config['x_col']}")
+                
+                elif chart_type == 'box' and chart_config.get('y_col'):
+                    fig = px.box(dataset, y=chart_config['y_col'],
+                                title=f"Box Plot of {chart_config['y_col']}")
+                
+                elif chart_type == 'pie' and chart_config.get('x_col'):
+                    # Count occurrences for pie chart
+                    value_counts = dataset[chart_config['x_col']].value_counts().head(10)
+                    fig = px.pie(values=value_counts.values, names=value_counts.index,
+                                title=f"Distribution of {chart_config['x_col']}")
+                
+                else:
+                    return {
+                        'response': f"❌ Unable to create {chart_type} chart with the specified columns.",
+                        'action': 'message',
+                        'data': {},
+                        'requires_confirmation': False,
+                        'suggestions': ['Try a different chart type', 'Show available columns']
+                    }
+                
+                if fig:
+                    # Convert to plotly JSON format
+                    chart_data = {
+                        'data': fig.data,
+                        'layout': fig.layout
+                    }
+                    
+                    # Ask for confirmation to append to dashboard
+                    return {
+                        'response': f"✅ Created {chart_type} chart successfully!\n\n**Do you want to append this chart to the dashboard?**",
+                        'action': 'chart',
+                        'data': chart_data,
+                        'requires_confirmation': True,
+                        'suggestions': [
+                            'Yes, append to dashboard',
+                            'No, just show it here',
+                            'Create another chart'
+                        ]
+                    }
+            
+            except Exception as e:
+                logger.error(f"Chart generation error: {str(e)}")
+                return {
+                    'response': f"❌ Error creating chart: {str(e)}",
+                    'action': 'message',
+                    'data': {},
+                    'requires_confirmation': False,
+                    'suggestions': ['Try simpler chart request', 'Check column names']
+                }
+                
+        except Exception as e:
+            logger.error(f"Chart creation handler error: {str(e)}", exc_info=True)
+            return {
+                'response': f"❌ Chart creation failed: {str(e)}",
+                'action': 'message',
+                'data': {},
+                'requires_confirmation': False,
+                'suggestions': []
+            }
+    
+    async def _parse_chart_request_with_ai(self, message: str, dataset: pd.DataFrame, azure_service) -> Optional[Dict]:
+        """Use Azure OpenAI to parse natural language chart requests"""
+        try:
+            columns_list = ', '.join(list(dataset.columns)[:30])
+            numeric_cols = ', '.join(dataset.select_dtypes(include=[np.number]).columns.tolist()[:20])
+            
+            prompt = f"""You are a data visualization expert. Parse this chart request into structured format.
+
+User request: "{message}"
+
+Available columns: {columns_list}
+Numeric columns: {numeric_cols}
+
+Identify:
+1. Chart type (scatter, line, bar, histogram, box, pie)
+2. X-axis column (if applicable)
+3. Y-axis column (if applicable)
+
+Respond with ONLY a JSON object:
+{{
+    "chart_type": "scatter|line|bar|histogram|box|pie",
+    "x_col": "column_name or null",
+    "y_col": "column_name or null"
+}}
+
+Match column names exactly from the available list. Handle typos and variations intelligently."""
+
+            if azure_service.is_available():
+                response = await azure_service.generate_completion(
+                    prompt=prompt,
+                    max_tokens=200,
+                    temperature=0.3
+                )
+                
+                # Parse JSON from response
+                import json
+                import re
+                
+                # Extract JSON from response (handle markdown code blocks)
+                json_match = re.search(r'\{[^}]+\}', response, re.DOTALL)
+                if json_match:
+                    chart_config = json.loads(json_match.group())
+                    return chart_config
+            
+            # Fallback to pattern matching
+            return self._parse_chart_fallback(message, dataset)
+            
+        except Exception as e:
+            logger.error(f"AI chart parsing error: {str(e)}")
+            return self._parse_chart_fallback(message, dataset)
+    
+    def _parse_chart_fallback(self, message: str, dataset: pd.DataFrame) -> Optional[Dict]:
+        """Fallback pattern matching for chart requests"""
+        message_lower = message.lower()
+        columns = list(dataset.columns)
+        numeric_cols = dataset.select_dtypes(include=[np.number]).columns.tolist()
+        
+        # Detect chart type
+        chart_type = 'scatter'
+        if 'histogram' in message_lower or 'distribution' in message_lower:
+            chart_type = 'histogram'
+        elif 'line' in message_lower or 'over time' in message_lower or 'trend' in message_lower:
+            chart_type = 'line'
+        elif 'bar' in message_lower or 'by' in message_lower:
+            chart_type = 'bar'
+        elif 'box' in message_lower or 'outlier' in message_lower:
+            chart_type = 'box'
+        elif 'pie' in message_lower:
+            chart_type = 'pie'
+        
+        # Find columns mentioned in message
+        x_col = None
+        y_col = None
+        
+        for col in columns:
+            col_lower = col.lower().replace('_', ' ')
+            if col_lower in message_lower or col.lower() in message_lower:
+                if x_col is None:
+                    x_col = col
+                elif y_col is None:
+                    y_col = col
+                    break
+        
+        # For single column charts
+        if chart_type in ['histogram', 'box', 'pie'] and x_col:
+            return {'chart_type': chart_type, 'x_col': x_col, 'y_col': None}
+        
+        # For two-column charts
+        if chart_type in ['scatter', 'line', 'bar'] and x_col and y_col:
+            return {'chart_type': chart_type, 'x_col': x_col, 'y_col': y_col}
+        
+        # Default: use first two numeric columns for scatter
+        if len(numeric_cols) >= 2:
+            return {'chart_type': 'scatter', 'x_col': numeric_cols[0], 'y_col': numeric_cols[1]}
+        
+        return None
     
     async def _handle_general_query(self, message: str, dataset: Optional[pd.DataFrame], analysis_results: Optional[Dict], conversation_history: Optional[List[Dict]]) -> Dict:
         """Handle general questions using Azure OpenAI"""
