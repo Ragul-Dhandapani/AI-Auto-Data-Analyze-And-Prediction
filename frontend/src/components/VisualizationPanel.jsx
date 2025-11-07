@@ -180,11 +180,17 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate, variableSele
       // Complete progress
       setProgress(100);
       
-      setCharts(response.data.charts || []);
+      // Transform backend response format to match frontend expectations
+      const transformedCharts = (response.data.charts || []).map(chart => ({
+        ...chart,
+        plotly_data: chart.data // Backend returns 'data', frontend expects 'plotly_data'
+      }));
+      
+      setCharts(transformedCharts);
       setSkippedCharts(response.data.skipped || []);
       setHasGenerated(true);
-      if (response.data.charts?.length > 0) {
-        toast.success(`Generated ${response.data.charts.length} visualizations!`);
+      if (transformedCharts.length > 0) {
+        toast.success(`Generated ${transformedCharts.length} visualizations!`);
       }
       if (response.data.skipped?.length > 0) {
         toast.info(`${response.data.skipped.length} charts skipped due to data issues`);
