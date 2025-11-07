@@ -26,6 +26,7 @@ const ModelSelector = ({
   const [selectedModels, setSelectedModels] = useState([]);
   const [aiRecommendations, setAiRecommendations] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingModels, setLoadingModels] = useState(false);
 
   // Load available models when component mounts or problem type changes
   useEffect(() => {
