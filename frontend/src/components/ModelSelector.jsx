@@ -206,42 +206,56 @@ const ModelSelector = ({
           </div>
         )}
 
-        {selectionMode === 'manual' && availableModels.length > 0 && (
+        {selectionMode === 'manual' && (
           <div className="space-y-3">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium">
-                  Available Models ({availableModels.length})
-                </p>
-                <span className="text-xs text-gray-500">
-                  {selectedModels.length} selected
-                </span>
+            {loadingModels ? (
+              <div className="text-center py-8">
+                <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                <p className="text-sm text-gray-600 mt-2">Loading 35+ models...</p>
               </div>
-              
-              <div className="max-h-64 overflow-y-auto border rounded-lg p-2 space-y-1">
-                {availableModels.map(model => (
-                  <div
-                    key={model.key}
-                    onClick={() => toggleModel(model.key)}
-                    className={`flex items-start gap-3 p-2 rounded cursor-pointer transition-colors ${
-                      selectedModels.includes(model.key)
-                        ? 'bg-blue-50 border border-blue-200'
-                        : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    {selectedModels.includes(model.key) ? (
-                      <CheckCircle2 className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{model.name}</p>
-                      <p className="text-xs text-gray-600">{model.description}</p>
+            ) : availableModels.length > 0 ? (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium">
+                    Available Models ({availableModels.length})
+                  </p>
+                  <span className="text-xs text-gray-500">
+                    {selectedModels.length} selected
+                  </span>
+                </div>
+                
+                <div className="max-h-64 overflow-y-auto border rounded-lg p-2 space-y-1">
+                  {availableModels.map(model => (
+                    <div
+                      key={model.key}
+                      onClick={() => toggleModel(model.key)}
+                      className={`flex items-start gap-3 p-2 rounded cursor-pointer transition-colors ${
+                        selectedModels.includes(model.key)
+                          ? 'bg-blue-50 border border-blue-200'
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      {selectedModels.includes(model.key) ? (
+                        <CheckCircle2 className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">{model.name}</p>
+                        <p className="text-xs text-gray-600">{model.description}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                <p className="text-sm text-yellow-800">
+                  No models available for <strong>{problemType}</strong>. 
+                  Please ensure the backend is running and models are configured.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
