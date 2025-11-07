@@ -154,7 +154,35 @@ CREATE INDEX idx_feedback_dataset_model ON prediction_feedback(dataset_id, model
 CREATE INDEX idx_feedback_created ON prediction_feedback(created_at DESC);
 
 -- =====================================================
--- 5. STATISTICS & COMMENTS
+-- 5. TRAINING_METADATA TABLE - Track ML Training Sessions
+-- =====================================================
+
+CREATE TABLE training_metadata (
+    id VARCHAR2(36) PRIMARY KEY,
+    dataset_id VARCHAR2(36) NOT NULL,
+    problem_type VARCHAR2(50) NOT NULL,
+    target_variable VARCHAR2(200) NOT NULL,
+    feature_variables CLOB,
+    
+    model_type VARCHAR2(200) NOT NULL,
+    model_params_json CLOB CHECK (model_params_json IS JSON),
+    
+    metrics_json CLOB CHECK (metrics_json IS JSON),
+    training_duration NUMBER(10, 3),
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_training_dataset FOREIGN KEY (dataset_id)
+        REFERENCES datasets(id) ON DELETE CASCADE
+);
+
+-- Indexes for training_metadata
+CREATE INDEX idx_training_dataset ON training_metadata(dataset_id);
+CREATE INDEX idx_training_model ON training_metadata(model_type);
+CREATE INDEX idx_training_created ON training_metadata(created_at DESC);
+
+-- =====================================================
+-- 6. STATISTICS & COMMENTS
 -- =====================================================
 
 -- Gather statistics for optimizer
