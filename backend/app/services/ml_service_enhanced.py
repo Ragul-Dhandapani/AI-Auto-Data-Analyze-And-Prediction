@@ -351,6 +351,8 @@ def train_classification_models_enhanced(
     Returns:
         results, best_model, best_score
     """
+    import time
+    
     results = []
     best_model = None
     best_score = -float('inf')
@@ -363,8 +365,13 @@ def train_classification_models_enhanced(
         try:
             logger.info(f"Training {model_info['name']}...")
             
+            # Track training time
+            start_time = time.time()
+            
             model = model_info['model'](**model_info['params'])
             model.fit(X_train, y_train)
+            
+            training_time = time.time() - start_time
             
             y_pred = model.predict(X_test)
             y_pred_proba = model.predict_proba(X_test) if hasattr(model, 'predict_proba') else None
@@ -381,6 +388,7 @@ def train_classification_models_enhanced(
                 'precision': float(precision),
                 'recall': float(recall),
                 'f1_score': float(f1),
+                'training_time': float(training_time),
                 'description': model_info['description']
             }
             
@@ -390,7 +398,7 @@ def train_classification_models_enhanced(
                 best_score = accuracy
                 best_model = model
                 
-            logger.info(f"{model_info['name']}: Accuracy={accuracy:.4f}")
+            logger.info(f"{model_info['name']}: Accuracy={accuracy:.4f}, Time={training_time:.2f}s")
             
         except Exception as e:
             logger.error(f"Failed to train {model_info['name']}: {str(e)}")
