@@ -7,7 +7,7 @@ import {
   BookOpen, Home, Database, Target, BarChart3, TrendingUp, 
   Settings, Lightbulb, MessageSquare, ThumbsUp, Link2, 
   ChevronDown, ChevronRight, AlertCircle, Info, CheckCircle,
-  TrendingDown, Activity
+  TrendingDown, Activity, Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
