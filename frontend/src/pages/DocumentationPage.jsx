@@ -1408,6 +1408,26 @@ const DocumentationPage = () => {
                     <h3 className="font-bold text-lg text-green-600 mb-3">📊 Data & Models</h3>
                   </div>
 
+                  <Collapsible open={expandedSections['faq-3a']} onOpenChange={() => toggleSection('faq-3a')}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
+                      <h3 className="font-semibold text-left">Q: What's the difference between Oracle and MongoDB? Can I switch?</h3>
+                      {expandedSections['faq-3a'] ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 py-2">
+                      <div className="text-gray-700 text-sm space-y-2">
+                        <p><strong>A:</strong> PROMISE AI supports dual databases:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li><strong>Oracle RDS 19c (Default):</strong> Enterprise-grade relational database with BLOB storage, connection pooling (2-10), 
+                          and JSON columns for flexible schema. Ideal for production environments.</li>
+                          <li><strong>MongoDB (Alternative):</strong> NoSQL document database with GridFS for file storage and flexible schema. 
+                          Great for rapid development and prototyping.</li>
+                        </ul>
+                        <p className="mt-2"><strong>Switching:</strong> Use the compact database toggle in the header (top-right) to seamlessly switch 
+                        between Oracle and MongoDB. The application restarts automatically and all functionality works identically on both databases.</p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
                   <Collapsible open={expandedSections['faq-4']} onOpenChange={() => toggleSection('faq-4')}>
                     <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded">
                       <h3 className="font-semibold text-left">Q: What data sources are supported?</h3>
