@@ -414,6 +414,8 @@ def train_regression_models_enhanced(
     selected_models: Optional[List[str]] = None
 ) -> Tuple[List[Dict], Any, float]:
     """Train multiple regression models"""
+    import time
+    
     results = []
     best_model = None
     best_score = -float('inf')
@@ -426,8 +428,13 @@ def train_regression_models_enhanced(
         try:
             logger.info(f"Training {model_info['name']}...")
             
+            # Track training time
+            start_time = time.time()
+            
             model = model_info['model'](**model_info['params'])
             model.fit(X_train, y_train)
+            
+            training_time = time.time() - start_time
             
             y_pred = model.predict(X_test)
             
@@ -443,6 +450,7 @@ def train_regression_models_enhanced(
                 'rmse': float(rmse),
                 'mae': float(mae),
                 'mse': float(mse),
+                'training_time': float(training_time),
                 'description': model_info['description']
             }
             
@@ -452,7 +460,7 @@ def train_regression_models_enhanced(
                 best_score = r2
                 best_model = model
                 
-            logger.info(f"{model_info['name']}: R²={r2:.4f}, RMSE={rmse:.4f}")
+            logger.info(f"{model_info['name']}: R²={r2:.4f}, RMSE={rmse:.4f}, Time={training_time:.2f}s")
             
         except Exception as e:
             logger.error(f"Failed to train {model_info['name']}: {str(e)}")
