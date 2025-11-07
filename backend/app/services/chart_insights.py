@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 async def generate_chart_insight(chart_type: str, chart_title: str, data_summary: Dict[str, Any]) -> str:
     """
-    Generate AI-powered insight for a chart
+    Generate AI-powered insight for a chart using Azure OpenAI
     
     Args:
         chart_type: Type of chart (histogram, scatter, bar, etc.)
@@ -21,21 +21,15 @@ async def generate_chart_insight(chart_type: str, chart_title: str, data_summary
     Returns:
         Insightful description of the chart
     """
-    llm_key = os.environ.get('EMERGENT_LLM_KEY')
+    from app.services.azure_openai_service import get_azure_openai_service
     
-    if not llm_key:
-        # Fallback to basic description if no LLM key
+    azure_service = get_azure_openai_service()
+    
+    if not azure_service.is_available():
+        # Fallback to basic description if Azure OpenAI not configured
         return generate_basic_insight(chart_type, chart_title, data_summary)
     
     try:
-        from emergentintegrations.llm.chat import LlmChat
-        
-        llm = LlmChat(
-            api_key=llm_key,
-            session_id="chart_insights",
-            system_message="You are a data visualization expert. Provide concise, actionable insights about charts in 1-2 sentences. Focus on patterns, trends, and business implications."
-        )
-        
         prompt = f"""Analyze this {chart_type} chart and provide a concise insight (1-2 sentences):
 
 Chart: {chart_title}
@@ -47,7 +41,15 @@ Focus on:
 - Business implications
 - Actionable recommendations"""
         
-        response = await llm.send_message(prompt)
+        response = azure_service.client.chat.completions.create(
+            model=azure_service.deployment,
+            messages=[
+                {"role": "system", "content": "You are a data visualization expert. Provide concise, actionable insights about charts in 1-2 sentences. Focus on patterns, trends, and business implications."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
         insight = response if isinstance(response, str) else str(response)
         
         # Ensure insight is concise (limit to 200 chars)
