@@ -510,27 +510,42 @@ const DocumentationPage = () => {
                     </div>
 
                     <div className="bg-gray-50 p-4 rounded">
-                      <h4 className="font-semibold mb-2">Problem Types:</h4>
-                      <div className="grid md:grid-cols-2 gap-3 mt-2">
+                      <h4 className="font-semibold mb-2">Problem Types (7 Types Supported):</h4>
+                      <div className="grid md:grid-cols-3 gap-3 mt-2">
                         <div className="bg-white p-3 rounded border">
                           <div className="font-semibold text-green-600">📈 Regression</div>
-                          <p className="text-sm text-gray-600 mt-1">Predict continuous numeric values (e.g., sales, temperature, price)</p>
-                          <p className="text-xs text-gray-500 mt-2">Metrics: R², RMSE, MAE</p>
+                          <p className="text-sm text-gray-600 mt-1">Predict continuous values</p>
+                          <p className="text-xs text-gray-500 mt-2">18+ models available</p>
                         </div>
                         <div className="bg-white p-3 rounded border">
                           <div className="font-semibold text-purple-600">🏷️ Classification</div>
-                          <p className="text-sm text-gray-600 mt-1">Predict categories (e.g., yes/no, fraud/legitimate, A/B/C)</p>
-                          <p className="text-xs text-gray-500 mt-2">Metrics: Accuracy, F1, Precision, Recall</p>
+                          <p className="text-sm text-gray-600 mt-1">Predict categories</p>
+                          <p className="text-xs text-gray-500 mt-2">17+ models available</p>
                         </div>
                         <div className="bg-white p-3 rounded border">
                           <div className="font-semibold text-orange-600">⏰ Time Series</div>
-                          <p className="text-sm text-gray-600 mt-1">Forecast future values based on temporal patterns</p>
-                          <p className="text-xs text-gray-500 mt-2">Metrics: MAPE, RMSE, Trends</p>
+                          <p className="text-sm text-gray-600 mt-1">Forecast temporal patterns</p>
+                          <p className="text-xs text-gray-500 mt-2">Prophet & LSTM</p>
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <div className="font-semibold text-indigo-600">🎯 Clustering</div>
+                          <p className="text-sm text-gray-600 mt-1">Group similar data points</p>
+                          <p className="text-xs text-gray-500 mt-2">K-Means, DBSCAN</p>
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <div className="font-semibold text-pink-600">📐 Dimensionality Reduction</div>
+                          <p className="text-sm text-gray-600 mt-1">Reduce feature space</p>
+                          <p className="text-xs text-gray-500 mt-2">PCA, t-SNE</p>
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <div className="font-semibold text-red-600">🚨 Anomaly Detection</div>
+                          <p className="text-sm text-gray-600 mt-1">Find outliers</p>
+                          <p className="text-xs text-gray-500 mt-2">Isolation Forest, LOF</p>
                         </div>
                         <div className="bg-white p-3 rounded border">
                           <div className="font-semibold text-blue-600">🔍 Auto-Detect</div>
-                          <p className="text-sm text-gray-600 mt-1">Let AI determine the best problem type automatically</p>
-                          <p className="text-xs text-gray-500 mt-2">Based on data characteristics</p>
+                          <p className="text-sm text-gray-600 mt-1">AI determines best type</p>
+                          <p className="text-xs text-gray-500 mt-2">Azure OpenAI powered</p>
                         </div>
                       </div>
                     </div>
