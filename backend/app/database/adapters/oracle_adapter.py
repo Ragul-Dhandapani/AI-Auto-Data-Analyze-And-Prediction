@@ -279,7 +279,7 @@ class OracleAdapter(DatabaseAdapter):
             elif key in ['training_count', 'row_count', 'column_count']:
                 set_clauses.append(f"{key} = :{key}")
                 params[key] = value
-            elif key in ['last_trained_at', 'created_at', 'updated_at']:
+            elif key in ['last_trained_at', 'created_at']:
                 # Handle datetime fields - convert ISO string to Oracle format
                 set_clauses.append(f"{key} = :{key}")
                 if isinstance(value, str):
