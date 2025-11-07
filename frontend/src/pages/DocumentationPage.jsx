@@ -552,14 +552,20 @@ const DocumentationPage = () => {
                     <p className="text-gray-700">Automated machine learning with multiple algorithms.</p>
                     
                     <div className="bg-gray-50 p-4 rounded">
-                      <h4 className="font-semibold mb-2">Available Models:</h4>
-                      <div className="grid md:grid-cols-2 gap-2 text-sm">
-                        <div>• Linear/Logistic Regression</div>
-                        <div>• Random Forest</div>
-                        <div>• XGBoost</div>
-                        <div>• Decision Tree</div>
-                        <div>• LightGBM</div>
-                        <div>• LSTM Neural Network</div>
+                      <h4 className="font-semibold mb-2">35+ Available Models:</h4>
+                      <div className="grid md:grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <strong className="text-blue-600">Regression:</strong>
+                          <div className="text-xs mt-1">Linear, Ridge, Lasso, ElasticNet, SVR, XGBoost, LightGBM, CatBoost, Random Forest, Gradient Boosting, AdaBoost, Extra Trees, KNN, Bagging, HistGradient, Huber, RANSAC</div>
+                        </div>
+                        <div>
+                          <strong className="text-purple-600">Classification:</strong>
+                          <div className="text-xs mt-1">Logistic, SVC, XGBoost, LightGBM, CatBoost, Random Forest, Gradient Boosting, Decision Tree, AdaBoost, Extra Trees, KNN, Naive Bayes (Gaussian/Multinomial/Bernoulli), Bagging, HistGradient, Perceptron</div>
+                        </div>
+                        <div>
+                          <strong className="text-green-600">Advanced:</strong>
+                          <div className="text-xs mt-1">Neural Networks, Ensemble Methods, AutoML capabilities, Deep Learning integration</div>
+                        </div>
                       </div>
                     </div>
 
