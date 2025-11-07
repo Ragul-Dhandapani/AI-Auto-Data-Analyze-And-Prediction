@@ -597,49 +597,117 @@ Return ONLY the output_format JSON with filled values. Match column names exactl
             return self._parse_chart_fallback(message, dataset)
     
     def _parse_chart_fallback(self, message: str, dataset: pd.DataFrame) -> Optional[Dict]:
-        """Fallback pattern matching for chart requests"""
+        """Enhanced fallback pattern matching for chart requests"""
         message_lower = message.lower()
         columns = list(dataset.columns)
         numeric_cols = dataset.select_dtypes(include=[np.number]).columns.tolist()
+        categorical_cols = dataset.select_dtypes(include=['object', 'category']).columns.tolist()
         
-        # Detect chart type
-        chart_type = 'scatter'
-        if 'histogram' in message_lower or 'distribution' in message_lower:
+        # Detect chart type with more patterns
+        chart_type = 'scatter'  # default
+        
+        if any(word in message_lower for word in ['histogram', 'distribution', 'frequency']):
             chart_type = 'histogram'
-        elif 'line' in message_lower or 'over time' in message_lower or 'trend' in message_lower:
+        elif any(word in message_lower for word in ['line', 'over time', 'trend', 'time series', 'temporal']):
             chart_type = 'line'
-        elif 'bar' in message_lower or 'by' in message_lower:
+        elif any(word in message_lower for word in ['bar chart', 'bar graph', 'bars', 'count by', 'group by']):
             chart_type = 'bar'
-        elif 'box' in message_lower or 'outlier' in message_lower:
+        elif any(word in message_lower for word in ['box plot', 'box chart', 'outlier', 'quartile']):
             chart_type = 'box'
-        elif 'pie' in message_lower:
+        elif any(word in message_lower for word in ['pie chart', 'pie graph', 'proportion', 'percentage breakdown']):
             chart_type = 'pie'
+        elif any(word in message_lower for word in ['scatter', 'correlation', 'relationship', 'vs', 'versus', 'against']):
+            chart_type = 'scatter'
         
-        # Find columns mentioned in message
+        # Find columns mentioned in message (with fuzzy matching)
+        mentioned_cols = []
+        
+        for col in columns:
+            # Try exact match
+            if col.lower() in message_lower:
+                mentioned_cols.append(col)
+                continue
+            
+            # Try with spaces instead of underscores
+            col_spaced = col.lower().replace('_', ' ')
+            if col_spaced in message_lower:
+                mentioned_cols.append(col)
+                continue
+            
+            # Try without underscores
+            col_no_underscore = col.lower().replace('_', '')
+            if col_no_underscore in message_lower.replace(' ', ''):
+                mentioned_cols.append(col)
+                continue
+            
+            # Try partial match (column name is substring of a word in message)
+            words = message_lower.split()
+            for word in words:
+                if col.lower() in word or word in col.lower():
+                    if len(word) > 3 and len(col) > 3:  # Avoid spurious short matches
+                        mentioned_cols.append(col)
+                        break
+        
+        # Remove duplicates while preserving order
+        mentioned_cols = list(dict.fromkeys(mentioned_cols))
+        
+        logger.info(f"Pattern matching - Chart type: {chart_type}, Mentioned columns: {mentioned_cols}")
+        
+        # Assign x_col and y_col based on chart type
         x_col = None
         y_col = None
         
-        for col in columns:
-            col_lower = col.lower().replace('_', ' ')
-            if col_lower in message_lower or col.lower() in message_lower:
-                if x_col is None:
-                    x_col = col
-                elif y_col is None:
-                    y_col = col
-                    break
+        if chart_type in ['histogram', 'box', 'pie']:
+            # Single column charts
+            if mentioned_cols:
+                # Prefer numeric for histogram/box, any for pie
+                if chart_type == 'pie':
+                    x_col = mentioned_cols[0]
+                else:
+                    # Find first numeric column in mentioned
+                    for col in mentioned_cols:
+                        if col in numeric_cols:
+                            x_col = col
+                            break
+                    if not x_col and mentioned_cols:
+                        x_col = mentioned_cols[0]
+            else:
+                # Default: first numeric column
+                if numeric_cols:
+                    x_col = numeric_cols[0]
+            
+            if x_col:
+                return {'chart_type': chart_type, 'x_col': x_col, 'y_col': None}
         
-        # For single column charts
-        if chart_type in ['histogram', 'box', 'pie'] and x_col:
-            return {'chart_type': chart_type, 'x_col': x_col, 'y_col': None}
+        else:
+            # Two-column charts (scatter, line, bar)
+            if len(mentioned_cols) >= 2:
+                x_col = mentioned_cols[0]
+                y_col = mentioned_cols[1]
+            elif len(mentioned_cols) == 1:
+                # One column mentioned, find a suitable pair
+                x_col = mentioned_cols[0]
+                # For the other column, prefer numeric
+                for col in numeric_cols:
+                    if col != x_col:
+                        y_col = col
+                        break
+            else:
+                # No columns mentioned, use smart defaults
+                if len(numeric_cols) >= 2:
+                    x_col = numeric_cols[0]
+                    y_col = numeric_cols[1]
+            
+            if x_col and y_col:
+                return {'chart_type': chart_type, 'x_col': x_col, 'y_col': y_col}
         
-        # For two-column charts
-        if chart_type in ['scatter', 'line', 'bar'] and x_col and y_col:
-            return {'chart_type': chart_type, 'x_col': x_col, 'y_col': y_col}
-        
-        # Default: use first two numeric columns for scatter
+        # Last resort: suggest scatter plot with first two numeric columns
         if len(numeric_cols) >= 2:
+            logger.info(f"Using default scatter plot: {numeric_cols[0]} vs {numeric_cols[1]}")
             return {'chart_type': 'scatter', 'x_col': numeric_cols[0], 'y_col': numeric_cols[1]}
         
+        # No valid chart configuration found
+        logger.warning("Could not parse chart request - no valid configuration found")
         return None
     
     async def _handle_general_query(self, message: str, dataset: Optional[pd.DataFrame], analysis_results: Optional[Dict], conversation_history: Optional[List[Dict]]) -> Dict:
