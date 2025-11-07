@@ -40,6 +40,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       if (savedResults) {
         const parsed = JSON.parse(savedResults);
         console.log('✅ Restored analysis results from localStorage');
+        setRestoredFromCache(true); // Set flag for UI indicator
+        setTimeout(() => setRestoredFromCache(false), 5000); // Hide after 5 seconds
         return parsed;
       }
     } catch (e) {
