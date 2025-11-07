@@ -323,14 +323,14 @@ def generate_feature_explanation_ai(
     Generate AI-powered explanation using Azure OpenAI
     
     Configuration:
-    - Set AZURE_OPENAI_API_KEY in environment
+    - Set AZURE_OPENAI_KEY in environment
     - Set AZURE_OPENAI_ENDPOINT
     - Set AZURE_OPENAI_DEPLOYMENT_NAME
     '''
     try:
         client = AzureOpenAI(
-            api_key=os.environ.get('AZURE_OPENAI_API_KEY'),
-            api_version='2024-02-01',
+            api_key=os.environ.get('AZURE_OPENAI_KEY'),
+            api_version=os.environ.get('AZURE_OPENAI_API_VERSION', '2024-12-01-preview'),
             azure_endpoint=os.environ.get('AZURE_OPENAI_ENDPOINT')
         )
         
