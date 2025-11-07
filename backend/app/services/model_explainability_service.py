@@ -316,3 +316,185 @@ def explain_prediction_in_words(
     except Exception as e:
         logger.error(f"Error explaining prediction in words: {str(e)}")
         return f"Error generating explanation: {str(e)}"
+
+
+
+async def explain_shap_results_with_ai(
+    shap_values: Dict,
+    feature_names: List[str],
+    problem_type: str
+) -> str:
+    """
+    Convert technical SHAP results into business-friendly explanations using Azure OpenAI
+    
+    Args:
+        shap_values: SHAP values dictionary
+        feature_names: List of feature names
+        problem_type: "regression" or "classification"
+    
+    Returns:
+        Human-readable explanation
+    """
+    try:
+        from app.services.azure_openai_service import get_azure_openai_service
+        
+        azure_service = get_azure_openai_service()
+        
+        if not azure_service.is_available():
+            return "SHAP values calculated successfully. Azure OpenAI unavailable for detailed explanation."
+        
+        # Get top features by absolute SHAP value
+        if 'feature_importance' in shap_values:
+            top_features = sorted(
+                shap_values['feature_importance'].items(),
+                key=lambda x: abs(x[1]),
+                reverse=True
+            )[:5]
+        else:
+            top_features = [(f, 0.0) for f in feature_names[:5]]
+        
+        context = f"""
+Model Explainability Analysis (SHAP):
+- Problem Type: {problem_type}
+- Top 5 Most Important Features:
+{chr(10).join([f"  {i+1}. {feat}: {val:.4f}" for i, (feat, val) in enumerate(top_features)])}
+
+Task: Explain these SHAP results in simple business terms.
+- What do these values mean?
+- Which features drive predictions the most?
+- Provide actionable insights (2-3 sentences per top feature)
+Keep it non-technical and business-focused.
+"""
+        
+        explanation = await azure_service.generate_completion(
+            prompt=context,
+            max_tokens=800,
+            temperature=0.5
+        )
+        
+        return explanation
+    
+    except Exception as e:
+        logger.error(f"AI explanation failed: {str(e)}")
+        return f"SHAP analysis completed. Top features: {', '.join([f[0] for f in top_features])}"
+
+
+async def explain_lime_results_with_ai(
+    lime_explanation: Dict,
+    instance_data: Dict,
+    problem_type: str
+) -> str:
+    """
+    Convert LIME results into business-friendly explanations using Azure OpenAI
+    
+    Args:
+        lime_explanation: LIME explanation dictionary
+        instance_data: Data for the instance being explained
+        problem_type: "regression" or "classification"
+    
+    Returns:
+        Human-readable explanation
+    """
+    try:
+        from app.services.azure_openai_service import get_azure_openai_service
+        
+        azure_service = get_azure_openai_service()
+        
+        if not azure_service.is_available():
+            return "LIME explanation generated. Azure OpenAI unavailable for detailed interpretation."
+        
+        # Extract feature contributions
+        top_contributions = lime_explanation.get('local_explanation', [])[:5]
+        
+        context = f"""
+Local Model Explanation (LIME) for Single Prediction:
+- Problem Type: {problem_type}
+- Instance Features: {instance_data}
+- Top 5 Feature Contributions to this specific prediction:
+{chr(10).join([f"  {i+1}. {contrib}" for i, contrib in enumerate(top_contributions)])}
+
+Task: Explain why the model made THIS specific prediction.
+- What features influenced this particular prediction?
+- How do they compare to typical predictions?
+- Provide clear, actionable insights for this one case.
+Use simple business language, not technical jargon.
+"""
+        
+        explanation = await azure_service.generate_completion(
+            prompt=context,
+            max_tokens=700,
+            temperature=0.5
+        )
+        
+        return explanation
+    
+    except Exception as e:
+        logger.error(f"AI LIME explanation failed: {str(e)}")
+        return "LIME local explanation generated successfully."
+
+
+async def generate_overall_explainability_summary(
+    model_name: str,
+    shap_summary: str,
+    feature_importance: Dict[str, float],
+    problem_type: str,
+    performance_metric: float
+) -> str:
+    """
+    Generate comprehensive model explainability summary using Azure OpenAI
+    
+    Args:
+        model_name: Name of the model
+        shap_summary: SHAP analysis summary
+        feature_importance: Feature importance scores
+        problem_type: "regression" or "classification"
+        performance_metric: Model performance score
+    
+    Returns:
+        Executive summary of model explainability
+    """
+    try:
+        from app.services.azure_openai_service import get_azure_openai_service
+        
+        azure_service = get_azure_openai_service()
+        
+        if not azure_service.is_available():
+            return f"{model_name} model trained successfully with {len(feature_importance)} features."
+        
+        metric_name = "Accuracy" if problem_type == "classification" else "R² Score"
+        
+        top_5_features = sorted(feature_importance.items(), key=lambda x: abs(x[1]), reverse=True)[:5]
+        
+        context = f"""
+Model Explainability Executive Summary:
+- Model: {model_name}
+- Problem Type: {problem_type}
+- Performance: {metric_name} = {performance_metric:.4f}
+- Total Features: {len(feature_importance)}
+- Top 5 Most Important Features:
+{chr(10).join([f"  {i+1}. {feat}: {score:.4f}" for i, (feat, score) in enumerate(top_5_features)])}
+
+SHAP Analysis Summary:
+{shap_summary}
+
+Task: Create an executive summary that:
+1. Explains how the model makes predictions (in simple terms)
+2. Highlights the most important drivers (top features)
+3. Provides business recommendations based on insights
+4. Mentions model reliability and when to trust predictions
+
+Keep it concise (4-5 sentences) and business-focused.
+"""
+        
+        summary = await azure_service.generate_completion(
+            prompt=context,
+            max_tokens=600,
+            temperature=0.4
+        )
+        
+        return summary
+    
+    except Exception as e:
+        logger.error(f"Executive summary generation failed: {str(e)}")
+        return f"{model_name} trained with {performance_metric:.4f} {metric_name}. Top features: {', '.join([f[0] for f in top_5_features])}"
+
