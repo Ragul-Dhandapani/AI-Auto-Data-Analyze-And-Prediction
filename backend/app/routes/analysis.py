@@ -304,6 +304,54 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
     return df
 
 
+def train_models_with_selection(df, target_column, problem_type, selected_models):
+    """
+    Train models using enhanced ML service with model selection
+    
+    Args:
+        df: DataFrame with features and target
+        target_column: Name of target column
+        problem_type: classification or regression
+        selected_models: List of model keys to train
+    
+    Returns:
+        Dictionary with trained models results
+    """
+    from sklearn.model_selection import train_test_split
+    
+    # Prepare data
+    X = df.drop(columns=[target_column])
+    y = df[target_column]
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    # Train with enhanced service
+    if problem_type == 'classification':
+        results, best_model, best_score = train_classification_models_enhanced(
+            X_train, y_train, X_test, y_test, selected_models
+        )
+    else:  # regression
+        results, best_model, best_score = train_regression_models_enhanced(
+            X_train, y_train, X_test, y_test, selected_models
+        )
+    
+    # Format results to match expected structure
+    formatted_models = []
+    for result in results:
+        model_dict = {
+            'model_name': result['model_name'],
+            'target_column': target_column,
+            **result
+        }
+        formatted_models.append(model_dict)
+    
+    return {
+        'models': formatted_models,
+        'problem_type': problem_type,
+        'best_score': best_score
+    }
+
+
 @router.post("/holistic")
 async def holistic_analysis(request: Dict[str, Any]):
     """Perform comprehensive analysis with optional user variable selection and multiple targets"""
