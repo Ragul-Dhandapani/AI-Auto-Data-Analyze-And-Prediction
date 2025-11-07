@@ -180,36 +180,72 @@ const ModelSelector = ({
               </div>
             ) : aiRecommendations ? (
               <div className="space-y-3">
-                <div className="bg-purple-50 p-3 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-purple-900 mb-1">AI Recommendations</h4>
-                      <p className="text-sm text-purple-800">{aiRecommendations.reasoning}</p>
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="text-xs font-medium text-purple-700">
-                          Expected Performance:
-                        </span>
-                        <span className="px-2 py-0.5 bg-purple-200 text-purple-900 rounded text-xs font-semibold uppercase">
-                          {aiRecommendations.expected_performance}
-                        </span>
+                {aiRecommendations.error ? (
+                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <span className="text-2xl">⚠️</span>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-yellow-900 mb-1">Azure OpenAI Configuration Issue</h4>
+                        <p className="text-sm text-yellow-800 mb-2">
+                          The AI recommendation service is currently unavailable. This is likely due to Azure OpenAI deployment configuration.
+                        </p>
+                        <div className="text-xs text-yellow-700 bg-yellow-100 p-2 rounded mb-2 font-mono">
+                          {aiRecommendations.message}
+                        </div>
+                        <p className="text-sm text-yellow-800">
+                          <strong>Tip:</strong> Use <strong>Auto-Select</strong> (trains all models) or <strong>Manual Select</strong> (choose specific models) instead.
+                        </p>
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium mb-2">Recommended Models ({selectedModels.length}):</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedModels.map(modelKey => (
-                      <span key={modelKey} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                        {modelKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-purple-900 mb-1">AI Recommendations</h4>
+                          <p className="text-sm text-purple-800">{aiRecommendations.reasoning}</p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className="text-xs font-medium text-purple-700">
+                              Expected Performance:
+                            </span>
+                            <span className="px-2 py-0.5 bg-purple-200 text-purple-900 rounded text-xs font-semibold uppercase">
+                              {aiRecommendations.expected_performance}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium mb-2">Recommended Models ({selectedModels.length}):</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedModels.map(modelKey => (
+                          <span key={modelKey} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                            {modelKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-            ) : null}
+            ) : (
+              <div className="bg-blue-50 p-4 rounded-lg text-center">
+                <p className="text-sm text-blue-800 mb-3">
+                  Get AI-powered model recommendations based on your data characteristics.
+                </p>
+                <Button 
+                  onClick={getAIRecommendations}
+                  size="sm"
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Get AI Recommendations
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
