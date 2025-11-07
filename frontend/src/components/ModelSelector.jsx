@@ -46,11 +46,11 @@ const ModelSelector = ({
   const loadAvailableModels = async () => {
     setLoadingModels(true);
     try {
-      console.log(`Loading models for problem type: ${problemType}`);
+      console.log(`🔍 ModelSelector: Loading models for problem type: "${problemType}"`);
       const response = await axios.get(`${API}/models/available`, {
         params: { problem_type: problemType }
       });
-      console.log(`Loaded ${response.data.models.length} models:`, response.data.models);
+      console.log(`✅ ModelSelector: Loaded ${response.data.models.length} ${problemType} models:`, response.data.models.map(m => m.name));
       setAvailableModels(response.data.models);
     } catch (error) {
       console.error('Failed to load models:', error);
