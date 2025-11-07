@@ -523,32 +523,30 @@ class EnhancedChatService:
             columns_list = ', '.join(list(dataset.columns)[:30])
             numeric_cols = ', '.join(dataset.select_dtypes(include=[np.number]).columns.tolist()[:20])
             
-            prompt = f"""You are a data visualization expert. Parse this chart request into structured format.
+            system_prompt = "You are a JSON-only API. Respond ONLY with valid JSON, no explanations or markdown."
+            
+            prompt = f"""Parse this chart request into JSON format.
 
 User request: "{message}"
 
 Available columns: {columns_list}
 Numeric columns: {numeric_cols}
 
-Identify:
-1. Chart type (scatter, line, bar, histogram, box, pie)
-2. X-axis column (if applicable)
-3. Y-axis column (if applicable)
-
-Respond with ONLY a JSON object:
+Return ONLY this JSON structure (no markdown, no explanations):
 {{
     "chart_type": "scatter|line|bar|histogram|box|pie",
-    "x_col": "column_name or null",
-    "y_col": "column_name or null"
+    "x_col": "exact_column_name_or_null",
+    "y_col": "exact_column_name_or_null"
 }}
 
-Match column names exactly from the available list. Handle typos and variations intelligently."""
+Match column names EXACTLY from the available list."""
 
             if azure_service.is_available():
                 response = await azure_service.generate_completion(
                     prompt=prompt,
-                    max_tokens=200,
-                    temperature=0.3
+                    max_tokens=150,
+                    temperature=0.1,
+                    system_message=system_prompt
                 )
                 
                 # Parse JSON from response
