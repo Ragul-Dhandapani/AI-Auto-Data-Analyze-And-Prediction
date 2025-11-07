@@ -1,6 +1,6 @@
 """
-Hyperparameter Tuning Service
-Provides grid search, random search, and manual tuning capabilities
+Hyperparameter Tuning Service with Azure OpenAI Integration
+Provides grid search, random search, and AI-powered hyperparameter recommendations
 """
 import pandas as pd
 import numpy as np
@@ -17,6 +17,8 @@ try:
 except ImportError:
     HAS_LIGHTGBM = False
     logging.warning("LightGBM not available")
+
+logger = logging.getLogger(__name__)
 
 
 def get_default_hyperparameters(model_type: str, problem_type: str) -> Dict[str, Any]:
