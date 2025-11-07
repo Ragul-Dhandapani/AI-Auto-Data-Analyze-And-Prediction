@@ -318,10 +318,22 @@ def train_models_with_selection(df, target_column, problem_type, selected_models
         Dictionary with trained models results
     """
     from sklearn.model_selection import train_test_split
+    import logging
     
-    # Prepare data
+    logger = logging.getLogger(__name__)
+    
+    # Prepare data - CRITICAL: Filter to numeric columns only
     X = df.drop(columns=[target_column])
     y = df[target_column]
+    
+    # Select only numeric columns for training
+    numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+    if len(numeric_cols) == 0:
+        logger.warning("No numeric columns found for training")
+        return {'models': [], 'problem_type': problem_type, 'best_score': 0}
+    
+    X = X[numeric_cols]
+    logger.info(f"Training with {len(numeric_cols)} numeric features: {numeric_cols[:10]}")
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
