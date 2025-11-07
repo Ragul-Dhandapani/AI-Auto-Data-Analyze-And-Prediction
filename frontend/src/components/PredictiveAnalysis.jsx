@@ -727,9 +727,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         {showModelSelector ? (
           <ModelSelector
             problemType={
-              analysisResults?.problem_type === 'auto' 
+              // Use variableSelection if available, otherwise fall back to analysisResults
+              variableSelection?.problemType || 
+              (analysisResults?.problem_type === 'auto' 
                 ? 'classification' 
-                : (analysisResults?.problem_type || 'classification')
+                : (analysisResults?.problem_type || 'classification'))
             }
             dataSummary={{
               row_count: dataset?.row_count || 0,
