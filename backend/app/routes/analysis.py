@@ -341,6 +341,26 @@ def train_models_with_selection(df, target_column, problem_type, selected_models
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
+    # ========================================
+    # AUTO-DETECT PROBLEM TYPE IF NEEDED
+    # ========================================
+    # Check if target variable type matches problem type
+    unique_values = y.nunique()
+    is_numeric_continuous = pd.api.types.is_numeric_dtype(y) and unique_values > 20
+    is_categorical = pd.api.types.is_object_dtype(y) or pd.api.types.is_categorical_dtype(y) or unique_values <= 20
+    
+    # Validate and auto-correct problem type
+    if problem_type == 'classification' and is_numeric_continuous:
+        logger.warning(f"⚠️ Problem type mismatch: '{problem_type}' selected but target has {unique_values} unique continuous values")
+        logger.info(f"🔄 Auto-correcting to REGRESSION (target has {unique_values} unique values, all numeric)")
+        problem_type = 'regression'
+    elif problem_type == 'regression' and is_categorical:
+        logger.warning(f"⚠️ Problem type mismatch: '{problem_type}' selected but target has {unique_values} unique categorical values")
+        logger.info(f"🔄 Auto-correcting to CLASSIFICATION (target has {unique_values} unique values or is categorical)")
+        problem_type = 'classification'
+    
+    logger.info(f"✅ Final problem type: {problem_type} (target has {unique_values} unique values)")
+    
     # Train with enhanced service
     if problem_type == 'classification':
         results, best_model, best_score = train_classification_models_enhanced(
