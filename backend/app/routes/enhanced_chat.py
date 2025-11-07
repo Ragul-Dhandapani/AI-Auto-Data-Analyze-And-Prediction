@@ -36,7 +36,7 @@ async def send_chat_message(request: ChatRequest):
     - Natural language queries
     """
     try:
-        db_adapter = get_db()
+        db_adapter = get_database_adapter()
         
         # Get dataset
         dataset_doc = await db_adapter.get_dataset(request.dataset_id)
