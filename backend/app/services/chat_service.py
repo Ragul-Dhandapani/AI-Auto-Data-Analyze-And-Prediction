@@ -541,8 +541,11 @@ def handle_histogram_chart_request(df: pd.DataFrame, col: str, message: str) -> 
         if df[col].dtype not in ['int64', 'float64', 'int32', 'float32']:
             return {"type": "error", "message": f"❌ Column '{col}' is not numeric. Histograms require numeric data.", "success": False}
         
+        # Clean data: remove NaN and Inf values
+        clean_data = df[col].replace([np.inf, -np.inf], np.nan).dropna()
+        
         chart_data = {
-            "x": df[col].dropna().tolist(),
+            "x": clean_data.tolist(),
             "type": "histogram",
             "name": col,
             "marker": {"color": "rgba(100, 200, 102, 0.7)"}
