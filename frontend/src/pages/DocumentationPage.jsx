@@ -66,17 +66,17 @@ const DocumentationPage = () => {
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <BarChart3 className="w-8 h-8 text-blue-600 mb-2" />
                     <h3 className="font-semibold mb-2">Predictive Analytics</h3>
-                    <p className="text-sm text-gray-600">Automated ML with 6+ algorithms for regression and classification</p>
+                    <p className="text-sm text-gray-600">Automated ML with 35+ models including XGBoost, Random Forest, LightGBM, CatBoost for regression and classification</p>
                   </div>
                   <div className="bg-purple-50 p-4 rounded-lg">
                     <TrendingUp className="w-8 h-8 text-purple-600 mb-2" />
                     <h3 className="font-semibold mb-2">Time Series</h3>
-                    <p className="text-sm text-gray-600">Forecasting with Prophet, LSTM, and anomaly detection</p>
+                    <p className="text-sm text-gray-600">Forecasting with Prophet, LSTM, and anomaly detection using Isolation Forest</p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg">
                     <Lightbulb className="w-8 h-8 text-green-600 mb-2" />
-                    <h3 className="font-semibold mb-2">AI Insights</h3>
-                    <p className="text-sm text-gray-600">Business recommendations powered by large language models</p>
+                    <h3 className="font-semibold mb-2">AI Insights (Azure OpenAI)</h3>
+                    <p className="text-sm text-gray-600">Business recommendations and insights powered by Azure OpenAI GPT-4o</p>
                   </div>
                 </div>
               </Card>
