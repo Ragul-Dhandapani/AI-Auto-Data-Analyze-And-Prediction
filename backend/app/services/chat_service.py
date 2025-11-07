@@ -1,11 +1,10 @@
 """
 Chat Service
 Handles AI-powered chat interactions and dynamic analysis
-NOW WITH LLM-POWERED CHART INTELLIGENCE
+NOW WITH AZURE OPENAI-POWERED CHART INTELLIGENCE
 """
 import pandas as pd
 from typing import Dict, Any, List, Optional
-from emergentintegrations.llm.chat import LlmChat
 import os
 import logging
 import asyncio
