@@ -615,6 +615,7 @@ const DashboardPage = () => {
                     <VisualizationPanel 
                       dataset={selectedDataset}
                       chartsCache={visualizationCache[selectedDataset.id]}
+                      variableSelection={variableSelection}
                       onChartsUpdate={(data) => {
                         setVisualizationCache(prev => ({
                           ...prev,
