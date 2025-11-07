@@ -681,7 +681,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         
         {showModelSelector ? (
           <ModelSelector
-            problemType={analysisResults?.problem_type || 'classification'}
+            problemType={
+              analysisResults?.problem_type === 'auto' 
+                ? 'classification' 
+                : (analysisResults?.problem_type || 'classification')
+            }
             dataSummary={{
               row_count: dataset?.row_count || 0,
               feature_count: Object.keys(dataset?.data_preview?.[0] || {}).length,
