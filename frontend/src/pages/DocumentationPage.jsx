@@ -205,33 +205,59 @@ const DocumentationPage = () => {
                   </div>
                 </div>
 
-                {/* Database Connectors */}
-                <div className="mt-6 bg-purple-50 p-6 rounded-lg">
-                  <h3 className="text-xl font-bold mb-4 text-purple-900">🔌 Database Connectors</h3>
-                  <div className="grid md:grid-cols-3 gap-3">
-                    <div className="bg-white p-3 rounded text-center">
-                      <strong className="text-purple-600">PostgreSQL</strong>
-                      <p className="text-xs text-gray-600 mt-1">psycopg2</p>
+                {/* ML Models & Database Connectors */}
+                <div className="mt-6 grid md:grid-cols-2 gap-6">
+                  {/* ML Models */}
+                  <div className="bg-indigo-50 p-6 rounded-lg">
+                    <h3 className="text-xl font-bold mb-4 text-indigo-900">🤖 35+ ML Models</h3>
+                    <div className="space-y-2">
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-indigo-600 text-sm">Regression (18+)</strong>
+                        <p className="text-xs text-gray-600 mt-1">Linear, Ridge, Lasso, ElasticNet, SVR, XGBoost, LightGBM, CatBoost, Random Forest, Gradient Boosting, AdaBoost, Extra Trees, KNN, Bagging, HistGradient, Huber, RANSAC</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-indigo-600 text-sm">Classification (17+)</strong>
+                        <p className="text-xs text-gray-600 mt-1">Logistic, SVC, XGBoost, LightGBM, CatBoost, Random Forest, Gradient Boosting, Decision Tree, AdaBoost, Extra Trees, KNN, Naive Bayes (3 types), Bagging, HistGradient, Perceptron</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-indigo-600 text-sm">Advanced</strong>
+                        <p className="text-xs text-gray-600 mt-1">Prophet, LSTM (TensorFlow/Keras), Isolation Forest, LOF, Clustering, Dimensionality Reduction</p>
+                      </div>
                     </div>
-                    <div className="bg-white p-3 rounded text-center">
-                      <strong className="text-purple-600">MySQL</strong>
-                      <p className="text-xs text-gray-600 mt-1">pymysql</p>
+                  </div>
+
+                  {/* Database Connectors */}
+                  <div className="bg-purple-50 p-6 rounded-lg">
+                    <h3 className="text-xl font-bold mb-4 text-purple-900">🔌 Data Source Connectors</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white p-3 rounded text-center">
+                        <strong className="text-purple-600">CSV Upload</strong>
+                        <p className="text-xs text-gray-600 mt-1">Direct file upload</p>
+                      </div>
+                      <div className="bg-white p-3 rounded text-center">
+                        <strong className="text-purple-600">PostgreSQL</strong>
+                        <p className="text-xs text-gray-600 mt-1">psycopg2</p>
+                      </div>
+                      <div className="bg-white p-3 rounded text-center">
+                        <strong className="text-purple-600">MySQL</strong>
+                        <p className="text-xs text-gray-600 mt-1">pymysql</p>
+                      </div>
+                      <div className="bg-white p-3 rounded text-center">
+                        <strong className="text-purple-600">SQL Server</strong>
+                        <p className="text-xs text-gray-600 mt-1">pyodbc</p>
+                      </div>
+                      <div className="bg-white p-3 rounded text-center">
+                        <strong className="text-purple-600">Oracle (External)</strong>
+                        <p className="text-xs text-gray-600 mt-1">cx_Oracle</p>
+                      </div>
+                      <div className="bg-white p-3 rounded text-center">
+                        <strong className="text-purple-600">MongoDB (External)</strong>
+                        <p className="text-xs text-gray-600 mt-1">pymongo</p>
+                      </div>
                     </div>
-                    <div className="bg-white p-3 rounded text-center">
-                      <strong className="text-purple-600">SQL Server</strong>
-                      <p className="text-xs text-gray-600 mt-1">pyodbc</p>
-                    </div>
-                    <div className="bg-white p-3 rounded text-center">
-                      <strong className="text-purple-600">Oracle</strong>
-                      <p className="text-xs text-gray-600 mt-1">cx_Oracle</p>
-                    </div>
-                    <div className="bg-white p-3 rounded text-center">
-                      <strong className="text-purple-600">MongoDB</strong>
-                      <p className="text-xs text-gray-600 mt-1">motor (async)</p>
-                    </div>
-                    <div className="bg-white p-3 rounded text-center">
-                      <strong className="text-purple-600">Kerberos</strong>
-                      <p className="text-xs text-gray-600 mt-1">GSSAPI authentication</p>
+                    <div className="mt-3 bg-white p-3 rounded text-center">
+                      <strong className="text-purple-600">🔐 Kerberos Auth</strong>
+                      <p className="text-xs text-gray-600 mt-1">GSSAPI authentication for enterprise databases</p>
                     </div>
                   </div>
                 </div>
