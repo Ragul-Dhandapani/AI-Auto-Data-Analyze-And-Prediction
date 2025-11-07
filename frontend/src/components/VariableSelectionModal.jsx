@@ -227,12 +227,12 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
           </Card>
         </div>
 
-        {/* Problem Type Selection */}
+        {/* Problem Type Selection - ALL 7 CATEGORIES */}
         <div className="mb-6">
           <Label className="text-lg font-semibold mb-3 block">
-            🎯 Problem Type
+            🎯 Problem Type (7 Categories Available)
           </Label>
-          <div className="grid md:grid-cols-4 gap-3">
+          <div className="grid md:grid-cols-4 gap-3 mb-3">
             <Card
               className={`p-3 cursor-pointer border-2 transition-all ${
                 problemType === "auto" ? "border-blue-500 bg-blue-50" : "border-gray-200"
@@ -250,7 +250,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
               onClick={() => setProblemType("regression")}
             >
               <h3 className="font-semibold text-sm">📈 Regression</h3>
-              <p className="text-xs text-gray-600 mt-1">Predict numbers</p>
+              <p className="text-xs text-gray-600 mt-1">Predict numbers (13 models)</p>
             </Card>
             
             <Card
@@ -260,7 +260,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
               onClick={() => setProblemType("classification")}
             >
               <h3 className="font-semibold text-sm">🏷️ Classification</h3>
-              <p className="text-xs text-gray-600 mt-1">Predict categories</p>
+              <p className="text-xs text-gray-600 mt-1">Predict categories (11 models)</p>
             </Card>
             
             <Card
@@ -271,6 +271,39 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
             >
               <h3 className="font-semibold text-sm">⏰ Time Series</h3>
               <p className="text-xs text-gray-600 mt-1">Forecast trends</p>
+            </Card>
+          </div>
+          
+          {/* Row 2: New Problem Types */}
+          <div className="grid md:grid-cols-3 gap-3">
+            <Card
+              className={`p-3 cursor-pointer border-2 transition-all ${
+                problemType === "clustering" ? "border-pink-500 bg-pink-50" : "border-gray-200"
+              }`}
+              onClick={() => setProblemType("clustering")}
+            >
+              <h3 className="font-semibold text-sm">🔗 Clustering</h3>
+              <p className="text-xs text-gray-600 mt-1">Group similar data (5 models)</p>
+            </Card>
+            
+            <Card
+              className={`p-3 cursor-pointer border-2 transition-all ${
+                problemType === "dimensionality" ? "border-indigo-500 bg-indigo-50" : "border-gray-200"
+              }`}
+              onClick={() => setProblemType("dimensionality")}
+            >
+              <h3 className="font-semibold text-sm">📊 Dimensionality</h3>
+              <p className="text-xs text-gray-600 mt-1">Reduce dimensions (3 models)</p>
+            </Card>
+            
+            <Card
+              className={`p-3 cursor-pointer border-2 transition-all ${
+                problemType === "anomaly" ? "border-red-500 bg-red-50" : "border-gray-200"
+              }`}
+              onClick={() => setProblemType("anomaly")}
+            >
+              <h3 className="font-semibold text-sm">🚨 Anomaly Detection</h3>
+              <p className="text-xs text-gray-600 mt-1">Find outliers (3 models)</p>
             </Card>
           </div>
         </div>
