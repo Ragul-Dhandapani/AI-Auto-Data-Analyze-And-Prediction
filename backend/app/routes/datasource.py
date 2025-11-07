@@ -174,6 +174,12 @@ async def upload_file(file: UploadFile = File(...)):
                 counter += 1
         
         # Prepare dataset metadata
+        # Handle NaN, inf, and other non-JSON-serializable values in preview
+        preview_df = df.head(10).copy()
+        # Replace NaN, inf, -inf with None (which becomes null in JSON)
+        preview_df = preview_df.replace([float('inf'), float('-inf')], None)
+        preview_df = preview_df.where(pd.notna(preview_df), None)
+        
         dataset_doc = {
             "id": dataset_id,
             "name": filename,
@@ -181,7 +187,7 @@ async def upload_file(file: UploadFile = File(...)):
             "column_count": len(df.columns),
             "columns": list(df.columns),
             "dtypes": df.dtypes.astype(str).to_dict(),
-            "data_preview": df.head(10).to_dict('records'),  # First 10 rows as preview
+            "data_preview": preview_df.to_dict('records'),  # First 10 rows as preview (NaN handled)
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "file_size": len(contents),
