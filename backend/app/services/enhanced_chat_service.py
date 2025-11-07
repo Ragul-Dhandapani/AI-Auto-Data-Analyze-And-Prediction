@@ -518,68 +518,82 @@ class EnhancedChatService:
             }
     
     async def _parse_chart_request_with_ai(self, message: str, dataset: pd.DataFrame, azure_service) -> Optional[Dict]:
-        """Use Azure OpenAI to parse natural language chart requests"""
+        """Use Azure OpenAI to parse natural language chart requests with robust fallback"""
         try:
             columns_list = ', '.join(list(dataset.columns)[:30])
             numeric_cols = ', '.join(dataset.select_dtypes(include=[np.number]).columns.tolist()[:20])
             
-            system_prompt = "You are a helpful assistant that responds in JSON format. Always return valid JSON objects."
-            
-            prompt = f"""Parse the following chart request and return a JSON object.
-
-User request: "{message}"
-
-Available columns in the dataset: {columns_list}
-Numeric columns: {numeric_cols}
-
-Analyze the request and determine:
-1. What type of chart is requested (scatter, line, bar, histogram, box, or pie)
-2. Which columns should be used for X and Y axes
-
-Return your response as a JSON object with this exact structure:
-{{
-    "chart_type": "scatter",
-    "x_col": "column_name",
-    "y_col": "column_name"
+            # Try Azure OpenAI first
+            if azure_service.is_available():
+                try:
+                    system_prompt = """You are a data visualization API that ONLY returns JSON. 
+You must respond with ONLY a JSON object, absolutely no explanations, no markdown, no code examples.
+Your entire response must be parseable as JSON."""
+                    
+                    prompt = f"""{{
+  "task": "parse_chart_request",
+  "user_message": "{message}",
+  "available_columns": [{columns_list}],
+  "numeric_columns": [{numeric_cols}],
+  "output_format": {{
+    "chart_type": "scatter|line|bar|histogram|box|pie",
+    "x_col": "exact_column_name_or_null",
+    "y_col": "exact_column_name_or_null"
+  }}
 }}
 
-Rules:
-- Use exact column names from the available list
-- For histogram, box, or pie charts, only x_col is needed (set y_col to null)
-- For scatter, line, or bar charts, both x_col and y_col are needed
-- Match column names exactly, including case and underscores
-- If columns can't be determined, set to null
+Return ONLY the output_format JSON with filled values. Match column names exactly from available_columns."""
 
-Return ONLY the JSON object, no other text."""
-
-            if azure_service.is_available():
-                response = await azure_service.generate_completion(
-                    prompt=prompt,
-                    max_tokens=150,
-                    temperature=0.1,
-                    system_message=system_prompt,
-                    json_mode=True  # Enable JSON mode for strict JSON output
-                )
-                
-                # Parse JSON from response (Azure OpenAI returns valid JSON in JSON mode)
-                import json
-                
-                try:
-                    chart_config = json.loads(response)
-                    return chart_config
-                except json.JSONDecodeError:
-                    # Fallback: try to extract JSON if response has extra text
-                    import re
-                    json_match = re.search(r'\{[^}]+\}', response, re.DOTALL)
-                    if json_match:
-                        chart_config = json.loads(json_match.group())
-                        return chart_config
+                    response = await azure_service.generate_completion(
+                        prompt=prompt,
+                        max_tokens=150,
+                        temperature=0.0,  # Zero temperature for deterministic output
+                        system_message=system_prompt,
+                        json_mode=True
+                    )
+                    
+                    # Parse JSON response
+                    import json
+                    
+                    # Clean response (remove markdown code blocks if present)
+                    cleaned_response = response.strip()
+                    if cleaned_response.startswith('```'):
+                        # Extract JSON from markdown code block
+                        import re
+                        json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', cleaned_response, re.DOTALL)
+                        if json_match:
+                            cleaned_response = json_match.group(1)
+                    
+                    # Try to parse as JSON
+                    try:
+                        chart_config = json.loads(cleaned_response)
+                        
+                        # Validate the structure
+                        if isinstance(chart_config, dict) and 'chart_type' in chart_config:
+                            # Ensure values are not null strings
+                            if chart_config.get('x_col') == 'null':
+                                chart_config['x_col'] = None
+                            if chart_config.get('y_col') == 'null':
+                                chart_config['y_col'] = None
+                            
+                            logger.info(f"✅ Azure OpenAI parsed chart: {chart_config}")
+                            return chart_config
+                        else:
+                            logger.warning(f"Invalid chart config structure from AI: {chart_config}")
+                            
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Failed to parse AI response as JSON: {str(e)[:100]}")
+                        logger.debug(f"AI response was: {response[:200]}")
+                        
+                except Exception as e:
+                    logger.warning(f"Azure OpenAI chart parsing failed: {str(e)}")
             
-            # Fallback to pattern matching
+            # Always fallback to pattern matching for reliability
+            logger.info("Using pattern matching fallback for chart parsing")
             return self._parse_chart_fallback(message, dataset)
             
         except Exception as e:
-            logger.error(f"AI chart parsing error: {str(e)}")
+            logger.error(f"Chart parsing error: {str(e)}")
             return self._parse_chart_fallback(message, dataset)
     
     def _parse_chart_fallback(self, message: str, dataset: pd.DataFrame) -> Optional[Dict]:
