@@ -800,18 +800,91 @@ const DocumentationPage = () => {
                 </Collapsible>
               </Card>
 
+              {/* Azure OpenAI Integration */}
+              <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300">
+                <Collapsible open={expandedSections['azure-openai']} onOpenChange={() => toggleSection('azure-openai')}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <Sparkles className="w-6 h-6 text-blue-600" />
+                      <h3 className="text-xl font-bold text-blue-900">🚀 Complete Azure OpenAI Integration (GPT-4o)</h3>
+                    </div>
+                    {expandedSections['azure-openai'] ? <ChevronDown /> : <ChevronRight />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-4 space-y-4">
+                    <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                      <h4 className="font-bold text-blue-900 mb-3">🎯 Azure OpenAI Powers EVERY Feature:</h4>
+                      
+                      <div className="space-y-3 text-sm">
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-lg border-l-4 border-purple-500">
+                          <strong className="text-purple-900">1. Model Selection & Recommendations</strong>
+                          <p className="text-gray-700 mt-1">AI analyzes your dataset and recommends the best ML models from 35+ options. Click "AI Recommend" in Model Selector.</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-green-50 to-teal-50 p-3 rounded-lg border-l-4 border-green-500">
+                          <strong className="text-green-900">2. Variable Selection Intelligence</strong>
+                          <p className="text-gray-700 mt-1">AI suggests optimal target variables and important features by analyzing column names, data types, and relationships.</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-orange-50 to-red-50 p-3 rounded-lg border-l-4 border-orange-500">
+                          <strong className="text-orange-900">3. Hyperparameter Tuning Guidance</strong>
+                          <p className="text-gray-700 mt-1">AI recommends optimal hyperparameter ranges based on dataset size and complexity. Explains why certain parameters work best.</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-3 rounded-lg border-l-4 border-blue-500">
+                          <strong className="text-blue-900">4. ML Insights & Performance Analysis</strong>
+                          <p className="text-gray-700 mt-1">AI generates business insights from ML results. Explains why models succeed/fail and provides actionable recommendations.</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-3 rounded-lg border-l-4 border-yellow-500">
+                          <strong className="text-yellow-900">5. Model Explainability (SHAP/LIME)</strong>
+                          <p className="text-gray-700 mt-1">AI converts technical SHAP/LIME results into plain-language business explanations. Understand feature impacts without ML expertise.</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-3 rounded-lg border-l-4 border-indigo-500">
+                          <strong className="text-indigo-900">6. Time Series Forecasting Insights</strong>
+                          <p className="text-gray-700 mt-1">AI explains forecast trends, interprets anomalies with business context, and recommends forecast strategies.</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-pink-50 to-rose-50 p-3 rounded-lg border-l-4 border-pink-500">
+                          <strong className="text-pink-900">7. Natural Language Chart Generation</strong>
+                          <p className="text-gray-700 mt-1">Create visualizations by simply asking: "Show me a scatter plot of price vs sales" or "Generate a correlation heatmap"</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-cyan-50 to-sky-50 p-3 rounded-lg border-l-4 border-cyan-500">
+                          <strong className="text-cyan-900">8. Interactive Chat Assistant</strong>
+                          <p className="text-gray-700 mt-1">Ask questions about your data, models, and results. Get instant AI-powered answers and business recommendations.</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 bg-green-50 p-4 rounded-lg border-2 border-green-400">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="w-6 h-6 text-green-600 mt-0.5" />
+                          <div>
+                            <strong className="text-green-900 text-base">100% Azure OpenAI Powered Platform!</strong>
+                            <p className="text-sm text-green-800 mt-1">
+                              Unlike traditional ML platforms, PROMISE AI uses Azure OpenAI GPT-4o at EVERY step - from data analysis 
+                              to model training to results interpretation. Get AI-powered insights throughout your entire workflow.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+
               {/* Chat Assistant */}
               <Card className="p-6">
                 <Collapsible open={expandedSections['chat']} onOpenChange={() => toggleSection('chat')}>
                   <CollapsibleTrigger className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-3">
                       <MessageSquare className="w-6 h-6 text-blue-600" />
-                      <h3 className="text-xl font-bold">7. AI Chat Assistant</h3>
+                      <h3 className="text-xl font-bold">7. AI Chat Assistant (Azure OpenAI)</h3>
                     </div>
                     {expandedSections['chat'] ? <ChevronDown /> : <ChevronRight />}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-4 space-y-3">
-                    <p className="text-gray-700">Interactive chat powered by AI to help with analysis interpretation.</p>
+                    <p className="text-gray-700">Interactive chat powered by Azure OpenAI GPT-4o to help with analysis interpretation and data exploration.</p>
                     
                     <div className="bg-gray-50 p-4 rounded">
                       <h4 className="font-semibold mb-2">What You Can Ask:</h4>
