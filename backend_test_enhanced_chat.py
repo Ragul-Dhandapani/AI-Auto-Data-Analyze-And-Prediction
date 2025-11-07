@@ -84,7 +84,10 @@ def send_chat_message(message: str, dataset_id: str = DATASET_ID) -> Dict[str, A
         )
         
         if response.status_code == 200:
-            return response.json()
+            result = response.json()
+            if result is None:
+                return {'error': True, 'message': 'Empty response from server'}
+            return result
         else:
             return {
                 'error': True,
