@@ -448,35 +448,50 @@ const DocumentationPage = () => {
               <Card className="p-6">
                 <h2 className="text-2xl font-bold mb-4">Deployment Architecture</h2>
                 
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-lg">
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-lg mb-4">
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="bg-white p-4 rounded shadow">
                       <h4 className="font-semibold text-blue-600 mb-2">Development</h4>
                       <ul className="text-sm space-y-1">
-                        <li>✓ Hot reload enabled</li>
-                        <li>✓ Local MongoDB</li>
-                        <li>✓ Debug mode</li>
+                        <li>✓ Hot reload (Vite + FastAPI)</li>
+                        <li>✓ Local Oracle/MongoDB</li>
+                        <li>✓ Debug mode enabled</li>
                         <li>✓ Source maps</li>
+                        <li>✓ Supervisor for services</li>
                       </ul>
                     </div>
                     <div className="bg-white p-4 rounded shadow">
                       <h4 className="font-semibold text-green-600 mb-2">Staging</h4>
                       <ul className="text-sm space-y-1">
                         <li>✓ Docker containers</li>
-                        <li>✓ Cloud MongoDB</li>
+                        <li>✓ Oracle RDS 19c</li>
                         <li>✓ HTTPS enabled</li>
+                        <li>✓ Azure OpenAI integration</li>
                         <li>✓ Performance monitoring</li>
                       </ul>
                     </div>
                     <div className="bg-white p-4 rounded shadow">
-                      <h4 className="font-semibold text-purple-600 mb-2">Production</h4>
+                      <h4 className="font-semibold text-purple-600 mb-2">Production (Current)</h4>
                       <ul className="text-sm space-y-1">
                         <li>✓ Kubernetes cluster</li>
-                        <li>✓ Auto-scaling</li>
-                        <li>✓ Load balancer</li>
-                        <li>✓ CDN for frontend</li>
+                        <li>✓ Oracle RDS 19c (2-10 pool)</li>
+                        <li>✓ Horizontal pod autoscaling</li>
+                        <li>✓ Ingress load balancer</li>
+                        <li>✓ Supervisor process mgmt</li>
                       </ul>
                     </div>
+                  </div>
+                </div>
+
+                {/* Current Production Setup */}
+                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
+                  <h4 className="font-semibold text-blue-900 mb-2">🚀 Current Production Configuration</h4>
+                  <div className="text-sm text-gray-700 space-y-1">
+                    <div><strong>Backend:</strong> FastAPI on port 8001 (managed by supervisor) → Ingress routes /api/* requests</div>
+                    <div><strong>Frontend:</strong> React (Vite) on port 3000 → Ingress routes all other requests</div>
+                    <div><strong>Database:</strong> Oracle RDS 19c (AWS) with connection pooling, switchable to MongoDB</div>
+                    <div><strong>AI Services:</strong> Azure OpenAI GPT-4o (user-provided endpoint)</div>
+                    <div><strong>Process Management:</strong> supervisorctl manages frontend & backend services</div>
                   </div>
                 </div>
               </Card>
