@@ -78,7 +78,7 @@ except ImportError:
 
 
 # ============================================================================
-# MODEL CATALOG - Enterprise Suite
+# MODEL CATALOG - Enterprise Suite (35+ models)
 # ============================================================================
 
 CLASSIFICATION_MODELS = {
@@ -452,6 +452,168 @@ def train_regression_models_enhanced(
     return results, best_model, best_score
 
 
+def train_clustering_models(
+    X: pd.DataFrame,
+    selected_models: Optional[List[str]] = None
+) -> List[Dict]:
+    """
+    Train clustering models
+    
+    Args:
+        X: Feature data
+        selected_models: List of model keys to train
+    
+    Returns:
+        List of clustering results
+    """
+    results = []
+    
+    # Scale data for clustering
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    models_to_train = CLUSTERING_MODELS
+    if selected_models:
+        models_to_train = {k: v for k, v in CLUSTERING_MODELS.items() if k in selected_models}
+    
+    for model_key, model_info in models_to_train.items():
+        try:
+            logger.info(f"Training {model_info['name']}...")
+            
+            model = model_info['model'](**model_info['params'])
+            labels = model.fit_predict(X_scaled)
+            
+            # Calculate clustering metrics
+            silhouette = silhouette_score(X_scaled, labels) if len(set(labels)) > 1 else 0
+            davies_bouldin = davies_bouldin_score(X_scaled, labels) if len(set(labels)) > 1 else 0
+            calinski = calinski_harabasz_score(X_scaled, labels) if len(set(labels)) > 1 else 0
+            
+            result = {
+                'model_key': model_key,
+                'model_name': model_info['name'],
+                'n_clusters': len(set(labels)),
+                'silhouette_score': float(silhouette),
+                'davies_bouldin_score': float(davies_bouldin),
+                'calinski_harabasz_score': float(calinski),
+                'description': model_info['description']
+            }
+            
+            results.append(result)
+            logger.info(f"{model_info['name']}: {len(set(labels))} clusters, Silhouette={silhouette:.4f}")
+            
+        except Exception as e:
+            logger.error(f"Failed to train {model_info['name']}: {str(e)}")
+    
+    return results
+
+
+def train_dimensionality_reduction(
+    X: pd.DataFrame,
+    selected_models: Optional[List[str]] = None
+) -> List[Dict]:
+    """
+    Apply dimensionality reduction techniques
+    
+    Args:
+        X: Feature data
+        selected_models: List of model keys to use
+    
+    Returns:
+        List of dimensionality reduction results
+    """
+    results = []
+    
+    # Scale data
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    models_to_use = DIMENSIONALITY_MODELS
+    if selected_models:
+        models_to_use = {k: v for k, v in DIMENSIONALITY_MODELS.items() if k in selected_models}
+    
+    for model_key, model_info in models_to_use.items():
+        try:
+            logger.info(f"Applying {model_info['name']}...")
+            
+            model = model_info['model'](**model_info['params'])
+            X_reduced = model.fit_transform(X_scaled)
+            
+            # Calculate variance explained (for PCA)
+            variance_explained = 0
+            if hasattr(model, 'explained_variance_ratio_'):
+                variance_explained = float(np.sum(model.explained_variance_ratio_))
+            
+            result = {
+                'model_key': model_key,
+                'model_name': model_info['name'],
+                'n_components': X_reduced.shape[1],
+                'variance_explained': variance_explained,
+                'description': model_info['description']
+            }
+            
+            results.append(result)
+            logger.info(f"{model_info['name']}: Reduced to {X_reduced.shape[1]} dimensions")
+            
+        except Exception as e:
+            logger.error(f"Failed to apply {model_info['name']}: {str(e)}")
+    
+    return results
+
+
+def train_anomaly_detection(
+    X: pd.DataFrame,
+    selected_models: Optional[List[str]] = None
+) -> List[Dict]:
+    """
+    Train anomaly detection models
+    
+    Args:
+        X: Feature data
+        selected_models: List of model keys to train
+    
+    Returns:
+        List of anomaly detection results
+    """
+    results = []
+    
+    # Scale data
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    models_to_train = ANOMALY_MODELS
+    if selected_models:
+        models_to_train = {k: v for k, v in ANOMALY_MODELS.items() if k in selected_models}
+    
+    for model_key, model_info in models_to_train.items():
+        try:
+            logger.info(f"Training {model_info['name']}...")
+            
+            model = model_info['model'](**model_info['params'])
+            predictions = model.fit_predict(X_scaled)
+            
+            # Count anomalies (-1) vs normal (1)
+            n_anomalies = int(np.sum(predictions == -1))
+            n_normal = int(np.sum(predictions == 1))
+            anomaly_percentage = (n_anomalies / len(predictions)) * 100
+            
+            result = {
+                'model_key': model_key,
+                'model_name': model_info['name'],
+                'n_anomalies': n_anomalies,
+                'n_normal': n_normal,
+                'anomaly_percentage': float(anomaly_percentage),
+                'description': model_info['description']
+            }
+            
+            results.append(result)
+            logger.info(f"{model_info['name']}: Detected {n_anomalies} anomalies ({anomaly_percentage:.2f}%)")
+            
+        except Exception as e:
+            logger.error(f"Failed to train {model_info['name']}: {str(e)}")
+    
+    return results
+
+
 def get_available_models(problem_type: str) -> List[Dict]:
     """Get list of available models for a problem type"""
     if problem_type == 'classification':
@@ -468,6 +630,16 @@ def get_available_models(problem_type: str) -> List[Dict]:
         return [
             {'key': k, 'name': v['name'], 'description': v['description']}
             for k, v in CLUSTERING_MODELS.items()
+        ]
+    elif problem_type == 'dimensionality':
+        return [
+            {'key': k, 'name': v['name'], 'description': v['description']}
+            for k, v in DIMENSIONALITY_MODELS.items()
+        ]
+    elif problem_type == 'anomaly':
+        return [
+            {'key': k, 'name': v['name'], 'description': v['description']}
+            for k, v in ANOMALY_MODELS.items()
         ]
     else:
         return []
@@ -526,3 +698,21 @@ def get_model_recommendations(X: pd.DataFrame, y: pd.Series, problem_type: str) 
             recommendations.append('gradient_boosting_reg')
     
     return list(set(recommendations))  # Remove duplicates
+
+
+def get_all_model_stats() -> Dict:
+    """Get statistics about available models"""
+    return {
+        'classification': len(CLASSIFICATION_MODELS),
+        'regression': len(REGRESSION_MODELS),
+        'clustering': len(CLUSTERING_MODELS),
+        'dimensionality': len(DIMENSIONALITY_MODELS),
+        'anomaly': len(ANOMALY_MODELS),
+        'total': (
+            len(CLASSIFICATION_MODELS) + 
+            len(REGRESSION_MODELS) + 
+            len(CLUSTERING_MODELS) + 
+            len(DIMENSIONALITY_MODELS) + 
+            len(ANOMALY_MODELS)
+        )
+    }
