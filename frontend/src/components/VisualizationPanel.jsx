@@ -387,10 +387,38 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
     );
   }
 
-  if (validCharts.length === 0 && !loading) {
+  if (validCharts.length === 0 && !loading && !hasGenerated) {
     return (
-      <div className="flex items-center justify-center py-12" data-testid="visualization-panel">
-        <p className="text-gray-600">No visualizations available. Please select a dataset.</p>
+      <div className="flex flex-col items-center justify-center py-12 space-y-4" data-testid="visualization-panel">
+        <BarChart3 className="w-16 h-16 text-gray-400" />
+        <p className="text-gray-600 text-lg">No visualizations generated yet.</p>
+        <Button 
+          onClick={generateCharts}
+          size="lg"
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <BarChart3 className="w-5 h-5 mr-2" />
+          Generate Visualizations
+        </Button>
+        <p className="text-sm text-gray-500">
+          We'll automatically create 15+ intelligent charts based on your data
+        </p>
+      </div>
+    );
+  }
+  
+  if (validCharts.length === 0 && !loading && hasGenerated) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4" data-testid="visualization-panel">
+        <AlertCircle className="w-16 h-16 text-yellow-500" />
+        <p className="text-gray-600 text-lg">No visualizations could be generated for this dataset.</p>
+        <p className="text-sm text-gray-500">The dataset may not have suitable columns for visualization.</p>
+        <Button 
+          onClick={generateCharts}
+          variant="outline"
+        >
+          Try Again
+        </Button>
       </div>
     );
   }
