@@ -791,13 +791,18 @@ const DocumentationPage = () => {
                   <CollapsibleContent className="mt-4 space-y-3">
                     <p className="text-gray-700">Track and compare all your model training sessions and experiments.</p>
                     
-                    <div className="bg-gray-50 p-4 rounded">
-                      <h4 className="font-semibold mb-2">What is Training Metadata?</h4>
-                      <p className="text-sm text-gray-700 mb-3">
-                        Every time you run predictive analysis, PROMISE AI automatically saves comprehensive metadata about 
-                        the training session. This includes all models trained, their performance metrics, parameters used, 
-                        and timestamps.
-                      </p>
+                    <div className="bg-green-50 p-4 rounded border-l-4 border-green-600">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                        <div>
+                          <h4 className="font-semibold text-green-900">Training Metadata - Now Fully Implemented!</h4>
+                          <p className="text-sm text-green-800 mt-1">
+                            Every ML training session is automatically tracked and saved to the database (Oracle/MongoDB). 
+                            Access via Dashboard → Training Metadata tab to view complete training history with metrics, timestamps, 
+                            and model details. Datasets show training_count and last_trained_at for easy tracking.
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="bg-indigo-50 p-4 rounded border-l-4 border-indigo-600">
