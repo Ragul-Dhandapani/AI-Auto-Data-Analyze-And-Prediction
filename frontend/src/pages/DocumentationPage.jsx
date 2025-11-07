@@ -174,36 +174,32 @@ const DocumentationPage = () => {
                     <h3 className="text-xl font-bold mb-4 text-green-900">⚙️ Backend</h3>
                     <div className="space-y-3">
                       <div className="bg-white p-3 rounded">
-                        <strong className="text-green-600">FastAPI (Python 3.11+)</strong>
-                        <p className="text-sm text-gray-600">High-performance async API framework</p>
+                        <strong className="text-green-600">FastAPI 0.115.5 (Python 3.11+)</strong>
+                        <p className="text-sm text-gray-600">High-performance async API framework with Pydantic validation</p>
                       </div>
                       <div className="bg-white p-3 rounded">
-                        <strong className="text-green-600">MongoDB</strong>
-                        <p className="text-sm text-gray-600">NoSQL database for datasets & metadata</p>
+                        <strong className="text-green-600">Oracle RDS 19c (Default)</strong>
+                        <p className="text-sm text-gray-600">Enterprise relational database with BLOB storage & connection pooling</p>
                       </div>
                       <div className="bg-white p-3 rounded">
-                        <strong className="text-green-600">Scikit-learn</strong>
-                        <p className="text-sm text-gray-600">Core ML library</p>
+                        <strong className="text-green-600">MongoDB (Alternative)</strong>
+                        <p className="text-sm text-gray-600">NoSQL document database with GridFS for file storage</p>
                       </div>
                       <div className="bg-white p-3 rounded">
-                        <strong className="text-green-600">XGBoost & LightGBM</strong>
-                        <p className="text-sm text-gray-600">Gradient boosting algorithms</p>
-                      </div>
-                      <div className="bg-white p-3 rounded">
-                        <strong className="text-green-600">TensorFlow/Keras</strong>
-                        <p className="text-sm text-gray-600">Deep learning for LSTM models</p>
-                      </div>
-                      <div className="bg-white p-3 rounded">
-                        <strong className="text-green-600">Prophet</strong>
-                        <p className="text-sm text-gray-600">Time series forecasting by Facebook</p>
-                      </div>
-                      <div className="bg-white p-3 rounded">
-                        <strong className="text-green-600">SHAP & LIME</strong>
-                        <p className="text-sm text-gray-600">Model explainability</p>
+                        <strong className="text-green-600">35+ ML Models</strong>
+                        <p className="text-sm text-gray-600">Scikit-learn, XGBoost, LightGBM, CatBoost, Prophet, TensorFlow/Keras (LSTM)</p>
                       </div>
                       <div className="bg-white p-3 rounded">
                         <strong className="text-green-600">Azure OpenAI (GPT-4o)</strong>
-                        <p className="text-sm text-gray-600">AI-powered insights and chat</p>
+                        <p className="text-sm text-gray-600">AI insights, chat, model recommendations, chart generation</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">Model Explainability</strong>
+                        <p className="text-sm text-gray-600">SHAP & LIME for interpretable AI predictions</p>
+                      </div>
+                      <div className="bg-white p-3 rounded">
+                        <strong className="text-green-600">cx_Oracle 8.3.0</strong>
+                        <p className="text-sm text-gray-600">Oracle database driver with instant client 19.23</p>
                       </div>
                     </div>
                   </div>
