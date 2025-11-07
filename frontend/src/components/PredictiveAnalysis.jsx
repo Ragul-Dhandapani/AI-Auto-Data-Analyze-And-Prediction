@@ -280,6 +280,12 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         console.log('Problem type:', payload.problem_type);
       }
       
+      // NEW: Add selected models if any
+      if (selectedModels && selectedModels.length > 0) {
+        payload.selected_models = selectedModels;
+        console.log('Using selected models:', selectedModels);
+      }
+      
       const response = await axios.post(`${API}/analysis/holistic`, payload);
 
       const endTime = Date.now();
