@@ -394,14 +394,22 @@ class EnhancedChatService:
     async def _handle_chart_creation(self, dataset: pd.DataFrame, message: str, analysis_results: Optional[Dict]) -> Dict:
         """Handle chart creation requests with Azure OpenAI intelligence"""
         try:
-            from app.services.azure_openai_service import get_azure_openai_service
-            import plotly.graph_objects as go
-            import plotly.express as px
+            # Import required libraries
+            try:
+                import plotly.express as px
+            except ImportError:
+                logger.error("Plotly not available")
+                return {
+                    'response': "❌ Chart generation requires Plotly library. Please install it.",
+                    'action': 'error',
+                    'data': {},
+                    'requires_confirmation': False,
+                    'suggestions': []
+                }
             
-            azure_service = get_azure_openai_service()
-            
-            # Parse chart request using Azure OpenAI
-            chart_config = await self._parse_chart_request_with_ai(message, dataset, azure_service)
+            # Parse chart request (uses fallback pattern matching, not Azure OpenAI directly)
+            # This avoids potential recursion issues
+            chart_config = self._parse_chart_fallback(message, dataset)
             
             if not chart_config:
                 return {
