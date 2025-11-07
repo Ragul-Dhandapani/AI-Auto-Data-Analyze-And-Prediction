@@ -146,7 +146,7 @@ All tests performed by deep_testing_backend_v2 agent. See detailed results below
 
 ### Test Execution Summary
 **Date**: November 3, 2025
-**Backend URL**: https://data-oracle-sync.preview.emergentagent.com/api
+**Backend URL**: https://promise-oracle.preview.emergentagent.com/api
 **Initial Database**: Oracle RDS 19c
 **Tests Performed**: 6 comprehensive tests
 **Overall Result**: ✅ ALL TESTS PASSED
@@ -220,7 +220,7 @@ None at this time. All critical Oracle integration issues have been resolved.
 
 ### Testing Agent: Quick Functionality Verification
 **Test Time**: 2025-11-04T00:54:00
-**Frontend URL**: https://data-oracle-sync.preview.emergentagent.com
+**Frontend URL**: https://promise-oracle.preview.emergentagent.com
 **Database Active**: Oracle RDS 19c
 
 ### ✅ COMPLETED FRONTEND TESTS
@@ -337,7 +337,7 @@ All critical functionality has been verified and is working correctly:
 
 ### Testing Agent: Oracle Integration Verification
 **Test Time**: 2025-11-03T22:01:02
-**Backend URL**: https://data-oracle-sync.preview.emergentagent.com/api
+**Backend URL**: https://promise-oracle.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 
 ### ✅ COMPLETED BACKEND TESTS
@@ -680,7 +680,7 @@ const failed = results.filter(r => r.status === 'rejected').length;
 
 ### Investigation: "Latency_2_Oracle" Workspace Missing from Training Metadata
 **Test Time**: 2025-11-03T22:51:09
-**Backend URL**: https://data-oracle-sync.preview.emergentagent.com/api
+**Backend URL**: https://promise-oracle.preview.emergentagent.com/api
 **Database Active**: Oracle (but routes use MongoDB directly as expected)
 
 ### ✅ INVESTIGATION RESULTS
@@ -771,7 +771,7 @@ Since the backend is working correctly but user reports the workspace is not vis
 
 ### Testing Agent: Enhancement Verification Testing
 **Test Time**: 2025-11-04T09:36:17
-**Backend URL**: https://data-oracle-sync.preview.emergentagent.com/api
+**Backend URL**: https://promise-oracle.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 
 ### ✅ COMPLETED ENHANCEMENT TESTS

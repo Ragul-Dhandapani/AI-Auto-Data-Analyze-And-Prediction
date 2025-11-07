@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = "https://data-oracle-sync.preview.emergentagent.com/api"
+BACKEND_URL = "https://promise-oracle.preview.emergentagent.com/api"
 
 def test_business_recommendations_detailed():
     """Test business recommendations generation in detail"""
