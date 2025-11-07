@@ -1019,10 +1019,9 @@ async def chat_action(request: Dict[str, Any]):
                 result = await azure_service.chat_with_data(message, data_context, conversation_history)
                 return result
         else:
-            # Fallback to existing chat service
-            llm_key = os.environ.get('EMERGENT_LLM_KEY')
+            # Fallback to chat service (now uses Azure OpenAI)
             from app.services.chat_service import process_chat_message_async
-            result = await process_chat_message_async(df, message, conversation_history, llm_key)
+            result = await process_chat_message_async(df, message, conversation_history)
             return result
         
     except HTTPException:
