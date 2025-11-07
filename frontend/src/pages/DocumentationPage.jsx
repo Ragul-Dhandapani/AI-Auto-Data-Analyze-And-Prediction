@@ -569,14 +569,28 @@ const DocumentationPage = () => {
                       </div>
                     </div>
 
+                    <div className="bg-blue-50 p-4 rounded border-l-4 border-blue-600">
+                      <div className="flex items-start gap-2">
+                        <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <div>
+                          <strong className="text-blue-900">Model Selection:</strong>
+                          <p className="text-sm text-blue-800 mt-1">
+                            The Model Selector is always visible - no more hunting for it! Select specific models manually or use "AI Recommend" 
+                            to let Azure OpenAI suggest the best models for your dataset. The selector loads models immediately based on your problem type.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="bg-yellow-50 p-4 rounded border-l-4 border-yellow-600">
                       <div className="flex items-start gap-2">
                         <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
                         <div>
-                          <strong className="text-yellow-900">Model Comparison:</strong>
+                          <strong className="text-yellow-900">Model Comparison & Results:</strong>
                           <p className="text-sm text-yellow-800 mt-1">
-                            All models are trained and ranked automatically. The top-performing model is highlighted with 🏆. 
-                            Models are sorted by accuracy (classification) or R² score (regression).
+                            All selected models are trained and compared side-by-side. The best model is highlighted with 🏆. 
+                            Results persist in localStorage (survives page refresh) and include training time for each model. 
+                            Click "New Analysis" to clear cached results and start fresh.
                           </p>
                         </div>
                       </div>
