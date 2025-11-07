@@ -340,24 +340,25 @@ def handle_general_query(
     conversation_history: List[Dict[str, str]],
     llm_key: str = None
 ) -> Dict[str, Any]:
-    """Handle general conversational queries using LLM"""
+    """Handle general conversational queries using Azure OpenAI"""
+    from app.services.azure_openai_service import get_azure_openai_service
     
-    if not llm_key:
+    azure_service = get_azure_openai_service()
+    
+    if not azure_service.is_available():
         return {
             "action": "message",
-            "message": "LLM key not configured. I can help you create charts (pie, bar, line, scatter, correlation). Just ask!"
+            "message": "Azure OpenAI not configured. I can help you create charts (pie, bar, line, scatter, correlation). Just ask!"
         }
     
     try:
-        # Prepare data summary for LLM
+        # Prepare data summary for Azure OpenAI
         summary = {
             "rows": len(df),
             "columns": list(df.columns),
             "numeric_columns": df.select_dtypes(include=['number']).columns.tolist(),
             "categorical_columns": df.select_dtypes(include=['object', 'category']).columns.tolist()
         }
-        
-        llm = LlmChat(api_key=llm_key, model="gpt-4o-mini")
         
         prompt = f"""You are analyzing a dataset with the following characteristics:
 - Rows: {summary['rows']}
@@ -369,15 +370,23 @@ User question: {message}
 
 Provide a helpful, concise answer based on the dataset structure."""
         
-        response = llm.send_user_message(prompt)
+        response = azure_service.client.chat.completions.create(
+            model=azure_service.deployment,
+            messages=[
+                {"role": "system", "content": "You are a helpful data analysis assistant. Provide clear, concise answers about datasets."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=300
+        )
         
         return {
             "action": "message",
-            "message": response
+            "message": response.choices[0].message.content
         }
         
     except Exception as e:
-        logging.error(f"LLM query failed: {str(e)}")
+        logging.error(f"Azure OpenAI query failed: {str(e)}")
         return {
             "action": "message",
             "message": "I can help you create visualizations. Try asking for pie charts, bar charts, correlations, or scatter plots!"
