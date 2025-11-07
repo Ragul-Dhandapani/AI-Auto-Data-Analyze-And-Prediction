@@ -445,3 +445,189 @@ def analyze_time_series(
     results["anomaly_detection"] = anomaly_results
     
     return results
+
+
+
+async def explain_forecast_with_ai(
+    forecast_data: Dict,
+    method: str,
+    target_column: str
+) -> str:
+    """
+    Get AI explanation of time series forecast using Azure OpenAI
+    
+    Args:
+        forecast_data: Forecast results with predictions
+        method: Forecasting method used ("prophet", "lstm", or "both")
+        target_column: Name of target variable
+    
+    Returns:
+        Human-readable forecast explanation
+    """
+    try:
+        from app.services.azure_openai_service import get_azure_openai_service
+        
+        azure_service = get_azure_openai_service()
+        
+        if not azure_service.is_available():
+            return f"Forecast generated using {method} method for {target_column}."
+        
+        # Extract key metrics
+        mape = forecast_data.get('mape', 'N/A')
+        forecast_values = forecast_data.get('forecast', [])
+        trend = "increasing" if len(forecast_values) > 1 and forecast_values[-1] > forecast_values[0] else "decreasing"
+        
+        context = f"""
+Time Series Forecast Analysis:
+- Target Variable: {target_column}
+- Method: {method}
+- Forecast Periods: {len(forecast_values)}
+- MAPE (Error): {mape}
+- Trend Direction: {trend}
+- First Predicted Value: {forecast_values[0] if forecast_values else 'N/A'}
+- Last Predicted Value: {forecast_values[-1] if len(forecast_values) > 0 else 'N/A'}
+
+Task: Explain this forecast in business terms:
+1. What is the overall trend? (increasing/decreasing/stable)
+2. Is the forecast accurate? (based on MAPE)
+3. What does this mean for business planning?
+4. Any concerns or recommendations?
+
+Keep it concise (3-4 sentences) and actionable.
+"""
+        
+        explanation = await azure_service.generate_completion(
+            prompt=context,
+            max_tokens=500,
+            temperature=0.5
+        )
+        
+        return explanation
+    
+    except Exception as e:
+        logger.error(f"Forecast explanation failed: {str(e)}")
+        return f"Forecast completed using {method}. MAPE: {forecast_data.get('mape', 'N/A')}"
+
+
+async def explain_anomalies_with_ai(
+    anomalies: Dict,
+    target_column: str,
+    data_context: Dict = None
+) -> str:
+    """
+    Get AI explanation of detected anomalies using Azure OpenAI
+    
+    Args:
+        anomalies: Anomaly detection results
+        target_column: Name of target variable
+        data_context: Optional context about the data
+    
+    Returns:
+        Human-readable anomaly explanation
+    """
+    try:
+        from app.services.azure_openai_service import get_azure_openai_service
+        
+        azure_service = get_azure_openai_service()
+        
+        anomaly_count = anomalies.get('anomaly_count', 0)
+        anomaly_percentage = anomalies.get('anomaly_percentage', 0)
+        
+        if not azure_service.is_available():
+            return f"Detected {anomaly_count} anomalies ({anomaly_percentage:.1f}% of data) in {target_column}."
+        
+        context = f"""
+Anomaly Detection Results:
+- Target Variable: {target_column}
+- Total Anomalies: {anomaly_count}
+- Percentage: {anomaly_percentage:.2f}%
+- Detection Method: Isolation Forest + LOF
+
+Context:
+{data_context if data_context else 'Standard time series data'}
+
+Task: Explain these anomalies in business context:
+1. What are anomalies and why do they matter?
+2. Is {anomaly_percentage:.1f}% concerning? (normal range is 1-5%)
+3. What could cause these anomalies in {target_column}?
+4. Recommended actions?
+
+Be specific and actionable (3-4 sentences).
+"""
+        
+        explanation = await azure_service.generate_completion(
+            prompt=context,
+            max_tokens=500,
+            temperature=0.5
+        )
+        
+        return explanation
+    
+    except Exception as e:
+        logger.error(f"Anomaly explanation failed: {str(e)}")
+        return f"{anomaly_count} anomalies detected ({anomaly_percentage:.1f}%)."
+
+
+async def generate_time_series_insights(
+    forecast_results: Dict,
+    anomaly_results: Dict,
+    target_column: str,
+    method: str
+) -> str:
+    """
+    Generate comprehensive time series analysis insights using Azure OpenAI
+    
+    Args:
+        forecast_results: Forecast data
+        anomaly_results: Anomaly detection data
+        target_column: Target variable name
+        method: Forecasting method
+    
+    Returns:
+        Comprehensive insights summary
+    """
+    try:
+        from app.services.azure_openai_service import get_azure_openai_service
+        
+        azure_service = get_azure_openai_service()
+        
+        if not azure_service.is_available():
+            return "Time series analysis completed successfully."
+        
+        # Extract key info
+        mape = forecast_results.get('mape', 'N/A')
+        anomaly_count = anomaly_results.get('anomaly_count', 0)
+        anomaly_pct = anomaly_results.get('anomaly_percentage', 0)
+        
+        context = f"""
+Complete Time Series Analysis for {target_column}:
+
+Forecast Results:
+- Method: {method}
+- Accuracy (MAPE): {mape}
+- Forecast Trend: {forecast_results.get('trend', 'N/A')}
+
+Anomaly Detection:
+- Anomalies Found: {anomaly_count} ({anomaly_pct:.1f}%)
+
+Task: Provide executive summary:
+1. Overall assessment (forecast quality + data quality)
+2. Key findings and patterns
+3. Business implications
+4. Strategic recommendations
+
+Format as bullet points, 4-5 key points total.
+"""
+        
+        insights = await azure_service.generate_completion(
+            prompt=context,
+            max_tokens=700,
+            temperature=0.4
+        )
+        
+        return insights
+    
+    except Exception as e:
+        logger.error(f"Time series insights generation failed: {str(e)}")
+        return f"Time series analysis: Forecast MAPE {mape}, {anomaly_count} anomalies detected."
+
