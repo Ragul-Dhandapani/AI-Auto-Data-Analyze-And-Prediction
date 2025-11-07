@@ -70,6 +70,18 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const progressIntervalRef = useRef(null);
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
   
+  // Save analysis results to localStorage whenever they change (persist across page refresh)
+  useEffect(() => {
+    if (analysisResults && dataset?.id) {
+      try {
+        localStorage.setItem(`analysis_${dataset.id}`, JSON.stringify(analysisResults));
+        console.log('💾 Saved analysis results to localStorage');
+      } catch (e) {
+        console.warn('Failed to save analysis to localStorage:', e);
+      }
+    }
+  }, [analysisResults, dataset?.id]);
+  
   // Debug: Log the variableSelection prop value whenever it changes
   useEffect(() => {
     console.log('PredictiveAnalysis received variableSelection prop:', variableSelection);
