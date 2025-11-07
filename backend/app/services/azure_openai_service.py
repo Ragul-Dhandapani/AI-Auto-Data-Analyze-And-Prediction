@@ -47,7 +47,8 @@ class AzureOpenAIService:
         prompt: str,
         max_tokens: int = 500,
         temperature: float = 0.7,
-        system_message: str = None
+        system_message: str = None,
+        json_mode: bool = False
     ) -> str:
         """
         Generate a completion from Azure OpenAI
@@ -57,6 +58,7 @@ class AzureOpenAIService:
             max_tokens: Maximum tokens in response
             temperature: Sampling temperature
             system_message: Optional system message
+            json_mode: Enable JSON mode for strict JSON output
         
         Returns:
             Generated text response
@@ -70,12 +72,19 @@ class AzureOpenAIService:
                 messages.append({"role": "system", "content": system_message})
             messages.append({"role": "user", "content": prompt})
             
-            response = self.client.chat.completions.create(
-                model=self.deployment,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
+            # Prepare request parameters
+            request_params = {
+                "model": self.deployment,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens
+            }
+            
+            # Enable JSON mode if requested (Azure OpenAI 2024-12-01-preview+)
+            if json_mode:
+                request_params["response_format"] = {"type": "json_object"}
+            
+            response = self.client.chat.completions.create(**request_params)
             
             return response.choices[0].message.content
             
