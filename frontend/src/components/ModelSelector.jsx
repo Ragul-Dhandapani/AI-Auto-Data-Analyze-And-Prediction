@@ -27,12 +27,20 @@ const ModelSelector = ({
   const [aiRecommendations, setAiRecommendations] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Load available models when problem type changes
+  // Load available models when component mounts or problem type changes
   useEffect(() => {
-    if (problemType && selectionMode === 'manual') {
+    // Always pre-load models for manual selection to improve UX
+    if (problemType) {
       loadAvailableModels();
     }
-  }, [problemType, selectionMode]);
+  }, [problemType]);
+  
+  // Also load when switching to manual mode
+  useEffect(() => {
+    if (selectionMode === 'manual' && availableModels.length === 0 && problemType) {
+      loadAvailableModels();
+    }
+  }, [selectionMode]);
 
   const loadAvailableModels = async () => {
     try {
