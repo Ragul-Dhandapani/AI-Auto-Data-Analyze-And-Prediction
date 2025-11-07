@@ -192,15 +192,34 @@ class OracleAdapter(DatabaseAdapter):
         )
         """
         
+        # Validate and serialize JSON fields (handle NaN, inf, etc.)
+        try:
+            columns_json = json.dumps(dataset.get('columns', []), allow_nan=False)
+        except ValueError as e:
+            logger.warning(f"Invalid columns data, using empty array: {e}")
+            columns_json = json.dumps([])
+        
+        try:
+            dtypes_json = json.dumps(dataset.get('dtypes', {}), allow_nan=False)
+        except ValueError as e:
+            logger.warning(f"Invalid dtypes data, using empty object: {e}")
+            dtypes_json = json.dumps({})
+        
+        try:
+            data_preview_json = json.dumps(dataset.get('data_preview', []), allow_nan=False)
+        except ValueError as e:
+            logger.warning(f"Invalid data_preview, using empty array: {e}")
+            data_preview_json = json.dumps([])
+        
         params = {
             'id': dataset_id,
             'name': dataset.get('name', 'Unnamed'),
             'source': dataset.get('source', 'upload'),
             'row_count': dataset.get('row_count', 0),
             'column_count': dataset.get('column_count', 0),
-            'columns_json': json.dumps(dataset.get('columns', [])),
-            'dtypes_json': json.dumps(dataset.get('dtypes', {})),
-            'data_preview_json': json.dumps(dataset.get('data_preview', [])),
+            'columns_json': columns_json,
+            'dtypes_json': dtypes_json,
+            'data_preview_json': data_preview_json,
             'storage_type': dataset.get('storage_type', 'direct'),
             'file_id': dataset.get('gridfs_file_id') or dataset.get('file_id'),
             'training_count': dataset.get('training_count', 0),
