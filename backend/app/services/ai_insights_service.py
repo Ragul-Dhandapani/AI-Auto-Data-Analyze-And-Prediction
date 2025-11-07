@@ -25,7 +25,7 @@ async def generate_statistical_insights(
     correlation_matrix: Optional[Dict] = None
 ) -> List[Dict]:
     """
-    Generate AI-powered statistical insights about the dataset
+    Generate AI-powered statistical insights about the dataset using Azure OpenAI
     
     Args:
         df: Input dataframe
@@ -35,25 +35,14 @@ async def generate_statistical_insights(
     Returns:
         List of insight dictionaries
     """
-    if not HAS_EMERGENT_LLM:
+    azure_service = get_azure_openai_service()
+    
+    if not azure_service.is_available():
         return _generate_rule_based_insights(df, target_column, correlation_matrix)
     
     try:
-        # Prepare context for LLM
+        # Prepare context for Azure OpenAI
         context = _prepare_dataset_context(df, target_column, correlation_matrix)
-        
-        # Initialize Emergent LLM
-        api_key = os.environ.get('EMERGENT_LLM_KEY')
-        if not api_key:
-            logger.warning("EMERGENT_LLM_KEY not found, using rule-based insights")
-            return _generate_rule_based_insights(df, target_column, correlation_matrix)
-        
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"insights_{id(df)}",
-            system_message="You are an expert data analyst specializing in statistical analysis and business insights. "
-                          "Provide clear, actionable insights that both technical and non-technical stakeholders can understand."
-        ).with_model("openai", "gpt-4o-mini")  # Default model
         
         # Create prompt
         prompt = f"""
