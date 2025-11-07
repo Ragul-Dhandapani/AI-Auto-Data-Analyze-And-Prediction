@@ -338,3 +338,127 @@ class VariableIntelligenceService:
 
 # Singleton instance
 variable_intelligence = VariableIntelligenceService()
+
+
+
+async def get_ai_variable_recommendations(
+    df: pd.DataFrame,
+    problem_type: str = "auto"
+) -> Dict:
+    """
+    Get AI-powered variable selection recommendations using Azure OpenAI
+    
+    Args:
+        df: DataFrame with data
+        problem_type: "regression", "classification", or "auto"
+    
+    Returns:
+        {
+            "recommended_target": str,
+            "recommended_features": List[str],
+            "reasoning": str,
+            "confidence": float,
+            "problem_type_suggestion": str
+        }
+    """
+    try:
+        from app.services.azure_openai_service import get_azure_openai_service
+        
+        azure_service = get_azure_openai_service()
+        
+        # Analyze dataset characteristics
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        
+        # Get basic stats
+        stats_summary = {
+            "total_columns": len(df.columns),
+            "numeric_columns": len(numeric_cols),
+            "categorical_columns": len(categorical_cols),
+            "row_count": len(df),
+            "numeric_cols": numeric_cols[:10],  # First 10
+            "categorical_cols": categorical_cols[:5]  # First 5
+        }
+        
+        if not azure_service.is_available():
+            # Fallback to rule-based
+            logger.warning("Azure OpenAI not available, using rule-based recommendations")
+            
+            # Simple rule: last numeric column as target
+            if numeric_cols:
+                recommended_target = numeric_cols[-1]
+                recommended_features = [c for c in numeric_cols if c != recommended_target][:10]
+            else:
+                recommended_target = df.columns[-1]
+                recommended_features = df.columns[:-1].tolist()[:10]
+            
+            return {
+                "recommended_target": recommended_target,
+                "recommended_features": recommended_features,
+                "reasoning": "Rule-based recommendation (Azure OpenAI unavailable)",
+                "confidence": 0.6,
+                "problem_type_suggestion": "auto"
+            }
+        
+        # Prepare context for AI
+        context = f"""
+Dataset Analysis:
+- Total Columns: {stats_summary['total_columns']}
+- Numeric Columns ({len(numeric_cols)}): {', '.join(numeric_cols[:10])}
+- Categorical Columns ({len(categorical_cols)}): {', '.join(categorical_cols[:5])}
+- Rows: {stats_summary['row_count']}
+- Requested Problem Type: {problem_type}
+
+Task: Analyze column names and recommend:
+1. Best target variable for prediction
+2. Top 10 features (independent variables)
+3. Problem type (regression or classification)
+4. Brief reasoning (2-3 sentences)
+
+Respond in JSON format:
+{{
+  "target": "column_name",
+  "features": ["feature1", "feature2", ...],
+  "problem_type": "regression or classification",
+  "reasoning": "explanation"
+}}
+"""
+        
+        response = await azure_service.generate_completion(
+            prompt=context,
+            max_tokens=600,
+            temperature=0.3
+        )
+        
+        # Try to parse JSON response
+        import json
+        try:
+            parsed = json.loads(response.strip())
+            return {
+                "recommended_target": parsed.get("target", numeric_cols[-1] if numeric_cols else df.columns[-1]),
+                "recommended_features": parsed.get("features", numeric_cols[:-1])[:10],
+                "reasoning": parsed.get("reasoning", response),
+                "confidence": 0.85,
+                "problem_type_suggestion": parsed.get("problem_type", "auto")
+            }
+        except:
+            # If JSON parsing fails, use fallback
+            return {
+                "recommended_target": numeric_cols[-1] if numeric_cols else df.columns[-1],
+                "recommended_features": numeric_cols[:-1][:10] if numeric_cols else df.columns[:-1].tolist()[:10],
+                "reasoning": response,
+                "confidence": 0.75,
+                "problem_type_suggestion": problem_type
+            }
+    
+    except Exception as e:
+        logger.error(f"AI variable recommendations failed: {str(e)}")
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        return {
+            "recommended_target": numeric_cols[-1] if numeric_cols else df.columns[-1],
+            "recommended_features": numeric_cols[:-1][:10] if numeric_cols else df.columns[:-1].tolist()[:10],
+            "reasoning": f"Error occurred: {str(e)}. Using fallback recommendations.",
+            "confidence": 0.5,
+            "problem_type_suggestion": "auto"
+        }
+
