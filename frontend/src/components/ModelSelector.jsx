@@ -73,7 +73,14 @@ const ModelSelector = ({
       toast.success('AI recommendations loaded');
     } catch (error) {
       console.error('Failed to get recommendations:', error);
-      toast.error('Failed to get AI recommendations');
+      // Show detailed error to user
+      const errorMsg = error.response?.data?.error || error.response?.data?.detail || error.message;
+      setAiRecommendations({
+        error: true,
+        message: errorMsg,
+        recommendations: []
+      });
+      toast.error('Azure OpenAI configuration issue - using fallback');
     } finally {
       setLoading(false);
     }
