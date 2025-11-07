@@ -436,17 +436,21 @@ def handle_line_chart_request_v2(df: pd.DataFrame, x_col: str, y_col: Optional[s
     """Enhanced line chart with exact columns"""
     try:
         if y_col:
+            # Clean data: remove NaN and Inf values
+            clean_df = df[[x_col, y_col]].replace([np.inf, -np.inf], np.nan).dropna()
             chart_data = {
-                "x": df[x_col].tolist(),
-                "y": df[y_col].tolist(),
+                "x": clean_df[x_col].tolist(),
+                "y": clean_df[y_col].tolist(),
                 "type": "scatter",
                 "mode": "lines+markers",
                 "name": y_col
             }
             title = f"{y_col} over {x_col}"
         else:
+            # Clean data: remove NaN and Inf values
+            clean_series = df[x_col].replace([np.inf, -np.inf], np.nan).dropna()
             chart_data = {
-                "y": df[x_col].tolist(),
+                "y": clean_series.tolist(),
                 "type": "scatter",
                 "mode": "lines+markers",
                 "name": x_col
