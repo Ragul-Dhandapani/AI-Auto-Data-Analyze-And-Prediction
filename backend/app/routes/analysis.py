@@ -32,6 +32,7 @@ except ImportError:
 from app.services.visualization_service_v2 import generate_auto_charts_v2 as generate_auto_charts
 from app.services import time_series_service
 from app.services.chat_service import process_chat_message
+from app.services.azure_openai_service import get_azure_openai_service
 # Phase 3: Import new services for analytics, explainability, and AI insights
 from app.services.analytics_tracking_service import track_chart_view, get_popular_charts_for_dataset_type
 from app.services.model_explainability_service import generate_shap_explanation, generate_lime_explanation, explain_prediction_in_words
