@@ -17,7 +17,7 @@ async def get_available_models(problem_type: str):
     Get list of available models for a problem type
     
     Args:
-        problem_type: classification, regression, clustering, dimensionality, anomaly
+        problem_type: classification, regression, clustering, dimensionality, anomaly, auto
     
     Returns:
         List of available models with descriptions
@@ -25,10 +25,18 @@ async def get_available_models(problem_type: str):
     try:
         from app.services.ml_service_enhanced import get_available_models
         
-        models = get_available_models(problem_type)
+        # Handle "auto" problem type by returning both classification and regression models
+        if problem_type == "auto":
+            classification_models = get_available_models("classification")
+            regression_models = get_available_models("regression")
+            models = classification_models + regression_models
+            actual_problem_type = "classification/regression"
+        else:
+            models = get_available_models(problem_type)
+            actual_problem_type = problem_type
         
         return {
-            "problem_type": problem_type,
+            "problem_type": actual_problem_type,
             "models": models,
             "count": len(models)
         }
