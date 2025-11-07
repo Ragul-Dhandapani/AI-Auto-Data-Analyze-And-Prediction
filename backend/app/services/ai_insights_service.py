@@ -1,6 +1,6 @@
 """
 AI-Powered Insights Generation Service
-Uses Emergent LLM (and Azure OpenAI as alternative) for intelligent insights
+Uses Azure OpenAI for intelligent insights
 """
 import os
 import json
@@ -15,13 +15,8 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# Try Emergent LLM integration
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    HAS_EMERGENT_LLM = True
-except ImportError:
-    HAS_EMERGENT_LLM = False
-    logger.warning("Emergent LLM not available")
+# Use Azure OpenAI service
+from app.services.azure_openai_service import get_azure_openai_service
 
 
 async def generate_statistical_insights(
