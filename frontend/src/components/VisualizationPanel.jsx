@@ -106,7 +106,9 @@ const ChartComponent = ({ chart, index }) => {
   );
 };
 
-const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate }) => {
+const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate, variableSelection }) => {
+  console.log('VisualizationPanel received:', { dataset: dataset?.name, variableSelection });
+  
   const [loading, setLoading] = useState(false);
   const [charts, setCharts] = useState(chartsCache?.charts || []);
   const [skippedCharts, setSkippedCharts] = useState(chartsCache?.skipped || []);
