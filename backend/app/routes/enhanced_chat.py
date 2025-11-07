@@ -49,16 +49,26 @@ async def send_chat_message(request: ChatRequest):
                 'suggestions': ['Select a dataset', 'Upload new data']
             }
         
-        # Load dataframe if needed
+        # Load dataframe from BLOB storage
         dataset_df = None
-        if dataset_doc.get('data'):
-            import pandas as pd
-            import json
-            try:
-                # Try to load data from storage
+        import pandas as pd
+        import io
+        
+        try:
+            # Check if data is in BLOB storage (file_id or gridfs_file_id)
+            file_id = dataset_doc.get("file_id") or dataset_doc.get("gridfs_file_id")
+            if file_id:
+                # Load from BLOB storage
+                data_bytes = await db_adapter.retrieve_file(file_id)
+                if data_bytes:
+                    dataset_df = pd.read_csv(io.BytesIO(data_bytes))
+                    logger.info(f"Loaded dataset from BLOB: {len(dataset_df)} rows, {len(dataset_df.columns)} columns")
+            elif dataset_doc.get('data'):
+                # Fallback: load from direct data field (for small datasets)
                 dataset_df = pd.DataFrame(dataset_doc.get('data', []))
-            except:
-                logger.warning(f"Could not load dataframe for dataset {request.dataset_id}")
+                logger.info(f"Loaded dataset from data field: {len(dataset_df)} rows")
+        except Exception as e:
+            logger.error(f"Could not load dataframe for dataset {request.dataset_id}: {str(e)}", exc_info=True)
         
         # Get analysis results if available (from localStorage or recent training)
         analysis_results = None
