@@ -63,7 +63,7 @@ class EnhancedChatService:
             }
             
             # Route to appropriate handler
-            if not dataset:
+            if dataset is None or (isinstance(dataset, pd.DataFrame) and dataset.empty):
                 return await self._handle_no_dataset()
             
             # 1. Dataset Information Requests
