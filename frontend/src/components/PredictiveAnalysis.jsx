@@ -66,6 +66,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const [selectionFeedback, setSelectionFeedback] = useState(null); // User selection validation feedback
   const [selectedModels, setSelectedModels] = useState(null); // NEW: Selected ML models
   const [showModelSelector, setShowModelSelector] = useState(false); // NEW: Show model selector
+  const [restoredFromCache, setRestoredFromCache] = useState(false); // Track if results restored from localStorage
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
