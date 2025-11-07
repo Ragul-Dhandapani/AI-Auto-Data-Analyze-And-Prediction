@@ -335,21 +335,21 @@ const DocumentationPage = () => {
                       <h4 className="font-bold text-purple-900 mb-3 text-center">Data Layer</h4>
                       <div className="grid md:grid-cols-2 gap-3">
                         <div className="bg-white p-3 rounded">
-                          <strong className="text-sm">MongoDB</strong>
+                          <strong className="text-sm">Oracle RDS 19c (Default)</strong>
                           <div className="text-xs space-y-1 mt-1">
                             <div>✓ Datasets metadata</div>
-                            <div>✓ Training history</div>
-                            <div>✓ User feedback</div>
-                            <div>✓ Analysis results</div>
+                            <div>✓ Training metadata tracking</div>
+                            <div>✓ BLOB storage for large files</div>
+                            <div>✓ Connection pooling (2-10)</div>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded">
-                          <strong className="text-sm">External Sources</strong>
+                          <strong className="text-sm">MongoDB (Alternative)</strong>
                           <div className="text-xs space-y-1 mt-1">
-                            <div>✓ PostgreSQL</div>
-                            <div>✓ MySQL</div>
-                            <div>✓ SQL Server</div>
-                            <div>✓ Oracle</div>
+                            <div>✓ Document-based storage</div>
+                            <div>✓ GridFS for files</div>
+                            <div>✓ Flexible schema</div>
+                            <div>✓ Seamless switching</div>
                           </div>
                         </div>
                       </div>
