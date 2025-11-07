@@ -748,6 +748,19 @@ const DocumentationPage = () => {
                       </div>
                     </div>
 
+                    <div className="bg-blue-50 p-4 rounded border-l-4 border-blue-600 mb-3">
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <div>
+                          <strong className="text-blue-900">Azure OpenAI Integration:</strong>
+                          <p className="text-sm text-blue-800 mt-1">
+                            AI recommends optimal hyperparameter ranges based on your dataset characteristics (size, features, problem type). 
+                            Get AI explanations of why certain parameters work best for YOUR specific data.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="bg-gray-50 p-4 rounded">
                       <h4 className="font-semibold mb-2">Common Parameters:</h4>
                       <ul className="list-disc list-inside text-sm space-y-1">
