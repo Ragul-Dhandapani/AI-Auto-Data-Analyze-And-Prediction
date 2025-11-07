@@ -13,14 +13,14 @@ from typing import Dict, Any, List
 # Backend URL
 BACKEND_URL = "https://ai-insight-hub-3.preview.emergentagent.com/api"
 
-# Test dataset ID (Credit Card dataset from Oracle)
-DATASET_ID = "ef6bca04-e528-4dfb-b503-854704bc7b1a"
+# Test dataset ID (Application Latency dataset from MongoDB)
+DATASET_ID = "7fc830da-886f-4745-ac6d-ddee8c20af8a"
 
 # Real column names from the dataset
 COLUMNS = {
-    'numeric': ['BALANCE', 'PURCHASES', 'CREDIT_LIMIT', 'PAYMENTS', 'CASH_ADVANCE', 
-                'ONEOFF_PURCHASES', 'INSTALLMENTS_PURCHASES', 'PURCHASES_TRX'],
-    'categorical': ['CUST_ID']
+    'numeric': ['latency_ms', 'cpu_utilization', 'memory_usage_mb', 'payload_size_kb', 
+                'active_connections', 'request_rate', 'error_rate'],
+    'categorical': ['service_name', 'endpoint', 'status_code']
 }
 
 
