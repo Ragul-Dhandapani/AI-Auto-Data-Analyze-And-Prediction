@@ -775,15 +775,16 @@ Return ONLY the output_format JSON with filled values. Match column names exactl
     # Placeholder methods for remaining handlers
     async def _handle_target_info(self, analysis_results: Dict) -> Dict:
         """Show current prediction target"""
-        ml_models = analysis_results.get('ml_models', [])
-        if not ml_models:
+        if not analysis_results or not analysis_results.get('ml_models'):
             return {
-                'response': "❌ No models have been trained yet. Run Predictive Analysis first.",
+                'response': "❌ **No models have been trained yet.**\n\nTo see prediction targets, please:\n1. Go to the Predictive Analysis tab\n2. Select your target variable\n3. Run the analysis\n\nOnce models are trained, I can show you the prediction target and metrics.",
                 'action': 'message',
                 'data': {},
                 'requires_confirmation': False,
-                'suggestions': ['Train models', 'Select target variable']
+                'suggestions': ['Go to Predictive Analysis', 'Learn about model training']
             }
+        
+        ml_models = analysis_results.get('ml_models', [])
         
         # Get target from first model
         target = ml_models[0].get('target_column', 'Unknown')
