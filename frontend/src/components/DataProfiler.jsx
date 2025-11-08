@@ -705,14 +705,34 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
             
             {/* Results Count */}
             {selectedColumns.length > 0 && dataset.data_preview && (
-              <div className="mt-3 text-xs text-gray-500">
-                Showing {dataset.data_preview.filter(row => {
-                  if (!dataFilter) return true;
-                  return selectedColumns.some(col => 
-                    String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
-                  );
-                }).length} of {dataset.data_preview.length} rows
-                {dataFilter && ` (filtered)`}
+              <div className="mt-3 text-xs text-gray-500 flex justify-between">
+                <span>
+                  Showing {dataset.data_preview.filter(row => {
+                    // Global filter
+                    if (dataFilter && !selectedColumns.some(col => 
+                      String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
+                    )) {
+                      return false;
+                    }
+                    // Per-column filters
+                    for (const col of selectedColumns) {
+                      const colFilter = columnFilters[col];
+                      if (colFilter && !String(row[col] || '').toLowerCase().includes(colFilter.toLowerCase())) {
+                        return false;
+                      }
+                    }
+                    return true;
+                  }).length} of {dataset.data_preview.length} rows
+                  {(dataFilter || Object.keys(columnFilters).some(k => columnFilters[k])) && ` (filtered)`}
+                </span>
+                {Object.keys(columnFilters).some(k => columnFilters[k]) && (
+                  <button
+                    onClick={() => setColumnFilters({})}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Clear Column Filters
+                  </button>
+                )}
               </div>
             )}
           </Card>
