@@ -28,42 +28,42 @@ const HomePage = () => {
     {
       icon: <Database className="w-6 h-6" />,
       title: "Multi-Source Data",
-      description: "Connect to Oracle, PostgreSQL, MongoDB, or upload CSV/Excel files"
+      description: "Connect to Oracle RDS, MongoDB, or upload CSV/Excel files with seamless switching"
+    },
+    {
+      icon: <MessageSquare className="w-6 h-6" />,
+      title: "Enhanced AI Chat Assistant",
+      description: "Natural language interface with dataset awareness, chart creation, and intelligent recommendations powered by Azure OpenAI"
     },
     {
       icon: <Target className="w-6 h-6" />,
-      title: "Classification & Regression",
-      description: "Binary, multi-class classification and numeric prediction with 6+ ML algorithms"
+      title: "35+ ML Models",
+      description: "Advanced classification & regression with XGBoost, Random Forest, Neural Networks, and more for superior predictions"
     },
     {
       icon: <TrendingUp className="w-6 h-6" />,
       title: "Time Series Forecasting",
-      description: "Prophet and LSTM forecasting with anomaly detection and trend analysis"
+      description: "Prophet and LSTM forecasting with anomaly detection, trend analysis, and seasonality insights"
     },
     {
       icon: <Brain className="w-6 h-6" />,
       title: "AI-Powered Insights",
-      description: "Get intelligent business recommendations and model explainability with SHAP"
+      description: "Intelligent business recommendations, model explainability with SHAP, and automated feature importance"
+    },
+    {
+      icon: <Sparkles className="w-6 h-6" />,
+      title: "Interactive Visualizations",
+      description: "Create charts with natural language commands, get statistical insights, and explore data correlations"
     },
     {
       icon: <Settings className="w-6 h-6" />,
       title: "Hyperparameter Tuning",
-      description: "Optimize model performance with grid and random search strategies"
-    },
-    {
-      icon: <MessageSquare className="w-6 h-6" />,
-      title: "Active Learning Loop",
-      description: "Continuous model improvement with user feedback and retraining"
+      description: "Automated optimization with grid and random search strategies to maximize model performance"
     },
     {
       icon: <Activity className="w-6 h-6" />,
-      title: "NLP & Multi-Table Support",
-      description: "Text feature extraction, relational data joins, and training metadata tracking"
-    },
-    {
-      icon: <Shield className="w-6 h-6" />,
-      title: "Enterprise Security",
-      description: "Kerberos authentication with lightning-fast analysis and auto-visualization"
+      title: "Comprehensive Analytics",
+      description: "NLP support, multi-table joins, training metadata tracking, and active learning with user feedback"
     }
   ];
 
