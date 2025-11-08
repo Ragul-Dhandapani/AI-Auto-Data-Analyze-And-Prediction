@@ -85,8 +85,12 @@ class EnhancedChatService:
             if 'correlation' in message_lower:
                 return await self._handle_correlation(dataset, message)
             
-            # 2. Chart Creation Commands
-            if any(keyword in message_lower for keyword in ['create chart', 'plot', 'visualize', 'show chart', 'draw']):
+            # 2. Chart Creation Commands - Enhanced keyword detection
+            chart_keywords = ['create chart', 'plot', 'visualize', 'show chart', 'draw', 'graph', 
+                             'create a chart', 'make a chart', 'generate chart', 'build chart',
+                             'create scatter', 'create histogram', 'create line', 'create bar',
+                             'show me chart', 'can you plot', 'can you create']
+            if any(keyword in message_lower for keyword in chart_keywords):
                 return await self._handle_chart_creation(dataset, message, analysis_results)
             
             # 3. Model/Prediction Insights (check keywords first, handlers will check for results)
