@@ -809,15 +809,16 @@ Return ONLY the output_format JSON with filled values. Match column names exactl
     
     async def _handle_metrics(self, analysis_results: Dict) -> Dict:
         """Display model evaluation metrics"""
-        ml_models = analysis_results.get('ml_models', [])
-        if not ml_models:
+        if not analysis_results or not analysis_results.get('ml_models'):
             return {
-                'response': "❌ No models trained yet. Train models first to see metrics.",
+                'response': "❌ **No models have been trained yet.**\n\nTo see model performance metrics:\n1. Navigate to Predictive Analysis tab\n2. Select variables and target\n3. Click 'Run Analysis'\n\nI'll show you accuracy, R², RMSE, and other metrics once models are trained!",
                 'action': 'message',
                 'data': {},
                 'requires_confirmation': False,
-                'suggestions': ['Start training']
+                'suggestions': ['Start training models', 'Select target variable', 'View dataset info']
             }
+        
+        ml_models = analysis_results.get('ml_models', [])
         
         problem_type = analysis_results.get('problem_type', 'unknown')
         response = f"📊 **Model Performance Metrics**\n\n"
