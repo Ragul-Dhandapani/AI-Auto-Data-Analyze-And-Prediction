@@ -3689,3 +3689,144 @@ Response: {
 **Session Completed**: Nov 8, 2025 19:45 UTC
 **Status**: ✅ ALL OBJECTIVES COMPLETE
 
+
+---
+
+## Critical Issues Fix Session - Nov 8, 2025 20:20 UTC
+
+### 🚨 CRITICAL ISSUES FIXED
+
+#### 1. ✅ ML Data Comparison Not Showing New Models (FIXED)
+**Issue**: New models selected by user were not merging with existing ML Data Comparison results (reported 5+ times)
+
+**Root Cause**: `analysisResults` state could be cleared during tab switches or component re-renders, causing `previousResults` to be null
+
+**Solution Implemented**:
+- Added `previousResultsRef` to persist results across state updates using React useRef
+- Modified `runHolisticAnalysis` to check BOTH `analysisResults` state AND `previousResultsRef.current`
+- Enhanced localStorage save to also update the ref
+- Result: Previous models now ALWAYS preserved and merged with new ones
+
+**Files Modified**:
+- `/app/frontend/src/components/PredictiveAnalysis.jsx`
+  - Added `previousResultsRef` useRef hook
+  - Updated localStorage useEffect to save to ref
+  - Modified `runHolisticAnalysis` to use ref as fallback
+
+**Test Command**:
+```javascript
+// When button clicked: "🔄 Train Selected Models & Merge with Existing"
+console.log('Source:', analysisResults ? 'state' : previousResultsRef.current ? 'ref' : 'none');
+// Now logs: "Source: ref" if state is cleared but ref has data
+```
+
+#### 2. ✅ Training Metadata Not Showing Saved Workspaces (FIXED)
+**Issue**: Saved workspace "latency_tested" was not visible in Training Metadata page (reported 5+ times)
+
+**Root Cause**: UI was filtering out workspaces with 0 training runs, even when no filters were applied
+
+**Solution Implemented**:
+- Modified filtering logic to show ALL workspaces when no filters are active
+- Only hide empty workspaces when user has applied search/problem type/date filters
+- Backend endpoint already had the data - it was just being filtered on frontend
+
+**Files Modified**:
+- `/app/frontend/src/pages/TrainingMetadataPage.jsx`
+  - Added `hasActiveFilters` check
+  - Conditional filtering based on active filters
+
+**Verification**:
+```bash
+curl "https://ai-chat-assistant-24.preview.emergentagent.com/api/training/metadata/by-workspace"
+# Shows: Dataset: application_latency.csv, Workspaces: ['latency_tested']
+```
+
+#### 3. ✅ Volume Analysis & Business Recommendations Layout (FIXED)
+**Issue**: Cards were displayed vertically, user requested horizontal layout
+
+**Solution Implemented**:
+- Numeric Distribution: Changed from `space-y-4` to `grid grid-cols-1 md:grid-cols-2 gap-4`
+- Business Recommendations: Changed from `space-y-3` to `grid grid-cols-1 md:grid-cols-2 gap-4`
+- Compact layout for Business Recommendations (removed redundant sections)
+
+**Files Modified**:
+- `/app/frontend/src/components/PredictiveAnalysis.jsx`
+
+#### 4. ✅ Training Metadata Feedback Endpoint (FIXED)
+**Issue**: Feedback tab showing "no data" due to backend endpoint error
+
+**Root Cause**: Missing `fetch_all=True` parameter in `/api/training/metadata` endpoint
+
+**Solution Implemented**:
+- Added `fetch_all=True` to `_execute` call
+- Simplified row processing (rows are already dicts from adapter)
+
+**Files Modified**:
+- `/app/backend/app/routes/training.py`
+
+#### 5. ✅ Back to Home Button Added
+**Feature**: Added "Back to Home" button in Training Metadata page header
+
+**Implementation**:
+- Added `useNavigate` hook from react-router-dom
+- Added Home icon import
+- Button navigates to `/dashboard`
+
+**Files Modified**:
+- `/app/frontend/src/pages/TrainingMetadataPage.jsx`
+
+#### 6. ✅ Load Workspace Button Added
+**Feature**: Added "Load Workspace" button on homepage with workspace count badge
+
+**Implementation**:
+- Fetches workspace count from `/api/training/metadata/by-workspace`
+- Displays count in green badge
+- Navigates to Training Metadata page
+
+**Files Modified**:
+- `/app/frontend/src/pages/HomePage.jsx`
+
+### 🧪 TESTING VERIFICATION
+
+#### Backend Endpoints:
+```bash
+# Training metadata endpoint working
+✅ GET /api/training/metadata?dataset_id={id}
+✅ GET /api/training/metadata/by-workspace
+
+# Oracle queries with fetch_all=True
+✅ All queries return proper dictionaries
+✅ No more "'int' object is not iterable" errors
+```
+
+#### Frontend Components:
+```
+✅ PredictiveAnalysis: Model merging working
+✅ TrainingMetadataPage: All workspaces visible
+✅ HomePage: Load Workspace button with count
+✅ Volume Analysis: Horizontal cards
+✅ Business Recommendations: Horizontal cards
+```
+
+### 📋 REMAINING ISSUES TO INVESTIGATE
+
+**Issue #3: Tab Switch Crash (White Screen)**
+- Status: Requires user reproduction with browser console logs
+- Current state: Services running, no obvious errors in logs
+- Next steps: Need exact steps to reproduce and browser error messages
+
+### 🎯 SUCCESS METRICS
+
+✅ ML Data Comparison now preserves and merges models correctly
+✅ Training Metadata shows all saved workspaces (even with 0 runs)
+✅ Volume Analysis and Business Recommendations use horizontal layout
+✅ Feedback endpoint working with Oracle
+✅ Back to Home button functional
+✅ Load Workspace button with count working
+✅ Oracle RDS primary database operational
+
+---
+
+**Session Completed**: Nov 8, 2025 20:20 UTC
+**Critical Issues Fixed**: 6/7 (1 pending user reproduction)
+
