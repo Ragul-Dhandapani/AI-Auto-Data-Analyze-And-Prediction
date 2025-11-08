@@ -399,8 +399,8 @@ const TrainingMetadataPage = () => {
         </div>
 
         {/* Search & Filter */}
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1">
+        <div className="grid grid-cols-12 gap-4 mb-6">
+          <div className="col-span-5">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -411,6 +411,62 @@ const TrainingMetadataPage = () => {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+          </div>
+          
+          <div className="col-span-2">
+            <select
+              value={filterProblemType}
+              onChange={(e) => setFilterProblemType(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Types</option>
+              <option value="classification">Classification</option>
+              <option value="regression">Regression</option>
+              <option value="clustering">Clustering</option>
+            </select>
+          </div>
+          
+          <div className="col-span-2">
+            <input
+              type="date"
+              placeholder="Start Date"
+              value={dateRange.start}
+              onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          
+          <div className="col-span-2">
+            <input
+              type="date"
+              placeholder="End Date"
+              value={dateRange.end}
+              onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          
+          <div className="col-span-1">
+            {(searchQuery || filterProblemType !== 'all' || dateRange.start || dateRange.end) && (
+              <Button 
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterProblemType('all');
+                  setDateRange({ start: '', end: '' });
+                }}
+                variant="outline"
+                className="w-full"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Filter className="w-4 h-4" />
+            <span>Showing {stats.totalModels} training runs across {stats.totalWorkspaces} workspaces</span>
           </div>
           <select
             value={sortBy}
