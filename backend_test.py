@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-PROMISE AI Oracle Integration Testing
-Tests Oracle RDS 19c integration, database switching, and dual-database functionality
+PROMISE AI Backend Testing - Critical Endpoints
+Tests the recent fixes to the PROMISE AI platform as requested
 """
 
 import requests
