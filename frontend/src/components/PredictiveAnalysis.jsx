@@ -961,42 +961,44 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             </Button>
           </div>
           
-          {/* Categorical Volume Analysis */}
-          <div className="space-y-4 mb-6">
-            <h4 className="font-semibold text-gray-800">Categorical Distribution</h4>
-            {analysisResults.volume_analysis.by_dimensions.map((item, idx) => (
-              <div key={idx} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                <div className="flex items-start justify-between mb-2">
-                  <h5 className="font-semibold text-gray-900">{String(item.dimension)}</h5>
-                  <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
-                    {item.total_unique} unique values
-                  </span>
-                </div>
-                <p className="text-sm text-gray-700 mb-3">{String(item.insights)}</p>
-                
-                {/* Top values breakdown */}
-                {item.breakdown && Object.keys(item.breakdown).length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-gray-600 mb-2">Top Values:</p>
-                    {Object.entries(item.breakdown).slice(0, 5).map(([key, value], i) => {
-                      const percentage = ((value / analysisResults.volume_analysis.total_records) * 100).toFixed(1);
-                      return (
-                        <div key={i} className="flex items-center gap-2">
-                          <span className="text-xs text-gray-700 w-32 truncate" title={key}>{key}</span>
-                          <div className="flex-1 h-5 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-blue-400 to-indigo-500"
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs text-gray-600 w-20 text-right">{value.toLocaleString()} ({percentage}%)</span>
-                        </div>
-                      );
-                    })}
+          {/* Categorical Volume Analysis - Two-Column Grid Layout */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-800 mb-4">Categorical Distribution</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {analysisResults.volume_analysis.by_dimensions.map((item, idx) => (
+                <div key={idx} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="flex items-start justify-between mb-2">
+                    <h5 className="font-semibold text-gray-900 truncate flex-1">{String(item.dimension)}</h5>
+                    <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded ml-2 whitespace-nowrap">
+                      {item.total_unique} unique
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                  <p className="text-sm text-gray-700 mb-3 line-clamp-2">{String(item.insights)}</p>
+                  
+                  {/* Top values breakdown */}
+                  {item.breakdown && Object.keys(item.breakdown).length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-gray-600 mb-2">Top Values:</p>
+                      {Object.entries(item.breakdown).slice(0, 4).map(([key, value], i) => {
+                        const percentage = ((value / analysisResults.volume_analysis.total_records) * 100).toFixed(1);
+                        return (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-xs text-gray-700 w-24 truncate" title={key}>{key}</span>
+                            <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-gradient-to-r from-blue-400 to-indigo-500"
+                                style={{ width: `${percentage}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-gray-600 w-16 text-right">{percentage}%</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
           
           {/* Numeric Volume Analysis */}
