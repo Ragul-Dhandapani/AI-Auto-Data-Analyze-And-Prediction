@@ -179,10 +179,10 @@ const HomePage = () => {
           </h2>
           <div className="grid md:grid-cols-4 gap-8">
             {[
-              { step: "1", title: "Connect Data", desc: "Upload files or connect to your database" },
-              { step: "2", title: "Auto Profile", desc: "AI analyzes and profiles your data" },
-              { step: "3", title: "Get Insights", desc: "Receive AI-powered recommendations" },
-              { step: "4", title: "Visualize & Export", desc: "View charts and export reports" }
+              { step: "1", title: "Connect Data", desc: "Upload CSV/Excel or connect to Oracle/MongoDB" },
+              { step: "2", title: "Chat with AI", desc: "Ask questions, create charts naturally with AI Chat" },
+              { step: "3", title: "Train Models", desc: "35+ ML algorithms analyze and predict automatically" },
+              { step: "4", title: "Get Insights", desc: "Azure OpenAI-powered recommendations and visualizations" }
             ].map((item, idx) => (
               <div key={idx} className="text-center" data-testid={`step-${idx}`}>
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-2xl font-bold flex items-center justify-center mx-auto mb-4">
