@@ -275,17 +275,17 @@ const TrainingMetadataPage = () => {
     }));
   };
 
-  // Calculate summary stats
-  const stats = data ? {
-    totalDatasets: data.total_datasets || 0,
-    totalWorkspaces: data.datasets?.reduce((sum, ds) => sum + ds.total_workspaces, 0) || 0,
-    totalModels: data.datasets?.reduce((sum, ds) => 
+  // Calculate summary stats using filtered data
+  const stats = filteredData ? {
+    totalDatasets: filteredData.datasets?.length || 0,
+    totalWorkspaces: filteredData.datasets?.reduce((sum, ds) => sum + ds.total_workspaces, 0) || 0,
+    totalModels: filteredData.datasets?.reduce((sum, ds) => 
       sum + ds.workspaces.reduce((wsum, ws) => wsum + ws.total_models, 0), 0
     ) || 0,
     avgAccuracy: (() => {
       let totalAcc = 0;
       let count = 0;
-      data.datasets?.forEach(ds => {
+      filteredData.datasets?.forEach(ds => {
         ds.workspaces.forEach(ws => {
           ws.training_runs.forEach(run => {
             const acc = run.metrics?.accuracy || run.metrics?.r2_score;
