@@ -176,9 +176,23 @@ async def upload_file(file: UploadFile = File(...)):
         # Prepare dataset metadata
         # Handle NaN, inf, and other non-JSON-serializable values in preview
         preview_df = df.head(10).copy()
-        # Replace NaN, inf, -inf with None (which becomes null in JSON)
+        
+        # CRITICAL: Clean all non-JSON-serializable values
+        # Replace inf/-inf with None first
         preview_df = preview_df.replace([float('inf'), float('-inf')], None)
+        # Replace NaN with None
         preview_df = preview_df.where(pd.notna(preview_df), None)
+        
+        # Convert to dict and ensure all values are JSON-serializable
+        data_preview = preview_df.to_dict('records')
+        
+        # Double-check: clean any remaining NaN/inf values
+        import math
+        for row in data_preview:
+            for key, value in row.items():
+                if isinstance(value, float):
+                    if math.isnan(value) or math.isinf(value):
+                        row[key] = None
         
         dataset_doc = {
             "id": dataset_id,
@@ -187,7 +201,7 @@ async def upload_file(file: UploadFile = File(...)):
             "column_count": len(df.columns),
             "columns": list(df.columns),
             "dtypes": df.dtypes.astype(str).to_dict(),
-            "data_preview": preview_df.to_dict('records'),  # First 10 rows as preview (NaN handled)
+            "data_preview": data_preview,  # First 10 rows as preview (fully cleaned)
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "file_size": len(contents),
