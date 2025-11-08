@@ -350,17 +350,24 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       // CRITICAL FIX #8: Merge new models with existing models instead of replacing
       const updatedResults = { ...response.data };
       
-      console.log('Model merging check:', {
+      console.log('🔍 Model merging check:', {
         selectedModels: selectedModels,
         hasPreviousResults: !!previousResults,
         previousModelsCount: previousResults?.ml_models?.length || 0,
-        newModelsCount: response.data?.ml_models?.length || 0
+        newModelsCount: response.data?.ml_models?.length || 0,
+        analysisResultsCount: analysisResults?.ml_models?.length || 0,
+        refCount: previousResultsRef.current?.ml_models?.length || 0
       });
       
-      // Merge if we have previous results to preserve
-      if (previousResults && previousResults.ml_models && previousResults.ml_models.length > 0) {
+      // Merge if we have previous results to preserve (from selected model training)
+      if (selectedModels && previousResults && previousResults.ml_models && previousResults.ml_models.length > 0) {
         const existingModels = previousResults.ml_models || [];
         const newModels = response.data.ml_models || [];
+        
+        console.log('🔀 Merging models:', {
+          existingModelNames: existingModels.map(m => m.model_name),
+          newModelNames: newModels.map(m => m.model_name)
+        });
         
         // Create a map of existing models by model_name to avoid duplicates
         const modelMap = new Map();
@@ -375,17 +382,21 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         
         // Convert back to array and sort by performance
         updatedResults.ml_models = Array.from(modelMap.values()).sort((a, b) => {
-          const metricA = a.metrics?.r2_score || a.metrics?.accuracy || 0;
-          const metricB = b.metrics?.r2_score || b.metrics?.accuracy || 0;
+          const metricA = a.r2_score || a.accuracy || 0;
+          const metricB = b.r2_score || b.accuracy || 0;
           return metricB - metricA;
         });
         
         console.log(`✅ Merged models: ${existingModels.length} existing + ${newModels.length} new = ${updatedResults.ml_models.length} total`);
+        console.log('✅ Final merged model names:', updatedResults.ml_models.map(m => m.model_name));
       } else {
         console.log('No existing models to merge, using new results only');
       }
       
+      // CRITICAL: Update both state AND ref immediately for next merge
       setAnalysisResults(updatedResults);
+      previousResultsRef.current = updatedResults;
+      console.log('✅ Updated state and ref with merged results');
       
       // CRITICAL: Always notify parent to cache results immediately
       if (onAnalysisUpdate) {
