@@ -171,23 +171,29 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate, variableSele
     }
   }, [charts, skippedCharts, chatMessages, customCharts]);
 
-  // Restore from cache when dataset changes
+  // CRITICAL FIX: Always restore charts from cache when available
   useEffect(() => {
+    console.log('VisualizationPanel - chartsCache:', !!chartsCache, 'dataset:', dataset?.id);
+    
     if (chartsCache && dataset?.id) {
+      console.log('Restoring visualization cache');
       setCharts(chartsCache.charts || []);
       setSkippedCharts(chartsCache.skipped || []);
       setChatMessages(chartsCache.chatMessages || []);
       setCustomCharts(chartsCache.customCharts || []);
       setHasGenerated(true);
-    } else if (!chartsCache && dataset?.id) {
-      // Reset state if no cache for this dataset
+      hasRunGenerationRef.current = true; // Mark as generated
+    } else if (dataset?.id && !chartsCache) {
+      // Reset state only when explicitly changing dataset without cache
+      console.log('New dataset without cache - resetting');
       setCharts([]);
       setSkippedCharts([]);
       setChatMessages([]);
       setCustomCharts([]);
       setHasGenerated(false);
+      hasRunGenerationRef.current = false;
     }
-  }, [dataset?.id, chartsCache]);
+  }, [dataset?.id, chartsCache]); // Keep dependency on both
 
   const generateCharts = async () => {
     setLoading(true);
