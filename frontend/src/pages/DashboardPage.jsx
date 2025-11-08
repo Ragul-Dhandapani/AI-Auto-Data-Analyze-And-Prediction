@@ -686,7 +686,11 @@ const DashboardPage = () => {
                     Cancel
                   </Button>
                   <Button onClick={saveWorkspaceState} disabled={!stateName.trim() || isSaving}>
-                    {isSaving ? 'Saving...' : 'Save'}
+                    {isSaving 
+                      ? 'Saving...' 
+                      : savedStates.some(s => s.state_name === stateName.trim()) 
+                        ? '🔄 Update Workspace' 
+                        : '💾 Save Workspace'}
                   </Button>
                 </div>
               </>
