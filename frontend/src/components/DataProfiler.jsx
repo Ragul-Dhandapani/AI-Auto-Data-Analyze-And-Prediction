@@ -573,6 +573,7 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
                     onClick={() => {
                       setDataFilter('');
                       setColumnFilter('');
+                      setCurrentPage(1); // Reset to first page
                     }}
                     variant="ghost"
                     size="sm"
