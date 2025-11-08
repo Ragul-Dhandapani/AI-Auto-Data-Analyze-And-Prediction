@@ -125,6 +125,96 @@ const TrainingMetadataPage = () => {
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
   };
+  
+  // Filtered and sorted datasets
+  const filteredData = useMemo(() => {
+    if (!data || !data.datasets) return null;
+    
+    let filtered = data.datasets.map(dataset => {
+      // Filter workspaces and training runs
+      const filteredWorkspaces = dataset.workspaces
+        .map(workspace => {
+          let filteredRuns = workspace.training_runs.filter(run => {
+            // Search filter
+            if (searchQuery) {
+              const query = searchQuery.toLowerCase();
+              const matches = 
+                dataset.dataset_name.toLowerCase().includes(query) ||
+                workspace.workspace_name.toLowerCase().includes(query) ||
+                run.model_type.toLowerCase().includes(query) ||
+                run.target_variable.toLowerCase().includes(query);
+              if (!matches) return false;
+            }
+            
+            // Problem type filter
+            if (filterProblemType !== 'all' && run.problem_type !== filterProblemType) {
+              return false;
+            }
+            
+            // Date range filter
+            if (dateRange.start && new Date(run.created_at) < new Date(dateRange.start)) {
+              return false;
+            }
+            if (dateRange.end && new Date(run.created_at) > new Date(dateRange.end)) {
+              return false;
+            }
+            
+            return true;
+          });
+          
+          return {
+            ...workspace,
+            training_runs: filteredRuns,
+            total_models: filteredRuns.length
+          };
+        })
+        .filter(ws => ws.training_runs.length > 0); // Only show workspaces with matching runs
+      
+      return {
+        ...dataset,
+        workspaces: filteredWorkspaces,
+        total_workspaces: filteredWorkspaces.length
+      };
+    }).filter(ds => ds.workspaces.length > 0); // Only show datasets with matching workspaces
+    
+    // Sort datasets
+    if (sortBy === 'accuracy') {
+      filtered.sort((a, b) => {
+        const aAvg = calculateAvgAccuracy(a);
+        const bAvg = calculateAvgAccuracy(b);
+        return bAvg - aAvg;
+      });
+    } else if (sortBy === 'models') {
+      filtered.sort((a, b) => {
+        const aCount = a.workspaces.reduce((sum, ws) => sum + ws.total_models, 0);
+        const bCount = b.workspaces.reduce((sum, ws) => sum + ws.total_models, 0);
+        return bCount - aCount;
+      });
+    } else if (sortBy === 'date') {
+      filtered.sort((a, b) => {
+        const aDate = a.workspaces[0]?.training_runs[0]?.created_at || '';
+        const bDate = b.workspaces[0]?.training_runs[0]?.created_at || '';
+        return new Date(bDate) - new Date(aDate);
+      });
+    }
+    
+    return { ...data, datasets: filtered };
+  }, [data, searchQuery, filterProblemType, dateRange, sortBy]);
+  
+  const calculateAvgAccuracy = (dataset) => {
+    let totalAcc = 0;
+    let count = 0;
+    dataset.workspaces.forEach(ws => {
+      ws.training_runs.forEach(run => {
+        const acc = run.metrics?.accuracy || run.metrics?.r2_score;
+        if (acc) {
+          totalAcc += acc;
+          count++;
+        }
+      });
+    });
+    return count > 0 ? totalAcc / count : 0;
+  };
 
   const exportToCSV = (dataset) => {
     // Export training history as CSV
