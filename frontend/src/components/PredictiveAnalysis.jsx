@@ -1141,7 +1141,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             <div>
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 💼 Business Recommendations
-                <span className="text-xs bg-orange-600 text-white px-2 py-1 rounded-full">Phase 3</span>
               </h3>
               <p className="text-sm text-gray-600 italic mt-1">AI-generated strategic recommendations</p>
               <p className="text-xs text-orange-700 mt-2 bg-white px-3 py-2 rounded border border-orange-200">
