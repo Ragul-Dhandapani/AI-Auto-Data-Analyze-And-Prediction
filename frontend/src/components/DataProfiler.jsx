@@ -667,34 +667,40 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedColumns.length > 0 && dataset.data_preview && dataset.data_preview.length > 0 ? (
-                    dataset.data_preview
-                      .filter(row => {
-                        // Global filter
-                        if (dataFilter && !selectedColumns.some(col => 
-                          String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
-                        )) {
+                  {selectedColumns.length > 0 && dataset.data_preview && dataset.data_preview.length > 0 ? (() => {
+                    // Apply filters
+                    const filteredData = dataset.data_preview.filter(row => {
+                      // Global filter
+                      if (dataFilter && !selectedColumns.some(col => 
+                        String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
+                      )) {
+                        return false;
+                      }
+                      
+                      // Per-column filters
+                      for (const col of selectedColumns) {
+                        const colFilter = columnFilters[col];
+                        if (colFilter && !String(row[col] || '').toLowerCase().includes(colFilter.toLowerCase())) {
                           return false;
                         }
-                        
-                        // Per-column filters
-                        for (const col of selectedColumns) {
-                          const colFilter = columnFilters[col];
-                          if (colFilter && !String(row[col] || '').toLowerCase().includes(colFilter.toLowerCase())) {
-                            return false;
-                          }
-                        }
-                        
-                        return true;
-                      })
-                      .map((row, idx) => (
-                        <tr key={idx} className="border-b hover:bg-gray-50">
-                          {selectedColumns.map((col, colIdx) => (
-                            <td key={colIdx} className="p-2">{String(row[col] || '-')}</td>
-                          ))}
-                        </tr>
-                      ))
-                  ) : (
+                      }
+                      
+                      return true;
+                    });
+                    
+                    // Calculate pagination
+                    const startIdx = (currentPage - 1) * rowsPerPage;
+                    const endIdx = startIdx + rowsPerPage;
+                    const paginatedData = filteredData.slice(startIdx, endIdx);
+                    
+                    return paginatedData.map((row, idx) => (
+                      <tr key={startIdx + idx} className="border-b hover:bg-gray-50">
+                        {selectedColumns.map((col, colIdx) => (
+                          <td key={colIdx} className="p-2">{String(row[col] || '-')}</td>
+                        ))}
+                      </tr>
+                    ));
+                  })() : (
                     <tr>
                       <td colSpan={selectedColumns.length || 1} className="p-4 text-center text-gray-500">
                         {!dataset.data_preview || dataset.data_preview.length === 0 
