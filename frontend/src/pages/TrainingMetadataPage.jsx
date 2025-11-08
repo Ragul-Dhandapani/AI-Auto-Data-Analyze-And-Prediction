@@ -582,34 +582,164 @@ const TrainingMetadataPage = () => {
                           {expandedWorkspaces[workspaceKey] && workspace.training_runs && (
                             <div className="px-6 pb-3 space-y-2">
                               {workspace.training_runs.length > 0 ? (
-                                workspace.training_runs.map((run, runIdx) => (
-                                  <div
-                                    key={runIdx}
-                                    className="flex items-center justify-between p-3 bg-white rounded border border-gray-200 hover:border-blue-300 transition"
-                                  >
-                                    <div className="flex items-center gap-4">
-                                      <div className={`w-2 h-2 rounded-full ${getMetricColor(run.metrics).replace('text-', 'bg-')}`}></div>
-                                      <div>
-                                        <p className="font-medium text-gray-900">{run.model_type}</p>
-                                        <p className="text-xs text-gray-600">Target: {run.target_variable}</p>
+                                workspace.training_runs.map((run, runIdx) => {
+                                  const runKey = `${run.id}-${runIdx}`;
+                                  const bestRun = getBestRun(workspace);
+                                  const isBest = bestRun && bestRun.id === run.id && bestRun.model_type === run.model_type;
+                                  const allMetrics = getAllMetrics(run.metrics);
+                                  const isExpanded = expandedRunDetails[runKey];
+                                  
+                                  return (
+                                    <div
+                                      key={runIdx}
+                                      className={`bg-white rounded border ${
+                                        isBest ? 'border-green-400 shadow-md' : 'border-gray-200'
+                                      } hover:border-blue-300 transition overflow-hidden`}
+                                    >
+                                      <div className="flex items-center justify-between p-3">
+                                        <div className="flex items-center gap-4 flex-1">
+                                          {comparisonMode && (
+                                            <input
+                                              type="checkbox"
+                                              checked={isRunSelected(run)}
+                                              onChange={() => toggleRunSelection(run, dataset.dataset_name, workspace.workspace_name)}
+                                              className="w-4 h-4 text-blue-600 cursor-pointer"
+                                            />
+                                          )}
+                                          <div className={`w-2 h-2 rounded-full ${getMetricColor(run.metrics).replace('text-', 'bg-')}`}></div>
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                              <p className="font-medium text-gray-900">{run.model_type}</p>
+                                              {isBest && (
+                                                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                  <Award className="w-3 h-3" />
+                                                  Best
+                                                </span>
+                                              )}
+                                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                                {run.problem_type || 'N/A'}
+                                              </span>
+                                            </div>
+                                            <p className="text-xs text-gray-600">Target: {run.target_variable}</p>
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                          <div className="text-right">
+                                            <p className={`font-semibold text-lg ${getMetricColor(run.metrics)}`}>
+                                              {getMetricDisplay(run.metrics)}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              <Clock className="w-3 h-3 inline mr-1" />
+                                              {run.training_duration?.toFixed(1)}s
+                                            </p>
+                                          </div>
+                                          <div className="text-xs text-gray-500 min-w-[80px] text-right">
+                                            {formatDate(run.created_at)}
+                                          </div>
+                                          <Button
+                                            onClick={() => toggleRunDetails(runKey)}
+                                            variant="ghost"
+                                            size="sm"
+                                          >
+                                            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                          </Button>
+                                        </div>
                                       </div>
+                                      
+                                      {/* Expanded Details */}
+                                      {isExpanded && (
+                                        <div className="px-6 pb-4 bg-gray-50 border-t border-gray-200">
+                                          <div className="grid grid-cols-3 gap-4 mt-3">
+                                            {/* Classification Metrics */}
+                                            {allMetrics.accuracy !== undefined && (
+                                              <>
+                                                <div className="bg-white p-3 rounded shadow-sm">
+                                                  <p className="text-xs text-gray-600 mb-1">Accuracy</p>
+                                                  <p className="text-lg font-semibold text-green-600">
+                                                    {(allMetrics.accuracy * 100).toFixed(2)}%
+                                                  </p>
+                                                </div>
+                                                {allMetrics.precision !== undefined && (
+                                                  <div className="bg-white p-3 rounded shadow-sm">
+                                                    <p className="text-xs text-gray-600 mb-1">Precision</p>
+                                                    <p className="text-lg font-semibold text-blue-600">
+                                                      {(allMetrics.precision * 100).toFixed(2)}%
+                                                    </p>
+                                                  </div>
+                                                )}
+                                                {allMetrics.recall !== undefined && (
+                                                  <div className="bg-white p-3 rounded shadow-sm">
+                                                    <p className="text-xs text-gray-600 mb-1">Recall</p>
+                                                    <p className="text-lg font-semibold text-purple-600">
+                                                      {(allMetrics.recall * 100).toFixed(2)}%
+                                                    </p>
+                                                  </div>
+                                                )}
+                                                {allMetrics.f1_score !== undefined && (
+                                                  <div className="bg-white p-3 rounded shadow-sm">
+                                                    <p className="text-xs text-gray-600 mb-1">F1 Score</p>
+                                                    <p className="text-lg font-semibold text-indigo-600">
+                                                      {(allMetrics.f1_score * 100).toFixed(2)}%
+                                                    </p>
+                                                  </div>
+                                                )}
+                                                {allMetrics.roc_auc !== undefined && (
+                                                  <div className="bg-white p-3 rounded shadow-sm">
+                                                    <p className="text-xs text-gray-600 mb-1">ROC AUC</p>
+                                                    <p className="text-lg font-semibold text-pink-600">
+                                                      {(allMetrics.roc_auc * 100).toFixed(2)}%
+                                                    </p>
+                                                  </div>
+                                                )}
+                                              </>
+                                            )}
+                                            
+                                            {/* Regression Metrics */}
+                                            {allMetrics.r2_score !== undefined && (
+                                              <>
+                                                <div className="bg-white p-3 rounded shadow-sm">
+                                                  <p className="text-xs text-gray-600 mb-1">R² Score</p>
+                                                  <p className="text-lg font-semibold text-green-600">
+                                                    {(allMetrics.r2_score * 100).toFixed(2)}%
+                                                  </p>
+                                                </div>
+                                                {allMetrics.rmse !== undefined && (
+                                                  <div className="bg-white p-3 rounded shadow-sm">
+                                                    <p className="text-xs text-gray-600 mb-1">RMSE</p>
+                                                    <p className="text-lg font-semibold text-orange-600">
+                                                      {allMetrics.rmse.toFixed(4)}
+                                                    </p>
+                                                  </div>
+                                                )}
+                                                {allMetrics.mae !== undefined && (
+                                                  <div className="bg-white p-3 rounded shadow-sm">
+                                                    <p className="text-xs text-gray-600 mb-1">MAE</p>
+                                                    <p className="text-lg font-semibold text-red-600">
+                                                      {allMetrics.mae.toFixed(4)}
+                                                    </p>
+                                                  </div>
+                                                )}
+                                              </>
+                                            )}
+                                          </div>
+                                          
+                                          {/* Model Parameters */}
+                                          {run.model_params_json && (
+                                            <div className="mt-3 bg-white p-3 rounded shadow-sm">
+                                              <div className="flex items-center gap-2 mb-2">
+                                                <Settings className="w-4 h-4 text-gray-600" />
+                                                <p className="text-xs font-semibold text-gray-700">Hyperparameters</p>
+                                              </div>
+                                              <pre className="text-xs text-gray-600 overflow-x-auto">
+                                                {JSON.stringify(JSON.parse(run.model_params_json), null, 2)}
+                                              </pre>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
-                                    <div className="flex items-center gap-6">
-                                      <div className="text-right">
-                                        <p className={`font-semibold ${getMetricColor(run.metrics)}`}>
-                                          {getMetricDisplay(run.metrics)}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                          <Clock className="w-3 h-3 inline mr-1" />
-                                          {run.training_duration?.toFixed(1)}s
-                                        </p>
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        {formatDate(run.created_at)}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))
+                                  );
+                                })
                               ) : (
                                 <p className="text-sm text-gray-500 text-center py-4">No training runs yet</p>
                               )}
