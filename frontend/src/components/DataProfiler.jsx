@@ -632,10 +632,25 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
+                  {/* Column Headers */}
                   <tr className="border-b bg-gray-50">
                     {selectedColumns.length > 0 ? (
                       selectedColumns.map((col, idx) => (
-                        <th key={idx} className="text-left p-2 font-semibold">{col}</th>
+                        <th key={idx} className="text-left p-2 font-semibold">
+                          <div className="flex flex-col gap-1">
+                            <span>{col}</span>
+                            <input
+                              type="text"
+                              placeholder="Filter..."
+                              className="text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 font-normal"
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                const value = e.target.value.toLowerCase();
+                                setDataFilter(value); // Use same filter for simplicity
+                              }}
+                            />
+                          </div>
+                        </th>
                       ))
                     ) : (
                       <th className="text-left p-2 text-gray-500">No columns selected</th>
