@@ -66,12 +66,30 @@ const TrainingMetadataPage = () => {
     const r2 = metrics.r2_score;
     
     if (accuracy !== undefined && accuracy !== null) {
-      return `${(accuracy * 100).toFixed(1)}% Acc`;
+      return `${(accuracy * 100).toFixed(1)}%`;
     }
     if (r2 !== undefined && r2 !== null) {
-      return `${(r2 * 100).toFixed(1)}% R²`;
+      return `${(r2 * 100).toFixed(1)}%`;
     }
     return 'N/A';
+  };
+
+  const getAllMetrics = (metrics) => {
+    if (!metrics) return {};
+    
+    return {
+      // Classification metrics
+      accuracy: metrics.accuracy,
+      precision: metrics.precision,
+      recall: metrics.recall,
+      f1_score: metrics.f1_score,
+      roc_auc: metrics.roc_auc,
+      // Regression metrics
+      r2_score: metrics.r2_score,
+      rmse: metrics.rmse,
+      mae: metrics.mae,
+      mse: metrics.mse
+    };
   };
 
   const getMetricColor = (metrics) => {
@@ -81,6 +99,16 @@ const TrainingMetadataPage = () => {
     if (value >= 0.8) return 'text-green-600';
     if (value >= 0.6) return 'text-yellow-600';
     return 'text-red-600';
+  };
+  
+  const getBestRun = (workspace) => {
+    if (!workspace.training_runs || workspace.training_runs.length === 0) return null;
+    
+    return workspace.training_runs.reduce((best, run) => {
+      const bestMetric = best.metrics?.accuracy || best.metrics?.r2_score || 0;
+      const runMetric = run.metrics?.accuracy || run.metrics?.r2_score || 0;
+      return runMetric > bestMetric ? run : best;
+    }, workspace.training_runs[0]);
   };
 
   const formatDate = (dateString) => {
