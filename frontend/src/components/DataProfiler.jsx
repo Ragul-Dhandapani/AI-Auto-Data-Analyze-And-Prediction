@@ -529,7 +529,7 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
         </Card>
       )}
 
-      {/* Data Preview */}
+      {/* Data Preview with Filters */}
       {!collapsedSections.preview && (
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -539,26 +539,151 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
             </Button>
           </div>
           <Card className="p-6">
+            {/* Filter Controls */}
+            <div className="mb-4 space-y-3">
+              <div className="flex gap-3 items-center flex-wrap">
+                {/* Data Filter */}
+                <input
+                  type="text"
+                  placeholder="Filter data (search in all columns)..."
+                  value={dataFilter}
+                  onChange={(e) => setDataFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-1 min-w-[250px]"
+                />
+                
+                {/* Column Selector Button */}
+                <Button 
+                  onClick={() => setShowColumnSelector(!showColumnSelector)}
+                  variant="outline"
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Select Columns ({selectedColumns.length}/{dataset.columns?.length || 0})
+                </Button>
+                
+                {/* Reset Filters */}
+                {(dataFilter || columnFilter) && (
+                  <Button 
+                    onClick={() => {
+                      setDataFilter('');
+                      setColumnFilter('');
+                    }}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+              
+              {/* Column Selector Dropdown */}
+              {showColumnSelector && (
+                <div className="border border-gray-200 rounded-md p-3 bg-gray-50 max-h-64 overflow-y-auto">
+                  <div className="mb-2">
+                    <input
+                      type="text"
+                      placeholder="Search columns..."
+                      value={columnFilter}
+                      onChange={(e) => setColumnFilter(e.target.value)}
+                      className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        onClick={() => setSelectedColumns(dataset.columns)}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        Select All
+                      </button>
+                      <button
+                        onClick={() => setSelectedColumns([])}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    {dataset.columns
+                      ?.filter(col => col.toLowerCase().includes(columnFilter.toLowerCase()))
+                      .map((col, idx) => (
+                      <label key={idx} className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedColumns.includes(col)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedColumns([...selectedColumns, col]);
+                            } else {
+                              setSelectedColumns(selectedColumns.filter(c => c !== col));
+                            }
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                        <span className="text-sm">{col}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Data Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b">
-                    {dataset.columns.slice(0, 10).map((col, idx) => (
-                      <th key={idx} className="text-left p-2 font-semibold">{col}</th>
-                    ))}
+                  <tr className="border-b bg-gray-50">
+                    {selectedColumns.length > 0 ? (
+                      selectedColumns.map((col, idx) => (
+                        <th key={idx} className="text-left p-2 font-semibold">{col}</th>
+                      ))
+                    ) : (
+                      <th className="text-left p-2 text-gray-500">No columns selected</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
-                  {(dataset.data_preview || []).map((row, idx) => (
-                    <tr key={idx} className="border-b hover:bg-gray-50">
-                      {dataset.columns.slice(0, 10).map((col, colIdx) => (
-                        <td key={colIdx} className="p-2">{String(row[col] || '-')}</td>
-                      ))}
+                  {selectedColumns.length > 0 && dataset.data_preview && dataset.data_preview.length > 0 ? (
+                    dataset.data_preview
+                      .filter(row => {
+                        if (!dataFilter) return true;
+                        // Search in all selected columns
+                        return selectedColumns.some(col => 
+                          String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
+                        );
+                      })
+                      .map((row, idx) => (
+                        <tr key={idx} className="border-b hover:bg-gray-50">
+                          {selectedColumns.map((col, colIdx) => (
+                            <td key={colIdx} className="p-2">{String(row[col] || '-')}</td>
+                          ))}
+                        </tr>
+                      ))
+                  ) : (
+                    <tr>
+                      <td colSpan={selectedColumns.length || 1} className="p-4 text-center text-gray-500">
+                        {!dataset.data_preview || dataset.data_preview.length === 0 
+                          ? "No data preview available" 
+                          : "Select columns to view data"}
+                      </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
+            
+            {/* Results Count */}
+            {selectedColumns.length > 0 && dataset.data_preview && (
+              <div className="mt-3 text-xs text-gray-500">
+                Showing {dataset.data_preview.filter(row => {
+                  if (!dataFilter) return true;
+                  return selectedColumns.some(col => 
+                    String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
+                  );
+                }).length} of {dataset.data_preview.length} rows
+                {dataFilter && ` (filtered)`}
+              </div>
+            )}
           </Card>
         </div>
       )}
