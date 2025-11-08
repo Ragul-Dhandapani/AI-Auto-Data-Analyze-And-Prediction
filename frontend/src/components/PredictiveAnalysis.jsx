@@ -339,8 +339,15 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       // CRITICAL FIX #8: Merge new models with existing models instead of replacing
       const updatedResults = { ...response.data };
       
-      if (selectedModels && selectedModels.length > 0 && analysisResults && analysisResults.ml_models) {
-        // User selected new models - merge with existing
+      console.log('Model merging check:', {
+        selectedModels: selectedModels,
+        hasExistingResults: !!analysisResults,
+        existingModelsCount: analysisResults?.ml_models?.length || 0,
+        newModelsCount: response.data?.ml_models?.length || 0
+      });
+      
+      // Merge if: (1) user selected specific models OR (2) we have existing results to preserve
+      if (analysisResults && analysisResults.ml_models && analysisResults.ml_models.length > 0) {
         const existingModels = analysisResults.ml_models || [];
         const newModels = response.data.ml_models || [];
         
@@ -362,7 +369,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
           return metricB - metricA;
         });
         
-        console.log(`Merged models: ${existingModels.length} existing + ${newModels.length} new = ${updatedResults.ml_models.length} total`);
+        console.log(`✅ Merged models: ${existingModels.length} existing + ${newModels.length} new = ${updatedResults.ml_models.length} total`);
+      } else {
+        console.log('No existing models to merge, using new results only');
       }
       
       setAnalysisResults(updatedResults);
