@@ -431,18 +431,43 @@ def analyze_time_series(
         "datetime_columns": detect_datetime_columns(df)
     }
     
-    # Forecasting
+    # Forecasting with error handling
     if forecast_method in ["prophet", "both"]:
-        prophet_results = forecast_with_prophet(df, time_column, target_column, forecast_periods)
-        results["prophet_forecast"] = prophet_results
+        try:
+            prophet_results = forecast_with_prophet(df, time_column, target_column, forecast_periods)
+            results["prophet_forecast"] = prophet_results
+            logging.info("✅ Prophet forecast completed successfully")
+        except Exception as e:
+            logging.error(f"❌ Prophet forecast failed: {str(e)}", exc_info=True)
+            results["prophet_forecast"] = {
+                "success": False,
+                "error": str(e),
+                "message": "Prophet forecasting failed. This might be due to insufficient data or data format issues."
+            }
     
     if forecast_method in ["lstm", "both"]:
-        lstm_results = forecast_with_lstm(df, time_column, target_column, forecast_periods)
-        results["lstm_forecast"] = lstm_results
+        try:
+            lstm_results = forecast_with_lstm(df, time_column, target_column, forecast_periods)
+            results["lstm_forecast"] = lstm_results
+            logging.info("✅ LSTM forecast completed successfully")
+        except Exception as e:
+            logging.error(f"❌ LSTM forecast failed: {str(e)}", exc_info=True)
+            results["lstm_forecast"] = {
+                "success": False,
+                "error": str(e),
+                "message": "LSTM forecasting failed. This might be due to insufficient data or TensorFlow issues."
+            }
     
     # Anomaly detection
-    anomaly_results = detect_anomalies(df, time_column, target_column)
-    results["anomaly_detection"] = anomaly_results
+    try:
+        anomaly_results = detect_anomalies(df, time_column, target_column)
+        results["anomaly_detection"] = anomaly_results
+    except Exception as e:
+        logging.error(f"❌ Anomaly detection failed: {str(e)}")
+        results["anomaly_detection"] = {
+            "success": False,
+            "error": str(e)
+        }
     
     return results
 
