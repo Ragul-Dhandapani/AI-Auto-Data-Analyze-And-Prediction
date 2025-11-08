@@ -1277,10 +1277,11 @@ async def load_analysis_state(state_id: str):
 async def get_saved_states(dataset_id: str):
     """Get all saved states for a dataset"""
     try:
-        cursor = db.saved_states.find({"dataset_id": dataset_id}, {"_id": 0})
-        states = await cursor.to_list(length=None)
+        db_adapter = get_database_adapter()
+        states = await db_adapter.get_workspaces_by_dataset(dataset_id)
         return {"states": states}
     except Exception as e:
+        logger.error(f"Failed to fetch saved states: {str(e)}")
         raise HTTPException(500, f"Failed to fetch saved states: {str(e)}")
 
 
