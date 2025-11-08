@@ -33,6 +33,10 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
   useEffect(() => {
     if (dataset && dataset.id) {
       setOriginalRowCount(dataset.row_count);
+      // Initialize selected columns with first 10
+      if (dataset.columns && dataset.columns.length > 0) {
+        setSelectedColumns(dataset.columns.slice(0, 10));
+      }
       // Only run profile if we don't have data or dataset changed
       if (!profileData || profileData.dataset_id !== dataset.id) {
         runProfileAnalysis();
