@@ -37,40 +37,66 @@ const ChartComponent = ({ chart, index }) => {
       try {
         await loadPlotly();
         
-        if (window.Plotly && chart.data) {
-          const container = document.getElementById(chartId);
-          if (container) {
-            // Validate data structure
-            if (!chart.data.data || !Array.isArray(chart.data.data) || chart.data.data.length === 0) {
-              setError("No chart data available");
-              return;
-            }
-            
-            await window.Plotly.newPlot(
-              chartId,
-              chart.data.data,
-              {
-                ...chart.data.layout,
-                autosize: true,
-                height: 400,
-                margin: { l: 60, r: 40, t: 60, b: 60 },  // Better margins
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { family: 'Inter, sans-serif' }
-              },
-              { 
-                responsive: true, 
-                displayModeBar: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['lasso2d', 'select2d']
-              }
-            );
-            setError(null);
-          }
+        if (!window.Plotly) {
+          setError("Plotly not loaded");
+          return;
         }
+        
+        if (!chart || !chart.data) {
+          setError("No chart data available");
+          return;
+        }
+        
+        const container = document.getElementById(chartId);
+        if (!container) {
+          console.warn(`Container ${chartId} not found`);
+          return;
+        }
+        
+        // Validate data structure - handle multiple formats
+        let plotData, plotLayout;
+        
+        if (chart.data.data && Array.isArray(chart.data.data)) {
+          // Format 1: {data: [...], layout: {...}}
+          plotData = chart.data.data;
+          plotLayout = chart.data.layout || {};
+        } else if (Array.isArray(chart.data)) {
+          // Format 2: chart.data is already the array
+          plotData = chart.data;
+          plotLayout = {};
+        } else {
+          setError("Invalid chart data format");
+          return;
+        }
+        
+        if (!Array.isArray(plotData) || plotData.length === 0) {
+          setError("No valid chart traces found");
+          return;
+        }
+        
+        await window.Plotly.newPlot(
+          chartId,
+          plotData,
+          {
+            ...plotLayout,
+            autosize: true,
+            height: 400,
+            margin: { l: 60, r: 40, t: 60, b: 60 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Inter, sans-serif' }
+          },
+          { 
+            responsive: true, 
+            displayModeBar: true,
+            displaylogo: false,
+            modeBarButtonsToRemove: ['lasso2d', 'select2d']
+          }
+        );
+        setError(null);
       } catch (err) {
         console.error('Chart rendering error:', err);
-        setError(err.message);
+        setError(`Chart error: ${err.message}`);
       }
     };
     
