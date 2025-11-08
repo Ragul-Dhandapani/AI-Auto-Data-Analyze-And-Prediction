@@ -30,7 +30,7 @@ const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelect
         <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="predictive" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
-            Predictive Analysis & Forecasting
+            Predictions
           </TabsTrigger>
           <TabsTrigger value="timeseries" className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
