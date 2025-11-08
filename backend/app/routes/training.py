@@ -81,7 +81,7 @@ async def get_metadata_by_workspace():
         if adapter_type == "OracleAdapter":
             # Oracle-specific implementation
             datasets_query = "SELECT id, name FROM datasets ORDER BY created_at DESC"
-            dataset_rows = await db_adapter._execute(datasets_query)
+            dataset_rows = await db_adapter._execute(datasets_query, fetch_all=True)
             
             for ds_row in dataset_rows:
                 ds_id = ds_row[0]
