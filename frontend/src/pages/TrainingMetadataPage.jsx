@@ -10,6 +10,7 @@ import Plot from 'react-plotly.js';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const TrainingMetadataPage = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [expandedDatasets, setExpandedDatasets] = useState({});
