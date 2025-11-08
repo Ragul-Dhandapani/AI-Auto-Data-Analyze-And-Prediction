@@ -23,6 +23,22 @@ import {
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [workspaceCount, setWorkspaceCount] = useState(0);
+  
+  // Fetch workspace count
+  useEffect(() => {
+    const fetchWorkspaceCount = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/training/metadata/by-workspace`);
+        const data = await response.json();
+        const total = data.datasets?.reduce((sum, ds) => sum + ds.total_workspaces, 0) || 0;
+        setWorkspaceCount(total);
+      } catch (error) {
+        console.error('Error fetching workspace count:', error);
+      }
+    };
+    fetchWorkspaceCount();
+  }, []);
 
   const features = [
     {
