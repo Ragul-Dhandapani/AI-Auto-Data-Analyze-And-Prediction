@@ -98,9 +98,9 @@ async def get_metadata_by_workspace():
                 
                 workspaces = []
                 for ws_row in ws_rows:
-                    ws_name = ws_row[0]
-                    ws_created = ws_row[1]
-                    ws_size = ws_row[2]
+                    ws_name = ws_row['state_name']
+                    ws_created = ws_row['created_at']
+                    ws_size = ws_row['state_size_kb']
                     
                     # Get training runs for this workspace
                     training_query = """
@@ -110,14 +110,11 @@ async def get_metadata_by_workspace():
                     AND workspace_name = :workspace_name
                     ORDER BY created_at DESC
                     """
-                    training_rows = await db_adapter._execute(
+                    training_runs = await db_adapter._execute(
                         training_query,
-                        {'dataset_id': ds_id, 'workspace_name': ws_name}
+                        {'dataset_id': ds_id, 'workspace_name': ws_name},
+                        fetch_all=True
                     )
-                    
-                    training_runs = []
-                    for tr_row in training_rows:
-                        training_runs.append(db_adapter._row_to_dict(tr_row))
                     
                     workspaces.append({
                         'workspace_name': ws_name,
