@@ -724,6 +724,7 @@ async def holistic_analysis(request: Dict[str, Any]):
                     # Create training metadata record
                     metadata = {
                         'dataset_id': dataset_id,
+                        'workspace_name': request.workspace_name if hasattr(request, 'workspace_name') else 'default',
                         'problem_type': problem_type,
                         'target_variable': target_var,
                         'feature_variables': feature_vars,
