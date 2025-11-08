@@ -345,14 +345,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       
       console.log('Model merging check:', {
         selectedModels: selectedModels,
-        hasExistingResults: !!analysisResults,
-        existingModelsCount: analysisResults?.ml_models?.length || 0,
+        hasPreviousResults: !!previousResults,
+        previousModelsCount: previousResults?.ml_models?.length || 0,
         newModelsCount: response.data?.ml_models?.length || 0
       });
       
-      // Merge if: (1) user selected specific models OR (2) we have existing results to preserve
-      if (analysisResults && analysisResults.ml_models && analysisResults.ml_models.length > 0) {
-        const existingModels = analysisResults.ml_models || [];
+      // Merge if we have previous results to preserve
+      if (previousResults && previousResults.ml_models && previousResults.ml_models.length > 0) {
+        const existingModels = previousResults.ml_models || [];
         const newModels = response.data.ml_models || [];
         
         // Create a map of existing models by model_name to avoid duplicates
