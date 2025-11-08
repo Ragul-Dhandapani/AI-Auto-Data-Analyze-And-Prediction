@@ -62,8 +62,6 @@ async def run_migration():
     except Exception as e:
         logger.error(f"❌ Migration failed: {str(e)}")
         raise
-    finally:
-        await db_adapter.close()
 
 if __name__ == "__main__":
     asyncio.run(run_migration())
