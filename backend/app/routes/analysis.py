@@ -1279,7 +1279,7 @@ async def get_saved_states(dataset_id: str):
     """Get all saved states for a dataset"""
     try:
         db_adapter = get_database_adapter()
-        states = await db_adapter.get_workspaces_by_dataset(dataset_id)
+        states = await db_adapter.list_workspaces(dataset_id)
         return {"states": states}
     except Exception as e:
         logger.error(f"Failed to fetch saved states: {str(e)}")
