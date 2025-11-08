@@ -384,12 +384,23 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate, variableSele
   // Filter charts to only show those with valid data - ENHANCED ERROR HANDLING
   const validCharts = Array.isArray(charts) ? charts.filter(chart => {
     try {
-      return chart && 
-             chart.data && 
-             chart.plotly_data &&
-             chart.plotly_data.data &&
-             Array.isArray(chart.plotly_data.data) &&
-             chart.plotly_data.data.length > 0;
+      if (!chart) return false;
+      
+      // Check for plotly_data first (transformed), then data (direct)
+      const chartData = chart.plotly_data || chart.data;
+      if (!chartData) return false;
+      
+      // Validate structure
+      if (chartData.data && Array.isArray(chartData.data) && chartData.data.length > 0) {
+        return true;
+      }
+      
+      // Fallback: check if chartData itself is the array
+      if (Array.isArray(chartData) && chartData.length > 0) {
+        return true;
+      }
+      
+      return false;
     } catch (e) {
       console.warn('Invalid chart detected:', e);
       return false;
