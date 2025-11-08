@@ -482,14 +482,22 @@ const TrainingMetadataPage = () => {
 
       {/* Dataset Cards */}
       <div className="max-w-7xl mx-auto space-y-4">
-        {!data || !data.datasets || data.datasets.length === 0 ? (
+        {!filteredData || !filteredData.datasets || filteredData.datasets.length === 0 ? (
           <Card className="p-12 text-center">
             <Database className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Training History Yet</h3>
-            <p className="text-gray-600">Upload a dataset and run Predictive Analysis to see training metadata here</p>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              {(searchQuery || filterProblemType !== 'all' || dateRange.start || dateRange.end) 
+                ? 'No Matching Training Runs' 
+                : 'No Training History Yet'}
+            </h3>
+            <p className="text-gray-600">
+              {(searchQuery || filterProblemType !== 'all' || dateRange.start || dateRange.end)
+                ? 'Try adjusting your filters or search query'
+                : 'Upload a dataset and run Predictive Analysis to see training metadata here'}
+            </p>
           </Card>
         ) : (
-          data.datasets.map((dataset) => (
+          filteredData.datasets.map((dataset) => (
             <Card key={dataset.dataset_id} className="overflow-hidden">
               {/* Dataset Header */}
               <div
