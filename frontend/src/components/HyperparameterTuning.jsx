@@ -175,24 +175,55 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
               </select>
             </div>
 
-            {/* Model Type Selection */}
+            {/* Model Type Selection - Enhanced with 35+ Models */}
             <div>
-              <Label>Model Type</Label>
-              <div className="grid grid-cols-3 gap-3 mt-2">
-                {['random_forest', 'xgboost', 'lightgbm'].map(model => (
-                  <button
-                    key={model}
-                    className={`p-3 rounded border-2 transition-all ${
-                      modelType === model
-                        ? 'border-indigo-600 bg-indigo-50'
-                        : 'border-gray-300 hover:border-indigo-300'
-                    }`}
-                    onClick={() => setModelType(model)}
-                  >
-                    <div className="font-semibold capitalize">{model.replace('_', ' ')}</div>
-                  </button>
-                ))}
-              </div>
+              <Label>Model Type (35+ Models Available)</Label>
+              <select
+                className="w-full p-2 border rounded mt-1"
+                value={modelType}
+                onChange={(e) => setModelType(e.target.value)}
+              >
+                <optgroup label="📊 Tree-Based Models">
+                  <option value="random_forest">Random Forest</option>
+                  <option value="decision_tree">Decision Tree</option>
+                  <option value="gradient_boosting">Gradient Boosting</option>
+                </optgroup>
+                <optgroup label="⚡ Boosting Models">
+                  <option value="xgboost">XGBoost</option>
+                  <option value="lightgbm">LightGBM</option>
+                </optgroup>
+                <optgroup label="🧠 Neural Networks">
+                  <option value="mlp">Multi-Layer Perceptron (MLP)</option>
+                </optgroup>
+                <optgroup label="📈 Linear Models">
+                  <option value="logistic_regression">Logistic Regression</option>
+                  <option value="linear_regression">Linear Regression</option>
+                  <option value="ridge">Ridge Regression</option>
+                  <option value="lasso">Lasso Regression</option>
+                  <option value="elasticnet">ElasticNet</option>
+                  <option value="bayesian_ridge">Bayesian Ridge</option>
+                  <option value="sgd">SGD Classifier/Regressor</option>
+                </optgroup>
+                <optgroup label="🎯 Support Vector Machines">
+                  <option value="svm">Support Vector Machine (SVM)</option>
+                  <option value="svr">Support Vector Regression (SVR)</option>
+                </optgroup>
+                <optgroup label="🔍 Instance-Based">
+                  <option value="knn">K-Nearest Neighbors (KNN)</option>
+                </optgroup>
+                <optgroup label="📊 Probabilistic">
+                  <option value="naive_bayes">Naive Bayes</option>
+                  <option value="qda">Quadratic Discriminant Analysis</option>
+                  <option value="gaussian_process">Gaussian Process</option>
+                </optgroup>
+                <optgroup label="🔬 Advanced">
+                  <option value="isolation_forest">Isolation Forest (Anomaly)</option>
+                  <option value="one_class_svm">One-Class SVM (Anomaly)</option>
+                </optgroup>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Select a model for hyperparameter optimization. Tree-based and boosting models typically benefit most from tuning.
+              </p>
             </div>
 
             {/* Problem Type */}
