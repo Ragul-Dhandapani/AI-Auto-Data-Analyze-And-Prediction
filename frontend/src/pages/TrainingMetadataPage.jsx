@@ -1,420 +1,396 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Home, TrendingUp, Calendar, Database, Download, ChevronDown } from 'lucide-react';
-import { toast } from 'sonner';
-import Select from 'react-select';
-import DatabaseSwitcher from '@/components/DatabaseSwitcher';
-import CompactDatabaseToggle from '@/components/CompactDatabaseToggle';
+import { ChevronDown, ChevronRight, Database, FolderOpen, TrendingUp, Clock, Award, Download, Loader, Search, Filter, RefreshCw } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const TrainingMetadataPage = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [metadata, setMetadata] = useState([]);
-  const [selectedDataset, setSelectedDataset] = useState(null);
-  const [selectedWorkspaces, setSelectedWorkspaces] = useState([]);
-  const [downloadingPdf, setDownloadingPdf] = useState(null);
+  const [data, setData] = useState(null);
+  const [expandedDatasets, setExpandedDatasets] = useState({});
+  const [expandedWorkspaces, setExpandedWorkspaces] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterMetric, setFilterMetric] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
 
   useEffect(() => {
-    fetchMetadata();
+    loadMetadata();
   }, []);
 
-  const fetchMetadata = async () => {
+  const loadMetadata = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/training-metadata`);
-      const data = response.data.metadata || [];
-      setMetadata(data);
+      const response = await axios.get(`${API}/training/metadata/by-workspace`);
+      setData(response.data);
       
-      // Auto-select first dataset with workspaces
-      const firstWithWorkspaces = data.find(d => d.workspaces && d.workspaces.length > 0);
-      if (firstWithWorkspaces) {
-        setSelectedDataset({
-          value: firstWithWorkspaces.dataset_id,
-          label: firstWithWorkspaces.dataset_name,
-          data: firstWithWorkspaces
-        });
+      // Auto-expand first dataset
+      if (response.data.datasets && response.data.datasets.length > 0) {
+        const firstDatasetId = response.data.datasets[0].dataset_id;
+        setExpandedDatasets({ [firstDatasetId]: true });
       }
     } catch (error) {
-      toast.error('Failed to fetch training metadata');
-      console.error(error);
+      console.error('Failed to load training metadata:', error);
+      toast.error('Failed to load training history');
     } finally {
       setLoading(false);
     }
   };
 
-  const downloadPdf = async (datasetId, datasetName, workspaceIds = null) => {
-    setDownloadingPdf(datasetId);
-    try {
-      const url = workspaceIds 
-        ? `${API}/training/metadata/download-pdf/${datasetId}?workspaces=${workspaceIds.join(',')}`
-        : `${API}/training/metadata/download-pdf/${datasetId}`;
-        
-      const response = await axios.get(url, { responseType: 'blob' });
-      
-      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      const filename = workspaceIds && workspaceIds.length > 0
-        ? `training_metadata_${datasetName.replace(/\s+/g, '_')}_workspaces.pdf`
-        : `training_metadata_${datasetName.replace(/\s+/g, '_')}_complete.pdf`;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      
-      toast.success('PDF downloaded successfully!');
-    } catch (error) {
-      toast.error('Failed to download PDF');
-      console.error(error);
-    } finally {
-      setDownloadingPdf(null);
-    }
+  const toggleDataset = (datasetId) => {
+    setExpandedDatasets(prev => ({
+      ...prev,
+      [datasetId]: !prev[datasetId]
+    }));
   };
 
-  // Prepare dataset options for dropdown
-  const datasetOptions = metadata.map(ds => ({
-    value: ds.dataset_id,
-    label: `${ds.dataset_name} (${ds.workspaces?.length || 0} workspaces)`,
-    data: ds
-  }));
+  const toggleWorkspace = (workspaceKey) => {
+    setExpandedWorkspaces(prev => ({
+      ...prev,
+      [workspaceKey]: !prev[workspaceKey]
+    }));
+  };
 
-  // Prepare workspace options for selected dataset
-  const workspaceOptions = selectedDataset?.data?.workspaces?.map(ws => ({
-    value: ws.workspace_id,
-    label: `${ws.workspace_name} - ${new Date(ws.saved_at).toLocaleDateString()}`,
-    data: ws
-  })) || [];
+  const getMetricDisplay = (metrics) => {
+    if (!metrics) return 'N/A';
+    
+    const accuracy = metrics.accuracy;
+    const r2 = metrics.r2_score;
+    
+    if (accuracy !== undefined && accuracy !== null) {
+      return `${(accuracy * 100).toFixed(1)}% Acc`;
+    }
+    if (r2 !== undefined && r2 !== null) {
+      return `${(r2 * 100).toFixed(1)}% R²`;
+    }
+    return 'N/A';
+  };
 
-  // Get data to display based on selections
-  const getDisplayData = () => {
-    if (!selectedDataset) return null;
+  const getMetricColor = (metrics) => {
+    if (!metrics) return 'text-gray-500';
     
-    const dataset = selectedDataset.data;
+    const value = metrics.accuracy || metrics.r2_score || 0;
+    if (value >= 0.8) return 'text-green-600';
+    if (value >= 0.6) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
     
-    if (selectedWorkspaces.length === 0) {
-      // Show complete dataset data
-      return {
-        title: `Complete Dataset: ${dataset.dataset_name}`,
-        training_count: dataset.workspaces?.length || 0,
-        last_trained: dataset.last_trained,
-        initial_scores: dataset.initial_scores,
-        current_scores: dataset.current_scores,
-        initial_score: dataset.initial_score,
-        current_score: dataset.current_score,
-        improvement_percentage: dataset.improvement_percentage,
-        row_count: dataset.row_count,
-        column_count: dataset.column_count,
-        isComplete: true
-      };
-    } else {
-      // Show combined workspace data
-      const selectedWsData = selectedWorkspaces.map(ws => ws.data);
-      const allModels = {};
-      
-      selectedWsData.forEach(ws => {
-        // Extract model scores from workspace (would need to be added to API)
-        // For now, show workspace names
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const exportToCSV = (dataset) => {
+    // Export training history as CSV
+    const rows = [];
+    rows.push(['Dataset', 'Workspace', 'Model Type', 'Target', 'Accuracy', 'Duration', 'Date']);
+    
+    dataset.workspaces.forEach(workspace => {
+      workspace.training_runs.forEach(run => {
+        rows.push([
+          dataset.dataset_name,
+          workspace.workspace_name,
+          run.model_type,
+          run.target_variable,
+          getMetricDisplay(run.metrics),
+          `${run.training_duration}s`,
+          run.created_at
+        ]);
       });
-      
-      return {
-        title: `${selectedWorkspaces.length} Workspace(s) Selected`,
-        workspaces: selectedWsData,
-        training_count: selectedWsData.length,
-        isComplete: false
-      };
-    }
+    });
+    
+    const csv = rows.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${dataset.dataset_name}_training_history.csv`;
+    a.click();
+    toast.success('Training history exported!');
   };
 
-  const displayData = getDisplayData();
+  // Calculate summary stats
+  const stats = data ? {
+    totalDatasets: data.total_datasets || 0,
+    totalWorkspaces: data.datasets?.reduce((sum, ds) => sum + ds.total_workspaces, 0) || 0,
+    totalModels: data.datasets?.reduce((sum, ds) => 
+      sum + ds.workspaces.reduce((wsum, ws) => wsum + ws.total_models, 0), 0
+    ) || 0,
+    avgAccuracy: (() => {
+      let totalAcc = 0;
+      let count = 0;
+      data.datasets?.forEach(ds => {
+        ds.workspaces.forEach(ws => {
+          ws.training_runs.forEach(run => {
+            const acc = run.metrics?.accuracy || run.metrics?.r2_score;
+            if (acc) {
+              totalAcc += acc;
+              count++;
+            }
+          });
+        });
+      });
+      return count > 0 ? (totalAcc / count * 100).toFixed(1) : 0;
+    })()
+  } : {};
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <p className="ml-3 text-gray-600">Loading training metadata...</p>
+      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 animate-spin mx-auto text-blue-600 mb-4" />
+          <p className="text-gray-600">Loading training history...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <Home className="w-4 h-4" />
-              Home
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Training Metadata Dashboard
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Analyze model performance across datasets and workspaces
-              </p>
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Database className="w-8 h-8 text-blue-600" />
+              Training Metadata & History
+            </h1>
+            <p className="text-gray-600 mt-2">Comprehensive view of all datasets, workspaces, and model training runs</p>
+          </div>
+          <Button onClick={loadMetadata} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+
+        {/* Summary Stats */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-600 font-medium">Total Datasets</p>
+                  <p className="text-3xl font-bold text-blue-900">{stats.totalDatasets}</p>
+                </div>
+                <Database className="w-10 h-10 text-blue-600 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-600 font-medium">Total Workspaces</p>
+                  <p className="text-3xl font-bold text-green-900">{stats.totalWorkspaces}</p>
+                </div>
+                <FolderOpen className="w-10 h-10 text-green-600 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-purple-600 font-medium">Models Trained</p>
+                  <p className="text-3xl font-bold text-purple-900">{stats.totalModels}</p>
+                </div>
+                <TrendingUp className="w-10 h-10 text-purple-600 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-orange-600 font-medium">Avg Accuracy</p>
+                  <p className="text-3xl font-bold text-orange-900">{stats.avgAccuracy}%</p>
+                </div>
+                <Award className="w-10 h-10 text-orange-600 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search & Filter */}
+        <div className="flex gap-4 mb-6">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search datasets, workspaces, or models..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
           </div>
-          
-          {/* Compact Database Toggle */}
-          <CompactDatabaseToggle />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="date">Sort by Date</option>
+            <option value="accuracy">Sort by Accuracy</option>
+            <option value="models">Sort by Models Count</option>
+          </select>
         </div>
       </div>
 
-      {metadata.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Database className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">No Training Data Available</h3>
-          <p className="text-gray-500">Run analysis on datasets to see training metadata here.</p>
-          <Button onClick={() => navigate('/dashboard')} className="mt-4">
-            Go to Dashboard
-          </Button>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* Selection Controls */}
-          <Card className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Dataset Selection */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Select Dataset
-                </label>
-                <Select
-                  value={selectedDataset}
-                  onChange={setSelectedDataset}
-                  options={datasetOptions}
-                  placeholder="Choose a dataset..."
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                  isClearable
-                />
-              </div>
-
-              {/* Workspace Selection */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Select Workspaces (Optional)
-                </label>
-                <Select
-                  value={selectedWorkspaces}
-                  onChange={setSelectedWorkspaces}
-                  options={workspaceOptions}
-                  placeholder="Choose workspaces or leave empty for complete dataset..."
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                  isMulti
-                  isClearable
-                  isDisabled={!selectedDataset}
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  Leave empty to view complete dataset analysis, or select specific workspaces
-                </p>
-              </div>
-            </div>
+      {/* Dataset Cards */}
+      <div className="max-w-7xl mx-auto space-y-4">
+        {!data || !data.datasets || data.datasets.length === 0 ? (
+          <Card className="p-12 text-center">
+            <Database className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Training History Yet</h3>
+            <p className="text-gray-600">Upload a dataset and run Predictive Analysis to see training metadata here</p>
           </Card>
-
-          {/* Display Data */}
-          {displayData && (
-            <Card className="p-6">
-              {/* Header with Download */}
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800">{displayData.title}</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {displayData.isComplete 
-                      ? `Complete dataset analysis with ${displayData.training_count} workspace(s)`
-                      : `Analysis of ${displayData.training_count} selected workspace(s)`
-                    }
-                  </p>
-                </div>
-                <Button
-                  onClick={() => downloadPdf(
-                    selectedDataset.value, 
-                    selectedDataset.data.dataset_name,
-                    selectedWorkspaces.length > 0 ? selectedWorkspaces.map(ws => ws.value) : null
-                  )}
-                  disabled={downloadingPdf === selectedDataset.value}
-                  className="flex items-center gap-2"
-                >
-                  {downloadingPdf === selectedDataset.value ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Generating PDF...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Download PDF
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              {displayData.isComplete ? (
-                /* Complete Dataset View */
-                <div className="space-y-6">
-                  {/* Dataset Info & Training History */}
-                  <div className="bg-white p-5 rounded-lg border border-gray-200">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Database className="w-5 h-5 text-blue-600" />
-                      <h3 className="text-lg font-bold text-gray-800">{selectedDataset.data.dataset_name}</h3>
-                    </div>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p>
-                        <span className="font-medium">Dataset ID:</span> {selectedDataset.value}
-                      </p>
-                      <p>
-                        <span className="font-medium">Last trained:</span>{' '}
-                        {displayData.last_trained ? new Date(displayData.last_trained).toLocaleString() : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Key Metrics - 4 Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-4 h-4 text-blue-600" />
-                        <span className="text-xs font-semibold text-blue-700">Initial Score</span>
-                      </div>
-                      <p className="text-3xl font-bold text-blue-800">
-                        {displayData.initial_score !== null && displayData.initial_score !== undefined
-                          ? Number(displayData.initial_score).toFixed(3)
-                          : 'N/A'}
-                      </p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-4 h-4 text-green-600" />
-                        <span className="text-xs font-semibold text-green-700">Current Score</span>
-                      </div>
-                      <p className="text-3xl font-bold text-green-800">
-                        {displayData.current_score !== null && displayData.current_score !== undefined
-                          ? Number(displayData.current_score).toFixed(3)
-                          : 'N/A'}
-                      </p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-lg border border-purple-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="w-4 h-4 text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-700">Workspaces</span>
-                      </div>
-                      <p className="text-3xl font-bold text-purple-800">{displayData.training_count}</p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-5 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Database className="w-4 h-4 text-orange-600" />
-                        <span className="text-xs font-semibold text-orange-700">Improvement</span>
-                      </div>
-                      <p className="text-3xl font-bold text-orange-800">
-                        {displayData.improvement_percentage !== null && displayData.improvement_percentage !== undefined
-                          ? `${displayData.improvement_percentage >= 0 ? '+' : ''}${Number(displayData.improvement_percentage).toFixed(1)}%`
-                          : 'N/A'}
-                      </p>
-                      <div className="mt-2 text-xs text-orange-700">
-                        {displayData.training_count > 0 && `Trained ${displayData.training_count} times`}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Model Performance Breakdown - Table Format */}
-                  {displayData.initial_scores && Object.keys(displayData.initial_scores).length > 0 && (
+        ) : (
+          data.datasets.map((dataset) => (
+            <Card key={dataset.dataset_id} className="overflow-hidden">
+              {/* Dataset Header */}
+              <div
+                className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition"
+                onClick={() => toggleDataset(dataset.dataset_id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {expandedDatasets[dataset.dataset_id] ? (
+                      <ChevronDown className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-blue-600" />
+                    )}
+                    <Database className="w-6 h-6 text-blue-600" />
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-4">Model Performance Breakdown</h3>
-                      <div className="space-y-3">
-                        {Object.entries(displayData.initial_scores).map(([modelName, initialScore], idx) => {
-                          const currentScore = displayData.current_scores?.[modelName] || initialScore;
-                          const improvement = displayData.current_scores?.[modelName] 
-                            ? ((currentScore - initialScore) / initialScore * 100)
-                            : 0;
-                          
-                          return (
-                            <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-semibold text-gray-800 text-base">{modelName}</h4>
-                                <div className="flex gap-8">
-                                  <div className="text-right">
-                                    <p className="text-xs text-gray-500 mb-1">Score</p>
-                                    <p className="text-xl font-bold text-blue-600">
-                                      {(currentScore * 100).toFixed(1)}%
-                                    </p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-xs text-gray-500 mb-1">Improvement</p>
-                                    <p className={`text-xl font-bold ${improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                      <span className="inline-flex items-center gap-1">
-                                        {improvement >= 0 ? '↑' : '↓'} {improvement >= 0 ? '+' : ''}{improvement.toFixed(1)}%
-                                      </span>
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">{dataset.dataset_name}</h3>
+                      <p className="text-sm text-gray-600">
+                        {dataset.total_workspaces} workspace{dataset.total_workspaces !== 1 ? 's' : ''}
+                      </p>
                     </div>
-                  )}
-                </div>
-              ) : (
-                /* Selected Workspaces View - Show message */
-                <div className="space-y-6">
-                  <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <Database className="w-5 h-5 text-yellow-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-yellow-800">Individual Workspace Analysis Not Available</h3>
-                        <p className="text-sm text-yellow-700 mt-1">
-                          To view detailed training metadata and model performance, please deselect all workspaces to see the complete dataset analysis.
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 p-4 bg-white rounded border border-yellow-300">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Selected Workspaces ({displayData.workspaces.length}):</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {displayData.workspaces.map((ws, idx) => (
-                          <div key={idx} className="text-sm text-gray-600 flex items-center gap-2">
-                            <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                            {ws.workspace_name} - {new Date(ws.saved_at).toLocaleDateString()}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
+                  </div>
+                  <div className="flex items-center gap-3">
                     <Button
-                      onClick={() => setSelectedWorkspaces([])}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exportToCSV(dataset);
+                      }}
                       variant="outline"
-                      className="mt-4"
+                      size="sm"
                     >
-                      Clear Selection & View Complete Analysis
+                      <Download className="w-4 h-4 mr-2" />
+                      Export
                     </Button>
                   </div>
                 </div>
+              </div>
+
+              {/* Workspaces (Nested) */}
+              {expandedDatasets[dataset.dataset_id] && (
+                <div className="p-4 space-y-3">
+                  {dataset.workspaces && dataset.workspaces.length > 0 ? (
+                    dataset.workspaces.map((workspace, wsIdx) => {
+                      const workspaceKey = `${dataset.dataset_id}-${workspace.workspace_name}`;
+                      const isRecent = workspace.created_at && 
+                        (new Date() - new Date(workspace.created_at)) < 86400000; // 24 hours
+                      
+                      return (
+                        <Card
+                          key={workspaceKey}
+                          className={`border-l-4 ${isRecent ? 'border-l-green-500 bg-green-50' : 'border-l-gray-300'}`}
+                        >
+                          <div
+                            className="p-3 cursor-pointer hover:bg-gray-50 transition"
+                            onClick={() => toggleWorkspace(workspaceKey)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                {expandedWorkspaces[workspaceKey] ? (
+                                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                                )}
+                                <FolderOpen className={`w-5 h-5 ${isRecent ? 'text-green-600' : 'text-gray-600'}`} />
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                                    {workspace.workspace_name}
+                                    {isRecent && (
+                                      <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">New</span>
+                                    )}
+                                  </h4>
+                                  <p className="text-xs text-gray-600">
+                                    {workspace.total_models} model{workspace.total_models !== 1 ? 's' : ''} • 
+                                    {formatDate(workspace.created_at)} • 
+                                    {workspace.size_kb ? `${(workspace.size_kb / 1024).toFixed(1)} MB` : 'N/A'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Training Runs (Nested) */}
+                          {expandedWorkspaces[workspaceKey] && workspace.training_runs && (
+                            <div className="px-6 pb-3 space-y-2">
+                              {workspace.training_runs.length > 0 ? (
+                                workspace.training_runs.map((run, runIdx) => (
+                                  <div
+                                    key={runIdx}
+                                    className="flex items-center justify-between p-3 bg-white rounded border border-gray-200 hover:border-blue-300 transition"
+                                  >
+                                    <div className="flex items-center gap-4">
+                                      <div className={`w-2 h-2 rounded-full ${getMetricColor(run.metrics).replace('text-', 'bg-')}`}></div>
+                                      <div>
+                                        <p className="font-medium text-gray-900">{run.model_type}</p>
+                                        <p className="text-xs text-gray-600">Target: {run.target_variable}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                      <div className="text-right">
+                                        <p className={`font-semibold ${getMetricColor(run.metrics)}`}>
+                                          {getMetricDisplay(run.metrics)}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                          <Clock className="w-3 h-3 inline mr-1" />
+                                          {run.training_duration?.toFixed(1)}s
+                                        </p>
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        {formatDate(run.created_at)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-sm text-gray-500 text-center py-4">No training runs yet</p>
+                              )}
+                            </div>
+                          )}
+                        </Card>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">No workspaces saved yet</p>
+                  )}
+                </div>
               )}
             </Card>
-          )}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };
