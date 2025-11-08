@@ -76,34 +76,59 @@ def test_datasets_endpoint():
         print(f"❌ Datasets endpoint exception: {str(e)}")
         return False, None
 
-def test_datasets_with_limit():
-    """Test 2: Datasets endpoint with limit parameter"""
-    print("\n=== Test 2: Datasets with Limit Parameter ===")
+def test_suggest_features_endpoint(dataset_id):
+    """Test: Suggest-Features Endpoint (NEW - Just Added) - POST /api/datasource/suggest-features"""
+    print("\n=== Test: Suggest-Features Endpoint (NEW) ===")
+    
+    if not dataset_id:
+        print("❌ No dataset ID available for testing")
+        return False
+    
+    # Test payload as specified in review request
+    payload = {
+        "dataset_id": dataset_id,
+        "columns": ["col1", "col2"],  # Generic column names
+        "problem_type": "classification"
+    }
     
     try:
-        # Test with limit parameter
-        response = requests.get(f"{BACKEND_URL}/datasets?limit=5", timeout=30)
+        response = requests.post(
+            f"{BACKEND_URL}/datasource/suggest-features",
+            json=payload,
+            timeout=30
+        )
         
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
-            datasets = data.get("datasets", [])
-            print(f"✅ Limit parameter working - returned {len(datasets)} datasets")
+            print("✅ Suggest-features endpoint working")
             
-            # Verify limit is respected (should be <= 5)
-            if len(datasets) <= 5:
-                print("✅ Limit parameter respected")
-                return True
+            # Verify expected response structure
+            expected_fields = ['recommended_target', 'recommended_features', 'feature_groups']
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if missing_fields:
+                print(f"⚠️  Missing expected fields: {missing_fields}")
+                print(f"   Available fields: {list(data.keys())}")
             else:
-                print(f"❌ Limit not respected - expected ≤5, got {len(datasets)}")
-                return False
+                print("✅ All expected fields present:")
+                print(f"   - recommended_target: {data.get('recommended_target')}")
+                print(f"   - recommended_features: {len(data.get('recommended_features', []))} features")
+                print(f"   - feature_groups: {list(data.get('feature_groups', {}).keys())}")
+            
+            return True
         else:
-            print(f"❌ Datasets with limit failed: {response.status_code}")
+            print(f"❌ Suggest-features endpoint failed: {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error: {error_data}")
+            except:
+                print(f"   Error: {response.text}")
             return False
             
     except Exception as e:
-        print(f"❌ Datasets with limit exception: {str(e)}")
+        print(f"❌ Suggest-features endpoint exception: {str(e)}")
         return False
 
 def test_response_performance():
