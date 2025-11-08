@@ -285,6 +285,11 @@ const DashboardPage = () => {
       const optimizedInfo = savedInfo.optimized ? ' - Optimized & Compressed' : '';
       
       toast.success(`✅ Workspace saved as "${stateName}"${sizeInfo}${optimizedInfo}`);
+      
+      // Store workspace name in localStorage for linking future training runs
+      localStorage.setItem('current_workspace_name', stateName);
+      console.log('Set current workspace:', stateName);
+      
       setStateName("");
       setShowSaveDialog(false);
       loadSavedStates();
