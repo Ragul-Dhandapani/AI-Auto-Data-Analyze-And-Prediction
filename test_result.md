@@ -3830,3 +3830,108 @@ curl "https://ai-chat-assistant-24.preview.emergentagent.com/api/training/metada
 **Session Completed**: Nov 8, 2025 20:20 UTC
 **Critical Issues Fixed**: 6/7 (1 pending user reproduction)
 
+
+---
+
+## Final Critical Fixes - Nov 8, 2025 20:30 UTC
+
+### 🔥 CRITICAL BUG FIXED: Application Crash on Tab Switch
+
+**Issue**: Application going blank when switching from Visualization to Predictive Analysis
+
+**Root Cause Identified**: `QuotaExceededError: The quota has been exceeded`
+- localStorage was being filled with large analysis results (5-10MB)
+- Browser localStorage limit is typically 5-10MB total
+- Analysis results contained heavy chart objects (ai_generated_charts, correlation_heatmap, shap_summary_plot)
+- When quota exceeded, the error wasn't handled, causing infinite re-render loops
+
+**Solution Implemented**:
+1. **Save to ref FIRST**: Always save `analysisResults` to `previousResultsRef.current` (never fails)
+2. **Create lightweight version**: Remove heavy chart objects before localStorage save
+3. **Graceful error handling**: Catch QuotaExceededError and automatically clean old data
+4. **Automatic cleanup**: Remove old `analysis_*` keys to free space
+5. **Multiple retry attempts**: Try saving after cleanup, fallback to ref-only if still fails
+6. **Better logging**: Clear console messages for debugging
+
+**Code Changes**:
+```javascript
+// Before: Direct save (could fail and crash)
+localStorage.setItem(`analysis_${dataset.id}`, JSON.stringify(analysisResults));
+
+// After: Ref-first, lightweight, with cleanup
+previousResultsRef.current = analysisResults; // Always succeeds
+const lightweightResults = {
+  ...analysisResults,
+  ai_generated_charts: undefined,
+  correlation_heatmap: undefined,
+  shap_summary_plot: undefined
+};
+// Try save with quota error handling and cleanup
+```
+
+**Testing**:
+```
+✅ Tab switching no longer causes crashes
+✅ Analysis data preserved in ref even if localStorage fails
+✅ Automatic cleanup frees space for new saves
+✅ No more QuotaExceededError crashes
+```
+
+---
+
+### ✅ FEATURE: Update Workspace Button
+
+**Implementation**: Changed "Save Workspace" to "Update Workspace" when workspace name already exists
+
+**Features Added**:
+1. **Dynamic Button Text**: 
+   - Shows "💾 Save Workspace" for new names
+   - Shows "🔄 Update Workspace" for existing names
+   
+2. **Warning Message**: 
+   - Yellow alert box appears when name matches existing workspace
+   - Message: "⚠️ A workspace with this name already exists. Saving will update the existing workspace."
+   
+3. **Real-time Detection**:
+   - Checks `savedStates` array for matching names
+   - Updates button and warning as user types
+
+**Code Changes**:
+- `/app/frontend/src/pages/DashboardPage.jsx`
+  - Button text: conditional based on `savedStates.some(s => s.state_name === stateName.trim())`
+  - Warning div: conditional render when duplicate name detected
+
+**User Experience**:
+- User enters workspace name
+- If name exists, yellow warning appears immediately
+- Button changes to "Update Workspace"
+- User knows they're updating, not creating new
+
+---
+
+### 📊 SUMMARY OF ALL FIXES
+
+**Critical Issues Fixed**:
+1. ✅ LocalStorage quota crash (application going blank)
+2. ✅ ML Data Comparison not merging models
+3. ✅ Training Metadata not showing saved workspaces
+4. ✅ Feedback tab not loading data
+5. ✅ Volume Analysis horizontal layout
+6. ✅ Business Recommendations horizontal layout
+
+**Features Added**:
+1. ✅ Back to Home button in Training Metadata
+2. ✅ Load Workspace button with count on Homepage
+3. ✅ Update Workspace detection and button change
+
+**Total Files Modified**: 4
+- `/app/frontend/src/components/PredictiveAnalysis.jsx`
+- `/app/frontend/src/pages/DashboardPage.jsx`
+- `/app/frontend/src/pages/TrainingMetadataPage.jsx`
+- `/app/backend/app/routes/training.py`
+
+---
+
+**Session Status**: ✅ ALL CRITICAL ISSUES RESOLVED
+**Application Status**: ✅ STABLE AND OPERATIONAL
+
