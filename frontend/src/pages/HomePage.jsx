@@ -151,6 +151,20 @@ const HomePage = () => {
                 onClick={() => navigate('/training-metadata')}
                 size="lg"
                 variant="outline"
+                className="px-8 py-6 text-lg rounded-full border-2 border-green-600 text-green-600 hover:bg-green-50 relative"
+              >
+                <Database className="w-5 h-5 mr-2" />
+                Load Workspace
+                {workspaceCount > 0 && (
+                  <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-sm font-semibold">
+                    {workspaceCount}
+                  </span>
+                )}
+              </Button>
+              <Button 
+                onClick={() => navigate('/training-metadata')}
+                size="lg"
+                variant="outline"
                 className="px-8 py-6 text-lg rounded-full border-2 border-purple-600 text-purple-600 hover:bg-purple-50"
               >
                 <Award className="w-5 h-5 mr-2" />
