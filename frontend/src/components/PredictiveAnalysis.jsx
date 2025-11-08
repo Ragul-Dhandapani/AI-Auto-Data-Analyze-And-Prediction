@@ -74,53 +74,19 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
   const previousResultsRef = useRef(null);  // CRITICAL: Persist previous results across state updates
   
-  // Save analysis results to localStorage whenever they change (persist across page refresh)
+  // PRODUCTION FIX: No localStorage for large datasets (2GB+ support)
+  // Save analysis results to ref only (in-memory) - localStorage cannot handle large data
   useEffect(() => {
     if (analysisResults && dataset?.id) {
-      try {
-        // CRITICAL FIX: Save to ref FIRST (always succeeds)
-        previousResultsRef.current = analysisResults;
-        
-        // Try to save to localStorage, but handle quota errors gracefully
-        try {
-          // Create a lightweight version without large chart data
-          const lightweightResults = {
-            ...analysisResults,
-            // Keep only essential data, remove heavy chart objects
-            ai_generated_charts: undefined,
-            correlation_heatmap: undefined,
-            shap_summary_plot: undefined
-          };
-          
-          localStorage.setItem(`analysis_${dataset.id}`, JSON.stringify(lightweightResults));
-          console.log('✅ Saved lightweight analysis to localStorage');
-        } catch (quotaError) {
-          // LocalStorage full - clear old analysis data and try again
-          console.warn('LocalStorage quota exceeded, clearing old data...');
-          const keys = Object.keys(localStorage);
-          keys.forEach(key => {
-            if (key.startsWith('analysis_') && key !== `analysis_${dataset.id}`) {
-              localStorage.removeItem(key);
-            }
-          });
-          
-          // Try one more time with cleaned storage
-          try {
-            const lightweightResults = {
-              ...analysisResults,
-              ai_generated_charts: undefined,
-              correlation_heatmap: undefined,
-              shap_summary_plot: undefined
-            };
-            localStorage.setItem(`analysis_${dataset.id}`, JSON.stringify(lightweightResults));
-            console.log('✅ Saved after clearing old data');
-          } catch (finalError) {
-            console.warn('Could not save to localStorage even after cleanup, using ref only');
-          }
-        }
-      } catch (e) {
-        console.error('Error in localStorage save logic:', e);
-      }
+      // CRITICAL: Save to ref for merge operations (always succeeds, no size limit)
+      previousResultsRef.current = analysisResults;
+      console.log('✅ Analysis results saved to memory (ref)');
+      
+      // DO NOT USE LOCALSTORAGE - it has 5-10MB limit and will fail with large datasets
+      // All persistence is handled through:
+      // 1. Backend workspace save (unlimited size via Oracle/MongoDB)
+      // 2. Parent component cache (passed via props)
+      // 3. In-memory ref (this component only)
     }
   }, [analysisResults, dataset?.id]);
   
