@@ -72,6 +72,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
+  const previousResultsRef = useRef(null);  // CRITICAL: Persist previous results across state updates
   
   // Save analysis results to localStorage whenever they change (persist across page refresh)
   useEffect(() => {
