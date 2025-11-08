@@ -54,12 +54,15 @@ const ChartComponent = ({ chart, index }) => {
         }
         
         // CRITICAL FIX: Clean up existing chart to free WebGL context
-        if (container && container.data) {
-          try {
+        try {
+          // Only purge if element exists and has Plotly data
+          const existingPlot = document.getElementById(chartId);
+          if (existingPlot && existingPlot.data && window.Plotly) {
             await window.Plotly.purge(chartId);
-          } catch (e) {
-            console.warn('Failed to purge chart:', e);
+            console.log(`🧹 Cleaned up chart: ${chartId}`);
           }
+        } catch (e) {
+          // Silently fail - element might not exist yet
         }
         
         // Validate data structure - handle multiple formats
