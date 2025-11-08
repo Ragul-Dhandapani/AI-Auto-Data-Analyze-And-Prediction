@@ -31,23 +31,19 @@ const loadPlotly = () => {
 
 const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection }) => {
   // Load analysis results from localStorage on mount (for page refresh persistence)
+  // PRODUCTION FIX: Only use parent cache, no localStorage (supports unlimited data size)
   const getInitialAnalysisResults = () => {
-    if (analysisCache) return analysisCache;
-    
-    // Try to restore from localStorage if dataset ID matches
-    try {
-      const savedResults = localStorage.getItem(`analysis_${dataset?.id}`);
-      if (savedResults) {
-        const parsed = JSON.parse(savedResults);
-        console.log('✅ Restored analysis results from localStorage');
-        setRestoredFromCache(true); // Set flag for UI indicator
-        setTimeout(() => setRestoredFromCache(false), 5000); // Hide after 5 seconds
-        return parsed;
-      }
-    } catch (e) {
-      console.warn('Failed to restore analysis from localStorage:', e);
+    // Only restore from parent-provided cache (DashboardPage state management)
+    // This cache is stored in:
+    // 1. Backend database (unlimited size via workspace save)
+    // 2. Parent component state (current session only)
+    if (analysisCache) {
+      console.log('✅ Restored analysis results from parent cache');
+      return analysisCache;
     }
     
+    // No localStorage fallback - localStorage cannot handle 2GB datasets
+    // All persistence happens through backend workspace save/load
     return null;
   };
   
