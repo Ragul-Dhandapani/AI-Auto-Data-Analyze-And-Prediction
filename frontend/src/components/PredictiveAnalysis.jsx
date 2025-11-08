@@ -1767,8 +1767,20 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         <Card id="auto-charts-section" className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="text-lg font-semibold">📊 AI-Generated Analysis Charts</h3>
-              <p className="text-sm text-gray-600 italic mt-1">Comprehensive visualization suite automatically generated based on your data</p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">📊 AI-Generated Analysis Charts</h3>
+                  <div className="relative group">
+                    <AlertCircle className="w-4 h-4 text-blue-500 cursor-help" />
+                    <div className="absolute left-0 top-6 hidden group-hover:block w-80 bg-gray-900 text-white text-xs p-3 rounded-lg shadow-lg z-10">
+                      <p className="font-semibold mb-1">📊 Prediction-Specific Charts</p>
+                      <p className="mb-2">These charts analyze predicted values and model performance. They are different from the Visualization tab charts, which show raw data patterns.</p>
+                      <p className="text-gray-300">💡 Use Visualization tab for data exploration and this section for prediction insights.</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 italic mt-1">Comprehensive visualization suite automatically generated based on your data</p>
+              </div>
             </div>
             <Button onClick={() => toggleSection('auto_charts')} variant="ghost" size="sm">
               <ChevronUp className="w-4 h-4" />
