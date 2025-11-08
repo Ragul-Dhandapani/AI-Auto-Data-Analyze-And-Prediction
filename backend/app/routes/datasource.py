@@ -175,8 +175,8 @@ async def upload_file(file: UploadFile = File(...)):
         
         # Prepare dataset metadata
         # Handle NaN, inf, and other non-JSON-serializable values in preview
-        # Show ALL auto-cleaned records (not just 10)
-        preview_df = df.copy()  # Use all cleaned data
+        # Show up to 1000 records for preview (balance between completeness and performance)
+        preview_df = df.head(1000).copy()  # First 1000 auto-cleaned records
         
         # CRITICAL: Clean all non-JSON-serializable values
         # Replace inf/-inf with None first
