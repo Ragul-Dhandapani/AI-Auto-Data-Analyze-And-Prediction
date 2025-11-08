@@ -80,6 +80,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       try {
         localStorage.setItem(`analysis_${dataset.id}`, JSON.stringify(analysisResults));
         console.log('💾 Saved analysis results to localStorage');
+        // CRITICAL: Also save to ref for merge operations
+        previousResultsRef.current = analysisResults;
       } catch (e) {
         console.warn('Failed to save analysis to localStorage:', e);
       }
