@@ -323,10 +323,28 @@ const TrainingMetadataPage = () => {
             </h1>
             <p className="text-gray-600 mt-2">Comprehensive view of all datasets, workspaces, and model training runs</p>
           </div>
-          <Button onClick={loadMetadata} variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => {
+                setComparisonMode(!comparisonMode);
+                if (comparisonMode) setSelectedRuns([]);
+              }}
+              variant={comparisonMode ? "default" : "outline"}
+              className={comparisonMode ? "bg-blue-600 text-white" : ""}
+            >
+              <GitCompare className="w-4 h-4 mr-2" />
+              {comparisonMode ? 'Exit Compare' : 'Compare Models'}
+            </Button>
+            {comparisonMode && selectedRuns.length > 1 && (
+              <Button onClick={() => setShowComparisonModal(true)} className="bg-green-600 text-white">
+                Compare ({selectedRuns.length})
+              </Button>
+            )}
+            <Button onClick={loadMetadata} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Summary Stats */}
