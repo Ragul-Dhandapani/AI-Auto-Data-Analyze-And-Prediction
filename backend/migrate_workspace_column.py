@@ -16,6 +16,10 @@ async def run_migration():
     """Add workspace_name column to training_metadata"""
     db_adapter = get_database_adapter()
     
+    # Initialize connection
+    await db_adapter.initialize()
+    logger.info("✅ Database connection initialized")
+    
     try:
         # Check if column already exists
         check_query = """
