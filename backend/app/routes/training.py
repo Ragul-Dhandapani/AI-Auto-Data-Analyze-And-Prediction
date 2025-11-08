@@ -35,11 +35,9 @@ async def get_training_metadata(
         params['limit'] = limit
         
         query = " ".join(query_parts)
-        rows = await db_adapter._execute(query, params)
+        rows = await db_adapter._execute(query, params, fetch_all=True)
         
-        metadata_list = []
-        for row in rows:
-            metadata_list.append(db_adapter._row_to_dict(row))
+        metadata_list = rows if rows else []
             
         # Group by dataset for organization
         datasets = {}
