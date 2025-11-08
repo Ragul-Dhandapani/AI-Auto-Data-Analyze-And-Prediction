@@ -167,15 +167,21 @@ const TrainingMetadataPage = () => {
             training_runs: filteredRuns,
             total_models: filteredRuns.length
           };
-        })
-        .filter(ws => ws.training_runs.length > 0); // Only show workspaces with matching runs
+        });
+      
+      // CRITICAL FIX: Only filter out empty workspaces if user has applied filters
+      // Otherwise, show ALL workspaces (even with 0 training runs) so user can see saved states
+      const hasActiveFilters = searchQuery || filterProblemType !== 'all' || dateRange.start || dateRange.end;
+      const displayWorkspaces = hasActiveFilters 
+        ? filteredWorkspaces.filter(ws => ws.training_runs.length > 0)
+        : filteredWorkspaces;
       
       return {
         ...dataset,
-        workspaces: filteredWorkspaces,
-        total_workspaces: filteredWorkspaces.length
+        workspaces: displayWorkspaces,
+        total_workspaces: displayWorkspaces.length
       };
-    }).filter(ds => ds.workspaces.length > 0); // Only show datasets with matching workspaces
+    }).filter(ds => ds.workspaces.length > 0); // Only show datasets with workspaces
     
     // Sort datasets
     if (sortBy === 'accuracy') {
