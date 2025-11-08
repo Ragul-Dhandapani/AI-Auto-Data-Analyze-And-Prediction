@@ -424,23 +424,32 @@ class EnhancedChatService:
                     ]
                 }
             
-            # Validate columns exist
+            # Validate columns exist - Enhanced validation
+            all_columns = list(dataset.columns)
             missing_cols = []
-            if chart_config.get('x_col') and chart_config['x_col'] not in dataset.columns:
-                missing_cols.append(chart_config['x_col'])
-            if chart_config.get('y_col') and chart_config['y_col'] not in dataset.columns:
-                missing_cols.append(chart_config['y_col'])
+            
+            if chart_config.get('x_col'):
+                if chart_config['x_col'] not in all_columns:
+                    missing_cols.append(chart_config['x_col'])
+            
+            if chart_config.get('y_col'):
+                if chart_config['y_col'] not in all_columns:
+                    missing_cols.append(chart_config['y_col'])
             
             if missing_cols:
-                available = ', '.join(list(dataset.columns)[:10])
+                # Show top 15 available columns
+                available_display = ', '.join(all_columns[:15])
+                if len(all_columns) > 15:
+                    available_display += f" ... and {len(all_columns) - 15} more"
+                
                 return {
-                    'response': f"❌ Column(s) not found: {', '.join(missing_cols)}\n\n**Available columns:**\n{available}",
-                    'action': 'message',
-                    'data': {'available_columns': list(dataset.columns)},
+                    'response': f"❌ **Column(s) not found:** {', '.join(missing_cols)}\n\n**Available columns ({len(all_columns)} total):**\n{available_display}\n\nTip: Use exact column names (case-sensitive) or ask me to 'show all columns'.",
+                    'action': 'error',
+                    'data': {'available_columns': all_columns, 'missing_columns': missing_cols},
                     'requires_confirmation': False,
                     'suggestions': [
                         'Show all column names',
-                        f'Create chart with {dataset.columns[0]}',
+                        f'Create chart with {all_columns[0] if all_columns else "first column"}',
                         'Check data types'
                     ]
                 }
