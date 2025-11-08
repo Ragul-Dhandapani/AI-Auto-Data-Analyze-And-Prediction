@@ -89,7 +89,7 @@ async def get_metadata_by_workspace():
                 
                 # Get workspace states for this dataset
                 ws_query = """
-                SELECT state_name, created_at, state_size_kb
+                SELECT state_name, created_at, size_bytes
                 FROM workspace_states
                 WHERE dataset_id = :dataset_id
                 ORDER BY created_at DESC
@@ -100,7 +100,7 @@ async def get_metadata_by_workspace():
                 for ws_row in ws_rows:
                     ws_name = ws_row['state_name']
                     ws_created = ws_row['created_at']
-                    ws_size = ws_row['state_size_kb']
+                    ws_size = (ws_row['size_bytes'] or 0) / 1024  # Convert to KB
                     
                     # Get training runs for this workspace
                     training_query = """
