@@ -336,12 +336,41 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         setSelectionFeedback(response.data.selection_feedback);
       }
       
-      setAnalysisResults(response.data);
+      // CRITICAL FIX #8: Merge new models with existing models instead of replacing
+      const updatedResults = { ...response.data };
+      
+      if (selectedModels && selectedModels.length > 0 && analysisResults && analysisResults.ml_models) {
+        // User selected new models - merge with existing
+        const existingModels = analysisResults.ml_models || [];
+        const newModels = response.data.ml_models || [];
+        
+        // Create a map of existing models by model_name to avoid duplicates
+        const modelMap = new Map();
+        existingModels.forEach(model => {
+          modelMap.set(model.model_name, model);
+        });
+        
+        // Add or update with new models
+        newModels.forEach(model => {
+          modelMap.set(model.model_name, model);
+        });
+        
+        // Convert back to array and sort by performance
+        updatedResults.ml_models = Array.from(modelMap.values()).sort((a, b) => {
+          const metricA = a.metrics?.r2_score || a.metrics?.accuracy || 0;
+          const metricB = b.metrics?.r2_score || b.metrics?.accuracy || 0;
+          return metricB - metricA;
+        });
+        
+        console.log(`Merged models: ${existingModels.length} existing + ${newModels.length} new = ${updatedResults.ml_models.length} total`);
+      }
+      
+      setAnalysisResults(updatedResults);
       
       // CRITICAL: Always notify parent to cache results immediately
       if (onAnalysisUpdate) {
         console.log('Caching analysis results to parent');
-        onAnalysisUpdate(response.data);
+        onAnalysisUpdate(updatedResults);
       } else {
         console.warn('onAnalysisUpdate callback not provided - results will not be cached!');
       }
