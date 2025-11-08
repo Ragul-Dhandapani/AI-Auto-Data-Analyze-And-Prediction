@@ -260,14 +260,14 @@ const FeedbackPanel = ({ dataset, modelName }) => {
                     )}
                     <div className="flex-1">
                       <div className="text-sm font-medium">
-                        {String(run.model_name || run.model_type || 'Model')} - {String(run.problem_type || 'Analysis')}
+                        {String(run.model_type || 'Model')} - {String(run.problem_type || 'Analysis')}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
-                        Target: {String(run.target_column || run.target_variable || 'N/A')} | 
+                        Target: {String(run.target_variable || 'N/A')} | 
                         Accuracy: {(typeof run.metrics === 'object' && run.metrics !== null 
                           ? ((run.metrics.accuracy || run.metrics.r2_score || 0) * 100).toFixed(1) 
                           : '0.0')}% |
-                        Models: {Number(run.models_trained || 0)}
+                        Duration: {Number(run.training_duration || 0).toFixed(1)}s
                       </div>
                     </div>
                     <div className="text-xs text-gray-500">
