@@ -84,8 +84,8 @@ async def get_metadata_by_workspace():
             dataset_rows = await db_adapter._execute(datasets_query, fetch_all=True)
             
             for ds_row in dataset_rows:
-                ds_id = ds_row[0]
-                ds_name = ds_row[1]
+                ds_id = ds_row['id']
+                ds_name = ds_row['name']
                 
                 # Get workspace states for this dataset
                 ws_query = """
@@ -94,7 +94,7 @@ async def get_metadata_by_workspace():
                 WHERE dataset_id = :dataset_id
                 ORDER BY created_at DESC
                 """
-                ws_rows = await db_adapter._execute(ws_query, {'dataset_id': ds_id})
+                ws_rows = await db_adapter._execute(ws_query, {'dataset_id': ds_id}, fetch_all=True)
                 
                 workspaces = []
                 for ws_row in ws_rows:
