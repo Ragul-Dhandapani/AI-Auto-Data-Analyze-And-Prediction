@@ -105,12 +105,16 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       return false;
     };
     
-    if (analysisCache && !hasValidSelection(variableSelection)) {
-      // Use cached data only if no new variable selection
-      console.log('Using cached analysis results');
+    // CRITICAL FIX: Always restore from cache if available
+    if (analysisCache) {
+      console.log('Restoring from cache - analysisCache has data');
       setAnalysisResults(analysisCache);
       hasRunAnalysisRef.current = true;
-    } else if (dataset && !hasRunAnalysisRef.current && !loading) {
+      return; // Don't re-run analysis if we have cache
+    }
+    
+    // Only run analysis if no cache exists
+    if (dataset && !hasRunAnalysisRef.current && !loading) {
       // Check if we have valid variable selection or should wait
       if (!hasValidSelection(variableSelection) && variableSelection && variableSelection.mode) {
         // We have partial selection (mode only) - wait for full data
@@ -122,9 +126,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       hasRunAnalysisRef.current = true;
       runHolisticAnalysis();
     }
-    // REMOVED: The condition that re-runs analysis when variableSelection changes after initial load
-    // This was causing infinite loop because analysis completion updates variableSelection
-  }, [dataset, analysisCache, variableSelection]);
+  }, [dataset?.id, analysisCache]); // FIXED: Only depend on dataset ID and cache, not full dataset object
 
   // Reset ref when dataset changes
   useEffect(() => {
