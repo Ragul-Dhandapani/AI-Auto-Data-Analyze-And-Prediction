@@ -23,6 +23,12 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
     preview: false,
     missing_details: true  // Collapsed by default
   });
+  
+  // New state for data preview filters
+  const [columnFilter, setColumnFilter] = useState('');
+  const [dataFilter, setDataFilter] = useState('');
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const [showColumnSelector, setShowColumnSelector] = useState(false);
 
   useEffect(() => {
     if (dataset && dataset.id) {
