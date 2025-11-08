@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://ai-insight-hub-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://ai-chat-assistant-24.preview.emergentagent.com/api"
 
 def print_section(title):
     """Print formatted section header"""
