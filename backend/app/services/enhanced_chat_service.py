@@ -89,22 +89,21 @@ class EnhancedChatService:
             if any(keyword in message_lower for keyword in ['create chart', 'plot', 'visualize', 'show chart', 'draw']):
                 return await self._handle_chart_creation(dataset, message, analysis_results)
             
-            # 3. Model/Prediction Insights
-            if analysis_results:
-                if any(keyword in message_lower for keyword in ['prediction target', 'target variable', 'what am i predicting']):
-                    return await self._handle_target_info(analysis_results)
-                
-                if any(keyword in message_lower for keyword in ['metrics', 'accuracy', 'performance', 'r2', 'rmse']):
-                    return await self._handle_metrics(analysis_results)
-                
-                if any(keyword in message_lower for keyword in ['best model', 'top model', 'which model']):
-                    return await self._handle_best_model(analysis_results)
-                
-                if 'feature importance' in message_lower or 'important features' in message_lower:
-                    return await self._handle_feature_importance(analysis_results)
-                
-                if 'compare model' in message_lower:
-                    return await self._handle_model_comparison(analysis_results)
+            # 3. Model/Prediction Insights (check keywords first, handlers will check for results)
+            if any(keyword in message_lower for keyword in ['prediction target', 'target variable', 'what am i predicting']):
+                return await self._handle_target_info(analysis_results)
+            
+            if any(keyword in message_lower for keyword in ['metrics', 'accuracy', 'performance', 'r2', 'rmse', 'show model']):
+                return await self._handle_metrics(analysis_results)
+            
+            if any(keyword in message_lower for keyword in ['best model', 'top model', 'which model']):
+                return await self._handle_best_model(analysis_results)
+            
+            if 'feature importance' in message_lower or 'important features' in message_lower:
+                return await self._handle_feature_importance(analysis_results)
+            
+            if 'compare model' in message_lower:
+                return await self._handle_model_comparison(analysis_results)
             
             # 4. Analytical Assistance
             if 'anomaly' in message_lower or 'outlier' in message_lower:
