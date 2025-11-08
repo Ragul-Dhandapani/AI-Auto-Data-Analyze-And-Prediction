@@ -393,6 +393,7 @@ async def holistic_analysis(request: Dict[str, Any]):
     """Perform comprehensive analysis with optional user variable selection and multiple targets"""
     try:
         dataset_id = request.get("dataset_id")
+        workspace_name = request.get("workspace_name", "default")  # NEW: Workspace name for linking training metadata
         user_selection = request.get("user_selection")  # Optional user-provided target and features
         problem_type = request.get("problem_type", "auto")  # "auto", "regression", "classification", or "time_series"
         selected_models = request.get("selected_models")  # NEW: Optional list of model keys to train
