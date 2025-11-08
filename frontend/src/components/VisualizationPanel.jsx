@@ -31,14 +31,16 @@ const loadPlotly = () => {
 const ChartComponent = ({ chart, index }) => {
   const chartId = `viz-plotly-chart-${index}`;
   const [error, setError] = useState(null);
+  const chartRef = useRef(null);
   
   useEffect(() => {
+    let isMounted = true;
+    
     const renderChart = async () => {
       try {
         await loadPlotly();
         
-        if (!window.Plotly) {
-          setError("Plotly not loaded");
+        if (!isMounted || !window.Plotly) {
           return;
         }
         
@@ -49,20 +51,18 @@ const ChartComponent = ({ chart, index }) => {
         
         const container = document.getElementById(chartId);
         if (!container) {
-          console.warn(`Container ${chartId} not found`);
           return;
         }
         
-        // CRITICAL FIX: Clean up existing chart to free WebGL context
+        // CRITICAL FIX: Safely clean up existing chart to free WebGL context
         try {
-          // Only purge if element exists and has Plotly data
           const existingPlot = document.getElementById(chartId);
-          if (existingPlot && existingPlot.data && window.Plotly) {
+          // Check if element actually has Plotly data attached
+          if (existingPlot && existingPlot._fullLayout) {
             await window.Plotly.purge(chartId);
-            console.log(`🧹 Cleaned up chart: ${chartId}`);
           }
         } catch (e) {
-          // Silently fail - element might not exist yet
+          // Silent cleanup - element might be in invalid state
         }
         
         // Validate data structure - handle multiple formats
@@ -72,7 +72,7 @@ const ChartComponent = ({ chart, index }) => {
         const chartData = chart.plotly_data || chart.data;
         
         if (!chartData) {
-          setError("No chart data available");
+          if (isMounted) setError("No chart data available");
           return;
         }
         
@@ -85,51 +85,61 @@ const ChartComponent = ({ chart, index }) => {
           plotData = chartData;
           plotLayout = {};
         } else {
-          setError("Invalid chart data format");
+          if (isMounted) setError("Invalid chart data format");
           return;
         }
         
         if (!Array.isArray(plotData) || plotData.length === 0) {
-          setError("No valid chart traces found");
+          if (isMounted) setError("No valid chart traces found");
           return;
         }
         
-        await window.Plotly.newPlot(
-          chartId,
-          plotData,
-          {
-            ...plotLayout,
-            autosize: true,
-            height: 400,
-            margin: { l: 60, r: 40, t: 60, b: 60 },
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            font: { family: 'Inter, sans-serif' }
-          },
-          { 
-            responsive: true, 
-            displayModeBar: true,
-            displaylogo: false,
-            modeBarButtonsToRemove: ['lasso2d', 'select2d']
-          }
-        );
-        setError(null);
+        // Create fresh chart with proper error boundaries
+        if (isMounted) {
+          await window.Plotly.newPlot(
+            chartId,
+            plotData,
+            {
+              ...plotLayout,
+              autosize: true,
+              height: 400,
+              margin: { l: 60, r: 40, t: 60, b: 60 },
+              paper_bgcolor: 'rgba(0,0,0,0)',
+              plot_bgcolor: 'rgba(0,0,0,0)',
+              font: { family: 'Inter, sans-serif' }
+            },
+            { 
+              responsive: true, 
+              displayModeBar: true,
+              displaylogo: false,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d']
+            }
+          );
+          chartRef.current = chartId;
+          setError(null);
+        }
       } catch (err) {
-        console.error('Chart rendering error:', err);
-        setError(`Chart error: ${err.message}`);
+        if (isMounted) {
+          console.error('Chart rendering error:', err);
+          setError(`Chart error: ${err.message}`);
+        }
       }
     };
     
     renderChart();
     
-    // CRITICAL CLEANUP: Destroy WebGL context when component unmounts
+    // CRITICAL CLEANUP: Safely destroy WebGL context when component unmounts
     return () => {
+      isMounted = false;
+      
       try {
-        if (window.Plotly) {
+        const element = document.getElementById(chartId);
+        // Only purge if element exists AND has Plotly data
+        if (element && element._fullLayout && window.Plotly) {
           window.Plotly.purge(chartId);
         }
       } catch (e) {
-        console.warn('Cleanup error:', e);
+        // Silently handle cleanup errors
       }
     };
   }, [chart, chartId]);
