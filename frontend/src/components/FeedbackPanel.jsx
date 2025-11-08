@@ -178,25 +178,25 @@ const FeedbackPanel = ({ dataset, modelName }) => {
         <>
           <Card className="p-6">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              📊 Model Feedback & Performance
+              📊 Training History & Model Performance
             </h3>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="bg-blue-50 p-4 rounded">
-                <div className="text-sm text-gray-600">Total Feedback</div>
+                <div className="text-sm text-gray-600">Training Runs</div>
                 <div className="text-2xl font-bold text-blue-600">
                   {stats.feedback_count || 0}
                 </div>
               </div>
               <div className="bg-green-50 p-4 rounded">
-                <div className="text-sm text-gray-600">Correct</div>
+                <div className="text-sm text-gray-600">High Performance</div>
                 <div className="text-2xl font-bold text-green-600">
                   {stats.correct_predictions || 0}
                 </div>
               </div>
               <div className="bg-red-50 p-4 rounded">
-                <div className="text-sm text-gray-600">Incorrect</div>
+                <div className="text-sm text-gray-600">Low Performance</div>
                 <div className="text-2xl font-bold text-red-600">
                   {stats.incorrect_predictions || 0}
                 </div>
