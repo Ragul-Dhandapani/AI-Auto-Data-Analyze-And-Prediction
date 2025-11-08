@@ -337,7 +337,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       }
       
       setAnalysisResults(response.data);
-      onAnalysisUpdate(response.data); // Cache the results
+      
+      // CRITICAL: Always notify parent to cache results immediately
+      if (onAnalysisUpdate) {
+        console.log('Caching analysis results to parent');
+        onAnalysisUpdate(response.data);
+      } else {
+        console.warn('onAnalysisUpdate callback not provided - results will not be cached!');
+      }
       toast.success(`Analysis complete in ${timeTaken}s!`);
     } catch (error) {
       const errorMsg = error.response?.data?.detail || error.message || "Unknown error";
