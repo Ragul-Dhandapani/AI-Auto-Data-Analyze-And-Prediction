@@ -12,7 +12,7 @@ import time
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = "https://ai-chat-assistant-24.preview.emergentagent.com/api"
+BACKEND_URL = "https://ai-insight-hub-4.preview.emergentagent.com/api"
 
 def test_api_health():
     """Test if the API is running"""

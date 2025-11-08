@@ -1,84 +1,85 @@
 <analysis>
-The previous AI engineer meticulously progressed through multiple iterations of development and bug fixing for the PROMISE AI platform. Initially, the focus was on stabilizing core functionalities like Oracle RDS connectivity, integrating Azure OpenAI across various services, and overhauling documentation. A significant effort was dedicated to developing an advanced, context-aware AI chat assistant, addressing numerous user-reported issues ranging from UI/UX inconsistencies to backend data handling. Key challenges included persistent Oracle client installation issues, JSON serialization errors for data previews, and ensuring the new chat assistant's comprehensive capabilities. The trajectory concludes with the backend infrastructure for a comprehensive training metadata view being in place, linking training runs to workspaces, and the next immediate step being the frontend UI redesign for this feature.
+The previous AI engineer successfully brought the PROMISE AI platform from its initial stages to a functional MVP, focusing on core stability, AI integration, and critical bug fixes. The work progressed through several iterations: establishing Oracle RDS and Azure OpenAI connectivity, enhancing the chat assistant, improving data handling to prevent serialization errors, and developing a comprehensive training metadata view. A major effort was dedicated to addressing repeated user-reported issues, including UI/UX inconsistencies, backend data processing, and state persistence across the application. Challenges involved persistent Oracle client installation, complex data serialization, and frontend rendering issues with large datasets, which were systematically tackled by implementing robust solutions like backend storage for large payloads and WebGL context cleanup. The trajectory concludes with the AI engineer identifying and planning fixes for outstanding WebSocket errors and chart rendering issues.
 </analysis>
 
 <product_requirements>
-The PROMISE AI platform is an AI/ML web solution for data analysis and prediction, supporting MongoDB and Oracle 19c RDS. The user explicitly requested an advanced, context-aware AI chat assistant with capabilities including natural language chart creation/manipulation, prediction insights, interactive workflows (e.g., append to dashboard), and robust error handling. Other crucial features included ML Model Comparison, Hyperparameter Tuning enhancements (35+ models, improved search), Oracle as the default database with a compact toggle, fixing bulk deletion, auto-cleaned data display, and comprehensive Training Metadata recording. Subsequent requests focused on resolving visualization crashes, improving chart generation, integrating chat-generated charts, and updating the application's homepage. The most recent and ongoing requirement is to enhance the Training Metadata view to provide a comprehensive, hierarchical display of uploaded datasets, associated workspaces, and all historical model training results (predictive analysis, tuning, feedback data).
+The PROMISE AI platform is an AI/ML web solution for data analysis and prediction, supporting MongoDB and Oracle 19c RDS. Key user requirements included:
+1.  **Advanced AI Chat Assistant**: Context-aware natural language chart creation/manipulation, prediction insights, interactive workflows, and robust error handling using Azure OpenAI.
+2.  **ML Capabilities**: ML Model Comparison, Hyperparameter Tuning with 35+ models, and enhanced search.
+3.  **Database Management**: Oracle as the default database with a compact toggle, fixing bulk deletion, and auto-cleaned data display.
+4.  **Training Metadata View**: A comprehensive, hierarchical display of uploaded datasets, associated workspaces, and all historical model training results (predictive analysis, tuning, feedback data).
+5.  **UI/UX Improvements**: Resolving visualization crashes, improving chart generation, integrating chat-generated charts, updating the application's homepage, showing saved workspaces in Training Metadata, and Back to Home and Load Workspace buttons.
 </product_requirements>
 
 <key_technical_concepts>
--   **Full-stack**: React.js, FastAPI, MongoDB, Oracle (AWS RDS 19c, ).
--   **AI/LLM**: Azure OpenAI for chat, insights, and model explanations.
--   **Database**: Abstract Adapters, Factory Pattern, Oracle Schema management (), JSON serialization.
+-   **Full-stack Development**: React.js frontend, FastAPI backend, MongoDB, Oracle (AWS RDS 19c, ).
+-   **AI/LLM Integration**: Azure OpenAI for chat, insights, and model explanations.
+-   **Database Management**: Abstract Adapters, Factory Pattern, Oracle Schema management (), JSON serialization, persistent storage for large payloads.
 -   **Machine Learning**: Hyperparameter Tuning, Multi-model training (35+ models), problem type auto-detection.
--   **Frontend**: React components, UI state management, context/cache for tab switching, pagination, data filtering.
--   **Backend**: API routing, backend                          RUNNING   pid 30, uptime 0:00:01
+-   **Frontend Development**: React components, UI state management, context/cache for tab switching, pagination, data filtering, Plotly for visualizations, WebGL context management.
+-   **Backend Operations**: API routing, backend                          RUNNING   pid 35, uptime 0:00:04
 code-server                      STOPPED   Not started
-frontend                         RUNNING   pid 34, uptime 0:00:01
-mongodb                          RUNNING   pid 36, uptime 0:00:01
-nginx-code-proxy                 STARTING  
-supervisor> , robust JSON handling for / values.
+frontend                         RUNNING   pid 36, uptime 0:00:04
+mongodb                          RUNNING   pid 37, uptime 0:00:04
+nginx-code-proxy                 RUNNING   pid 34, uptime 0:00:04
+supervisor> , robust JSON handling for / values, environment variable management.
 </key_technical_concepts>
 
 <code_architecture>
-The application employs a React.js frontend, a FastAPI backend, and supports both MongoDB and Oracle databases, with Oracle being the configured primary.
+The application uses a React.js frontend, a FastAPI backend, and supports both MongoDB and Oracle databases, with Oracle currently configured as primary.
 
 
 
 **Key File Changes & Importance:**
--   ****: Explicitly set  to ensure Oracle is the primary database.  is set to .
--   ****: The new  router and  router have been registered to make their endpoints accessible.
--   ****: Enhanced  to handle JSON serialization of  by replacing / values with  before saving, resolving file upload errors.
+-   ****: Configured  (primary) and .
 -   ****:
-    -   Modified  to save  alongside training metadata.
-    -   Updated the request model for  to accept .
+    -   Fixed  to correctly use the database adapter and its  method, resolving 500 errors.
+    -   Updated import of .
 -   ****:
-    -   Ensured  is returned from  and  endpoints.
-    -   Improved NaN/Inf value handling in  before saving to prevent JSON serialization errors.
-    -   Reduced the number of rows returned in  to prevent client-side overload for pagination.
--   ****: A new endpoint  serves the AI chat assistant, now fully integrated into the main application.
--   ** (New File)**: Created to programmatically add the  column to the  table in Oracle, ensuring schema compatibility without manual SQL execution during runtime.
--   ****: The  endpoint was further updated to return comprehensive training metadata, now including workspace information, to support the new comprehensive UI.
+    -   Modified  endpoint to be database-agnostic, handling both Oracle SQL and MongoDB queries dynamically.
+    -   Ensured  calls in Oracle queries use  to retrieve data correctly.
+    -   Corrected column names ( instead of ) and  handling for Oracle queries.
+    -   Fixed  endpoint to use .
+-   ****: Includes  in  table, and  in .
 -   ****:
-    -   Significantly enhanced with Azure OpenAI integration, including  and explicit system prompts to enforce JSON output for chart creation.
-    -   Implemented robust fallback pattern matching for chart creation and improved keyword detection to prevent the AI from generating Python code instead of charts.
-    -   Fixed recursion errors in chart creation logic and serialization issues for Plotly figures (, ).
-    -   Improved column validation and model interaction messaging.
--   ****: Added comprehensive error handling around Prophet model calls to prevent crashes.
--   ****: Contains the definition of 35+ ML models, used by the Hyperparameter Tuning component.
--   ****: Modified to include the  column in the  table.
+    -   Refined caching logic to handle large payloads, ensuring  are passed via parent component cache, not .
+    -   Modified Save Workspace button to display Update Workspace if a workspace with the same name already exists.
+    -   Ensured  is called on dataset selection to keep the Load Workspace button updated.
+    -   Added a safety check for large payloads before saving.
+-   ****: Added Load Workspace button with a count of saved workspaces, linked to relevant dashboard functionality.
 -   ****:
-    -   Enhanced state management to persist  and  across tab switches, preventing data loss.
-    -   Updated  to pass  to the backend.
--   ****: Comprehensively updated to showcase new features, including the Enhanced Chat Assistant, 35+ ML models, Azure OpenAI integration, and dual database support, with new highlight sections and improved layout.
--   ****: Placeholder for comprehensive UI redesign, with backend support now ready.
+    -   Implemented a comprehensive UI with summary statistics, search, filters, sorting, and comparison functionality.
+    -   Added Back to Home button.
+    -   Modified logic to display workspaces even if they have no associated training runs, addressing a user visibility issue.
+    -   Fixed  import to use .
 -   ****:
-    -   Implemented per-column filtering for the data preview table.
-    -   Implemented pagination for the data preview, showing 10 records per page with navigation controls.
--   ****:
-    -   Updated  to use the new  endpoint.
-    -   Fixed  function to correctly control section visibility.
-    -   Implemented logic to merge newly trained models with existing  results, preserving historical context.
-    -   Removed Phase 3 badges and added an info icon to AI-Generated Analysis Charts.
-    -   Changed Categorical section and AI Powered Insights to more compact, card-based layouts.
-    -   Added a Run Analysis with Selected Models button to trigger analysis after model selection.
-    -   Ensured  are preserved during refresh to prevent data loss.
--   ****:
-    -   Updated  to use the new  endpoint.
-    -   Fixed a critical crash by correctly handling  vs  in rendering logic and  filtering.
-    -   Ensured cache persistence to prevent data loss on tab switches.
--   ****: Updated to list all 35+ ML models available from the backend, with enhanced search capability.
--   ****: Re-purposed to display comprehensive training history from the  table, including model metrics, instead of a non-existent feedback system. Fixed React errors related to rendering objects directly.
+    -   Implemented  to persist  for ML model comparison, ensuring new models merge with existing ones without data loss, replacing  dependency for large data.
+    -   Updated display for Numeric Distribution and Business Recommendations to horizontal cards.
+-   ****: Added cleanup logic () to destroy old WebGL contexts on component unmount to prevent crashes from Too many active WebGL contexts.
+-   ** (New File)**: Created to provide a centralized utility for data size monitoring and potentially automatic cleanup, decoupling large data handling from .
+-   ** (New File)**: Documents the robust architecture for handling large datasets by leveraging backend storage and minimizing frontend state.
+-   ** (New File)**: Script to ensure Oracle Instant Client is consistently installed and configured, preventing environment issues after service restarts.
 </code_architecture>
 
 <pending_tasks>
--   Frontend UI redesign for the Training Metadata Page () to display the comprehensive, hierarchical view of datasets, workspaces, and training runs. This involves fetching and rendering the newly structured data from the backend.
+-   Suppress non-critical WebSocket connection errors in the frontend.
+-   Refine the chart rendering error handling to avoid  in , potentially due to incorrect Plotly object structure or missing data.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was in the process of implementing a comprehensive Training Metadata view. The backend work for Phase 1 of this task has been completed: the  column has been added to the  table in Oracle via a migration endpoint, and the  endpoint has been updated to return comprehensive training data including workspace information. The current state reflects that the backend is ready to support the new UI for Training Metadata.
+Immediately before this summary request, the AI engineer was addressing multiple critical user-reported issues:
+1.  **ML Data Comparison Issue**: Fixed the Predictive Analysis: ML Data Comparison not merging new models by refactoring  to use a  to persist  in memory, resolving  quota issues and ensuring proper model merging.
+2.  **Tab Switch Crash**: Identified  in  as the root cause of crashes when switching tabs. The fix involved removing reliance on  for large  and implementing a robust backend storage strategy for workspace data.
+3.  **Training Metadata Visibility**: Modified  to show all saved workspaces, even those without active training runs, addressing user confusion about missing workspaces.
+4.  **UI Enhancements**: Implemented Back to Home button on , transformed Numeric Distribution and Business Recommendations in  into horizontal cards, and added a Load Workspace button on  and  with dynamic count updates.
+5.  **Feedback Tab Data Issue**: Fixed the  endpoint in  by ensuring  for Oracle queries, allowing the  to display data.
+6.  **Oracle Client Persistence**: Addressed recurring Oracle client library issues by creating a permanent startup script () and integrating it into the supervisor configuration, ensuring the client is always available.
+7.  **Backend  Endpoint Fix**: Corrected the  endpoint in  to properly import  and use the database adapter's  method.
+8.  **WebGL Context Leak**: Began addressing Too many active WebGL contexts in  by adding cleanup logic for Plotly charts using  to manage WebGL resources.
+
+The AI engineer is currently analyzing the user's latest console logs, which still show WebSocket errors and repeated chart rendering errors, and has planned to address these.
 </current_work>
 
 <optional_next_step>
-The next step is to begin Phase 2: Frontend UI Redesign for the Training Metadata Page.
+Fix the remaining WebSocket connection errors (suppress if non-critical) and resolve the  chart rendering errors in .
 </optional_next_step>
