@@ -297,6 +297,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         dataset_id: dataset.id
       };
       
+      // Add workspace_name from localStorage for linking training to workspace
+      const currentWorkspaceName = localStorage.getItem('current_workspace_name') || 'default';
+      payload.workspace_name = currentWorkspaceName;
+      console.log('Training with workspace:', currentWorkspaceName);
+      
       // Add variable selection and problem_type if provided
       if (variableSelection && variableSelection.mode !== 'skip') {
         payload.user_selection = {
