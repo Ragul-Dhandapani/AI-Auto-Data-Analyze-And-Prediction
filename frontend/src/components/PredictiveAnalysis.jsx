@@ -1230,14 +1230,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
               <ChevronUp className="w-4 h-4" />
             </Button>
           </div>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {analysisResults.business_recommendations.map((rec, idx) => (
               <div key={idx} className={`p-4 rounded-lg border-2 ${
                 rec.priority === 'high' ? 'bg-red-50 border-red-300' :
                 rec.priority === 'medium' ? 'bg-yellow-50 border-yellow-300' :
                 'bg-green-50 border-green-300'
               }`}>
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 mb-3">
                   <div className={`px-2 py-1 rounded text-xs font-semibold ${
                     rec.priority === 'high' ? 'bg-red-600 text-white' :
                     rec.priority === 'medium' ? 'bg-yellow-600 text-white' :
@@ -1245,34 +1245,27 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                   }`}>
                     {rec.priority?.toUpperCase()}
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{rec.title}</h4>
-                    <p className="text-sm text-gray-700 mt-1">{rec.description}</p>
-                    {rec.expected_impact && (
-                      <div className="mt-2 flex items-start gap-2 text-xs">
-                        <span className="font-semibold text-gray-600">📊 Expected Impact:</span>
-                        <span className="text-gray-700">{rec.expected_impact}</span>
-                      </div>
-                    )}
-                    {rec.implementation_effort && (
-                      <div className="mt-1 flex items-start gap-2 text-xs">
-                        <span className="font-semibold text-gray-600">⚙️ Effort:</span>
-                        <span className={`px-2 py-0.5 rounded ${
-                          rec.implementation_effort === 'high' ? 'bg-red-100 text-red-700' :
-                          rec.implementation_effort === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-green-100 text-green-700'
-                        }`}>
-                          {rec.implementation_effort}
-                        </span>
-                      </div>
-                    )}
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs text-gray-600 italic">
-                        ⚡ <strong>Action Required:</strong> Discuss with your technical team and plan implementation based on priority and available resources.
-                      </p>
-                    </div>
-                  </div>
+                  <h4 className="font-semibold text-gray-900 flex-1">{rec.title}</h4>
                 </div>
+                <p className="text-sm text-gray-700 mb-2">{rec.description}</p>
+                {rec.expected_impact && (
+                  <div className="flex items-start gap-2 text-xs mb-1">
+                    <span className="font-semibold text-gray-600">📊 Impact:</span>
+                    <span className="text-gray-700">{rec.expected_impact}</span>
+                  </div>
+                )}
+                {rec.implementation_effort && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-semibold text-gray-600">⚙️ Effort:</span>
+                    <span className={`px-2 py-0.5 rounded ${
+                      rec.implementation_effort === 'high' ? 'bg-red-100 text-red-700' :
+                      rec.implementation_effort === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {rec.implementation_effort}
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
