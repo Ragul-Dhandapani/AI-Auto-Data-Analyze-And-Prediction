@@ -12,6 +12,25 @@ function App() {
   // Initialize storage manager on app startup for large dataset support (2GB+)
   useEffect(() => {
     initializeStorageManager();
+    
+    // Suppress non-critical WebSocket connection errors (chat feature connectivity)
+    const originalConsoleError = console.error;
+    console.error = function(...args) {
+      // Suppress WebSocket connection errors (non-critical)
+      const errorMessage = String(args[0] || '');
+      if (errorMessage.includes('WebSocket connection') || 
+          errorMessage.includes('wss://') ||
+          errorMessage.includes('/ws failed')) {
+        // Silently ignore WebSocket errors
+        return;
+      }
+      // Pass through all other errors
+      originalConsoleError.apply(console, args);
+    };
+    
+    return () => {
+      console.error = originalConsoleError;
+    };
   }, []);
   
   return (
