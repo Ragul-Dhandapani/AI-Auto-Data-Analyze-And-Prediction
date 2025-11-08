@@ -30,6 +30,10 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
   const [selectedColumns, setSelectedColumns] = useState([]);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [columnFilters, setColumnFilters] = useState({}); // Per-column filters
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(20); // Default 20 rows per page
 
   useEffect(() => {
     if (dataset && dataset.id) {
