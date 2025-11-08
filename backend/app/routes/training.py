@@ -140,88 +140,74 @@ async def get_metadata_by_workspace():
             import json
             from datetime import datetime
             
-            # Get all datasets
-            datasets_cursor = db_adapter.db.datasets.find({}).sort("created_at", -1)
-            datasets_list = await datasets_cursor.to_list(length=None)
+            # First, get ALL training history
+            all_training_cursor = db_adapter.db.training_history.find({}).sort("trained_at", -1)
+            all_training_list = await all_training_cursor.to_list(length=None)
             
-            for dataset_doc in datasets_list:
-                ds_id = dataset_doc.get('id')
-                ds_name = dataset_doc.get('name')
+            # Group by dataset_id
+            dataset_groups = {}
+            for hist_doc in all_training_list:
+                ds_id = hist_doc.get('dataset_id')
+                ds_name = hist_doc.get('dataset_name', 'Unknown Dataset')
                 
-                if not ds_id:
-                    continue
-                
-                # Get workspace states for this dataset
-                ws_cursor = db_adapter.db.saved_states.find({
-                    'dataset_id': ds_id
-                }).sort("created_at", -1)
-                ws_list = await ws_cursor.to_list(length=None)
-                
-                workspaces = []
-                for ws_doc in ws_list:
-                    ws_name = ws_doc.get('state_name', 'default')
-                    ws_created = ws_doc.get('created_at')
-                    ws_size = ws_doc.get('state_size_kb', 0)
-                    
-                    # Get training runs for this workspace from training_history collection
-                    # Convert old training_history format to new training_metadata format
-                    training_history_cursor = db_adapter.db.training_history.find({
-                        'dataset_id': ds_id
-                    }).sort("trained_at", -1)
-                    training_history_list = await training_history_cursor.to_list(length=None)
-                    
-                    training_runs = []
-                    for hist_doc in training_history_list:
-                        # Each training_history document has multiple models
-                        models = hist_doc.get('models', [])
-                        trained_at = hist_doc.get('trained_at')
-                        
-                        for model in models:
-                            # Convert to training_metadata format
-                            metrics = {}
-                            if 'r2_score' in model:
-                                metrics['r2_score'] = model.get('r2_score')
-                                metrics['rmse'] = model.get('rmse')
-                                problem_type = 'regression'
-                            elif 'accuracy' in model:
-                                metrics['accuracy'] = model.get('accuracy')
-                                metrics['precision'] = model.get('precision')
-                                metrics['recall'] = model.get('recall')
-                                metrics['f1_score'] = model.get('f1_score')
-                                problem_type = 'classification'
-                            else:
-                                problem_type = 'unknown'
-                            
-                            training_runs.append({
-                                'id': str(hist_doc.get('_id')),
-                                'dataset_id': ds_id,
-                                'model_type': model.get('model_name', 'Unknown'),
-                                'target_variable': model.get('target_column', 'Unknown'),
-                                'problem_type': problem_type,
-                                'metrics': metrics,
-                                'training_duration': None,  # Not available in old format
-                                'created_at': trained_at,
-                                'workspace_name': ws_name,
-                                'model_params_json': None,
-                                'feature_variables': None
-                            })
-                    
-                    workspaces.append({
-                        'workspace_name': ws_name,
-                        'created_at': ws_created.isoformat() if isinstance(ws_created, datetime) else str(ws_created) if ws_created else None,
-                        'size_kb': ws_size,
-                        'training_runs': training_runs,
-                        'total_models': len(training_runs)
-                    })
-                
-                # Only include datasets that have workspaces
-                if workspaces:
-                    result.append({
-                        'dataset_id': ds_id,
+                if ds_id not in dataset_groups:
+                    dataset_groups[ds_id] = {
                         'dataset_name': ds_name,
-                        'workspaces': workspaces,
-                        'total_workspaces': len(workspaces)
+                        'training_runs': []
+                    }
+                
+                # Each training_history document has multiple models
+                models = hist_doc.get('models', [])
+                trained_at = hist_doc.get('trained_at')
+                
+                for model in models:
+                    # Convert to training_metadata format
+                    metrics = {}
+                    if 'r2_score' in model:
+                        metrics['r2_score'] = model.get('r2_score')
+                        metrics['rmse'] = model.get('rmse')
+                        metrics['mae'] = model.get('mae', None)
+                        problem_type = 'regression'
+                    elif 'accuracy' in model:
+                        metrics['accuracy'] = model.get('accuracy')
+                        metrics['precision'] = model.get('precision')
+                        metrics['recall'] = model.get('recall')
+                        metrics['f1_score'] = model.get('f1_score')
+                        problem_type = 'classification'
+                    else:
+                        problem_type = 'unknown'
+                    
+                    dataset_groups[ds_id]['training_runs'].append({
+                        'id': str(hist_doc.get('_id')),
+                        'dataset_id': ds_id,
+                        'model_type': model.get('model_name', 'Unknown'),
+                        'target_variable': model.get('target_column', 'Unknown'),
+                        'problem_type': problem_type,
+                        'metrics': metrics,
+                        'training_duration': None,  # Not available in old format
+                        'created_at': trained_at,
+                        'workspace_name': 'Historical Training',  # Default workspace name
+                        'model_params_json': None,
+                        'feature_variables': None
                     })
+            
+            # Now create the result structure
+            for ds_id, ds_data in dataset_groups.items():
+                # Create a single workspace for all training runs
+                workspaces = [{
+                    'workspace_name': 'Historical Training',
+                    'created_at': ds_data['training_runs'][0]['created_at'] if ds_data['training_runs'] else None,
+                    'size_kb': 0,
+                    'training_runs': ds_data['training_runs'],
+                    'total_models': len(ds_data['training_runs'])
+                }]
+                
+                result.append({
+                    'dataset_id': ds_id,
+                    'dataset_name': ds_data['dataset_name'],
+                    'workspaces': workspaces,
+                    'total_workspaces': 1
+                })
         
         return {
             'datasets': result,
