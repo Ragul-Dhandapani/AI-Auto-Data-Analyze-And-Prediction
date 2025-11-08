@@ -247,6 +247,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   }, []);
 
   const runHolisticAnalysis = async () => {
+    // CRITICAL: Preserve existing results BEFORE setting to null
+    const previousResults = analysisResults ? { ...analysisResults } : null;
+    console.log('🔄 Starting analysis - Previous models:', previousResults?.ml_models?.length || 0);
+    
     // Prevent multiple simultaneous runs
     if (loading) {
       console.log('Analysis already in progress, skipping duplicate run');
