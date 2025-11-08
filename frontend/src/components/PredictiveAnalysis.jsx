@@ -1037,42 +1037,44 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             </div>
           </div>
           
-          {/* Numeric Volume Analysis */}
+          {/* Numeric Volume Analysis - Horizontal Cards Layout */}
           {analysisResults.volume_analysis.numeric_summary && analysisResults.volume_analysis.numeric_summary.length > 0 && (
             <div className="space-y-4">
               <h4 className="font-semibold text-gray-800">Numeric Distribution</h4>
-              {analysisResults.volume_analysis.numeric_summary.map((item, idx) => (
-                <div key={idx} className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
-                  <h5 className="font-semibold text-gray-900 mb-2">{String(item.dimension)}</h5>
-                  <p className="text-sm text-gray-700 mb-3">{String(item.insights)}</p>
-                  <div className="grid grid-cols-3 gap-3 text-xs">
-                    <div className="bg-white p-2 rounded border border-green-200">
-                      <span className="text-gray-600">Min:</span>
-                      <span className="font-semibold text-gray-900 ml-1">{item.min}</span>
-                    </div>
-                    <div className="bg-white p-2 rounded border border-green-200">
-                      <span className="text-gray-600">Mean:</span>
-                      <span className="font-semibold text-gray-900 ml-1">{item.mean}</span>
-                    </div>
-                    <div className="bg-white p-2 rounded border border-green-200">
-                      <span className="text-gray-600">Max:</span>
-                      <span className="font-semibold text-gray-900 ml-1">{item.max}</span>
-                    </div>
-                    <div className="bg-white p-2 rounded border border-green-200">
-                      <span className="text-gray-600">Median:</span>
-                      <span className="font-semibold text-gray-900 ml-1">{item.median}</span>
-                    </div>
-                    <div className="bg-white p-2 rounded border border-green-200">
-                      <span className="text-gray-600">Std Dev:</span>
-                      <span className="font-semibold text-gray-900 ml-1">{item.std}</span>
-                    </div>
-                    <div className="bg-white p-2 rounded border border-green-200">
-                      <span className="text-gray-600">Range:</span>
-                      <span className="font-semibold text-gray-900 ml-1">{item.range}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {analysisResults.volume_analysis.numeric_summary.map((item, idx) => (
+                  <div key={idx} className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">{String(item.dimension)}</h5>
+                    <p className="text-sm text-gray-700 mb-3">{String(item.insights)}</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Min:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.min}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Mean:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.mean}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Max:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.max}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Median:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.median}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Std Dev:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.std}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Range:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.range}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </Card>
