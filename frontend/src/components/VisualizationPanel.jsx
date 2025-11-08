@@ -53,6 +53,15 @@ const ChartComponent = ({ chart, index }) => {
           return;
         }
         
+        // CRITICAL FIX: Clean up existing chart to free WebGL context
+        if (container && container.data) {
+          try {
+            await window.Plotly.purge(chartId);
+          } catch (e) {
+            console.warn('Failed to purge chart:', e);
+          }
+        }
+        
         // Validate data structure - handle multiple formats
         let plotData, plotLayout;
         
@@ -110,12 +119,14 @@ const ChartComponent = ({ chart, index }) => {
     
     renderChart();
     
+    // CRITICAL CLEANUP: Destroy WebGL context when component unmounts
     return () => {
-      if (window.Plotly) {
-        const container = document.getElementById(chartId);
-        if (container) {
+      try {
+        if (window.Plotly) {
           window.Plotly.purge(chartId);
         }
+      } catch (e) {
+        console.warn('Cleanup error:', e);
       }
     };
   }, [chart, chartId]);
