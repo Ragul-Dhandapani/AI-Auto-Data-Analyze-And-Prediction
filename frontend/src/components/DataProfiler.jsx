@@ -713,38 +713,143 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
               </table>
             </div>
             
-            {/* Results Count */}
-            {selectedColumns.length > 0 && dataset.data_preview && (
-              <div className="mt-3 text-xs text-gray-500 flex justify-between">
-                <span>
-                  Showing {dataset.data_preview.filter(row => {
-                    // Global filter
-                    if (dataFilter && !selectedColumns.some(col => 
-                      String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
-                    )) {
-                      return false;
-                    }
-                    // Per-column filters
-                    for (const col of selectedColumns) {
-                      const colFilter = columnFilters[col];
-                      if (colFilter && !String(row[col] || '').toLowerCase().includes(colFilter.toLowerCase())) {
-                        return false;
-                      }
-                    }
-                    return true;
-                  }).length} of {dataset.data_preview.length} rows
-                  {(dataFilter || Object.keys(columnFilters).some(k => columnFilters[k])) && ` (filtered)`}
-                </span>
-                {Object.keys(columnFilters).some(k => columnFilters[k]) && (
-                  <button
-                    onClick={() => setColumnFilters({})}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Clear Column Filters
-                  </button>
-                )}
-              </div>
-            )}
+            {/* Pagination Controls & Results Count */}
+            {selectedColumns.length > 0 && dataset.data_preview && dataset.data_preview.length > 0 && (() => {
+              // Calculate filtered data count
+              const filteredData = dataset.data_preview.filter(row => {
+                if (dataFilter && !selectedColumns.some(col => 
+                  String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
+                )) {
+                  return false;
+                }
+                for (const col of selectedColumns) {
+                  const colFilter = columnFilters[col];
+                  if (colFilter && !String(row[col] || '').toLowerCase().includes(colFilter.toLowerCase())) {
+                    return false;
+                  }
+                }
+                return true;
+              });
+              
+              const totalFilteredRows = filteredData.length;
+              const totalPages = Math.ceil(totalFilteredRows / rowsPerPage);
+              const startRow = (currentPage - 1) * rowsPerPage + 1;
+              const endRow = Math.min(currentPage * rowsPerPage, totalFilteredRows);
+              
+              return (
+                <div className="mt-4 space-y-3">
+                  {/* Results Info & Filters */}
+                  <div className="flex justify-between items-center text-sm">
+                    <div className="flex items-center gap-4">
+                      <span className="text-gray-600">
+                        Showing {startRow}-{endRow} of {totalFilteredRows} rows
+                        {totalFilteredRows < dataset.data_preview.length && ` (filtered from ${dataset.data_preview.length})`}
+                      </span>
+                      {Object.keys(columnFilters).some(k => columnFilters[k]) && (
+                        <button
+                          onClick={() => {
+                            setColumnFilters({});
+                            setCurrentPage(1);
+                          }}
+                          className="text-blue-600 hover:underline text-xs"
+                        >
+                          Clear Column Filters
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* Rows Per Page Selector */}
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-gray-600">Rows per page:</label>
+                      <select
+                        value={rowsPerPage}
+                        onChange={(e) => {
+                          setRowsPerPage(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
+                        className="px-2 py-1 border border-gray-300 rounded text-xs"
+                      >
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2">
+                      {/* First Page */}
+                      <button
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        ««
+                      </button>
+                      
+                      {/* Previous Page */}
+                      <button
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        « Previous
+                      </button>
+                      
+                      {/* Page Numbers */}
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`px-3 py-1 border rounded ${
+                                currentPage === pageNum
+                                  ? 'bg-blue-500 text-white border-blue-500'
+                                  : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Next Page */}
+                      <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Next »
+                      </button>
+                      
+                      {/* Last Page */}
+                      <button
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        »»
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </Card>
         </div>
       )}
