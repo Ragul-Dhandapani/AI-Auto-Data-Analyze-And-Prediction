@@ -239,8 +239,8 @@ async def upload_file(file: UploadFile = File(...)):
             "created_at": dataset_doc.get("created_at"),
             "file_size": dataset_doc.get("file_size"),
             "source_type": dataset_doc.get("source_type"),
-            "storage_type": dataset_doc.get("storage_type")
-            # Don't include data_preview in response to avoid JSON serialization issues
+            "storage_type": dataset_doc.get("storage_type"),
+            "data_preview": dataset_doc.get("data_preview", [])  # Include preview (already JSON-serialized)
         }
         
         return {"message": "File uploaded successfully", "dataset": response_doc}
