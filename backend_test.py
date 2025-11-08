@@ -232,22 +232,154 @@ def test_hyperparameter_tuning_endpoint(dataset_id):
         print(f"❌ Hyperparameter tuning endpoint exception: {str(e)}")
         return False
 
-def test_execute_query_preview():
-    """Test 1: Execute Query Preview (MongoDB) - Testing endpoint structure"""
-    print("\n=== Test 1: Execute Query Preview ===")
-    
-    # Test with MongoDB since it's available
-    config = {
-        "db_type": "mongodb",
-        "query": "datasets",  # Collection name for MongoDB
-        "host": "localhost",
-        "port": 27017,
-        "database": "test_database"
-    }
+def check_backend_logs():
+    """Check backend logs for any startup errors"""
+    print("\n=== Backend Logs Check ===")
     
     try:
-        response = requests.post(
-            f"{BACKEND_URL}/datasource/execute-query-preview",
+        # Check recent backend logs
+        import subprocess
+        result = subprocess.run(
+            ["tail", "-n", "20", "/var/log/supervisor/backend.err.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            logs = result.stdout.strip()
+            if logs:
+                print("Recent backend error logs:")
+                print(logs)
+                
+                # Check for specific errors
+                if "ERROR" in logs:
+                    print("⚠️  Errors found in backend logs")
+                    return False
+                else:
+                    print("✅ No critical errors in recent logs")
+                    return True
+            else:
+                print("✅ No recent error logs")
+                return True
+        else:
+            print("⚠️  Could not access backend logs")
+            return True  # Don't fail the test for log access issues
+            
+    except Exception as e:
+        print(f"⚠️  Could not check backend logs: {str(e)}")
+        return True  # Don't fail the test for log access issues
+
+def main():
+    """Run Critical Backend Tests"""
+    print("🚀 PROMISE AI BACKEND TESTING - Critical Endpoints")
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"Test Time: {datetime.now().isoformat()}")
+    print("="*70)
+    
+    # Track test results
+    results = {
+        'backend_health': False,
+        'datasets_endpoint': False,
+        'suggest_features': False,
+        'hyperparameter_tuning': False,
+        'backend_logs': False
+    }
+    
+    dataset_id = None
+    
+    # Test 1: Backend Health (GENERAL)
+    print("\n🔍 PRIORITY: GENERAL")
+    results['backend_health'] = test_backend_health()
+    
+    if not results['backend_health']:
+        print("\n❌ Backend is not accessible. Stopping tests.")
+        return False
+    
+    # Test 2: Datasets Endpoint (SANITY CHECK)
+    print("\n🔍 PRIORITY: MEDIUM")
+    datasets_success, dataset_id = test_datasets_endpoint()
+    results['datasets_endpoint'] = datasets_success
+    
+    # Test 3: Suggest-Features Endpoint (NEW - Just Added)
+    print("\n🔍 PRIORITY: HIGH")
+    results['suggest_features'] = test_suggest_features_endpoint(dataset_id)
+    
+    # Test 4: Hyperparameter Tuning Endpoint (REPORTED 500 ERROR)
+    print("\n🔍 PRIORITY: HIGH")
+    results['hyperparameter_tuning'] = test_hyperparameter_tuning_endpoint(dataset_id)
+    
+    # Test 5: Backend Logs Check
+    results['backend_logs'] = check_backend_logs()
+    
+    # Summary
+    print("\n" + "="*70)
+    print("📊 CRITICAL ENDPOINTS TEST SUMMARY")
+    print("="*70)
+    
+    passed_tests = sum(1 for result in results.values() if result)
+    total_tests = len(results)
+    
+    for test_name, passed in results.items():
+        status = "✅ PASS" if passed else "❌ FAIL"
+        priority = ""
+        if test_name == 'suggest_features':
+            priority = " (HIGH PRIORITY - NEW ENDPOINT)"
+        elif test_name == 'hyperparameter_tuning':
+            priority = " (HIGH PRIORITY - 500 ERROR REPORTED)"
+        elif test_name == 'datasets_endpoint':
+            priority = " (MEDIUM PRIORITY - SANITY CHECK)"
+        elif test_name == 'backend_health':
+            priority = " (GENERAL)"
+        
+        print(f"{test_name.replace('_', ' ').title()}: {status}{priority}")
+    
+    print(f"\nOverall: {passed_tests}/{total_tests} tests passed")
+    
+    # Detailed findings
+    print("\n🔍 DETAILED FINDINGS:")
+    
+    if results['backend_health']:
+        print("   ✅ Backend is running and responsive")
+    else:
+        print("   ❌ Backend health issues detected")
+    
+    if results['datasets_endpoint']:
+        print("   ✅ Datasets endpoint working - Oracle RDS connection stable")
+    else:
+        print("   ❌ Datasets endpoint issues - Oracle RDS connection problems")
+    
+    if results['suggest_features']:
+        print("   ✅ NEW suggest-features endpoint working correctly")
+    else:
+        print("   ❌ NEW suggest-features endpoint has issues")
+    
+    if results['hyperparameter_tuning']:
+        print("   ✅ Hyperparameter tuning endpoint working - 500 error resolved")
+    else:
+        print("   ❌ Hyperparameter tuning endpoint still has issues - 500 error persists")
+    
+    if results['backend_logs']:
+        print("   ✅ Backend logs show no critical errors")
+    else:
+        print("   ❌ Backend logs show errors")
+    
+    # Final status
+    critical_tests = ['suggest_features', 'hyperparameter_tuning']
+    critical_passed = sum(1 for test in critical_tests if results[test])
+    
+    if critical_passed == len(critical_tests):
+        print("\n🎉 All CRITICAL tests passed!")
+        print("\n📋 STATUS: ✅ CRITICAL FIXES VERIFIED")
+        return True
+    else:
+        print(f"\n⚠️ {len(critical_tests) - critical_passed} CRITICAL test(s) failed.")
+        print("\n📋 STATUS: ❌ CRITICAL ISSUES DETECTED")
+        return False
+
+if __name__ == "__main__":
+    success = main()
+    sys.exit(0 if success else 1)
             json=config,
             timeout=30
         )
