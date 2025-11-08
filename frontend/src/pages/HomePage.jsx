@@ -143,6 +143,28 @@ const HomePage = () => {
             </div>
           </motion.div>
 
+          {/* Key Highlights */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto"
+          >
+            {[
+              { number: "35+", label: "ML Models" },
+              { number: "7", label: "AI Features" },
+              { number: "2", label: "Databases" },
+              { number: "Azure", label: "OpenAI" }
+            ].map((stat, idx) => (
+              <div key={idx} className="text-center p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  {stat.number}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">{stat.label}</div>
+              </div>
+            ))}
+          </motion.div>
+
           {/* Feature Preview Cards */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
