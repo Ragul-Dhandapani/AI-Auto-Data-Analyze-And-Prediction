@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight, Database, FolderOpen, TrendingUp, Clock, Award, Download, Loader, Search, Filter, RefreshCw, X, BarChart3, Calendar, ArrowUpDown, CheckCircle2, Settings, GitCompare } from 'lucide-react';
+import { ChevronDown, ChevronRight, Database, FolderOpen, TrendingUp, Clock, Award, Download, Loader, Search, Filter, RefreshCw, X, BarChart3, Calendar, ArrowUpDown, CheckCircle2, Settings, GitCompare, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import Plot from 'react-plotly.js';
 
