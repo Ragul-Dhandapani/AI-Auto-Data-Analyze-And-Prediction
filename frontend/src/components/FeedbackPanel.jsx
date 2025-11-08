@@ -242,7 +242,7 @@ const FeedbackPanel = ({ dataset, modelName }) => {
                     )}
                     <div className="flex-1">
                       <div className="text-sm font-medium">
-                        {run.model_name || 'Model'} - {run.problem_type || 'Analysis'}
+                        {String(run.model_name || run.model_type || 'Model')} - {String(run.problem_type || 'Analysis')}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
                         Target: {String(run.target_column || run.target_variable || 'N/A')} | 
