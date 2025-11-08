@@ -78,12 +78,48 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   useEffect(() => {
     if (analysisResults && dataset?.id) {
       try {
-        localStorage.setItem(`analysis_${dataset.id}`, JSON.stringify(analysisResults));
-        console.log('💾 Saved analysis results to localStorage');
-        // CRITICAL: Also save to ref for merge operations
+        // CRITICAL FIX: Save to ref FIRST (always succeeds)
         previousResultsRef.current = analysisResults;
+        
+        // Try to save to localStorage, but handle quota errors gracefully
+        try {
+          // Create a lightweight version without large chart data
+          const lightweightResults = {
+            ...analysisResults,
+            // Keep only essential data, remove heavy chart objects
+            ai_generated_charts: undefined,
+            correlation_heatmap: undefined,
+            shap_summary_plot: undefined
+          };
+          
+          localStorage.setItem(`analysis_${dataset.id}`, JSON.stringify(lightweightResults));
+          console.log('✅ Saved lightweight analysis to localStorage');
+        } catch (quotaError) {
+          // LocalStorage full - clear old analysis data and try again
+          console.warn('LocalStorage quota exceeded, clearing old data...');
+          const keys = Object.keys(localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('analysis_') && key !== `analysis_${dataset.id}`) {
+              localStorage.removeItem(key);
+            }
+          });
+          
+          // Try one more time with cleaned storage
+          try {
+            const lightweightResults = {
+              ...analysisResults,
+              ai_generated_charts: undefined,
+              correlation_heatmap: undefined,
+              shap_summary_plot: undefined
+            };
+            localStorage.setItem(`analysis_${dataset.id}`, JSON.stringify(lightweightResults));
+            console.log('✅ Saved after clearing old data');
+          } catch (finalError) {
+            console.warn('Could not save to localStorage even after cleanup, using ref only');
+          }
+        }
       } catch (e) {
-        console.warn('Failed to save analysis to localStorage:', e);
+        console.error('Error in localStorage save logic:', e);
       }
     }
   }, [analysisResults, dataset?.id]);
