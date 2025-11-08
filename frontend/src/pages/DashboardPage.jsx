@@ -396,6 +396,16 @@ const DashboardPage = () => {
             {selectedDataset && (
               <>
                 <Button
+                  onClick={() => setShowLoadDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className={`gap-2 ${savedStates.length > 0 ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100' : ''}`}
+                  disabled={savedStates.length === 0}
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  Load Workspace {savedStates.length > 0 && `(${savedStates.length})`}
+                </Button>
+                <Button
                   onClick={() => setShowSaveDialog(true)}
                   variant="outline"
                   size="sm"
@@ -404,17 +414,6 @@ const DashboardPage = () => {
                   <Save className="w-4 h-4" />
                   Save Workspace
                 </Button>
-                {savedStates.length > 0 && (
-                  <Button
-                    onClick={() => setShowLoadDialog(true)}
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                  >
-                    <FolderOpen className="w-4 h-4" />
-                    Load ({savedStates.length})
-                  </Button>
-                )}
               </>
             )}
             
