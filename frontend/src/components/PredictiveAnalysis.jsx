@@ -1018,7 +1018,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             <div>
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 🤖 AI-Powered Insights
-                <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">Phase 3</span>
               </h3>
               <p className="text-sm text-gray-600 italic mt-1">Intelligent analysis powered by AI</p>
             </div>
