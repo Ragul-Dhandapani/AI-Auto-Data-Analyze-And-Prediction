@@ -333,6 +333,14 @@ const TrainingMetadataPage = () => {
           </div>
           <div className="flex gap-2">
             <Button 
+              onClick={() => navigate('/dashboard')}
+              variant="outline"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+            <Button 
               onClick={() => {
                 setComparisonMode(!comparisonMode);
                 if (comparisonMode) setSelectedRuns([]);
