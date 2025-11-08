@@ -374,16 +374,17 @@ def main():
     print(f"Test Time: {datetime.now().isoformat()}")
     print("="*80)
     
-    # Check Oracle is primary
-    oracle_ok = test_oracle_primary()
-    if not oracle_ok:
-        print("\n❌ Oracle is not primary database. Please switch to Oracle first.")
+    # Check database status
+    db_ok, current_db = test_oracle_primary()
+    if not db_ok:
+        print("\n❌ Cannot connect to database")
         return False
     
     # Get test dataset
     dataset_id, columns = get_test_dataset()
     if not dataset_id:
-        print("\n❌ No dataset available for testing")
+        print(f"\n❌ No dataset available for testing in {current_db}")
+        print("   Note: Enhanced chat tests require data to validate functionality")
         return False
     
     print(f"\n📊 Testing with dataset: {dataset_id}")
