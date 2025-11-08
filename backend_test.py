@@ -131,35 +131,105 @@ def test_suggest_features_endpoint(dataset_id):
         print(f"❌ Suggest-features endpoint exception: {str(e)}")
         return False
 
-def test_response_performance():
-    """Test 3: Response performance check"""
-    print("\n=== Test 3: Response Performance ===")
+def test_hyperparameter_tuning_endpoint(dataset_id):
+    """Test: Hyperparameter Tuning Endpoint (REPORTED 500 ERROR) - POST /api/analysis/hyperparameter-tuning"""
+    print("\n=== Test: Hyperparameter Tuning Endpoint (500 Error Investigation) ===")
+    
+    if not dataset_id:
+        print("❌ No dataset ID available for testing")
+        return False
+    
+    # Get dataset details first to find a numeric column
+    try:
+        datasets_response = requests.get(f"{BACKEND_URL}/datasets", timeout=10)
+        if datasets_response.status_code == 200:
+            datasets = datasets_response.json().get("datasets", [])
+            target_dataset = None
+            for dataset in datasets:
+                if dataset.get("id") == dataset_id:
+                    target_dataset = dataset
+                    break
+            
+            if target_dataset:
+                columns = target_dataset.get("columns", [])
+                # Look for a numeric column
+                numeric_column = None
+                for col in columns:
+                    if any(keyword in col.lower() for keyword in ['latency', 'cpu', 'memory', 'size', 'count', 'score', 'value', 'amount']):
+                        numeric_column = col
+                        break
+                
+                if not numeric_column and columns:
+                    numeric_column = columns[0]  # Fallback to first column
+                
+                print(f"   Using target column: {numeric_column}")
+            else:
+                numeric_column = "target_column"  # Generic fallback
+        else:
+            numeric_column = "target_column"  # Generic fallback
+    except:
+        numeric_column = "target_column"  # Generic fallback
+    
+    # Test payload as specified in review request
+    payload = {
+        "dataset_id": dataset_id,
+        "target_column": numeric_column,
+        "model_type": "random_forest",
+        "problem_type": "regression"
+    }
     
     try:
-        import time
-        start_time = time.time()
+        print(f"   Testing with payload: {payload}")
+        response = requests.post(
+            f"{BACKEND_URL}/analysis/hyperparameter-tuning",
+            json=payload,
+            timeout=60  # Longer timeout for hyperparameter tuning
+        )
         
-        response = requests.get(f"{BACKEND_URL}/datasets", timeout=30)
-        
-        end_time = time.time()
-        response_time = (end_time - start_time) * 1000  # Convert to milliseconds
-        
-        print(f"Response time: {response_time:.2f} ms")
+        print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
-            # Check if response is fast (should be much faster now without full data)
-            if response_time < 2000:  # 2 seconds threshold
-                print("✅ Response time is acceptable")
-                return True
+            data = response.json()
+            print("✅ Hyperparameter tuning endpoint working")
+            
+            # Verify expected response structure
+            expected_fields = ['best_params', 'best_score']
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if missing_fields:
+                print(f"⚠️  Missing expected fields: {missing_fields}")
+                print(f"   Available fields: {list(data.keys())}")
             else:
-                print(f"⚠️  Response time seems slow: {response_time:.2f} ms")
-                return True  # Still pass, but note the slowness
+                print("✅ All expected fields present:")
+                print(f"   - best_params: {data.get('best_params')}")
+                print(f"   - best_score: {data.get('best_score')}")
+            
+            return True
         else:
-            print(f"❌ Performance test failed: {response.status_code}")
+            print(f"❌ Hyperparameter tuning endpoint failed: {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error details: {error_data}")
+                
+                # Detailed error analysis for 500 errors
+                if response.status_code == 500:
+                    print("\n🔍 ROOT CAUSE ANALYSIS for 500 Error:")
+                    error_detail = error_data.get('detail', '')
+                    if 'column' in error_detail.lower():
+                        print("   - Likely issue: Column not found or invalid column name")
+                    elif 'data' in error_detail.lower():
+                        print("   - Likely issue: Data preprocessing or format problem")
+                    elif 'model' in error_detail.lower():
+                        print("   - Likely issue: Model training or configuration problem")
+                    else:
+                        print(f"   - Error message: {error_detail}")
+                
+            except:
+                print(f"   Error: {response.text}")
             return False
             
     except Exception as e:
-        print(f"❌ Performance test exception: {str(e)}")
+        print(f"❌ Hyperparameter tuning endpoint exception: {str(e)}")
         return False
 
 def test_execute_query_preview():
