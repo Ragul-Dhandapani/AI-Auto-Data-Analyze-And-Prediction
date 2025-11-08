@@ -17,20 +17,34 @@ const FeedbackPanel = ({ dataset, modelName }) => {
   const [feedbackList, setFeedbackList] = useState([]);
 
   useEffect(() => {
-    if (dataset && modelName) {
-      loadStats();
+    if (dataset) {
+      loadTrainingHistory();
     }
-  }, [dataset, modelName]);
+  }, [dataset]);
 
-  const loadStats = async () => {
+  const loadTrainingHistory = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get(
-        `${API}/feedback/stats/${dataset.id}/${encodeURIComponent(modelName)}`
-      );
-      setStats(response.data);
-      setFeedbackList(response.data.feedback_data || []);
+      // Load training metadata (training history) for this dataset
+      const response = await axios.get(`${API}/training/metadata?dataset_id=${dataset.id}`);
+      const trainingRuns = response.data.metadata || [];
+      
+      setFeedbackList(trainingRuns);
+      
+      // Calculate stats from training runs
+      const totalRuns = trainingRuns.length;
+      const avgAccuracy = totalRuns > 0 
+        ? trainingRuns.reduce((sum, run) => sum + (run.metrics?.accuracy || run.metrics?.r2_score || 0), 0) / totalRuns
+        : 0;
+      
+      setStats({
+        feedback_count: totalRuns,
+        correct_predictions: trainingRuns.filter(r => (r.metrics?.accuracy || r.metrics?.r2_score || 0) > 0.7).length,
+        incorrect_predictions: trainingRuns.filter(r => (r.metrics?.accuracy || r.metrics?.r2_score || 0) <= 0.7).length,
+        accuracy: avgAccuracy
+      });
     } catch (error) {
-      console.error('Failed to load feedback stats:', error);
+      console.error('Failed to load training history:', error);
       setStats({
         feedback_count: 0,
         correct_predictions: 0,
@@ -38,6 +52,8 @@ const FeedbackPanel = ({ dataset, modelName }) => {
         accuracy: null
       });
       setFeedbackList([]);
+    } finally {
+      setLoading(false);
     }
   };
 
