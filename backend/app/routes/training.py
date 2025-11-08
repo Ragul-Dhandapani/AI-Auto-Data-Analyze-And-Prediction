@@ -118,7 +118,7 @@ async def get_metadata_by_workspace():
                     
                     workspaces.append({
                         'workspace_name': ws_name,
-                        'created_at': ws_created.isoformat() if ws_created else None,
+                        'created_at': ws_created.isoformat() if hasattr(ws_created, 'isoformat') else str(ws_created) if ws_created else None,
                         'size_kb': ws_size,
                         'training_runs': training_runs,
                         'total_models': len(training_runs)
