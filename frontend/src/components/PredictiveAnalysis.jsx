@@ -428,25 +428,33 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         predictions: analysisResults.predictions
       } : null;
 
-      const response = await axios.post(`${API}/analysis/chat-action`, {
+      // Use enhanced chat endpoint for comprehensive features
+      const response = await axios.post(`${API}/enhanced-chat/message`, {
         dataset_id: dataset.id,
         message: userMsg,
         conversation_history: chatMessages.slice(-5).map(m => ({ role: m.role, content: m.content })),
-        current_analysis: simplifiedAnalysis
+        // Note: enhanced endpoint loads analysis_results internally if available
       });
 
-      // Check if response contains actions - show confirmation instead of auto-execute
-      if (response.data.action) {
+      // Handle enhanced chat response
+      const assistantMsg = { 
+        role: "assistant", 
+        content: response.data.response 
+      };
+      
+      // Check if action requires confirmation
+      if (response.data.action === 'chart' && response.data.requires_confirmation) {
+        // Chart creation with confirmation
+        assistantMsg.pendingAction = true;
+        assistantMsg.actionData = response.data;
         setPendingAction(response.data);
-        setChatMessages(prev => [...prev, { 
-          role: "assistant", 
-          content: response.data.message || "I can help with that!",
-          pendingAction: true,
-          actionData: response.data
-        }]);
-      } else {
-        setChatMessages(prev => [...prev, { role: "assistant", content: response.data.response }]);
+      } else if (response.data.action === 'chart') {
+        // Direct chart addition (no confirmation needed)
+        // This would be handled in visualization panel
+        assistantMsg.content = response.data.response;
       }
+      
+      setChatMessages(prev => [...prev, assistantMsg]);
     } catch (error) {
       console.error("Chat error:", error);
       console.error("Error response:", error.response?.data);
