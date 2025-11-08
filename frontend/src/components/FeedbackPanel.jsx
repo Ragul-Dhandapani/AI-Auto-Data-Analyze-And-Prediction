@@ -27,21 +27,39 @@ const FeedbackPanel = ({ dataset, modelName }) => {
     try {
       // Load training metadata (training history) for this dataset
       const response = await axios.get(`${API}/training/metadata?dataset_id=${dataset.id}`);
-      const trainingRuns = response.data.metadata || [];
+      const metadataList = response.data.metadata || [];
       
-      setFeedbackList(trainingRuns);
+      // Flatten the nested structure - extract all models from all datasets
+      const allModels = [];
+      metadataList.forEach(metadata => {
+        if (metadata.models_trained && Array.isArray(metadata.models_trained)) {
+          metadata.models_trained.forEach(model => {
+            allModels.push({
+              ...model,
+              dataset_name: metadata.dataset_name // Add dataset name for reference
+            });
+          });
+        }
+      });
       
-      // Calculate stats from training runs
-      const totalRuns = trainingRuns.length;
-      const avgAccuracy = totalRuns > 0 
-        ? trainingRuns.reduce((sum, run) => sum + (run.metrics?.accuracy || run.metrics?.r2_score || 0), 0) / totalRuns
-        : 0;
+      setFeedbackList(allModels);
+      
+      // Calculate stats from flattened models
+      const totalRuns = allModels.length;
+      let highPerf = 0;
+      let lowPerf = 0;
+      
+      allModels.forEach(model => {
+        const accuracy = model.metrics?.accuracy || model.metrics?.r2_score || 0;
+        if (accuracy > 0.7) highPerf++;
+        else if (accuracy > 0) lowPerf++;
+      });
       
       setStats({
         feedback_count: totalRuns,
-        correct_predictions: trainingRuns.filter(r => (r.metrics?.accuracy || r.metrics?.r2_score || 0) > 0.7).length,
-        incorrect_predictions: trainingRuns.filter(r => (r.metrics?.accuracy || r.metrics?.r2_score || 0) <= 0.7).length,
-        accuracy: avgAccuracy
+        correct_predictions: highPerf,
+        incorrect_predictions: lowPerf,
+        accuracy: totalRuns > 0 ? allModels.reduce((sum, m) => sum + (m.metrics?.accuracy || m.metrics?.r2_score || 0), 0) / totalRuns : 0
       });
     } catch (error) {
       console.error('Failed to load training history:', error);
