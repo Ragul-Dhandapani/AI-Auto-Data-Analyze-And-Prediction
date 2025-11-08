@@ -263,8 +263,8 @@ const DashboardPage = () => {
       setSaveProgress(40);
       toast.info("Preparing workspace data...");
       
-      // Make the API call
-      const response = await axios.post(`${API}/analysis/save-state`, {
+      // Prepare payload
+      const payload = {
         dataset_id: selectedDataset.id,
         state_name: stateName,
         analysis_data: {
@@ -273,6 +273,23 @@ const DashboardPage = () => {
           data_profiler: dataProfilerCache
         },
         chat_history: []
+      };
+      
+      // Check payload size (informational - backend will handle large data)
+      const payloadSize = new Blob([JSON.stringify(payload)]).size;
+      const sizeMB = (payloadSize / (1024 * 1024)).toFixed(2);
+      console.log(`📦 Workspace payload size: ${sizeMB} MB`);
+      
+      if (payloadSize > 10 * 1024 * 1024) {
+        // Large dataset (>10MB)
+        toast.info(`Processing large workspace (${sizeMB} MB)...`);
+      }
+      
+      // Make the API call - backend handles compression and storage
+      const response = await axios.post(`${API}/analysis/save-state`, payload, {
+        timeout: 120000, // 2 minute timeout for large datasets
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
       });
       
       setSaveProgress(80);
