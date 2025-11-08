@@ -557,3 +557,139 @@ async def get_recent_datasets(limit: int = 10):
         return {"datasets": datasets}
     except Exception as e:
         raise HTTPException(500, f"Error fetching datasets: {str(e)}")
+
+
+
+@router.post("/suggest-features")
+async def suggest_features(request: dict):
+    """
+    AI-powered feature suggestion for predictive analysis
+    
+    Request format:
+    {
+        "dataset_id": "string",
+        "columns": ["col1", "col2", ...],
+        "problem_type": "regression" | "classification" (optional)
+    }
+    """
+    try:
+        dataset_id = request.get("dataset_id")
+        columns = request.get("columns", [])
+        problem_type = request.get("problem_type")
+        
+        if not dataset_id or not columns:
+            raise HTTPException(400, "Missing required parameters: dataset_id and columns")
+        
+        # Simple heuristic-based feature suggestions
+        # Can be enhanced with AI in the future
+        
+        numeric_cols = []
+        categorical_cols = []
+        datetime_cols = []
+        
+        # Load dataset to analyze column types
+        try:
+            db_adapter = get_db()
+            dataset = await db_adapter.get_dataset(dataset_id)
+            
+            if not dataset:
+                raise HTTPException(404, "Dataset not found")
+            
+            # Load data to infer types
+            import numpy as np
+            from app.routes.analysis import load_dataframe
+            
+            df = await load_dataframe(dataset_id)
+            
+            for col in columns:
+                if col in df.columns:
+                    dtype = df[col].dtype
+                    
+                    if pd.api.types.is_numeric_dtype(dtype):
+                        numeric_cols.append(col)
+                    elif pd.api.types.is_datetime64_any_dtype(dtype):
+                        datetime_cols.append(col)
+                    else:
+                        # Check if it's low cardinality (likely categorical)
+                        unique_ratio = df[col].nunique() / len(df)
+                        if unique_ratio < 0.05:  # Less than 5% unique values
+                            categorical_cols.append(col)
+                        else:
+                            categorical_cols.append(col)
+            
+            # Generate suggestions based on problem type
+            suggestions = {
+                "recommended_target": None,
+                "recommended_features": [],
+                "feature_groups": {
+                    "numeric": numeric_cols,
+                    "categorical": categorical_cols,
+                    "datetime": datetime_cols
+                },
+                "suggestions": []
+            }
+            
+            # Suggest target based on problem type
+            if problem_type == "classification":
+                # Prefer categorical columns with reasonable cardinality
+                categorical_targets = [c for c in categorical_cols if 2 <= df[c].nunique() <= 20]
+                if categorical_targets:
+                    suggestions["recommended_target"] = categorical_targets[0]
+                    suggestions["suggestions"].append(
+                        f"Recommended target: '{categorical_targets[0]}' (categorical with {df[categorical_targets[0]].nunique()} classes)"
+                    )
+            elif problem_type == "regression":
+                # Prefer numeric columns
+                if numeric_cols:
+                    suggestions["recommended_target"] = numeric_cols[-1]
+                    suggestions["suggestions"].append(
+                        f"Recommended target: '{numeric_cols[-1]}' (numeric)"
+                    )
+            
+            # Suggest features (all columns except target)
+            if suggestions["recommended_target"]:
+                suggestions["recommended_features"] = [
+                    c for c in columns if c != suggestions["recommended_target"]
+                ]
+            else:
+                suggestions["recommended_features"] = columns
+            
+            # Add general suggestions
+            if datetime_cols:
+                suggestions["suggestions"].append(
+                    f"Consider extracting features from datetime columns: {', '.join(datetime_cols)}"
+                )
+            
+            if len(categorical_cols) > 0:
+                suggestions["suggestions"].append(
+                    f"Categorical columns may need encoding: {', '.join(categorical_cols[:3])}"
+                )
+            
+            return {
+                "success": True,
+                "suggestions": suggestions
+            }
+            
+        except Exception as e:
+            # Fallback to simple type-based suggestions without loading data
+            return {
+                "success": True,
+                "suggestions": {
+                    "recommended_target": columns[-1] if columns else None,
+                    "recommended_features": columns[:-1] if len(columns) > 1 else [],
+                    "feature_groups": {
+                        "numeric": [],
+                        "categorical": [],
+                        "datetime": []
+                    },
+                    "suggestions": [
+                        "Unable to analyze column types. Please select target and features manually."
+                    ]
+                }
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Error suggesting features: {str(e)}")
+
