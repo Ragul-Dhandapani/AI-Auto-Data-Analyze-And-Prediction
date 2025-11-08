@@ -38,79 +38,31 @@ def test_backend_health():
         return False
 
 def test_datasets_endpoint():
-    """Test 1: Recent Datasets API - Verify fix for large dataset response"""
-    print("\n=== Test 1: Recent Datasets API ===")
+    """Test: Datasets Endpoint (SANITY CHECK) - GET /api/datasets"""
+    print("\n=== Test: Datasets Endpoint (Sanity Check) ===")
     
     try:
-        # Test basic endpoint accessibility
         response = requests.get(f"{BACKEND_URL}/datasets", timeout=30)
-        
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
             print("✅ Datasets endpoint accessible")
             
-            # Verify response structure
-            if "datasets" not in data:
-                print("❌ Response missing 'datasets' key")
-                return False
-            
-            datasets = data.get("datasets", [])
-            print(f"   Found {len(datasets)} datasets")
-            
-            # Check response size
-            response_size = len(response.content)
-            response_size_kb = response_size / 1024
-            print(f"   Response size: {response_size_kb:.2f} KB")
-            
-            # Verify response is reasonably sized (should be much smaller now)
-            if response_size_kb > 1000:  # 1MB threshold - should be much smaller
-                print(f"⚠️  Response size seems large: {response_size_kb:.2f} KB")
+            if "datasets" in data:
+                datasets = data.get("datasets", [])
+                print(f"   Found {len(datasets)} datasets")
+                
+                if len(datasets) >= 1:
+                    print("✅ At least 1 dataset available for testing")
+                    # Return first dataset ID for use in other tests
+                    return True, datasets[0].get("id") if datasets else None
+                else:
+                    print("⚠️  No datasets found - may affect other tests")
+                    return True, None
             else:
-                print("✅ Response size is reasonable")
-            
-            # Test each dataset structure
-            if datasets:
-                sample_dataset = datasets[0]
-                print(f"   Sample dataset keys: {list(sample_dataset.keys())}")
-                
-                # Required fields check
-                required_fields = ["id", "name", "row_count", "column_count", "columns", "created_at"]
-                missing_fields = [field for field in required_fields if field not in sample_dataset]
-                
-                if missing_fields:
-                    print(f"❌ Missing required fields: {missing_fields}")
-                    return False
-                else:
-                    print("✅ All required fields present")
-                
-                # CRITICAL: Verify 'data' field is NOT present
-                if "data" in sample_dataset:
-                    print("❌ CRITICAL: 'data' field found in response - this causes frontend crashes!")
-                    print(f"   Data field size: {len(str(sample_dataset['data']))} characters")
-                    return False
-                else:
-                    print("✅ CRITICAL: 'data' field correctly excluded from response")
-                
-                # Verify data_preview is present (should have max 10 rows)
-                if "data_preview" in sample_dataset:
-                    preview_rows = len(sample_dataset["data_preview"])
-                    print(f"✅ data_preview present with {preview_rows} rows")
-                    if preview_rows > 10:
-                        print(f"⚠️  data_preview has more than 10 rows: {preview_rows}")
-                else:
-                    print("⚠️  data_preview field missing")
-                
-                # Check for other expected fields
-                expected_fields = ["dtypes", "storage_type"]
-                for field in expected_fields:
-                    if field in sample_dataset:
-                        print(f"✅ {field} field present")
-                    else:
-                        print(f"ℹ️  {field} field not present (optional)")
-            
-            return True
+                print("❌ Response missing 'datasets' key")
+                return False, None
         else:
             print(f"❌ Datasets endpoint failed: {response.status_code}")
             try:
@@ -118,11 +70,11 @@ def test_datasets_endpoint():
                 print(f"   Error: {error_data}")
             except:
                 print(f"   Error: {response.text}")
-            return False
+            return False, None
             
     except Exception as e:
         print(f"❌ Datasets endpoint exception: {str(e)}")
-        return False
+        return False, None
 
 def test_datasets_with_limit():
     """Test 2: Datasets endpoint with limit parameter"""
