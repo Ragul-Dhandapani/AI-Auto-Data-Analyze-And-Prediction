@@ -2969,3 +2969,298 @@ Verify that the RecursionError fix, Plotly serialization fix, and confirmation w
 
 **Status**: ⚠️ **RECOMMEND MINOR FIXES** before migration, or migrate with known limitations
 
+
+---
+
+## 🧪 FINAL VERIFICATION - ALL 4 FIXES + ORACLE PRIMARY - Nov 8, 2025
+
+### Testing Agent: Enhanced Chat Final Verification
+**Test Time**: 2025-11-08T13:08:38
+**Backend URL**: https://ai-insight-hub-3.preview.emergentagent.com/api
+**Database Active**: MongoDB (Oracle configured but empty)
+**Tests Performed**: 7 comprehensive tests (4 fixes + 3 regression tests)
+**Overall Result**: ❌ 4/7 TESTS PASSED (57.1% Success Rate)
+
+### Test Environment
+- Oracle configured as primary in .env (DB_TYPE="oracle")
+- Oracle database empty - no datasets available
+- Testing performed with MongoDB data (where datasets exist)
+- Frontend updated to use enhanced-chat endpoint
+
+### ❌ FAILED TESTS (3/7)
+
+#### Test 1.1: Model Interaction - Prediction Target (No Models) ❌ FAIL
+**Message**: "what am i predicting?"
+**Expected**: "❌ **No models have been trained yet.**\n\nTo see prediction targets, please:\n1. Go to the Predictive Analysis tab..."
+**Actual**: General Azure OpenAI response about what could be predicted
+**Status**: ❌ FAIL
+
+**Response Received**:
+```
+Based on the context of your dataset, it appears you are predicting outcomes 
+related to service or system performance. Specifically, you could be predicting 
+one of the following:
+
+### 1. **Latency (`latency_ms`)** ...
+```
+
+**Root Cause**: 
+- Code checks `if analysis_results:` on line 93 BEFORE handling model queries
+- When `analysis_results` is None (no models trained), it skips model handlers
+- Falls through to `_handle_general_query()` which uses Azure OpenAI
+- The correct "No models trained" message exists in `_handle_target_info()` but is never called
+
+**Fix Required**:
+```python
+# CURRENT (WRONG):
+if analysis_results:
+    if any(keyword in message_lower for keyword in ['prediction target', 'target variable', 'what am i predicting']):
+        return await self._handle_target_info(analysis_results)
+
+# SHOULD BE:
+if any(keyword in message_lower for keyword in ['prediction target', 'target variable', 'what am i predicting']):
+    return await self._handle_target_info(analysis_results)  # Handler checks if analysis_results is None
+```
+
+#### Test 1.2: Model Interaction - Model Metrics (No Models) ❌ FAIL
+**Message**: "show model metrics"
+**Expected**: "❌ **No models have been trained yet.**\n\nTo see model performance metrics..."
+**Actual**: General response about metrics
+**Status**: ❌ FAIL
+
+**Response Received**:
+```
+To evaluate the performance of a model, metrics such as accuracy, precision, 
+recall, F1-score, ROC-AUC, mean squared error (MSE), and other domain-specific 
+metrics are commonly used...
+```
+
+**Root Cause**: Same as Test 1.1 - model keyword checks are inside `if analysis_results:` block
+
+**Fix Required**: Same as Test 1.1 - move keyword checks outside the conditional
+
+#### Test 2.1: Chart Invalid Column ❌ FAIL
+**Message**: "create chart for nonexistent_column_xyz"
+**Expected**: action='error', message includes "Column(s) not found", shows available columns
+**Actual**: action='chart' - created a chart anyway
+**Status**: ❌ FAIL
+
+**Response Received**:
+```
+Action: chart
+Response: ✅ Created scatter chart successfully!
+
+**Do you want to append this chart to the dashboard?**
+```
+
+**Root Cause**: 
+- Chart creation handler doesn't validate column names before creating charts
+- Should check if requested columns exist in dataset
+- Should return error action with available columns list
+
+**Fix Required**:
+```python
+# In _handle_chart_creation():
+# 1. Parse column names from message
+# 2. Validate columns exist in dataset.columns
+# 3. If invalid, return:
+{
+    'action': 'error',
+    'response': f"❌ Column(s) not found: {invalid_cols}\n\nAvailable columns:\n{', '.join(dataset.columns)}"
+}
+```
+
+### ✅ PASSED TESTS (4/7)
+
+#### Test 2.2: Statistics Invalid Column ✅ PASS
+**Message**: "show statistics for invalid_col_999"
+**Expected**: Either error with available columns OR general statistics (both acceptable)
+**Actual**: Provided general statistics (acceptable fallback)
+**Status**: ✅ PASS
+
+**Response**:
+```
+📊 **Dataset Statistics Summary**
+
+**Numeric Columns:** 5
+
+• **latency_ms:** Mean = 143.28, Std = 108.69
+• **status_code:** Mean = 204.74, Std = 32.85
+...
+```
+
+#### Test 3.1: Chart Creation Working ✅ PASS
+**Message**: "create a scatter plot"
+**Expected**: action='chart', requires_confirmation=true
+**Actual**: action='chart', requires_confirmation=True
+**Status**: ✅ PASS
+
+#### Test 3.2: Dataset Awareness ✅ PASS
+**Message**: "show columns"
+**Expected**: Lists columns with numeric/categorical breakdown
+**Actual**: Lists all 13 columns with proper categorization
+**Status**: ✅ PASS
+
+**Response**:
+```
+📊 **Dataset Columns (13 total)**
+
+**Numeric columns (5):**
+latency_ms, status_code, payload_size_kb, cpu_utilization, memory_usage_mb
+
+**Categorical columns (7):**
+timestamp, service_name, endpoint, region, instance_id, user_id, trace_id
+```
+
+#### Test 3.3: Natural Language ✅ PASS
+**Message**: "columns" (short query)
+**Expected**: Same result as "show columns"
+**Actual**: Same result as "show columns"
+**Status**: ✅ PASS
+
+### 📊 TEST SUMMARY
+
+| Category | Test | Status |
+|----------|------|--------|
+| Fix 1 | Model Interaction - Prediction Target | ❌ FAIL |
+| Fix 1 | Model Interaction - Model Metrics | ❌ FAIL |
+| Fix 2 | Chart Invalid Column | ❌ FAIL |
+| Fix 3 | Statistics Invalid Column | ✅ PASS |
+| Regression | Chart Creation Working | ✅ PASS |
+| Regression | Dataset Awareness | ✅ PASS |
+| Regression | Natural Language | ✅ PASS |
+
+**Overall**: 4/7 tests passed (57.1%)
+
+### 🔍 CRITICAL ISSUES IDENTIFIED
+
+#### Issue 1: Model Interaction Messaging NOT WORKING ⚠️ HIGH PRIORITY
+**Severity**: HIGH (Blocks 2/7 tests)
+**Affected Tests**: Test 1.1, Test 1.2
+
+**Problem**: 
+When users ask about models/predictions without having trained any models, they get generic Azure OpenAI responses instead of clear guidance to train models first.
+
+**Root Cause**:
+```python
+# File: /app/backend/app/services/enhanced_chat_service.py
+# Lines 93-107
+
+# CURRENT LOGIC (WRONG):
+if analysis_results:  # ← This is the problem
+    if any(keyword in message_lower for keyword in ['prediction target', ...]):
+        return await self._handle_target_info(analysis_results)
+    
+    if any(keyword in message_lower for keyword in ['metrics', ...]):
+        return await self._handle_metrics(analysis_results)
+```
+
+When `analysis_results` is None, the code skips these handlers entirely and falls through to `_handle_general_query()`.
+
+**Solution**:
+Move keyword checks OUTSIDE the `if analysis_results:` block. The handlers already have logic to check if analysis_results is None and return appropriate "No models trained" messages.
+
+```python
+# CORRECT LOGIC:
+# Check for model-related keywords FIRST
+if any(keyword in message_lower for keyword in ['prediction target', 'target variable', 'what am i predicting']):
+    return await self._handle_target_info(analysis_results)  # Handler checks None internally
+
+if any(keyword in message_lower for keyword in ['metrics', 'accuracy', 'performance', 'r2', 'rmse']):
+    return await self._handle_metrics(analysis_results)  # Handler checks None internally
+
+# ... other model handlers ...
+
+# Then check if analysis_results exists for other features
+if analysis_results:
+    # Other analysis-dependent features
+    pass
+```
+
+**Impact**: Users get confusing responses when asking about models before training them.
+
+#### Issue 2: Chart Column Validation NOT WORKING ⚠️ HIGH PRIORITY
+**Severity**: HIGH (Blocks 1/7 tests)
+**Affected Tests**: Test 2.1
+
+**Problem**:
+When users request charts with non-existent columns, the system creates charts anyway instead of showing an error with available columns.
+
+**Root Cause**:
+The `_handle_chart_creation()` method doesn't validate column names before attempting to create charts.
+
+**Solution**:
+Add column validation in chart creation handler:
+
+```python
+async def _handle_chart_creation(self, dataset, message, analysis_results):
+    # Parse column names from message
+    requested_cols = self._extract_column_names(message, dataset.columns)
+    
+    # Validate columns exist
+    invalid_cols = [col for col in requested_cols if col not in dataset.columns]
+    
+    if invalid_cols:
+        return {
+            'action': 'error',
+            'response': f"❌ **Column(s) not found:** {', '.join(invalid_cols)}\n\n**Available columns:**\n{', '.join(dataset.columns)}",
+            'data': {},
+            'requires_confirmation': False,
+            'suggestions': ['Show columns', 'Show statistics', 'Create valid chart']
+        }
+    
+    # Proceed with chart creation...
+```
+
+**Impact**: Users can create charts with invalid columns, leading to errors or unexpected behavior.
+
+### 📋 TECHNICAL VERIFICATION
+
+#### Database Status
+- ✅ Oracle configured as primary (DB_TYPE="oracle" in .env)
+- ⚠️  Oracle database empty (no datasets)
+- ✅ MongoDB has datasets (testing performed with MongoDB)
+- ✅ Database switching working correctly
+
+#### API Endpoints
+- ✅ POST `/api/enhanced-chat/message` - Accessible and responding
+- ✅ GET `/api/config/current-database` - Working
+- ✅ GET `/api/datasets` - Working
+
+#### Response Format
+- ✅ Consistent response structure across all tests
+- ✅ Proper action types: 'message', 'chart', 'error'
+- ✅ Suggestions provided in all responses
+- ✅ requires_confirmation flag working
+
+### 🎯 FINAL ASSESSMENT
+
+**READY FOR PRODUCTION: ❌ NO**
+
+**Reasons**:
+1. ❌ Only 4/7 tests passed (57.1%)
+2. ❌ Fix 1 (Model Interaction Messaging) NOT WORKING - 2 tests failed
+3. ❌ Fix 2 (Chart Column Validation) NOT WORKING - 1 test failed
+4. ✅ Fix 3 (Statistics Column Validation) WORKING - 1 test passed
+5. ✅ No regression in other features - 3 tests passed
+
+**Critical Blockers**:
+1. Model interaction messaging when no models trained (HIGH PRIORITY)
+2. Chart column validation (HIGH PRIORITY)
+
+**What's Working**:
+- ✅ Dataset awareness (columns, statistics)
+- ✅ Natural language understanding
+- ✅ Chart creation with valid columns
+- ✅ Statistics fallback for invalid columns
+- ✅ Response format consistency
+
+**Recommendation**:
+Main agent must fix the 2 critical issues before this can be considered production-ready:
+1. Move model-related keyword checks outside `if analysis_results:` block
+2. Add column validation in chart creation handler
+
+Once these fixes are applied, re-test all 7 scenarios to verify 100% pass rate.
+
+---
+
