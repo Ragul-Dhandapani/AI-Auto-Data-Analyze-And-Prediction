@@ -445,11 +445,14 @@ def main():
     print("\n" + "="*80)
     print("🎯 FINAL ASSESSMENT")
     print("="*80)
+    print(f"Database Used: {current_db}")
+    print(f"Oracle Configured: {current_db == 'oracle'}")
+    print()
     
     if success_rate == 100:
         print("✅ READY FOR PRODUCTION: YES")
         print("   All 7 tests passed (100%)")
-        print("   Oracle database active and working")
+        print(f"   Database active: {current_db}")
         print("   All 4 fixes verified successfully")
     elif success_rate >= 85:
         print("⚠️  READY FOR PRODUCTION: MOSTLY")
