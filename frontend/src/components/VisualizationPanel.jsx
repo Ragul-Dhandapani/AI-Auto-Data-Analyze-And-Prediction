@@ -291,21 +291,44 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate, variableSele
     setChatLoading(true);
 
     try {
-      const response = await axios.post(`${API}/analysis/chat-action`, {
+      // Use enhanced chat endpoint for better features
+      const response = await axios.post(`${API}/enhanced-chat/message`, {
         dataset_id: dataset.id,
         message: chatInput,
         conversation_history: chatMessages
       });
 
-      const assistantMsg = { role: 'assistant', content: response.data.message || response.data.response };
+      const assistantMsg = { role: 'assistant', content: response.data.response };
       setChatMessages(prev => [...prev, assistantMsg]);
 
-      // Handle chart additions - FIXED to properly detect chart responses
-      if (response.data.type === 'chart' && response.data.data && response.data.layout) {
-        // Convert backend format to frontend format
+      // Handle chart creation from enhanced endpoint
+      if (response.data.action === 'chart' && response.data.data) {
+        // Enhanced endpoint returns proper Plotly JSON format
+        const chartData = {
+          title: response.data.data.layout?.title?.text || "Custom Chart",
+          type: "custom",
+          plotly_data: response.data.data,
+          description: response.data.response || "Chart created from chat"
+        };
+        
+        // Check if confirmation required
+        if (response.data.requires_confirmation) {
+          // Ask user for confirmation
+          const confirmed = window.confirm(response.data.response);
+          if (confirmed) {
+            setCustomCharts(prev => [...prev, chartData]);
+            toast.success("Chart added to visualization panel!");
+          }
+        } else {
+          setCustomCharts(prev => [...prev, chartData]);
+          toast.success("Chart added!");
+        }
+      }
+      // Legacy support for old format (fallback)
+      else if (response.data.type === 'chart' && response.data.data && response.data.layout) {
         const chartData = {
           title: response.data.layout.title || "Custom Chart",
-          type: response.data.chart_type || "custom",
+          type: "custom",
           plotly_data: {
             data: response.data.data,
             layout: response.data.layout
@@ -314,19 +337,6 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate, variableSele
         };
         setCustomCharts(prev => [...prev, chartData]);
         toast.success("Chart added to visualization panel!");
-      }
-      // Legacy support for old format
-      else if (response.data.action === 'add_chart' && response.data.chart_data) {
-        setCustomCharts(prev => [...prev, response.data.chart_data]);
-        toast.success("Chart added!");
-      }
-
-      // Handle chart removal
-      if (response.data.action === 'remove_section') {
-        if (response.data.section_to_remove === 'custom_chart' && customCharts.length > 0) {
-          setCustomCharts(prev => prev.slice(0, -1));
-          toast.success("Chart removed!");
-        }
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || error.message;
