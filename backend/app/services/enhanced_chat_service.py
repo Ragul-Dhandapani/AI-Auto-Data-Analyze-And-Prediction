@@ -201,8 +201,16 @@ class EnhancedChatService:
         # Check if specific column mentioned
         columns = list(dataset.columns)
         target_col = None
+        
+        # Try to find mentioned column name in message
         for col in columns:
+            # Exact match (case-insensitive)
             if col.lower() in message.lower():
+                target_col = col
+                break
+            # Match with spaces instead of underscores
+            col_spaced = col.lower().replace('_', ' ')
+            if col_spaced in message.lower():
                 target_col = col
                 break
         
