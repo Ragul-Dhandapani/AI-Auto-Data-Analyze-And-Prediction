@@ -388,6 +388,7 @@ def main():
         return False
     
     print(f"\n📊 Testing with dataset: {dataset_id}")
+    print(f"   Database: {current_db}")
     print(f"   Available columns: {len(columns)}")
     
     # Run all tests
