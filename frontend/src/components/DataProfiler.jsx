@@ -29,6 +29,7 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
   const [dataFilter, setDataFilter] = useState('');
   const [selectedColumns, setSelectedColumns] = useState([]);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
+  const [columnFilters, setColumnFilters] = useState({}); // Per-column filters
 
   useEffect(() => {
     if (dataset && dataset.id) {
