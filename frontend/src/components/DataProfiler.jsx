@@ -662,11 +662,22 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
                   {selectedColumns.length > 0 && dataset.data_preview && dataset.data_preview.length > 0 ? (
                     dataset.data_preview
                       .filter(row => {
-                        if (!dataFilter) return true;
-                        // Search in all selected columns
-                        return selectedColumns.some(col => 
+                        // Global filter
+                        if (dataFilter && !selectedColumns.some(col => 
                           String(row[col] || '').toLowerCase().includes(dataFilter.toLowerCase())
-                        );
+                        )) {
+                          return false;
+                        }
+                        
+                        // Per-column filters
+                        for (const col of selectedColumns) {
+                          const colFilter = columnFilters[col];
+                          if (colFilter && !String(row[col] || '').toLowerCase().includes(colFilter.toLowerCase())) {
+                            return false;
+                          }
+                        }
+                        
+                        return true;
                       })
                       .map((row, idx) => (
                         <tr key={idx} className="border-b hover:bg-gray-50">
