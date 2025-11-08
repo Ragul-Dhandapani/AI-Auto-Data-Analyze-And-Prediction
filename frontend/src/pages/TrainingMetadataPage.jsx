@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight, Database, FolderOpen, TrendingUp, Clock, Award, Download, Loader, Search, Filter, RefreshCw, X, BarChart3, Calendar, ArrowUpDown, CheckCircle2, Settings, GitCompare } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import Plot from 'react-plotly.js';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
