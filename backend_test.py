@@ -14,18 +14,27 @@ from datetime import datetime
 # Get backend URL from environment
 BACKEND_URL = "https://ai-insight-hub-4.preview.emergentagent.com/api"
 
-def test_api_health():
-    """Test if the API is running"""
+def test_backend_health():
+    """Test: Backend Health - Verify backend is running and responsive"""
+    print("\n=== Test: Backend Health ===")
+    
     try:
+        # Test basic health endpoint
         response = requests.get(f"{BACKEND_URL}/", timeout=10)
-        print(f"✅ API Health Check: {response.status_code}")
+        print(f"Status Code: {response.status_code}")
+        
         if response.status_code == 200:
             data = response.json()
+            print("✅ Backend is running and responsive")
             print(f"   Version: {data.get('version', 'Unknown')}")
             print(f"   Status: {data.get('status', 'Unknown')}")
-        return response.status_code == 200
+            return True
+        else:
+            print(f"❌ Backend health check failed: {response.status_code}")
+            return False
+            
     except Exception as e:
-        print(f"❌ API Health Check Failed: {str(e)}")
+        print(f"❌ Backend health check exception: {str(e)}")
         return False
 
 def test_datasets_endpoint():
