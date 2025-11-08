@@ -219,16 +219,23 @@ const TrainingMetadataPage = () => {
   const exportToCSV = (dataset) => {
     // Export training history as CSV
     const rows = [];
-    rows.push(['Dataset', 'Workspace', 'Model Type', 'Target', 'Accuracy', 'Duration', 'Date']);
+    rows.push(['Dataset', 'Workspace', 'Model Type', 'Target', 'Problem Type', 'Accuracy/R²', 'Precision', 'Recall', 'F1', 'RMSE', 'MAE', 'Duration', 'Date']);
     
     dataset.workspaces.forEach(workspace => {
       workspace.training_runs.forEach(run => {
+        const metrics = getAllMetrics(run.metrics);
         rows.push([
           dataset.dataset_name,
           workspace.workspace_name,
           run.model_type,
           run.target_variable,
+          run.problem_type || 'N/A',
           getMetricDisplay(run.metrics),
+          metrics.precision?.toFixed(3) || 'N/A',
+          metrics.recall?.toFixed(3) || 'N/A',
+          metrics.f1_score?.toFixed(3) || 'N/A',
+          metrics.rmse?.toFixed(3) || 'N/A',
+          metrics.mae?.toFixed(3) || 'N/A',
           `${run.training_duration}s`,
           run.created_at
         ]);
@@ -243,6 +250,29 @@ const TrainingMetadataPage = () => {
     a.download = `${dataset.dataset_name}_training_history.csv`;
     a.click();
     toast.success('Training history exported!');
+  };
+  
+  const toggleRunSelection = (run, datasetName, workspaceName) => {
+    const runKey = `${run.id}-${run.model_type}`;
+    const existing = selectedRuns.find(r => `${r.id}-${r.model_type}` === runKey);
+    
+    if (existing) {
+      setSelectedRuns(selectedRuns.filter(r => `${r.id}-${r.model_type}` !== runKey));
+    } else {
+      setSelectedRuns([...selectedRuns, { ...run, _dataset: datasetName, _workspace: workspaceName }]);
+    }
+  };
+  
+  const isRunSelected = (run) => {
+    const runKey = `${run.id}-${run.model_type}`;
+    return selectedRuns.some(r => `${r.id}-${r.model_type}` === runKey);
+  };
+  
+  const toggleRunDetails = (runKey) => {
+    setExpandedRunDetails(prev => ({
+      ...prev,
+      [runKey]: !prev[runKey]
+    }));
   };
 
   // Calculate summary stats
