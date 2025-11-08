@@ -757,6 +757,210 @@ const TrainingMetadataPage = () => {
           ))
         )}
       </div>
+      
+      {/* Comparison Modal */}
+      {showComparisonModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-lg max-w-7xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <GitCompare className="w-6 h-6 text-blue-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Model Comparison</h2>
+                <span className="text-sm text-gray-600">({selectedRuns.length} models)</span>
+              </div>
+              <Button onClick={() => setShowComparisonModal(false)} variant="ghost">
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6">
+              {/* Comparison Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-3 text-left text-sm font-semibold text-gray-700 border">Attribute</th>
+                      {selectedRuns.map((run, idx) => (
+                        <th key={idx} className="p-3 text-left text-sm font-semibold text-gray-700 border">
+                          Model {idx + 1}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="p-3 font-medium text-gray-700 border bg-gray-50">Dataset</td>
+                      {selectedRuns.map((run, idx) => (
+                        <td key={idx} className="p-3 text-sm border">{run._dataset}</td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-medium text-gray-700 border bg-gray-50">Workspace</td>
+                      {selectedRuns.map((run, idx) => (
+                        <td key={idx} className="p-3 text-sm border">{run._workspace}</td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-medium text-gray-700 border bg-gray-50">Model Type</td>
+                      {selectedRuns.map((run, idx) => (
+                        <td key={idx} className="p-3 text-sm border font-semibold">{run.model_type}</td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-medium text-gray-700 border bg-gray-50">Problem Type</td>
+                      {selectedRuns.map((run, idx) => (
+                        <td key={idx} className="p-3 text-sm border">
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
+                            {run.problem_type || 'N/A'}
+                          </span>
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-medium text-gray-700 border bg-gray-50">Target Variable</td>
+                      {selectedRuns.map((run, idx) => (
+                        <td key={idx} className="p-3 text-sm border">{run.target_variable}</td>
+                      ))}
+                    </tr>
+                    <tr className="bg-yellow-50">
+                      <td className="p-3 font-medium text-gray-700 border">Primary Metric</td>
+                      {selectedRuns.map((run, idx) => {
+                        const metric = run.metrics?.accuracy || run.metrics?.r2_score;
+                        return (
+                          <td key={idx} className={`p-3 text-lg font-bold border ${getMetricColor(run.metrics)}`}>
+                            {metric ? (metric * 100).toFixed(2) + '%' : 'N/A'}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                    
+                    {/* Classification Metrics */}
+                    {selectedRuns.some(r => r.metrics?.accuracy !== undefined) && (
+                      <>
+                        <tr>
+                          <td className="p-3 font-medium text-gray-700 border bg-gray-50">Precision</td>
+                          {selectedRuns.map((run, idx) => {
+                            const m = getAllMetrics(run.metrics);
+                            return (
+                              <td key={idx} className="p-3 text-sm border">
+                                {m.precision !== undefined ? (m.precision * 100).toFixed(2) + '%' : 'N/A'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-medium text-gray-700 border bg-gray-50">Recall</td>
+                          {selectedRuns.map((run, idx) => {
+                            const m = getAllMetrics(run.metrics);
+                            return (
+                              <td key={idx} className="p-3 text-sm border">
+                                {m.recall !== undefined ? (m.recall * 100).toFixed(2) + '%' : 'N/A'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-medium text-gray-700 border bg-gray-50">F1 Score</td>
+                          {selectedRuns.map((run, idx) => {
+                            const m = getAllMetrics(run.metrics);
+                            return (
+                              <td key={idx} className="p-3 text-sm border">
+                                {m.f1_score !== undefined ? (m.f1_score * 100).toFixed(2) + '%' : 'N/A'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      </>
+                    )}
+                    
+                    {/* Regression Metrics */}
+                    {selectedRuns.some(r => r.metrics?.r2_score !== undefined) && (
+                      <>
+                        <tr>
+                          <td className="p-3 font-medium text-gray-700 border bg-gray-50">RMSE</td>
+                          {selectedRuns.map((run, idx) => {
+                            const m = getAllMetrics(run.metrics);
+                            return (
+                              <td key={idx} className="p-3 text-sm border">
+                                {m.rmse !== undefined ? m.rmse.toFixed(4) : 'N/A'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-medium text-gray-700 border bg-gray-50">MAE</td>
+                          {selectedRuns.map((run, idx) => {
+                            const m = getAllMetrics(run.metrics);
+                            return (
+                              <td key={idx} className="p-3 text-sm border">
+                                {m.mae !== undefined ? m.mae.toFixed(4) : 'N/A'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      </>
+                    )}
+                    
+                    <tr>
+                      <td className="p-3 font-medium text-gray-700 border bg-gray-50">Training Duration</td>
+                      {selectedRuns.map((run, idx) => (
+                        <td key={idx} className="p-3 text-sm border">
+                          {run.training_duration ? run.training_duration.toFixed(2) + 's' : 'N/A'}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-medium text-gray-700 border bg-gray-50">Trained At</td>
+                      {selectedRuns.map((run, idx) => (
+                        <td key={idx} className="p-3 text-sm border">{formatDate(run.created_at)}</td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Performance Comparison Chart */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-4">Performance Comparison</h3>
+                <Plot
+                  data={[
+                    {
+                      x: selectedRuns.map((r, i) => `Model ${i + 1}: ${r.model_type}`),
+                      y: selectedRuns.map(r => {
+                        const metric = r.metrics?.accuracy || r.metrics?.r2_score || 0;
+                        return (metric * 100).toFixed(2);
+                      }),
+                      type: 'bar',
+                      marker: {
+                        color: selectedRuns.map(r => {
+                          const metric = r.metrics?.accuracy || r.metrics?.r2_score || 0;
+                          if (metric >= 0.8) return '#16a34a';
+                          if (metric >= 0.6) return '#ca8a04';
+                          return '#dc2626';
+                        })
+                      },
+                      text: selectedRuns.map(r => {
+                        const metric = r.metrics?.accuracy || r.metrics?.r2_score || 0;
+                        return `${(metric * 100).toFixed(2)}%`;
+                      }),
+                      textposition: 'auto',
+                    }
+                  ]}
+                  layout={{
+                    title: 'Model Performance Comparison',
+                    xaxis: { title: 'Models' },
+                    yaxis: { title: 'Accuracy/R² Score (%)' },
+                    height: 400,
+                    showlegend: false
+                  }}
+                  config={{ responsive: true }}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
