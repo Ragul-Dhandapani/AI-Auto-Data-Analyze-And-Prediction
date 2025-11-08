@@ -414,6 +414,44 @@ class EnhancedChatService:
                     'suggestions': []
                 }
             
+            # Check if message explicitly mentions a column name that doesn't exist
+            # This catches "create chart for nonexistent_column" type requests
+            all_columns = list(dataset.columns)
+            message_words = message.lower().split()
+            
+            # Look for words that might be column names (alphanumeric with underscores)
+            import re
+            potential_columns = re.findall(r'\b[a-z_][a-z0-9_]*\b', message.lower())
+            
+            # Check if any potential column name is explicitly mentioned but doesn't exist
+            mentioned_invalid_cols = []
+            for pot_col in potential_columns:
+                # Skip common words
+                if pot_col in ['create', 'chart', 'plot', 'show', 'for', 'the', 'and', 'with', 'from', 'data']:
+                    continue
+                # Check if it looks like a column name but doesn't exist
+                if len(pot_col) > 4 and '_' in pot_col:  # Likely a column name format
+                    if not any(pot_col in col.lower() for col in all_columns):
+                        mentioned_invalid_cols.append(pot_col)
+            
+            # If invalid columns detected, return error early
+            if mentioned_invalid_cols and len(mentioned_invalid_cols) < 3:  # Avoid false positives
+                available_display = ', '.join(all_columns[:15])
+                if len(all_columns) > 15:
+                    available_display += f" ... and {len(all_columns) - 15} more"
+                
+                return {
+                    'response': f"❌ **Column(s) not found:** {', '.join(mentioned_invalid_cols)}\n\n**Available columns ({len(all_columns)} total):**\n{available_display}\n\nTip: Use exact column names (case-sensitive) or ask me to 'show all columns'.",
+                    'action': 'error',
+                    'data': {'available_columns': all_columns, 'mentioned_columns': mentioned_invalid_cols},
+                    'requires_confirmation': False,
+                    'suggestions': [
+                        'Show all column names',
+                        f'Create chart with {all_columns[0] if all_columns else "first column"}',
+                        'Check available columns'
+                    ]
+                }
+            
             # Parse chart request (uses fallback pattern matching, not Azure OpenAI directly)
             # This avoids potential recursion issues
             chart_config = self._parse_chart_fallback(message, dataset)
