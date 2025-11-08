@@ -42,7 +42,7 @@ const ChartComponent = ({ chart, index }) => {
           return;
         }
         
-        if (!chart || !chart.data) {
+        if (!chart) {
           setError("No chart data available");
           return;
         }
@@ -56,13 +56,21 @@ const ChartComponent = ({ chart, index }) => {
         // Validate data structure - handle multiple formats
         let plotData, plotLayout;
         
-        if (chart.data.data && Array.isArray(chart.data.data)) {
+        // Try plotly_data first (transformed format), then data (direct format)
+        const chartData = chart.plotly_data || chart.data;
+        
+        if (!chartData) {
+          setError("No chart data available");
+          return;
+        }
+        
+        if (chartData.data && Array.isArray(chartData.data)) {
           // Format 1: {data: [...], layout: {...}}
-          plotData = chart.data.data;
-          plotLayout = chart.data.layout || {};
-        } else if (Array.isArray(chart.data)) {
-          // Format 2: chart.data is already the array
-          plotData = chart.data;
+          plotData = chartData.data;
+          plotLayout = chartData.layout || {};
+        } else if (Array.isArray(chartData)) {
+          // Format 2: chartData is already the array
+          plotData = chartData;
           plotLayout = {};
         } else {
           setError("Invalid chart data format");
