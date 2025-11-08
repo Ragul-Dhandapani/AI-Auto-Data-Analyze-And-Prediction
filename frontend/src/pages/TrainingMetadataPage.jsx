@@ -14,8 +14,13 @@ const TrainingMetadataPage = () => {
   const [expandedDatasets, setExpandedDatasets] = useState({});
   const [expandedWorkspaces, setExpandedWorkspaces] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterMetric, setFilterMetric] = useState('all');
+  const [filterProblemType, setFilterProblemType] = useState('all');
   const [sortBy, setSortBy] = useState('date');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [comparisonMode, setComparisonMode] = useState(false);
+  const [selectedRuns, setSelectedRuns] = useState([]);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [expandedRunDetails, setExpandedRunDetails] = useState({});
 
   useEffect(() => {
     loadMetadata();
