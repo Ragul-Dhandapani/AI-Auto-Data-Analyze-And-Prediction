@@ -801,11 +801,20 @@ Return ONLY the output_format JSON with filled values. Match column names exactl
                 context += f"- ML models trained: {len(analysis_results.get('ml_models', []))}\n"
                 context += f"- Problem type: {analysis_results.get('problem_type', 'unknown')}\n"
             
-            # Get AI response
+            # Get AI response with clear instructions
+            system_prompt = """You are a helpful data analysis assistant. 
+IMPORTANT RULES:
+- NEVER provide Python code or programming instructions
+- Always respond in plain, friendly language
+- If user asks to create charts, tell them the system will handle it automatically
+- Focus on explaining data insights, not code
+- Be concise and helpful"""
+            
             response = await azure_service.generate_completion(
                 prompt=context,
                 max_tokens=500,
-                temperature=0.7
+                temperature=0.7,
+                system_message=system_prompt
             )
             
             return {
