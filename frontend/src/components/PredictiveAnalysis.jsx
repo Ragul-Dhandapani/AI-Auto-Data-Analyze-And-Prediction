@@ -1065,7 +1065,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
               <ChevronUp className="w-4 h-4" />
             </Button>
           </div>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {analysisResults.ai_insights.map((insight, idx) => (
               <div key={idx} className={`p-4 rounded-lg border-2 ${
                 insight.severity === 'critical' ? 'bg-red-50 border-red-300' :
@@ -1073,25 +1073,25 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                 'bg-blue-50 border-blue-300'
               }`}>
                 <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                     insight.severity === 'critical' ? 'bg-red-100' :
                     insight.severity === 'warning' ? 'bg-amber-100' :
                     'bg-blue-100'
                   }`}>
-                    <span className="text-lg">
+                    <span className="text-xl">
                       {insight.type === 'anomaly' ? '⚠️' :
                        insight.type === 'trend' ? '📈' :
                        insight.type === 'correlation' ? '🔗' :
                        insight.type === 'business' ? '💼' : '📊'}
                     </span>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{insight.title}</h4>
-                    <p className="text-sm text-gray-700 mt-1">{insight.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 truncate" title={insight.title}>{insight.title}</h4>
+                    <p className="text-sm text-gray-700 mt-1 line-clamp-3">{insight.description}</p>
                     {insight.recommendation && (
                       <div className="mt-2 p-2 bg-white rounded border border-gray-200">
-                        <p className="text-xs text-gray-600">
-                          <span className="font-semibold">💡 Recommendation:</span> {insight.recommendation}
+                        <p className="text-xs text-gray-600 line-clamp-2">
+                          <span className="font-semibold">💡 Tip:</span> {insight.recommendation}
                         </p>
                       </div>
                     )}
