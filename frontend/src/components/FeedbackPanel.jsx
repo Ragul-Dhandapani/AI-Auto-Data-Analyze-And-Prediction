@@ -228,28 +228,30 @@ const FeedbackPanel = ({ dataset, modelName }) => {
             </Button>
           </Card>
 
-          {/* Recent Feedback List */}
+          {/* Training History List */}
           {feedbackList && feedbackList.length > 0 && (
             <Card className="p-6">
-              <h3 className="text-lg font-bold mb-4">Recent Feedback</h3>
+              <h3 className="text-lg font-bold mb-4">Training History ({feedbackList.length} runs)</h3>
               <div className="space-y-3">
-                {feedbackList.slice(0, 10).map((feedback, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded">
-                    {feedback.is_correct ? (
+                {feedbackList.slice(0, 10).map((run, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded hover:bg-gray-100 transition">
+                    {((run.metrics?.accuracy || run.metrics?.r2_score || 0) > 0.7) ? (
                       <ThumbsUp className="w-5 h-5 text-green-600" />
                     ) : (
                       <ThumbsDown className="w-5 h-5 text-red-600" />
                     )}
                     <div className="flex-1">
                       <div className="text-sm font-medium">
-                        Prediction: {feedback.prediction} → Actual: {feedback.actual_outcome || 'N/A'}
+                        {run.model_name || 'Model'} - {run.problem_type || 'Analysis'}
                       </div>
-                      {feedback.comment && (
-                        <div className="text-xs text-gray-600 mt-1">{feedback.comment}</div>
-                      )}
+                      <div className="text-xs text-gray-600 mt-1">
+                        Target: {run.target_column || 'N/A'} | 
+                        Accuracy: {((run.metrics?.accuracy || run.metrics?.r2_score || 0) * 100).toFixed(1)}% |
+                        Models: {run.models_trained || 0}
+                      </div>
                     </div>
                     <div className="text-xs text-gray-500">
-                      {new Date(feedback.timestamp).toLocaleDateString()}
+                      {run.created_at ? new Date(run.created_at).toLocaleDateString() : 'Recent'}
                     </div>
                   </div>
                 ))}
@@ -261,8 +263,8 @@ const FeedbackPanel = ({ dataset, modelName }) => {
             <Card className="p-6">
               <div className="text-center text-gray-500 py-8">
                 <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                <p>No feedback submitted yet</p>
-                <p className="text-sm mt-2">Submit feedback on predictions to enable model retraining</p>
+                <p>No training history yet</p>
+                <p className="text-sm mt-2">Run Predictive Analysis, Time Series, or Hyperparameter Tuning to see training history here</p>
               </div>
             </Card>
           )}
