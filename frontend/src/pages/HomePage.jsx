@@ -119,8 +119,8 @@ const HomePage = () => {
               </span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-              Enterprise ML platform with classification, time series forecasting, hyperparameter tuning, 
-              NLP support, and AI-powered insights. Transform raw data into actionable intelligence with automated analysis.
+              Enterprise ML platform with 35+ advanced models, AI Chat Assistant, time series forecasting, and Azure OpenAI-powered insights. 
+              Chat naturally with your data, create visualizations instantly, and transform raw data into actionable intelligence.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Button 
