@@ -819,9 +819,23 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                 : '🚀 Select ML Models (Default: Auto-Select All)'}
             </Button>
             {selectedModels && selectedModels.length > 0 && (
-              <p className="text-xs text-blue-600 mt-2 font-medium">
-                Selected: {selectedModels.join(', ')}
-              </p>
+              <>
+                <p className="text-xs text-blue-600 mt-2 font-medium">
+                  Selected: {selectedModels.join(', ')}
+                </p>
+                <Button
+                  onClick={() => {
+                    console.log('🔄 Running analysis with selected models');
+                    runHolisticAnalysis();
+                  }}
+                  variant="outline"
+                  className="w-full mt-3 border-green-500 text-green-600 hover:bg-green-50"
+                  disabled={loading}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {loading ? 'Training...' : '🔄 Train Selected Models & Merge with Existing'}
+                </Button>
+              </>
             )}
           </div>
         )}
