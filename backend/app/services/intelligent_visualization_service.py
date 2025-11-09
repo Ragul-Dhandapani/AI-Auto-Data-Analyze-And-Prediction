@@ -204,18 +204,33 @@ class IntelligentVisualizationService:
             try:
                 # Multi-box plot
                 fig = go.Figure()
+                outlier_summary = []
                 for col in numeric_cols[:6]:
                     fig.add_trace(go.Box(y=self.df[col], name=col))
+                    # Calculate outlier count
+                    Q1 = self.df[col].quantile(0.25)
+                    Q3 = self.df[col].quantile(0.75)
+                    IQR = Q3 - Q1
+                    outliers = ((self.df[col] < (Q1 - 1.5 * IQR)) | (self.df[col] > (Q3 + 1.5 * IQR))).sum()
+                    if outliers > 0:
+                        outlier_summary.append(f'{col} ({outliers})')
+                
                 fig.update_layout(
                     title='Box Plots: Outlier Detection',
-                    yaxis_title='Value',
+                    yaxis_title='Value Range',
+                    xaxis_title='Variables',
                     showlegend=True,
                     height=400
                 )
+                
+                # Meaningful description
+                outlier_text = f'Outliers found in: {", ".join(outlier_summary[:3])}' if outlier_summary else 'No significant outliers detected'
+                description = f'Compares value ranges and detects outliers across {len(numeric_cols[:6])} variables. Box shows middle 50% of data, whiskers show typical range. Points outside whiskers are potential outliers. {outlier_text}.'
+                
                 charts.append({
                     'type': 'box',
                     'title': 'Box Plots: Outlier Detection',
-                    'description': f'Detecting outliers across {len(numeric_cols[:6])} numeric columns',
+                    'description': description,
                     'data': fig.to_plotly_json()
                 })
             except Exception as e:
