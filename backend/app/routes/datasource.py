@@ -372,13 +372,6 @@ async def get_tables(request: DataSourceTest):
         raise HTTPException(500, f"Error getting tables: {str(e)}")
 
 
-class LoadTableRequest(BaseModel):
-    source_type: str
-    config: dict
-    table_name: str
-    limit: int = 1000
-
-
 @router.post("/load-table")
 async def load_table(
     request: LoadTableRequest = None,
