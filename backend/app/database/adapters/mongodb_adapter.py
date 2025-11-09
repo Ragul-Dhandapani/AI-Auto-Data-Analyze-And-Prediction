@@ -330,6 +330,22 @@ class MongoDBAdapter(DatabaseAdapter):
             {'dataset_id': dataset_id},
             {'$set': {'workspace_name': workspace_name}}
         )
+
+    async def delete_training_metadata_by_workspace(self, workspace_name: str, dataset_id: Optional[str] = None):
+        """
+        Delete all training metadata records for a specific workspace
+        Optionally filter by dataset_id as well
+        """
+        query = {'workspace_name': workspace_name}
+        if dataset_id:
+            query['dataset_id'] = dataset_id
+        
+        result = await self.db.training_metadata.delete_many(query)
+        deleted_count = result.deleted_count
+        
+        logger.info(f"Deleted {deleted_count} training metadata records for workspace: {workspace_name}")
+        return {'deleted_count': deleted_count}
+
         logger.info(f"Updated {result.modified_count} training metadata records for dataset {dataset_id} with workspace_name: {workspace_name}")
         return result
 
