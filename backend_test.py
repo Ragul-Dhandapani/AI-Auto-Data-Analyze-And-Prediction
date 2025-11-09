@@ -93,43 +93,80 @@ def test_direct_database_query():
         print(f"❌ Direct database query failed: {str(e)}")
         return False, False
 
-def test_datasets_endpoint():
-    """Test: Datasets Endpoint (SANITY CHECK) - GET /api/datasets"""
-    print("\n=== Test: Datasets Endpoint (Sanity Check) ===")
+def test_workspace_states_query():
+    """Test 2: Check Workspace States - Verify workspace was saved"""
+    print("\n=== Test 2: Check Workspace States ===")
+    print("Verifying workspace 'latency_nov' exists in workspace_states...")
     
     try:
-        response = requests.get(f"{BACKEND_URL}/datasets", timeout=30)
-        print(f"Status Code: {response.status_code}")
+        # Initialize Oracle client
+        try:
+            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+        except:
+            pass  # Already initialized
         
-        if response.status_code == 200:
-            data = response.json()
-            print("✅ Datasets endpoint accessible")
+        # Create connection
+        dsn = cx_Oracle.makedsn(
+            ORACLE_CONFIG['host'],
+            ORACLE_CONFIG['port'],
+            service_name=ORACLE_CONFIG['service_name']
+        )
+        
+        connection = cx_Oracle.connect(
+            user=ORACLE_CONFIG['user'],
+            password=ORACLE_CONFIG['password'],
+            dsn=dsn
+        )
+        
+        cursor = connection.cursor()
+        
+        # Query workspace_states table
+        query = """
+        SELECT id, dataset_id, state_name, size_bytes, created_at 
+        FROM workspace_states 
+        WHERE LOWER(state_name) LIKE '%latency%nov%' OR LOWER(state_name) = 'latency_nov'
+        ORDER BY created_at DESC
+        """
+        
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        columns = [col[0].lower() for col in cursor.description]
+        
+        print(f"✅ Found {len(rows)} workspace states matching 'latency_nov'")
+        
+        workspace_dataset_id = None
+        for row in rows:
+            row_dict = dict(zip(columns, row))
+            workspace_dataset_id = row_dict.get('dataset_id')
             
-            if "datasets" in data:
-                datasets = data.get("datasets", [])
-                print(f"   Found {len(datasets)} datasets")
-                
-                if len(datasets) >= 1:
-                    print("✅ At least 1 dataset available for testing")
-                    # Return first dataset ID for use in other tests
-                    return True, datasets[0].get("id") if datasets else None
-                else:
-                    print("⚠️  No datasets found - may affect other tests")
-                    return True, None
-            else:
-                print("❌ Response missing 'datasets' key")
-                return False, None
-        else:
-            print(f"❌ Datasets endpoint failed: {response.status_code}")
-            try:
-                error_data = response.json()
-                print(f"   Error: {error_data}")
-            except:
-                print(f"   Error: {response.text}")
-            return False, None
-            
+            print(f"   - ID: {row_dict.get('id', 'N/A')}")
+            print(f"   - Dataset ID: {workspace_dataset_id}")
+            print(f"   - State Name: '{row_dict.get('state_name', 'N/A')}'")
+            print(f"   - Size: {row_dict.get('size_bytes', 0)} bytes")
+            print(f"   - Created: {row_dict.get('created_at', 'N/A')}")
+        
+        # Also check all workspace states to see what's available
+        query_all = """
+        SELECT state_name, dataset_id, created_at 
+        FROM workspace_states 
+        ORDER BY created_at DESC 
+        FETCH FIRST 10 ROWS ONLY
+        """
+        
+        cursor.execute(query_all)
+        all_rows = cursor.fetchall()
+        
+        print(f"\n   📋 Recent workspace states ({len(all_rows)} total):")
+        for row in all_rows:
+            print(f"      - '{row[0]}' (Dataset: {row[1][:8] if row[1] else 'N/A'}..., Created: {row[2]})")
+        
+        cursor.close()
+        connection.close()
+        
+        return True, workspace_dataset_id
+        
     except Exception as e:
-        print(f"❌ Datasets endpoint exception: {str(e)}")
+        print(f"❌ Workspace states query failed: {str(e)}")
         return False, None
 
 def test_suggest_features_endpoint(dataset_id):
