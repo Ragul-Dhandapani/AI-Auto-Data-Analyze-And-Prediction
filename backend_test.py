@@ -231,106 +231,89 @@ def test_training_metadata_endpoint():
         print(f"❌ Training metadata endpoint exception: {str(e)}")
         return False, False
 
-def test_hyperparameter_tuning_endpoint(dataset_id):
-    """Test: Hyperparameter Tuning Endpoint (REPORTED 500 ERROR) - POST /api/analysis/hyperparameter-tuning"""
-    print("\n=== Test: Hyperparameter Tuning Endpoint (500 Error Investigation) ===")
+def test_dataset_workspace_correlation(workspace_dataset_id):
+    """Test 4: Dataset-Workspace Correlation - Check if dataset IDs match"""
+    print("\n=== Test 4: Dataset-Workspace Correlation ===")
+    print("Checking if dataset_id matches between workspace_states and training_metadata...")
     
-    if not dataset_id:
-        print("❌ No dataset ID available for testing")
+    if not workspace_dataset_id:
+        print("❌ No workspace dataset ID available from previous test")
         return False
     
-    # Get dataset details first to find a numeric column
     try:
-        datasets_response = requests.get(f"{BACKEND_URL}/datasets", timeout=10)
-        if datasets_response.status_code == 200:
-            datasets = datasets_response.json().get("datasets", [])
-            target_dataset = None
-            for dataset in datasets:
-                if dataset.get("id") == dataset_id:
-                    target_dataset = dataset
-                    break
-            
-            if target_dataset:
-                columns = target_dataset.get("columns", [])
-                # Look for a numeric column
-                numeric_column = None
-                for col in columns:
-                    if any(keyword in col.lower() for keyword in ['latency', 'cpu', 'memory', 'size', 'count', 'score', 'value', 'amount']):
-                        numeric_column = col
-                        break
-                
-                if not numeric_column and columns:
-                    numeric_column = columns[0]  # Fallback to first column
-                
-                print(f"   Using target column: {numeric_column}")
-            else:
-                numeric_column = "target_column"  # Generic fallback
-        else:
-            numeric_column = "target_column"  # Generic fallback
-    except:
-        numeric_column = "target_column"  # Generic fallback
-    
-    # Test payload as specified in review request
-    payload = {
-        "dataset_id": dataset_id,
-        "target_column": numeric_column,
-        "model_type": "random_forest",
-        "problem_type": "regression"
-    }
-    
-    try:
-        print(f"   Testing with payload: {payload}")
-        response = requests.post(
-            f"{BACKEND_URL}/analysis/hyperparameter-tuning",
-            json=payload,
-            timeout=60  # Longer timeout for hyperparameter tuning
+        # Initialize Oracle client
+        try:
+            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+        except:
+            pass  # Already initialized
+        
+        # Create connection
+        dsn = cx_Oracle.makedsn(
+            ORACLE_CONFIG['host'],
+            ORACLE_CONFIG['port'],
+            service_name=ORACLE_CONFIG['service_name']
         )
         
-        print(f"Status Code: {response.status_code}")
+        connection = cx_Oracle.connect(
+            user=ORACLE_CONFIG['user'],
+            password=ORACLE_CONFIG['password'],
+            dsn=dsn
+        )
         
-        if response.status_code == 200:
-            data = response.json()
-            print("✅ Hyperparameter tuning endpoint working")
-            
-            # Verify expected response structure
-            expected_fields = ['best_params', 'best_score']
-            missing_fields = [field for field in expected_fields if field not in data]
-            
-            if missing_fields:
-                print(f"⚠️  Missing expected fields: {missing_fields}")
-                print(f"   Available fields: {list(data.keys())}")
-            else:
-                print("✅ All expected fields present:")
-                print(f"   - best_params: {data.get('best_params')}")
-                print(f"   - best_score: {data.get('best_score')}")
-            
-            return True
+        cursor = connection.cursor()
+        
+        print(f"   🔍 Looking for training_metadata with dataset_id: {workspace_dataset_id}")
+        
+        # Query training_metadata for this specific dataset_id
+        query = """
+        SELECT id, dataset_id, workspace_name, model_type, created_at 
+        FROM training_metadata 
+        WHERE dataset_id = :dataset_id
+        ORDER BY created_at DESC
+        """
+        
+        cursor.execute(query, {'dataset_id': workspace_dataset_id})
+        rows = cursor.fetchall()
+        columns = [col[0].lower() for col in cursor.description]
+        
+        print(f"   ✅ Found {len(rows)} training metadata records for this dataset")
+        
+        if len(rows) > 0:
+            print("   📋 Training metadata records:")
+            for row in rows:
+                row_dict = dict(zip(columns, row))
+                print(f"      - Workspace: '{row_dict.get('workspace_name', 'N/A')}', "
+                      f"Model: {row_dict.get('model_type', 'N/A')}, "
+                      f"Created: {row_dict.get('created_at', 'N/A')}")
         else:
-            print(f"❌ Hyperparameter tuning endpoint failed: {response.status_code}")
-            try:
-                error_data = response.json()
-                print(f"   Error details: {error_data}")
-                
-                # Detailed error analysis for 500 errors
-                if response.status_code == 500:
-                    print("\n🔍 ROOT CAUSE ANALYSIS for 500 Error:")
-                    error_detail = error_data.get('detail', '')
-                    if 'column' in error_detail.lower():
-                        print("   - Likely issue: Column not found or invalid column name")
-                    elif 'data' in error_detail.lower():
-                        print("   - Likely issue: Data preprocessing or format problem")
-                    elif 'model' in error_detail.lower():
-                        print("   - Likely issue: Model training or configuration problem")
-                    else:
-                        print(f"   - Error message: {error_detail}")
-                
-            except:
-                print(f"   Error: {response.text}")
-            return False
-            
+            print("   ❌ No training metadata found for this dataset_id")
+            print("   🔍 This is the ROOT CAUSE - workspace exists but no training metadata!")
+        
+        # Also check if there are training_metadata records with different workspace names
+        query_all = """
+        SELECT DISTINCT workspace_name, COUNT(*) as count
+        FROM training_metadata 
+        WHERE dataset_id = :dataset_id
+        GROUP BY workspace_name
+        ORDER BY count DESC
+        """
+        
+        cursor.execute(query_all, {'dataset_id': workspace_dataset_id})
+        workspace_rows = cursor.fetchall()
+        
+        if workspace_rows:
+            print(f"\n   📊 Workspace names in training_metadata for this dataset:")
+            for row in workspace_rows:
+                print(f"      - '{row[0]}': {row[1]} models")
+        
+        cursor.close()
+        connection.close()
+        
+        return True, len(rows) > 0
+        
     except Exception as e:
-        print(f"❌ Hyperparameter tuning endpoint exception: {str(e)}")
-        return False
+        print(f"❌ Dataset-workspace correlation check failed: {str(e)}")
+        return False, False
 
 def check_backend_logs():
     """Check backend logs for any startup errors"""
