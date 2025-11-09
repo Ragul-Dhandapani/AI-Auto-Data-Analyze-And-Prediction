@@ -15,74 +15,137 @@ BACKEND_URL = "https://promise-ai-platform.preview.emergentagent.com/api"
 # Test dataset ID (from the available datasets)
 DATASET_ID = "d77c5cd7-8c3f-4e2a-acec-266e446c941e"  # application_latency.csv
 
-def test_direct_database_query():
-    """Test 1: Direct Database Query - Check training_metadata table"""
-    print("\n=== Test 1: Direct Database Query ===")
-    print("Checking what's actually in the training_metadata table...")
-    
-    try:
-        # Initialize Oracle client
+class EnhancedChatTester:
+    def __init__(self):
+        self.backend_url = BACKEND_URL
+        self.dataset_id = DATASET_ID
+        self.conversation_history = []
+        self.test_results = []
+        
+    def log_test(self, test_name: str, status: str, details: str = "", response_data: Dict = None):
+        """Log test results"""
+        result = {
+            "test": test_name,
+            "status": status,
+            "details": details,
+            "response_data": response_data
+        }
+        self.test_results.append(result)
+        print(f"{'✅' if status == 'PASS' else '❌'} {test_name}: {status}")
+        if details:
+            print(f"   Details: {details}")
+        if status == "FAIL" and response_data:
+            print(f"   Response: {response_data}")
+        print()
+
+    def send_chat_message(self, message: str, conversation_history: List[Dict] = None) -> Dict:
+        """Send a message to the enhanced chat endpoint"""
+        if conversation_history is None:
+            conversation_history = self.conversation_history
+            
+        payload = {
+            "message": message,
+            "dataset_id": self.dataset_id,
+            "conversation_history": conversation_history
+        }
+        
         try:
-            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
-        except:
-            pass  # Already initialized
-        
-        # Create connection
-        dsn = cx_Oracle.makedsn(
-            ORACLE_CONFIG['host'],
-            ORACLE_CONFIG['port'],
-            service_name=ORACLE_CONFIG['service_name']
-        )
-        
-        connection = cx_Oracle.connect(
-            user=ORACLE_CONFIG['user'],
-            password=ORACLE_CONFIG['password'],
-            dsn=dsn
-        )
-        
-        cursor = connection.cursor()
-        
-        # Query training_metadata table
-        query = """
-        SELECT id, dataset_id, workspace_name, model_type, created_at 
-        FROM training_metadata 
-        ORDER BY created_at DESC 
-        FETCH FIRST 20 ROWS ONLY
-        """
-        
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        columns = [col[0].lower() for col in cursor.description]
-        
-        print(f"✅ Found {len(rows)} training metadata records")
-        print(f"   Columns: {columns}")
-        
-        # Check for latency_nov workspace
-        latency_nov_found = False
-        for row in rows:
-            row_dict = dict(zip(columns, row))
-            workspace_name = row_dict.get('workspace_name', '')
+            response = requests.post(
+                f"{self.backend_url}/enhanced-chat/message",
+                json=payload,
+                timeout=30
+            )
             
-            print(f"   - Dataset: {row_dict.get('dataset_id', 'N/A')[:8]}..., "
-                  f"Workspace: '{workspace_name}', "
-                  f"Model: {row_dict.get('model_type', 'N/A')}, "
-                  f"Created: {row_dict.get('created_at', 'N/A')}")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {
+                    "error": f"HTTP {response.status_code}",
+                    "details": response.text
+                }
+        except Exception as e:
+            return {
+                "error": "Request failed",
+                "details": str(e)
+            }
+
+    def test_basic_endpoint_availability(self):
+        """Test 1: Basic endpoint availability"""
+        try:
+            response = requests.get(f"{self.backend_url}/health", timeout=10)
+            if response.status_code == 200:
+                self.log_test("Basic Endpoint Availability", "PASS", "Backend is accessible")
+            else:
+                self.log_test("Basic Endpoint Availability", "FAIL", f"Backend returned {response.status_code}")
+        except Exception as e:
+            self.log_test("Basic Endpoint Availability", "FAIL", f"Cannot reach backend: {str(e)}")
+
+    def test_chat_without_history(self):
+        """Test 2: Chat without conversation history"""
+        message = "Show me outliers in the data"
+        response = self.send_chat_message(message, [])
+        
+        if "error" in response:
+            self.log_test("Chat Without History", "FAIL", f"Error: {response['error']}", response)
+            return None
+        
+        if "response" in response and len(response["response"]) > 0:
+            self.log_test("Chat Without History", "PASS", f"Got response: {response['response'][:100]}...")
+            # Store this message in conversation history for next test
+            self.conversation_history.append({
+                "role": "user",
+                "message": message
+            })
+            self.conversation_history.append({
+                "role": "assistant", 
+                "response": response["response"]
+            })
+            return response
+        else:
+            self.log_test("Chat Without History", "FAIL", "No response received", response)
+            return None
+
+    def test_context_aware_follow_up(self):
+        """Test 3: Context-aware follow-up question"""
+        if not self.conversation_history:
+            self.log_test("Context-Aware Follow-up", "SKIP", "No conversation history available")
+            return
             
-            if workspace_name and 'latency_nov' in workspace_name.lower():
-                latency_nov_found = True
-                print(f"   🎯 FOUND latency_nov workspace: {workspace_name}")
+        # Ask a follow-up question that requires context from previous conversation
+        follow_up_message = "What does outlier mean?"
+        response = self.send_chat_message(follow_up_message)
         
-        if not latency_nov_found:
-            print("   ❌ No 'latency_nov' workspace found in training_metadata")
+        if "error" in response:
+            self.log_test("Context-Aware Follow-up", "FAIL", f"Error: {response['error']}", response)
+            return
         
-        cursor.close()
-        connection.close()
-        
-        return True, latency_nov_found
-        
-    except Exception as e:
-        print(f"❌ Direct database query failed: {str(e)}")
-        return False, False
+        if "response" in response:
+            response_text = response["response"].lower()
+            # Check if the response shows context awareness
+            context_indicators = [
+                "outlier", "anomaly", "unusual", "deviation", "data point",
+                "previous", "mentioned", "discussed", "context"
+            ]
+            
+            has_context = any(indicator in response_text for indicator in context_indicators)
+            
+            if has_context:
+                self.log_test("Context-Aware Follow-up", "PASS", 
+                             f"Response shows context awareness: {response['response'][:150]}...")
+                # Add to conversation history
+                self.conversation_history.append({
+                    "role": "user",
+                    "message": follow_up_message
+                })
+                self.conversation_history.append({
+                    "role": "assistant",
+                    "response": response["response"]
+                })
+            else:
+                self.log_test("Context-Aware Follow-up", "FAIL", 
+                             f"Response lacks context awareness: {response['response'][:150]}...")
+        else:
+            self.log_test("Context-Aware Follow-up", "FAIL", "No response received", response)
 
 def test_workspace_states_query():
     """Test 2: Check Workspace States - Verify workspace was saved"""
