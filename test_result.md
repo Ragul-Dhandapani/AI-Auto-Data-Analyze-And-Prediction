@@ -484,6 +484,43 @@ result = await viz_service.analyze_and_generate(df)
 
 ---
 
+## 🔧 HOTFIX - Frontend React Child Error - Nov 9, 2025 19:32 UTC
+
+### Issue: React Runtime Error
+**Error**: "Objects are not valid as a React child (found: object with keys {category, message})"
+**Root Cause**: Backend now returns skipped charts as objects `{category, message}` but frontend was rendering them as strings
+
+### Fix Applied ✅
+**File Modified**: `/app/frontend/src/components/VisualizationPanel.jsx`
+
+**Changes**:
+```javascript
+// BEFORE: Assumed reason is a string
+{skippedCharts.map((reason, idx) => (
+  <span>{reason}</span>
+))}
+
+// AFTER: Handle both string and object formats
+{skippedCharts.map((reason, idx) => {
+  const message = typeof reason === 'string' ? reason : reason.message;
+  const category = typeof reason === 'object' ? reason.category : null;
+  
+  return (
+    <span>
+      {category && <span className="font-semibold capitalize">[{category}] </span>}
+      {message}
+    </span>
+  );
+})}
+```
+
+**Result**: ✅ Frontend now displays categorized skipped chart messages
+**Example**: "[clustering] Dendrogram: Dataset too large (max 100 rows)"
+
+**Status**: Frontend restarted and running
+
+---
+
 ## 🔧 HOTFIX - Database Connection Test Error - Nov 9, 2025 18:30 UTC
 
 ### Issue: Database Connection Test Failed
