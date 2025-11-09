@@ -412,7 +412,7 @@ async def load_table(
         # Prepare dataset metadata
         dataset_doc = {
             "id": dataset_id,
-            "name": f"{table_name_val}_{source_type_val}",
+            "name": f"{table_name_val}_{source_type_val}.csv",  # Add .csv extension for proper loading
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": list(df.columns),
@@ -421,7 +421,8 @@ async def load_table(
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "source_type": source_type_val,
             "source_table": table_name_val,
-            "source_config": config_dict
+            "source_config": config_dict,
+            "storage_format": "csv"  # Indicate format for BLOB storage
         }
         
         # Store data
