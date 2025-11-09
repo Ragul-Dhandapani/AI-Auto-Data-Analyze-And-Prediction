@@ -1169,8 +1169,8 @@ IMPORTANT RULES:
             ]
         }
     
-    async def _handle_interpretation(self, dataset: Optional[pd.DataFrame], analysis_results: Optional[Dict], message: str) -> Dict:
-        """Interpret results or charts using Azure OpenAI"""
+    async def _handle_interpretation(self, dataset: Optional[pd.DataFrame], analysis_results: Optional[Dict], message: str, conversation_history: Optional[List[Dict]] = None) -> Dict:
+        """Interpret results or charts using Azure OpenAI with conversation context"""
         try:
             from app.services.azure_openai_service import get_azure_openai_service
             
@@ -1185,8 +1185,21 @@ IMPORTANT RULES:
                     'suggestions': []
                 }
             
-            # Build context
-            context = f"User asked for interpretation: {message}\n\n"
+            # Build context with conversation history
+            context = ""
+            
+            # Include recent conversation for context
+            if conversation_history and len(conversation_history) > 0:
+                context += "Previous conversation:\n"
+                recent_history = conversation_history[-3:] if len(conversation_history) > 3 else conversation_history
+                for msg in recent_history:
+                    role = msg.get('role', 'user')
+                    content = msg.get('message', '') or msg.get('response', '') or msg.get('content', '')
+                    if content:
+                        context += f"{role.capitalize()}: {content}\n"
+                context += "\n"
+            
+            context += f"User asked for interpretation: {message}\n\n"
             
             if analysis_results:
                 ml_models = analysis_results.get('ml_models', [])
@@ -1195,7 +1208,7 @@ IMPORTANT RULES:
                     context += f"Best model: {best.get('model_name')}\n"
                     context += f"Performance: {best.get('r2_score', best.get('accuracy', 0)):.3f}\n"
             
-            context += "\nProvide a clear, business-friendly interpretation in 2-3 sentences."
+            context += "\nProvide a clear, business-friendly interpretation in 2-3 sentences, considering the conversation context."
             
             interpretation = await azure_service.generate_completion(
                 prompt=context,
