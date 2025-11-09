@@ -828,6 +828,7 @@ class IntelligentVisualizationService:
                 pca_result = pca.fit_transform(scaled_data)
                 
                 variance_explained = pca.explained_variance_ratio_
+                total_variance = (variance_explained[0] + variance_explained[1]) * 100
                 
                 fig = px.scatter(
                     x=pca_result[:, 0],
@@ -836,11 +837,19 @@ class IntelligentVisualizationService:
                     labels={'x': f'PC1 ({variance_explained[0]:.2%})', 'y': f'PC2 ({variance_explained[1]:.2%})'},
                     opacity=0.7
                 )
-                fig.update_layout(height=400)
+                fig.update_layout(
+                    height=400,
+                    xaxis_title=f'First Principal Component ({variance_explained[0]:.1%} of variance)',
+                    yaxis_title=f'Second Principal Component ({variance_explained[1]:.1%} of variance)'
+                )
+                
+                # Meaningful description
+                description = f'Reduces {len(numeric_cols)} dimensions to 2D visualization. These two components explain {total_variance:.1f}% of data variance. Each point is a record. Proximity = similarity. Helps identify clusters and outliers in high-dimensional data.'
+                
                 charts.append({
                     'type': 'pca',
                     'title': 'PCA: Dimensionality Reduction',
-                    'description': f'2D projection of {len(numeric_cols)}D data',
+                    'description': description,
                     'data': fig.to_plotly_json()
                 })
             except Exception as e:
