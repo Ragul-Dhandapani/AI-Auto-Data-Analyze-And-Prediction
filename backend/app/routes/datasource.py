@@ -226,6 +226,8 @@ async def upload_file(file: UploadFile = File(...)):
         }
         
         file_size = len(contents)
+        
+        # Check if we're using Oracle adapter (already retrieved above)
         is_oracle = hasattr(db_adapter, 'pool')  # Oracle adapter has pool attribute
         
         if file_size > 5 * 1024 * 1024 or is_oracle:  # 5MB threshold OR Oracle database
