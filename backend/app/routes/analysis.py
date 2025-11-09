@@ -120,28 +120,31 @@ async def run_analysis(request: Dict[str, Any]):
             
             logger.info(f"✅ Generated {len(all_charts)} intelligent charts across {len(categories_data)} categories")
             
-            # Convert to JSON and back to ensure everything is serializable
+            # Ensure all data is JSON serializable
+            def make_serializable(obj):
+                """Recursively convert objects to JSON-serializable format"""
+                if isinstance(obj, dict):
+                    return {k: make_serializable(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [make_serializable(item) for item in obj]
+                elif isinstance(obj, (str, int, float, bool, type(None))):
+                    return obj
+                elif hasattr(obj, 'to_dict'):
+                    return make_serializable(obj.to_dict())
+                elif hasattr(obj, '__dict__'):
+                    return make_serializable(obj.__dict__)
+                else:
+                    return str(obj)
+            
             response_data = {
-                "charts": all_charts,
-                "skipped": all_skipped,
-                "insights": result.get('insights', []),
-                "total_charts": result.get('total_charts', 0),
-                "total_skipped": result.get('total_skipped', 0)
+                "charts": make_serializable(all_charts),
+                "skipped": make_serializable(all_skipped),
+                "insights": make_serializable(result.get('insights', [])),
+                "total_charts": int(result.get('total_charts', 0)),
+                "total_skipped": int(result.get('total_skipped', 0))
             }
             
-            # Test serialization
-            try:
-                json.dumps(response_data)
-            except Exception as e:
-                logger.error(f"Serialization test failed: {str(e)}")
-                # Return simplified response
-                return {
-                    "charts": all_charts[:10],  # Limit to first 10
-                    "skipped": [str(s) for s in all_skipped],
-                    "insights": result.get('insights', []),
-                    "total_charts": len(all_charts),
-                    "total_skipped": len(all_skipped)
-                }
+            logger.info(f"✅ Response prepared with {len(all_charts)} charts")
             
             return response_data
         
