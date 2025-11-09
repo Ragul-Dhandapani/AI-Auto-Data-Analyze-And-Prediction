@@ -775,7 +775,7 @@ Return ONLY the output_format JSON with filled values. Match column names exactl
         return None
     
     async def _handle_general_query(self, message: str, dataset: Optional[pd.DataFrame], analysis_results: Optional[Dict], conversation_history: Optional[List[Dict]]) -> Dict:
-        """Handle general questions using Azure OpenAI"""
+        """Handle general questions using Azure OpenAI with conversation history"""
         try:
             from app.services.azure_openai_service import get_azure_openai_service
             
@@ -790,8 +790,22 @@ Return ONLY the output_format JSON with filled values. Match column names exactl
                     'suggestions': ['Show columns', 'Check statistics', 'Show missing values']
                 }
             
-            # Build context
-            context = f"User question: {message}\n\n"
+            # Build context with conversation history for context-aware responses
+            context = ""
+            
+            # CRITICAL FIX: Include conversation history for context-aware responses
+            if conversation_history and len(conversation_history) > 0:
+                context += "Previous conversation:\n"
+                # Include last 5 messages for context (to avoid token limits)
+                recent_history = conversation_history[-5:] if len(conversation_history) > 5 else conversation_history
+                for msg in recent_history:
+                    role = msg.get('role', 'user')
+                    content = msg.get('message', '') or msg.get('response', '') or msg.get('content', '')
+                    if content:
+                        context += f"{role.capitalize()}: {content}\n"
+                context += "\n"
+            
+            context += f"Current question: {message}\n\n"
             context += f"Dataset context:\n"
             if dataset is not None:
                 context += f"- Rows: {len(dataset)}, Columns: {len(dataset.columns)}\n"
@@ -802,13 +816,16 @@ Return ONLY the output_format JSON with filled values. Match column names exactl
                 context += f"- Problem type: {analysis_results.get('problem_type', 'unknown')}\n"
             
             # Get AI response with clear instructions
-            system_prompt = """You are a helpful data analysis assistant. 
+            system_prompt = """You are a helpful data analysis assistant with context awareness. 
 IMPORTANT RULES:
+- Use the conversation history to provide context-aware follow-up responses
+- If the user asks "what does X mean?" and X was mentioned in previous conversation, explain it in that context
 - NEVER provide Python code or programming instructions
 - Always respond in plain, friendly language
 - If user asks to create charts, tell them the system will handle it automatically
-- Focus on explaining data insights, not code
-- Be concise and helpful"""
+- Focus on explaining data insights and concepts, not code
+- Be concise, helpful, and context-aware
+- For technical terms (like "outlier", "correlation", etc.), provide clear, simple explanations"""
             
             response = await azure_service.generate_completion(
                 prompt=context,
