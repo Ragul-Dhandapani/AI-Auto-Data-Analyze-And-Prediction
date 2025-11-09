@@ -336,6 +336,56 @@ Form: source_type=oracle&config={...}&table_name=users
 
 ---
 
+## 🔧 HOTFIX - Load Table Parameter Parsing - Nov 9, 2025 18:50 UTC
+
+### Issue: Load Table Still Failing
+**Error**: "Table load failed: Error loading table: 400: source_type and table_name are required"
+**Root Cause**: FastAPI wasn't parsing JSON body correctly when mixed with Form and Query parameters
+
+### Fix Applied ✅
+**File Modified**: `/app/backend/app/routes/datasource.py`
+
+**Changes**:
+1. Simplified endpoint to use explicit `Body()` and `Query()` parameters
+2. Removed Form data support (not used by frontend)
+3. Fixed `load_table_data` call - function takes 3 args, not 4
+4. Applied `limit` manually after loading data
+
+**Final Endpoint Signature**:
+```python
+@router.post("/load-table")
+async def load_table(
+    table_name: str = Query(..., description="Table name to load"),
+    request: LoadTableRequest = Body(None, description="Request body with source config")
+):
+    # table_name from query param (required)
+    # source_type and config from JSON body (required)
+    # limit from JSON body (optional, default 1000)
+```
+
+**Usage**:
+```bash
+POST /api/datasource/load-table?table_name=users
+Content-Type: application/json
+Body: {
+  "source_type": "oracle",
+  "config": {
+    "host": "hostname",
+    "port": 1521,
+    "database": "dbname",
+    "username": "user",
+    "password": "pass",
+    "service_name": "ORCL"
+  },
+  "limit": 1000
+}
+```
+
+**Result**: ✅ Load table endpoint now correctly parses parameters
+**Backend Status**: ✅ Restarted and running
+
+---
+
 ## 🧪 BACKEND TESTING RESULTS - Enhanced Chat Context - Nov 9, 2025
 
 ### Testing Agent: Backend Testing Agent
