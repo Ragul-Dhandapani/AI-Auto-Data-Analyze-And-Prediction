@@ -772,11 +772,32 @@ class OracleAdapter(DatabaseAdapter):
         
         query = " ".join(query_parts)
         
-        result = await self._execute(query, params)
-        deleted_count = result if result else 0
-        
-        logger.info(f"Deleted {deleted_count} training metadata records for workspace: {workspace_name}")
-        return {'deleted_count': deleted_count}
+        # Execute delete using executor pattern
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            self.executor,
+            self._delete_training_metadata_sync,
+            query,
+            params,
+            workspace_name
+        )
+    
+    def _delete_training_metadata_sync(self, query: str, params: Dict, workspace_name: str):
+        """Execute delete training metadata synchronously"""
+        conn = self.pool.acquire()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            deleted_count = cursor.rowcount
+            conn.commit()
+            logger.info(f"✅ Deleted {deleted_count} training metadata records for workspace: {workspace_name}")
+            return {'deleted_count': deleted_count}
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Failed to delete training metadata: {e}")
+            raise
+        finally:
+            self.pool.release(conn)
 
         logger.info(f"Updated training metadata for dataset {dataset_id} with workspace_name: {workspace_name}")
         return result
