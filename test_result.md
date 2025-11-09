@@ -208,6 +208,44 @@ logger = logging.getLogger(__name__)
 
 ---
 
+## 🔧 HOTFIX - Database Connection Test Error - Nov 9, 2025 18:30 UTC
+
+### Issue: Database Connection Test Failed
+**Error**: "Connection test failed: Not Found"
+**Location**: Missing endpoint `/api/datasource/parse-connection-string`
+**Root Cause**: Endpoint referenced by frontend but not implemented in backend
+
+### Fix Applied ✅
+**File Modified**: `/app/backend/app/routes/datasource.py`
+
+**Changes**:
+```python
+@router.post("/parse-connection-string")
+async def parse_connection_string_endpoint(
+    source_type: str = Form(...),
+    connection_string: str = Form(...)
+):
+    """Parse database connection string into config object"""
+    try:
+        config = parse_connection_string(source_type, connection_string)
+        return {"success": True, "config": config}
+    except Exception as e:
+        logger.error(f"Failed to parse connection string: {str(e)}")
+        return {"success": False, "message": str(e)}
+```
+
+**Endpoint Tested**:
+```bash
+POST /api/datasource/parse-connection-string
+# Example: postgresql://user:pass@localhost:5432/testdb
+# Returns: {"success": true, "config": {...}}
+```
+
+**Result**: ✅ Database connection testing now working correctly
+**Backend Status**: ✅ Restarted and running
+
+---
+
 ## 🧪 BACKEND TESTING RESULTS - Enhanced Chat Context - Nov 9, 2025
 
 ### Testing Agent: Backend Testing Agent
