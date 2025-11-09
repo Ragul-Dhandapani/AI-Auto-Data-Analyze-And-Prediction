@@ -112,7 +112,7 @@ class IntelligentVisualizationService:
         
         # Statistical summaries
         if numeric_cols:
-            self.profile['numeric_stats'] = df[numeric_cols].describe().to_dict()
+            self.profile['numeric_stats'] = df[numeric_cols].describe().to_plotly_json()
             
             # Detect outliers using IQR method
             outlier_info = {}
@@ -131,18 +131,18 @@ class IntelligentVisualizationService:
                 unique_count = df[col].nunique()
                 cat_info[col] = {
                     'unique': int(unique_count),
-                    'top_5': df[col].value_counts().head(5).to_dict()
+                    'top_5': df[col].value_counts().head(5).to_plotly_json()
                 }
             self.profile['categorical_stats'] = cat_info
         
         # Missing values
         missing = df.isnull().sum()
-        self.profile['missing_values'] = missing[missing > 0].to_dict()
-        self.profile['missing_percentage'] = (missing / len(df) * 100).to_dict()
+        self.profile['missing_values'] = missing[missing > 0].to_plotly_json()
+        self.profile['missing_percentage'] = (missing / len(df) * 100).to_plotly_json()
         
         # Correlation matrix (numeric only)
         if len(numeric_cols) >= 2:
-            self.profile['correlations'] = df[numeric_cols].corr().to_dict()
+            self.profile['correlations'] = df[numeric_cols].corr().to_plotly_json()
         
         # Duplicates
         self.profile['duplicate_rows'] = int(df.duplicated().sum())
@@ -202,7 +202,7 @@ class IntelligentVisualizationService:
                     'type': 'box',
                     'title': 'Box Plots: Outlier Detection',
                     'description': f'Detecting outliers across {len(numeric_cols[:6])} numeric columns',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             except Exception as e:
                 skipped.append(f"Box plot: {str(e)}")
@@ -220,7 +220,7 @@ class IntelligentVisualizationService:
                     'type': 'violin',
                     'title': f'Violin Plot: {col}',
                     'description': f'Distribution shape and density of {col}',
-                    'data': fig.to_dict(),
+                    'data': fig.to_plotly_json(),
                     'column': col
                 })
             except Exception as e:
@@ -245,7 +245,7 @@ class IntelligentVisualizationService:
                     'type': 'density',
                     'title': f'Density Plot: {col}',
                     'description': f'Smooth distribution (KDE) of {col}',
-                    'data': fig.to_dict(),
+                    'data': fig.to_plotly_json(),
                     'column': col
                 })
             except Exception as e:
@@ -267,7 +267,7 @@ class IntelligentVisualizationService:
                         'type': 'pie',
                         'title': f'Pie Chart: {col}',
                         'description': f'Proportions across {unique_count} categories',
-                        'data': fig.to_dict(),
+                        'data': fig.to_plotly_json(),
                         'column': col
                     })
                 else:
@@ -319,7 +319,7 @@ class IntelligentVisualizationService:
                         'type': 'scatter',
                         'title': f'Scatter: {col1} vs {col2}',
                         'description': f'Correlation: {corr_val:.3f}',
-                        'data': fig.to_dict(),
+                        'data': fig.to_plotly_json(),
                         'columns': [col1, col2]
                     })
             except Exception as e:
@@ -341,7 +341,7 @@ class IntelligentVisualizationService:
                     'type': 'heatmap',
                     'title': 'Correlation Heatmap',
                     'description': f'Correlation matrix for {len(numeric_cols)} numeric variables',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             except Exception as e:
                 skipped.append(f"Correlation heatmap: {str(e)}")
@@ -360,7 +360,7 @@ class IntelligentVisualizationService:
                     'type': 'bubble',
                     'title': f'Bubble Chart: {col_x} vs {col_y}',
                     'description': f'Three-dimensional relationship with size encoding',
-                    'data': fig.to_dict(),
+                    'data': fig.to_plotly_json(),
                     'columns': [col_x, col_y, col_size]
                 })
             except Exception as e:
@@ -379,7 +379,7 @@ class IntelligentVisualizationService:
                     'type': 'pair_plot',
                     'title': 'Pair Plot: Variable Relationships',
                     'description': f'All pair combinations of {len(numeric_cols)} variables',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             except Exception as e:
                 skipped.append(f"Pair plot: {str(e)}")
@@ -421,7 +421,7 @@ class IntelligentVisualizationService:
                         'type': 'bar',
                         'title': f'Bar Chart: {col}',
                         'description': f'Frequency distribution across {len(value_counts)} categories',
-                        'data': fig.to_dict(),
+                        'data': fig.to_plotly_json(),
                         'column': col
                     })
                 else:
@@ -445,7 +445,7 @@ class IntelligentVisualizationService:
                         'type': 'stacked_bar',
                         'title': f'Stacked Bar: {cat1} by {cat2}',
                         'description': f'Distribution across subgroups',
-                        'data': fig.to_dict(),
+                        'data': fig.to_plotly_json(),
                         'columns': [cat1, cat2]
                     })
                 else:
@@ -471,7 +471,7 @@ class IntelligentVisualizationService:
                         'type': 'grouped_bar',
                         'title': f'Grouped Bar: Avg {num_col} by {cat_col}',
                         'description': f'Comparing averages across categories',
-                        'data': fig.to_dict(),
+                        'data': fig.to_plotly_json(),
                         'columns': [cat_col, num_col]
                     })
                 else:
@@ -520,7 +520,7 @@ class IntelligentVisualizationService:
                     'type': 'line',
                     'title': f'Time Series: {num_col}',
                     'description': f'Trend of {num_col} over time',
-                    'data': fig.to_dict(),
+                    'data': fig.to_plotly_json(),
                     'columns': [date_col, num_col]
                 })
             except Exception as e:
@@ -546,7 +546,7 @@ class IntelligentVisualizationService:
                         'type': 'rolling_avg',
                         'title': f'Rolling Average: {num_col}',
                         'description': f'{window}-period moving average smoothing',
-                        'data': fig.to_dict(),
+                        'data': fig.to_plotly_json(),
                         'columns': [date_col, num_col]
                     })
             except Exception as e:
@@ -569,7 +569,7 @@ class IntelligentVisualizationService:
                     'type': 'seasonality',
                     'title': f'Monthly Pattern: {num_col}',
                     'description': f'Average values by month (seasonality analysis)',
-                    'data': fig.to_dict(),
+                    'data': fig.to_plotly_json(),
                     'columns': [date_col, num_col]
                 })
             except Exception as e:
@@ -606,7 +606,7 @@ class IntelligentVisualizationService:
                     'type': 'missing_heatmap',
                     'title': 'Missing Value Heatmap',
                     'description': f'Visualizing null patterns (sample of {sample_size} rows)',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             else:
                 skipped.append("Missing value heatmap: No missing values in dataset")
@@ -630,7 +630,7 @@ class IntelligentVisualizationService:
                     'type': 'missing_bar',
                     'title': 'Missing Values by Column',
                     'description': f'{len(missing_pct)} columns have missing data',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             else:
                 skipped.append("Missing % bar chart: No missing values found")
@@ -656,7 +656,7 @@ class IntelligentVisualizationService:
                 'type': 'dtype_pie',
                 'title': 'Data Type Distribution',
                 'description': f'Breakdown of {sum(dtype_counts.values())} columns by type',
-                'data': fig.to_dict()
+                'data': fig.to_plotly_json()
             })
         except Exception as e:
             skipped.append(f"Data type chart: {str(e)}")
@@ -680,7 +680,7 @@ class IntelligentVisualizationService:
                 'type': 'duplicates',
                 'title': 'Duplicate Row Analysis',
                 'description': f'{dup_count} duplicate rows found ({dup_count/total_rows*100:.2f}%)',
-                'data': fig.to_dict()
+                'data': fig.to_plotly_json()
             })
         except Exception as e:
             skipped.append(f"Duplicate analysis: {str(e)}")
@@ -732,7 +732,7 @@ class IntelligentVisualizationService:
                     'type': 'pca',
                     'title': 'PCA: Dimensionality Reduction',
                     'description': f'2D projection of {len(numeric_cols)}D data',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             except Exception as e:
                 skipped.append(f"PCA plot: {str(e)}")
@@ -776,7 +776,7 @@ class IntelligentVisualizationService:
                     'type': 'kmeans',
                     'title': f'K-Means Clustering',
                     'description': f'Identified {min(3, max_k)} natural clusters in data',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             else:
                 skipped.append("K-Means: Too few data points for meaningful clustering")
@@ -818,7 +818,7 @@ class IntelligentVisualizationService:
                     'type': 'dendrogram',
                     'title': 'Dendrogram: Hierarchical Clusters',
                     'description': f'Tree structure of {len(sample_data)} samples',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             except Exception as e:
                 skipped.append(f"Dendrogram: {str(e)}")
@@ -883,7 +883,7 @@ class IntelligentVisualizationService:
                 'type': 'kpi_cards',
                 'title': 'Dataset Overview',
                 'description': 'Key metrics and statistics',
-                'data': fig.to_dict()
+                'data': fig.to_plotly_json()
             })
         except Exception as e:
             skipped.append(f"KPI cards: {str(e)}")
@@ -911,7 +911,7 @@ class IntelligentVisualizationService:
                     'type': 'radar',
                     'title': 'Radar Chart: Feature Comparison',
                     'description': f'Normalized comparison across {len(numeric_cols)} features',
-                    'data': fig.to_dict()
+                    'data': fig.to_plotly_json()
                 })
             except Exception as e:
                 skipped.append(f"Radar chart: {str(e)}")
