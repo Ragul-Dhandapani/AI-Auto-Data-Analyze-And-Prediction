@@ -10,7 +10,7 @@ import sys
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://promise-ai-platform.preview.emergentagent.com/api"
+BACKEND_URL = "https://data-prophet-4.preview.emergentagent.com/api"
 
 # Test dataset ID (from the available datasets)
 DATASET_ID = "d77c5cd7-8c3f-4e2a-acec-266e446c941e"  # application_latency.csv
