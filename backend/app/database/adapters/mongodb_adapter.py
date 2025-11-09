@@ -320,6 +320,19 @@ class MongoDBAdapter(DatabaseAdapter):
         
         return results
     
+
+    async def update_training_metadata_workspace_name(self, dataset_id: str, workspace_name: str):
+        """
+        Update workspace_name for all training_metadata records of a dataset
+        This is called when user saves a workspace to associate training history with the workspace
+        """
+        result = await self.db.training_metadata.update_many(
+            {'dataset_id': dataset_id},
+            {'$set': {'workspace_name': workspace_name}}
+        )
+        logger.info(f"Updated {result.modified_count} training metadata records for dataset {dataset_id} with workspace_name: {workspace_name}")
+        return result
+
     async def get_training_stats(self, dataset_id: str) -> Dict[str, Any]:
         """Get training statistics for a dataset"""
         pipeline = [
