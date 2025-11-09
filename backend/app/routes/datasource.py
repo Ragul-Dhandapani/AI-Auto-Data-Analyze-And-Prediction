@@ -11,6 +11,7 @@ import io
 import os
 import psycopg2
 import pymysql
+import logging
 
 from app.models.pydantic_models import DataSourceConfig, DataSourceTest
 from app.database.db_helper import get_db
@@ -22,6 +23,7 @@ from app.database.connections import (
 from app.services.data_service import generate_data_profile
 
 router = APIRouter(prefix="/datasource", tags=["datasource"])
+logger = logging.getLogger(__name__)
 
 
 def create_db_connection(db_type: str, config: dict):
