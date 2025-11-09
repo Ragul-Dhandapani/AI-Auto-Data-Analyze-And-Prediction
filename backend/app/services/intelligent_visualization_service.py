@@ -491,17 +491,30 @@ class IntelligentVisualizationService:
                 unique_count = self.df[col].nunique()
                 if unique_count <= 20:
                     value_counts = self.df[col].value_counts().head(15)
+                    total = len(self.df)
+                    top_category = value_counts.index[0]
+                    top_count = value_counts.values[0]
+                    top_pct = (top_count / total * 100)
+                    
                     fig = px.bar(
                         x=value_counts.index,
                         y=value_counts.values,
                         title=f'Count Plot: {col}',
-                        labels={'x': col, 'y': 'Count'}
+                        labels={'x': f'{col} (Categories)', 'y': 'Count (Number of Records)'}
                     )
-                    fig.update_layout(height=400)
+                    fig.update_layout(
+                        height=400,
+                        xaxis_title=f'{col}',
+                        yaxis_title='Count'
+                    )
+                    
+                    # Meaningful description
+                    description = f'Shows frequency of each category in {col}. Most common: "{top_category}" with {top_count} records ({top_pct:.1f}% of total). Displaying top {len(value_counts)} out of {unique_count} categories.'
+                    
                     charts.append({
                         'type': 'bar',
                         'title': f'Bar Chart: {col}',
-                        'description': f'Frequency distribution across {len(value_counts)} categories',
+                        'description': description,
                         'data': fig.to_plotly_json(),
                         'column': col
                     })
