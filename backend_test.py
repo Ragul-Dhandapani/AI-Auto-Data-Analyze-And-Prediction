@@ -441,50 +441,62 @@ def test_root_cause_analysis():
         return False, "analysis_failed"
 
 def main():
-    """Run Critical Backend Tests"""
-    print("🚀 PROMISE AI BACKEND TESTING - Critical Endpoints")
+    """Run Training Metadata Investigation"""
+    print("🚀 PROMISE AI TRAINING METADATA INVESTIGATION")
+    print("🎯 Focus: Workspace 'latency_nov' showing '0 models' issue")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now().isoformat()}")
     print("="*70)
     
     # Track test results
     results = {
-        'backend_health': False,
-        'datasets_endpoint': False,
-        'suggest_features': False,
-        'hyperparameter_tuning': False,
-        'backend_logs': False
+        'direct_db_query': False,
+        'workspace_states': False,
+        'training_metadata_api': False,
+        'dataset_correlation': False,
+        'root_cause_analysis': False
     }
     
-    dataset_id = None
+    findings = {}
     
-    # Test 1: Backend Health (GENERAL)
-    print("\n🔍 PRIORITY: GENERAL")
-    results['backend_health'] = test_backend_health()
+    # Test 1: Direct Database Query
+    print("\n🔍 PRIORITY: HIGH - Direct Database Investigation")
+    db_success, latency_nov_in_training = test_direct_database_query()
+    results['direct_db_query'] = db_success
+    findings['latency_nov_in_training'] = latency_nov_in_training
     
-    if not results['backend_health']:
-        print("\n❌ Backend is not accessible. Stopping tests.")
-        return False
+    # Test 2: Workspace States Query
+    print("\n🔍 PRIORITY: HIGH - Workspace States Verification")
+    ws_success, workspace_dataset_id = test_workspace_states_query()
+    results['workspace_states'] = ws_success
+    findings['workspace_dataset_id'] = workspace_dataset_id
     
-    # Test 2: Datasets Endpoint (SANITY CHECK)
-    print("\n🔍 PRIORITY: MEDIUM")
-    datasets_success, dataset_id = test_datasets_endpoint()
-    results['datasets_endpoint'] = datasets_success
+    # Test 3: Training Metadata API
+    print("\n🔍 PRIORITY: CRITICAL - API Endpoint Testing")
+    api_success, latency_nov_in_api = test_training_metadata_endpoint()
+    results['training_metadata_api'] = api_success
+    findings['latency_nov_in_api'] = latency_nov_in_api
     
-    # Test 3: Suggest-Features Endpoint (NEW - Just Added)
-    print("\n🔍 PRIORITY: HIGH")
-    results['suggest_features'] = test_suggest_features_endpoint(dataset_id)
+    # Test 4: Dataset-Workspace Correlation
+    if workspace_dataset_id:
+        print("\n🔍 PRIORITY: HIGH - Dataset Correlation Analysis")
+        corr_success, has_training_data = test_dataset_workspace_correlation(workspace_dataset_id)
+        results['dataset_correlation'] = corr_success
+        findings['has_training_data'] = has_training_data
+    else:
+        print("\n⚠️  Skipping dataset correlation - no workspace dataset ID found")
+        results['dataset_correlation'] = True  # Don't fail for missing prerequisite
+        findings['has_training_data'] = False
     
-    # Test 4: Hyperparameter Tuning Endpoint (REPORTED 500 ERROR)
-    print("\n🔍 PRIORITY: HIGH")
-    results['hyperparameter_tuning'] = test_hyperparameter_tuning_endpoint(dataset_id)
-    
-    # Test 5: Backend Logs Check
-    results['backend_logs'] = check_backend_logs()
+    # Test 5: Root Cause Analysis
+    print("\n🔍 PRIORITY: CRITICAL - Root Cause Identification")
+    rca_success, root_cause = test_root_cause_analysis()
+    results['root_cause_analysis'] = rca_success
+    findings['root_cause'] = root_cause
     
     # Summary
     print("\n" + "="*70)
-    print("📊 CRITICAL ENDPOINTS TEST SUMMARY")
+    print("📊 TRAINING METADATA INVESTIGATION SUMMARY")
     print("="*70)
     
     passed_tests = sum(1 for result in results.values() if result)
@@ -492,59 +504,48 @@ def main():
     
     for test_name, passed in results.items():
         status = "✅ PASS" if passed else "❌ FAIL"
-        priority = ""
-        if test_name == 'suggest_features':
-            priority = " (HIGH PRIORITY - NEW ENDPOINT)"
-        elif test_name == 'hyperparameter_tuning':
-            priority = " (HIGH PRIORITY - 500 ERROR REPORTED)"
-        elif test_name == 'datasets_endpoint':
-            priority = " (MEDIUM PRIORITY - SANITY CHECK)"
-        elif test_name == 'backend_health':
-            priority = " (GENERAL)"
-        
-        print(f"{test_name.replace('_', ' ').title()}: {status}{priority}")
+        print(f"{test_name.replace('_', ' ').title()}: {status}")
     
-    print(f"\nOverall: {passed_tests}/{total_tests} tests passed")
+    print(f"\nOverall: {passed_tests}/{total_tests} tests completed successfully")
     
-    # Detailed findings
-    print("\n🔍 DETAILED FINDINGS:")
+    # Key Findings
+    print("\n🔍 KEY FINDINGS:")
+    print(f"   📋 Workspace 'latency_nov' in training_metadata table: {'✅ YES' if findings.get('latency_nov_in_training') else '❌ NO'}")
+    print(f"   📋 Workspace 'latency_nov' in workspace_states table: {'✅ YES' if findings.get('workspace_dataset_id') else '❌ NO'}")
+    print(f"   📋 Workspace 'latency_nov' in API response: {'✅ YES' if findings.get('latency_nov_in_api') else '❌ NO'}")
+    print(f"   📋 Training data exists for workspace dataset: {'✅ YES' if findings.get('has_training_data') else '❌ NO'}")
     
-    if results['backend_health']:
-        print("   ✅ Backend is running and responsive")
+    # Root Cause Determination
+    root_cause = findings.get('root_cause', 'unknown')
+    print(f"\n🎯 ROOT CAUSE: {root_cause}")
+    
+    if root_cause == "workspace_exists_no_training":
+        print("   🔧 SOLUTION: Workspace exists but no training metadata was saved")
+        print("      - Check if training process completed successfully")
+        print("      - Verify training metadata is being saved to database")
+        print("      - Check for errors during model training")
+    elif root_cause == "training_exists_api_issue":
+        print("   🔧 SOLUTION: Training data exists but API not returning it")
+        print("      - Check API query logic in /api/training/metadata/by-workspace")
+        print("      - Verify workspace name matching logic")
+        print("      - Check JOIN conditions between tables")
+    elif root_cause == "workspace_not_found":
+        print("   🔧 SOLUTION: Workspace 'latency_nov' was never saved")
+        print("      - Check workspace save functionality")
+        print("      - Verify workspace name is being saved correctly")
+        print("      - Check for case sensitivity issues")
     else:
-        print("   ❌ Backend health issues detected")
+        print("   🔧 SOLUTION: Further investigation needed")
+        print("      - Check backend logs for training errors")
+        print("      - Verify database schema and constraints")
+        print("      - Test training process end-to-end")
     
-    if results['datasets_endpoint']:
-        print("   ✅ Datasets endpoint working - Oracle RDS connection stable")
-    else:
-        print("   ❌ Datasets endpoint issues - Oracle RDS connection problems")
-    
-    if results['suggest_features']:
-        print("   ✅ NEW suggest-features endpoint working correctly")
-    else:
-        print("   ❌ NEW suggest-features endpoint has issues")
-    
-    if results['hyperparameter_tuning']:
-        print("   ✅ Hyperparameter tuning endpoint working - 500 error resolved")
-    else:
-        print("   ❌ Hyperparameter tuning endpoint still has issues - 500 error persists")
-    
-    if results['backend_logs']:
-        print("   ✅ Backend logs show no critical errors")
-    else:
-        print("   ❌ Backend logs show errors")
-    
-    # Final status
-    critical_tests = ['suggest_features', 'hyperparameter_tuning']
-    critical_passed = sum(1 for test in critical_tests if results[test])
-    
-    if critical_passed == len(critical_tests):
-        print("\n🎉 All CRITICAL tests passed!")
-        print("\n📋 STATUS: ✅ CRITICAL FIXES VERIFIED")
+    # Final Status
+    if findings.get('latency_nov_in_api'):
+        print("\n📋 STATUS: ✅ ISSUE RESOLVED - Workspace found in API")
         return True
     else:
-        print(f"\n⚠️ {len(critical_tests) - critical_passed} CRITICAL test(s) failed.")
-        print("\n📋 STATUS: ❌ CRITICAL ISSUES DETECTED")
+        print("\n📋 STATUS: ❌ ISSUE CONFIRMED - Root cause identified")
         return False
 
 if __name__ == "__main__":
