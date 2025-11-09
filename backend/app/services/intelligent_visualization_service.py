@@ -352,16 +352,35 @@ class IntelligentVisualizationService:
                 correlations.sort(key=lambda x: x[2], reverse=True)
                 
                 for col1, col2, corr_val in correlations[:3]:
+                    # Interpret correlation strength
+                    if abs(corr_val) >= 0.7:
+                        strength = 'strong'
+                    elif abs(corr_val) >= 0.4:
+                        strength = 'moderate'
+                    else:
+                        strength = 'weak'
+                    
+                    direction = 'positive' if corr_val > 0 else 'negative'
+                    
                     fig = px.scatter(
                         self.df, x=col1, y=col2,
                         title=f'{col1} vs {col2} (r={corr_val:.3f})',
-                        trendline='ols'
+                        trendline='ols',
+                        labels={col1: f'{col1}', col2: f'{col2}'}
                     )
-                    fig.update_layout(height=400)
+                    fig.update_layout(
+                        height=400,
+                        xaxis_title=col1,
+                        yaxis_title=col2
+                    )
+                    
+                    # Meaningful description
+                    description = f'Shows {strength} {direction} relationship between {col1} and {col2} (correlation: {corr_val:.3f}). Each point represents one record. Trend line indicates the overall pattern. {"As one increases, the other tends to increase." if corr_val > 0 else "As one increases, the other tends to decrease."}'
+                    
                     charts.append({
                         'type': 'scatter',
                         'title': f'Scatter: {col1} vs {col2}',
-                        'description': f'Correlation: {corr_val:.3f}',
+                        'description': description,
                         'data': fig.to_plotly_json(),
                         'columns': [col1, col2]
                     })
