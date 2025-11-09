@@ -271,16 +271,30 @@ class IntelligentVisualizationService:
                 unique_count = self.df[col].nunique()
                 if unique_count <= 10:  # Only for small categorical sets
                     value_counts = self.df[col].value_counts().head(10)
+                    total_records = len(self.df)
+                    top_category = value_counts.index[0]
+                    top_percentage = (value_counts.values[0] / total_records * 100)
+                    
                     fig = px.pie(
                         values=value_counts.values,
                         names=value_counts.index,
-                        title=f'Distribution: {col}'
+                        title=f'Distribution: {col}',
+                        hover_data=[value_counts.values]
+                    )
+                    fig.update_traces(
+                        textposition='inside',
+                        textinfo='label+percent',
+                        hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>'
                     )
                     fig.update_layout(height=400)
+                    
+                    # Meaningful description
+                    description = f'Shows distribution of {col} across {unique_count} categories. Top category: "{top_category}" ({top_percentage:.1f}%). Each slice represents the proportion of records in that category.'
+                    
                     charts.append({
                         'type': 'pie',
                         'title': f'Pie Chart: {col}',
-                        'description': f'Proportions across {unique_count} categories',
+                        'description': description,
                         'data': fig.to_plotly_json(),
                         'column': col
                     })
