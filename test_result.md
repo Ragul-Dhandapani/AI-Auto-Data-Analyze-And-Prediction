@@ -386,6 +386,70 @@ Body: {
 
 ---
 
+## 🔧 HOTFIX - Data Profile "No data found" for Database Tables - Nov 9, 2025 18:55 UTC
+
+### Issue: Data Profile Failed for Database-Loaded Data
+**Error**: "Profiling failed: No data found in dataset"
+**Context**: File upload works fine, but database table loading shows this error
+**Root Cause**: Database table data was stored as JSON in BLOB, but without proper file extension, causing data loading to fail
+
+### Analysis
+**File Upload Storage**:
+- Stores original CSV/Excel file bytes with correct extension (`.csv`, `.xlsx`)
+- Analysis endpoint reads file extension and parses accordingly
+- Works perfectly ✅
+
+**Database Table Storage (Before Fix)**:
+- Converted DataFrame to JSON
+- Stored as `table_{id}.json` in BLOB
+- Dataset name was `{table}_{source}` (no extension)
+- Analysis endpoint couldn't determine format → tried JSON parsing → failed ❌
+
+### Fix Applied ✅
+**File Modified**: `/app/backend/app/routes/datasource.py`
+
+**Changes**:
+1. **Changed storage format from JSON to CSV** (matches file upload behavior)
+2. **Added `.csv` extension** to dataset name for proper file type detection
+3. **Stores DataFrame as CSV bytes** in BLOB (same as file uploads)
+4. **Added `storage_format` field** to dataset metadata
+
+**Updated Storage Logic**:
+```python
+# Convert DataFrame to CSV bytes (same as file uploads)
+csv_buffer = io.BytesIO()
+df.to_csv(csv_buffer, index=False)
+csv_bytes = csv_buffer.getvalue()
+
+# Store with .csv extension
+file_id = await db_adapter.store_file(
+    f"{table_name}_{source_type}.csv",  # Proper extension
+    csv_bytes,
+    metadata={...}
+)
+
+# Dataset metadata
+dataset_doc = {
+    "name": f"{table_name}_{source_type}.csv",  # Extension in name
+    "storage_format": "csv",  # Format indicator
+    ...
+}
+```
+
+**Why This Works**:
+1. ✅ Analysis endpoint checks `dataset.get("name")` for file extension
+2. ✅ Finds `.csv` extension → uses `pd.read_csv()`
+3. ✅ Applies stored dtypes correctly
+4. ✅ Data Profile can now generate statistics
+
+**Result**: ✅ Data Profile now works for both file uploads AND database table loads
+**File Upload**: ✅ Still working (unchanged behavior)
+**Database Load**: ✅ Now working (fixed to match file upload format)
+
+**Backend Status**: ✅ Restarted and running
+
+---
+
 ## 🧪 BACKEND TESTING RESULTS - Enhanced Chat Context - Nov 9, 2025
 
 ### Testing Agent: Backend Testing Agent
