@@ -30,6 +30,9 @@ const loadPlotly = () => {
 };
 
 const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection }) => {
+  // CRITICAL: Initialize ref BEFORE state to ensure it's ready for merge operations
+  const previousResultsRef = useRef(null);  // CRITICAL: Persist previous results across state updates
+  
   // Load analysis results from localStorage on mount (for page refresh persistence)
   // PRODUCTION FIX: Only use parent cache, no localStorage (supports unlimited data size)
   const getInitialAnalysisResults = () => {
@@ -39,6 +42,10 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     // 2. Parent component state (current session only)
     if (analysisCache) {
       console.log('✅ Restored analysis results from parent cache');
+      // CRITICAL FIX: Immediately update ref when loading from cache
+      // This ensures merge operations work correctly after workspace load
+      previousResultsRef.current = analysisCache;
+      console.log('✅ Immediately set previousResultsRef from cache with', analysisCache?.ml_models?.length || 0, 'models');
       return analysisCache;
     }
     
@@ -68,7 +75,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
-  const previousResultsRef = useRef(null);  // CRITICAL: Persist previous results across state updates
   
   // PRODUCTION FIX: No localStorage for large datasets (2GB+ support)
   // Save analysis results to ref only (in-memory) - localStorage cannot handle large data
