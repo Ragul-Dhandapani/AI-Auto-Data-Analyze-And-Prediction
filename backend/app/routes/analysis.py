@@ -1233,6 +1233,18 @@ async def save_analysis_state(request: SaveStateRequest):
         db_adapter = get_db()
         await db_adapter.save_workspace(state_doc)
         
+        # CRITICAL FIX: Update training_metadata with the workspace_name
+        # This ensures training metadata shows the correct workspace name
+        try:
+            await db_adapter.update_training_metadata_workspace_name(
+                dataset_id=request.dataset_id,
+                workspace_name=request.state_name
+            )
+            logger.info(f"✅ Updated training metadata with workspace_name: {request.state_name}")
+        except Exception as update_error:
+            logger.warning(f"⚠️ Failed to update training metadata workspace_name: {update_error}")
+            # Don't fail the save operation if metadata update fails
+        
         return {
             "state_id": state_id,
             "message": f"Workspace '{request.state_name}' saved successfully",
