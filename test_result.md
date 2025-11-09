@@ -95,20 +95,46 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 - **Database Schema**: ✅ Correct structure
 - **Query Performance**: ✅ Acceptable (<500ms)
 
-### 🎯 SOLUTION APPLIED
+### 🎯 ROOT CAUSE IDENTIFIED - DATABASE SCHEMA ISSUE
 
-#### 🔧 Fix Applied: Frontend Workspace Loading Issue ✅ FIXED
-**Location**: `/app/frontend/src/pages/DashboardPage.jsx` - `loadWorkspaceState` function
-**Issue**: When loading a workspace, `current_workspace_name` in localStorage was not updated
-**Priority**: HIGH - RESOLVED
+#### 🔧 CRITICAL ISSUE: Missing Database Column ❌ SCHEMA PROBLEM
+**Location**: Database schema `/app/backend/app/database/oracle_schema.sql`
+**Issue**: `training_metadata` table is missing `workspace_name` column
+**Priority**: CRITICAL - DATABASE SCHEMA ISSUE
 
 **Root Cause Analysis**:
-1. ✅ Backend correctly accepts `workspace_name` parameter in training API
-2. ✅ Frontend correctly sends `workspace_name` from localStorage during training
-3. ✅ Workspace save correctly sets `current_workspace_name` in localStorage
-4. ❌ Workspace load was NOT setting `current_workspace_name` in localStorage
+1. ✅ Backend correctly receives `workspace_name` parameter in training API
+2. ✅ Frontend correctly sends `workspace_name` from localStorage during training  
+3. ❌ **CRITICAL**: `training_metadata` table has NO `workspace_name` column in schema
+4. ❌ **CRITICAL**: `save_training_metadata` function doesn't save workspace_name
+5. ❌ **CRITICAL**: Training metadata API queries for non-existent `workspace_name` column
 
-**Fix Applied**:
+**Evidence from Investigation**:
+- Backend logs show: `🔍 DEBUG: Received workspace_name: 'test_workspace_fix_direct'`
+- Database shows: All training records have `workspace_name = NULL` (column doesn't exist)
+- API query fails: `WHERE workspace_name = :workspace_name` (column doesn't exist)
+
+**Database Schema Issue**:
+```sql
+-- CURRENT SCHEMA (MISSING workspace_name):
+CREATE TABLE training_metadata (
+    id VARCHAR2(36) PRIMARY KEY,
+    dataset_id VARCHAR2(36) NOT NULL,
+    -- workspace_name column is MISSING!
+    problem_type VARCHAR2(50) NOT NULL,
+    ...
+);
+```
+
+**Required Fix**:
+1. Add `workspace_name` column to `training_metadata` table
+2. Update `save_training_metadata` function to include workspace_name
+3. Update database schema migration
+
+#### 📋 Frontend Fix Applied (Partial Solution)
+**Location**: `/app/frontend/src/pages/DashboardPage.jsx` - `loadWorkspaceState` function
+**Status**: ✅ COMPLETED (but won't work until database schema is fixed)
+
 ```javascript
 // Added to loadWorkspaceState function:
 const workspaceState = savedStates.find(state => state.id === stateId);
@@ -116,15 +142,6 @@ const workspaceName = workspaceState?.state_name || 'default';
 localStorage.setItem('current_workspace_name', workspaceName);
 console.log('Set current workspace on load:', workspaceName);
 ```
-
-**Result**: 
-- ✅ When user loads workspace 'latency_nov', localStorage is updated
-- ✅ Subsequent training will use correct workspace name
-- ✅ Training metadata will be associated with correct workspace
-- ✅ Training Metadata page will show models for the workspace
-
-#### 📋 Files Modified
-- `/app/frontend/src/pages/DashboardPage.jsx` - Fixed workspace loading to set current workspace name
 
 ### 🎯 TRAINING METADATA INVESTIGATION: ✅ COMPLETE
 
