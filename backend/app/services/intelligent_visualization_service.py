@@ -290,21 +290,39 @@ class IntelligentVisualizationService:
                     top_category = value_counts.index[0]
                     top_percentage = (value_counts.values[0] / total_records * 100)
                     
-                    fig = px.pie(
-                        values=value_counts.values,
-                        names=value_counts.index,
-                        title=f'Distribution: {col}',
-                        hover_data=[value_counts.values]
-                    )
-                    fig.update_traces(
+                    # Convert to proper format with explicit labels
+                    categories = [str(name) for name in value_counts.index]
+                    values = value_counts.values.tolist()
+                    
+                    fig = go.Figure(data=[go.Pie(
+                        labels=categories,
+                        values=values,
                         textposition='inside',
                         textinfo='label+percent',
-                        hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>'
+                        hovertemplate='<b>%{label}</b><br>' +
+                                    f'{col}: %{{label}}<br>' +
+                                    'Count: %{value}<br>' +
+                                    'Percentage: %{percent}<br>' +
+                                    '<extra></extra>',
+                        marker=dict(line=dict(color='white', width=2))
+                    )])
+                    
+                    fig.update_layout(
+                        title=f'Distribution of {col}',
+                        height=400,
+                        showlegend=True,
+                        legend=dict(
+                            title=dict(text=f'{col} Categories'),
+                            orientation="v",
+                            yanchor="middle",
+                            y=0.5,
+                            xanchor="left",
+                            x=1.05
+                        )
                     )
-                    fig.update_layout(height=400)
                     
                     # Meaningful description
-                    description = f'Shows distribution of {col} across {unique_count} categories. Top category: "{top_category}" ({top_percentage:.1f}%). Each slice represents the proportion of records in that category.'
+                    description = f'Shows distribution of {col} across {unique_count} categories. Top category: "{top_category}" ({top_percentage:.1f}%). Each slice represents the proportion of records in that category. Legend shows all category names.'
                     
                     charts.append({
                         'type': 'pie',
