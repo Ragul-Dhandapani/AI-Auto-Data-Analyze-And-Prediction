@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import CompactDatabaseToggle from "@/components/CompactDatabaseToggle";
 import { 
-  Database, 
   Upload, 
   BarChart3, 
   Brain, 
