@@ -588,12 +588,21 @@ const VisualizationPanel = ({ dataset, chartsCache, onChartsUpdate, variableSele
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3">
               <ul className="space-y-1 text-sm text-amber-800">
-                {skippedCharts.map((reason, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-amber-600">•</span>
-                    <span>{reason}</span>
-                  </li>
-                ))}
+                {skippedCharts.map((reason, idx) => {
+                  // Handle both old format (string) and new format (object)
+                  const message = typeof reason === 'string' ? reason : reason.message;
+                  const category = typeof reason === 'object' ? reason.category : null;
+                  
+                  return (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-amber-600">•</span>
+                      <span>
+                        {category && <span className="font-semibold capitalize">[{category}] </span>}
+                        {message}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </CollapsibleContent>
           </Card>
