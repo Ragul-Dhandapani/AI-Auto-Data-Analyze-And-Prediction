@@ -24,28 +24,74 @@ ORACLE_CONFIG = {
     'service_name': 'ORCL'
 }
 
-def test_backend_health():
-    """Test: Backend Health - Verify backend is running and responsive"""
-    print("\n=== Test: Backend Health ===")
+def test_direct_database_query():
+    """Test 1: Direct Database Query - Check training_metadata table"""
+    print("\n=== Test 1: Direct Database Query ===")
+    print("Checking what's actually in the training_metadata table...")
     
     try:
-        # Test basic health endpoint
-        response = requests.get(f"{BACKEND_URL}/", timeout=10)
-        print(f"Status Code: {response.status_code}")
+        # Initialize Oracle client
+        try:
+            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+        except:
+            pass  # Already initialized
         
-        if response.status_code == 200:
-            data = response.json()
-            print("✅ Backend is running and responsive")
-            print(f"   Version: {data.get('version', 'Unknown')}")
-            print(f"   Status: {data.get('status', 'Unknown')}")
-            return True
-        else:
-            print(f"❌ Backend health check failed: {response.status_code}")
-            return False
+        # Create connection
+        dsn = cx_Oracle.makedsn(
+            ORACLE_CONFIG['host'],
+            ORACLE_CONFIG['port'],
+            service_name=ORACLE_CONFIG['service_name']
+        )
+        
+        connection = cx_Oracle.connect(
+            user=ORACLE_CONFIG['user'],
+            password=ORACLE_CONFIG['password'],
+            dsn=dsn
+        )
+        
+        cursor = connection.cursor()
+        
+        # Query training_metadata table
+        query = """
+        SELECT id, dataset_id, workspace_name, model_type, created_at 
+        FROM training_metadata 
+        ORDER BY created_at DESC 
+        FETCH FIRST 20 ROWS ONLY
+        """
+        
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        columns = [col[0].lower() for col in cursor.description]
+        
+        print(f"✅ Found {len(rows)} training metadata records")
+        print(f"   Columns: {columns}")
+        
+        # Check for latency_nov workspace
+        latency_nov_found = False
+        for row in rows:
+            row_dict = dict(zip(columns, row))
+            workspace_name = row_dict.get('workspace_name', '')
             
+            print(f"   - Dataset: {row_dict.get('dataset_id', 'N/A')[:8]}..., "
+                  f"Workspace: '{workspace_name}', "
+                  f"Model: {row_dict.get('model_type', 'N/A')}, "
+                  f"Created: {row_dict.get('created_at', 'N/A')}")
+            
+            if workspace_name and 'latency_nov' in workspace_name.lower():
+                latency_nov_found = True
+                print(f"   🎯 FOUND latency_nov workspace: {workspace_name}")
+        
+        if not latency_nov_found:
+            print("   ❌ No 'latency_nov' workspace found in training_metadata")
+        
+        cursor.close()
+        connection.close()
+        
+        return True, latency_nov_found
+        
     except Exception as e:
-        print(f"❌ Backend health check exception: {str(e)}")
-        return False
+        print(f"❌ Direct database query failed: {str(e)}")
+        return False, False
 
 def test_datasets_endpoint():
     """Test: Datasets Endpoint (SANITY CHECK) - GET /api/datasets"""
