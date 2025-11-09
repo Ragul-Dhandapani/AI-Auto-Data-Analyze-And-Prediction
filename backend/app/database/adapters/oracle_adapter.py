@@ -715,6 +715,26 @@ class OracleAdapter(DatabaseAdapter):
         
         return results
     
+
+    async def update_training_metadata_workspace_name(self, dataset_id: str, workspace_name: str):
+        """
+        Update workspace_name for all training_metadata records of a dataset
+        This is called when user saves a workspace to associate training history with the workspace
+        """
+        query = """
+        UPDATE training_metadata 
+        SET workspace_name = :workspace_name 
+        WHERE dataset_id = :dataset_id
+        """
+        params = {
+            'workspace_name': workspace_name,
+            'dataset_id': dataset_id
+        }
+        
+        result = await self._execute(query, params, commit=True)
+        logger.info(f"Updated training metadata for dataset {dataset_id} with workspace_name: {workspace_name}")
+        return result
+
     async def get_training_stats(self, dataset_id: str) -> Dict[str, Any]:
         """
         Get training statistics for a dataset
