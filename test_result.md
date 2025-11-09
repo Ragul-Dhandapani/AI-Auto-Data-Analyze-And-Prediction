@@ -159,6 +159,77 @@ console.log('Set current workspace on load:', workspaceName);
 - Similar pattern: workspace 'latency_nov2' has training with workspace_name = 'latency_nov'
 - Similar pattern: workspace 'latency_nov' has training with workspace_name = 'default'
 
+## 🧪 BACKEND TESTING RESULTS - Training Metadata Investigation - Nov 9, 2025 (Updated)
+
+### Testing Agent: Backend Testing Agent
+**Test Time**: 2025-11-09T16:56:20
+**Backend URL**: https://ai-insight-hub-4.preview.emergentagent.com/api
+**Database Active**: Oracle RDS 19c
+**Tests Performed**: 5 comprehensive database and API tests + detailed debugging
+**Overall Result**: ✅ ROOT CAUSE IDENTIFIED - WORKSPACE NAME MISMATCH
+
+### ✅ COMPLETED TESTS
+
+#### Test 1: Direct Database Query ✅ PASSED
+**Status**: ✅ WORKING
+- Successfully queried training_metadata table directly
+- Found 190 training metadata records in database
+- **CRITICAL FINDING**: workspace_name column EXISTS and is populated
+- Found training records with workspace names: 'default' (161), 'latency_nov2' (15), 'latency_nov' (14)
+- Database connection and queries working correctly
+
+#### Test 2: Workspace States Verification ✅ PASSED  
+**Status**: ✅ WORKING
+- Successfully found 3 workspaces matching 'latency_nov' pattern in workspace_states table
+- Workspace details confirmed:
+  - 'latency_nov3': Dataset d77c5cd7-8c3f-4e2a-acec-266e446c941e, Size: 45MB
+  - 'latency_nov2': Dataset f356fdd8-c028-4666-8ea1-428af49ca7b3, Size: 45MB  
+  - 'latency_nov': Dataset 1f912c14-101a-4e43-beab-73d2397eaad1, Size: 45MB
+- **CONFIRMED**: All workspaces were successfully saved
+
+#### Test 3: Training Metadata API Endpoint ✅ PASSED
+**Status**: ✅ WORKING
+- GET /api/training/metadata/by-workspace returns 200 OK
+- Found 15 datasets with training metadata
+- **CRITICAL FINDING**: API correctly shows all 'latency_nov*' workspaces with 0 models each
+- API query logic working correctly - issue is data-related, not API-related
+
+#### Test 4: Dataset-Workspace Correlation ✅ PASSED
+**Status**: ✅ WORKING  
+- Found training metadata records for all datasets
+- **CRITICAL FINDING**: Workspace name mismatch identified
+- Example: workspace 'latency_nov' (dataset 1f912c14...) has 16 training records with workspace_name = 'default'
+- Dataset correlation working correctly, but workspace names don't match
+
+#### Test 5: Root Cause Analysis ✅ PASSED
+**Status**: ✅ ROOT CAUSE IDENTIFIED
+- Comprehensive analysis of workspace alignment completed
+- **ROOT CAUSE**: Training process saves metadata with incorrect workspace name
+- Pattern identified: Training metadata workspace_name is offset by one workspace creation
+
+### 🔍 DETAILED ROOT CAUSE ANALYSIS
+
+#### ✅ Issue Status: ROOT CAUSE IDENTIFIED - WORKSPACE NAME MISMATCH
+**Problem**: Training Metadata page shows "0 models" for workspace "latency_nov3"
+
+**Root Cause**: Training process saves metadata with previous workspace name instead of current workspace name
+
+**Evidence**:
+1. ✅ Workspace 'latency_nov3' exists in workspace_states table (dataset: d77c5cd7...)
+2. ✅ Training metadata exists for same dataset (15 models trained)
+3. ❌ Training metadata has workspace_name = 'latency_nov2' (not 'latency_nov3')
+4. ✅ API correctly returns 0 models because no training records match workspace name
+5. 🔍 Pattern: Each workspace's training is saved with the previous workspace's name
+
+**Impact**: HIGH - Users cannot see their training results in saved workspaces
+
+#### 📋 Technical Details
+- **Workspace Save**: ✅ Working correctly
+- **Training Process**: ❌ Using stale/cached workspace name during training
+- **API Logic**: ✅ Working correctly  
+- **Database Schema**: ✅ Correct structure with workspace_name column
+- **Query Performance**: ✅ Acceptable (<500ms)
+
 ### 📋 AGENT COMMUNICATION
 
 **From**: Testing Agent  
@@ -166,21 +237,21 @@ console.log('Set current workspace on load:', workspaceName);
 **Priority**: CRITICAL  
 **Message**: 
 
-CRITICAL DATABASE SCHEMA ISSUE IDENTIFIED: The training_metadata table is missing the workspace_name column. This is why Training Metadata page shows 0 models for workspace 'latency_nov'. 
+ROOT CAUSE IDENTIFIED - WORKSPACE NAME MISMATCH: The training_metadata table has the workspace_name column and training is being saved, but with incorrect workspace names. This is why Training Metadata page shows 0 models for workspace 'latency_nov3'.
 
 **Evidence**:
-- Backend receives workspace names correctly (logs show: "Received workspace_name: 'test_workspace_fix_direct'")
-- Database schema shows training_metadata table has NO workspace_name column
-- All training metadata queries fail: "WHERE workspace_name = :workspace_name" (column doesn't exist)
-- Frontend fix applied but database schema migration required
+- Workspace 'latency_nov3' exists in workspace_states (dataset: d77c5cd7-8c3f-4e2a-acec-266e446c941e)
+- Training metadata exists for same dataset but with workspace_name = 'latency_nov2' (15 models)
+- API query: WHERE dataset_id = X AND workspace_name = 'latency_nov3' returns 0 records
+- Pattern: Training process uses previous/cached workspace name instead of current workspace name
 
 **Required Actions**:
-1. Add workspace_name VARCHAR2(200) column to training_metadata table
-2. Update save_training_metadata function to include workspace_name in INSERT
-3. Update database schema migration script
-4. Test training metadata association after schema fix
+1. Fix training process to use correct current workspace name when saving training metadata
+2. Check localStorage.getItem('current_workspace_name') during training
+3. Ensure workspace name is properly passed to training API calls
+4. Consider updating existing mismatched training metadata records
 
-This is a database design issue, not a code logic issue. Frontend and backend code is correct.
+This is a training process issue where workspace name context is not properly maintained during model training.
 
 ---
 
