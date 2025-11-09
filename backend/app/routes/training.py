@@ -213,3 +213,30 @@ async def get_metadata_by_workspace():
         logger.error(f"Error fetching workspace metadata: {str(e)}")
         logger.exception(e)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/metadata/workspace/{workspace_name}")
+async def delete_training_metadata_by_workspace(workspace_name: str, dataset_id: Optional[str] = None):
+    """
+    Delete all training metadata for a specific workspace
+    This only deletes training history, not the actual saved workspace state
+    """
+    try:
+        db_adapter = get_database_adapter()
+        
+        # Delete training metadata for the workspace
+        result = await db_adapter.delete_training_metadata_by_workspace(
+            workspace_name=workspace_name,
+            dataset_id=dataset_id
+        )
+        
+        return {
+            "success": True,
+            "message": f"Deleted training metadata for workspace: {workspace_name}",
+            "deleted_count": result.get('deleted_count', 0)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error deleting training metadata: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
