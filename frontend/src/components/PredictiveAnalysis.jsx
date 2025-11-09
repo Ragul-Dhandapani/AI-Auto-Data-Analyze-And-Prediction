@@ -110,6 +110,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     if (analysisCache) {
       console.log('Restoring from cache - analysisCache has data');
       setAnalysisResults(analysisCache);
+      // CRITICAL: Also update previousResultsRef for model merging to work after load
+      previousResultsRef.current = analysisCache;
+      console.log('✅ Analysis results saved to memory (ref) from cache');
       hasRunAnalysisRef.current = true;
       return; // Don't re-run analysis if we have cache
     }
