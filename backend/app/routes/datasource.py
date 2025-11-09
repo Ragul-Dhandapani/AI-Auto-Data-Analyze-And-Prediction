@@ -395,8 +395,13 @@ async def load_table(
         if not source_type_val or not table_name_val:
             raise HTTPException(400, f"source_type and table_name are required (got: source_type={source_type_val}, table_name={table_name_val})")
         
-        # Load data from table
-        df = load_table_data(source_type_val, config_dict, table_name_val, limit_val)
+        # Load data from table (limit is applied after loading in the function)
+        df = load_table_data(source_type_val, config_dict, table_name_val)
+        
+        # Apply limit if specified
+        if limit_val and limit_val > 0 and len(df) > limit_val:
+            df = df.head(limit_val)
+            logger.info(f"Limited dataset to {limit_val} rows")
         
         if df.empty:
             raise HTTPException(400, f"Table '{table_name_val}' is empty or could not be loaded")
