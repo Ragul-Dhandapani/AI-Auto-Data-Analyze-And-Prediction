@@ -1,28 +1,19 @@
 #!/usr/bin/env python3
 """
-PROMISE AI Backend Testing - Training Metadata Investigation
-Investigating the "latency_nov" workspace training metadata issue
+Enhanced Chat Service Testing with Conversation History Context
+Tests the enhanced chat endpoint at /api/enhanced-chat/message
 """
 
 import requests
 import json
 import sys
-import os
-import time
-from datetime import datetime
-import cx_Oracle
+from typing import Dict, List, Any
 
-# Get backend URL from environment
+# Backend URL from environment
 BACKEND_URL = "https://promise-ai-platform.preview.emergentagent.com/api"
 
-# Oracle connection details for direct database queries
-ORACLE_CONFIG = {
-    'user': 'testuser',
-    'password': 'DbPasswordTest',
-    'host': 'promise-ai-test-oracle.cgxf9inhpsec.us-east-1.rds.amazonaws.com',
-    'port': '1521',
-    'service_name': 'ORCL'
-}
+# Test dataset ID (from the available datasets)
+DATASET_ID = "d77c5cd7-8c3f-4e2a-acec-266e446c941e"  # application_latency.csv
 
 def test_direct_database_query():
     """Test 1: Direct Database Query - Check training_metadata table"""
