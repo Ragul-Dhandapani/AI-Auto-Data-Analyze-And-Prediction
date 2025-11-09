@@ -742,6 +742,22 @@ class OracleAdapter(DatabaseAdapter):
             workspace_name
         )
 
+    def _update_training_metadata_workspace_name_sync(self, query: str, params: Dict, dataset_id: str, workspace_name: str):
+        """Execute update training metadata workspace name synchronously"""
+        conn = self.pool.acquire()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            rows_updated = cursor.rowcount
+            conn.commit()
+            logger.info(f"✅ Updated {rows_updated} training metadata records for dataset {dataset_id} with workspace_name: {workspace_name}")
+            return rows_updated
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Failed to update training metadata workspace_name: {e}")
+            raise
+        finally:
+            self.pool.release(conn)
     async def delete_training_metadata_by_workspace(self, workspace_name: str, dataset_id: Optional[str] = None):
         """
         Delete all training metadata records for a specific workspace
