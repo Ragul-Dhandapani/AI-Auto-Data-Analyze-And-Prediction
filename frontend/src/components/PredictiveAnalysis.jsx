@@ -1916,7 +1916,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
-      {analysisResults.auto_charts && analysisResults.auto_charts.filter(chart => chart && chart.plotly_data).length > 0 && collapsed.auto_charts && (
+      {/* Collapsed Auto-Generated Charts - HIDDEN: These charts belong in Visualizations tab */}
+      {false && analysisResults.auto_charts && analysisResults.auto_charts.filter(chart => chart && chart.plotly_data).length > 0 && collapsed.auto_charts && (
         <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('auto_charts')}>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">📊 AI-Generated Analysis Charts ({analysisResults.auto_charts.filter(chart => chart && chart.plotly_data).length} charts)</h3>
