@@ -620,10 +620,10 @@ class OracleAdapter(DatabaseAdapter):
         
         query = """
         INSERT INTO training_metadata (
-            id, dataset_id, problem_type, target_variable, feature_variables,
+            id, dataset_id, workspace_name, problem_type, target_variable, feature_variables,
             model_type, model_params_json, metrics_json, training_duration, created_at
         ) VALUES (
-            :id, :dataset_id, :problem_type, :target_variable, :feature_variables,
+            :id, :dataset_id, :workspace_name, :problem_type, :target_variable, :feature_variables,
             :model_type, :model_params_json, :metrics_json, :training_duration, :created_at
         )
         """
@@ -631,6 +631,7 @@ class OracleAdapter(DatabaseAdapter):
         params = {
             'id': metadata_id,
             'dataset_id': metadata['dataset_id'],
+            'workspace_name': metadata.get('workspace_name', 'default'),
             'problem_type': metadata['problem_type'],
             'target_variable': metadata['target_variable'],
             'feature_variables': feature_vars,
