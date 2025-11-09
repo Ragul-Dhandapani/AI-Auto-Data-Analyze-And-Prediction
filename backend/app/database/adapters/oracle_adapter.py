@@ -732,6 +732,27 @@ class OracleAdapter(DatabaseAdapter):
         }
         
         result = await self._execute(query, params, commit=True)
+
+    async def delete_training_metadata_by_workspace(self, workspace_name: str, dataset_id: Optional[str] = None):
+        """
+        Delete all training metadata records for a specific workspace
+        Optionally filter by dataset_id as well
+        """
+        query_parts = ["DELETE FROM training_metadata WHERE workspace_name = :workspace_name"]
+        params = {'workspace_name': workspace_name}
+        
+        if dataset_id:
+            query_parts.append("AND dataset_id = :dataset_id")
+            params['dataset_id'] = dataset_id
+        
+        query = " ".join(query_parts)
+        
+        result = await self._execute(query, params, commit=True, fetch_all=False)
+        deleted_count = result if result else 0
+        
+        logger.info(f"Deleted {deleted_count} training metadata records for workspace: {workspace_name}")
+        return {'deleted_count': deleted_count}
+
         logger.info(f"Updated training metadata for dataset {dataset_id} with workspace_name: {workspace_name}")
         return result
 
