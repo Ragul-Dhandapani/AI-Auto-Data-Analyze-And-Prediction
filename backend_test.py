@@ -169,60 +169,67 @@ def test_workspace_states_query():
         print(f"❌ Workspace states query failed: {str(e)}")
         return False, None
 
-def test_suggest_features_endpoint(dataset_id):
-    """Test: Suggest-Features Endpoint (NEW - Just Added) - POST /api/datasource/suggest-features"""
-    print("\n=== Test: Suggest-Features Endpoint (NEW) ===")
-    
-    if not dataset_id:
-        print("❌ No dataset ID available for testing")
-        return False
-    
-    # Test payload as specified in review request
-    payload = {
-        "dataset_id": dataset_id,
-        "columns": ["col1", "col2"],  # Generic column names
-        "problem_type": "classification"
-    }
+def test_training_metadata_endpoint():
+    """Test 3: Training Metadata Endpoint - GET /api/training/metadata/by-workspace"""
+    print("\n=== Test 3: Training Metadata Endpoint ===")
+    print("Testing the endpoint that the Training Metadata page uses...")
     
     try:
-        response = requests.post(
-            f"{BACKEND_URL}/datasource/suggest-features",
-            json=payload,
-            timeout=30
-        )
-        
+        response = requests.get(f"{BACKEND_URL}/training/metadata/by-workspace", timeout=30)
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
-            print("✅ Suggest-features endpoint working")
+            print("✅ Training metadata endpoint accessible")
             
-            # Verify expected response structure
-            expected_fields = ['recommended_target', 'recommended_features', 'feature_groups']
-            missing_fields = [field for field in expected_fields if field not in data]
+            datasets = data.get("datasets", [])
+            print(f"   Found {len(datasets)} datasets with training metadata")
             
-            if missing_fields:
-                print(f"⚠️  Missing expected fields: {missing_fields}")
-                print(f"   Available fields: {list(data.keys())}")
+            # Look for latency_nov workspace
+            latency_nov_found = False
+            for dataset in datasets:
+                dataset_name = dataset.get('dataset_name', 'Unknown')
+                workspaces = dataset.get('workspaces', [])
+                
+                print(f"\n   📊 Dataset: {dataset_name}")
+                print(f"      - Dataset ID: {dataset.get('dataset_id', 'N/A')[:8]}...")
+                print(f"      - Total workspaces: {len(workspaces)}")
+                
+                for workspace in workspaces:
+                    workspace_name = workspace.get('workspace_name', 'Unknown')
+                    total_models = workspace.get('total_models', 0)
+                    
+                    print(f"      - Workspace: '{workspace_name}' ({total_models} models)")
+                    
+                    if 'latency_nov' in workspace_name.lower():
+                        latency_nov_found = True
+                        print(f"        🎯 FOUND latency_nov workspace with {total_models} models!")
+                        
+                        # Show training runs
+                        training_runs = workspace.get('training_runs', [])
+                        for run in training_runs[:3]:  # Show first 3
+                            print(f"           - Model: {run.get('model_type', 'N/A')}, "
+                                  f"Created: {run.get('created_at', 'N/A')}")
+            
+            if not latency_nov_found:
+                print("\n   ❌ 'latency_nov' workspace NOT found in API response")
+                print("   🔍 This explains why the Training Metadata page shows '0 models'")
             else:
-                print("✅ All expected fields present:")
-                print(f"   - recommended_target: {data.get('recommended_target')}")
-                print(f"   - recommended_features: {len(data.get('recommended_features', []))} features")
-                print(f"   - feature_groups: {list(data.get('feature_groups', {}).keys())}")
+                print("\n   ✅ 'latency_nov' workspace found in API response")
             
-            return True
+            return True, latency_nov_found
         else:
-            print(f"❌ Suggest-features endpoint failed: {response.status_code}")
+            print(f"❌ Training metadata endpoint failed: {response.status_code}")
             try:
                 error_data = response.json()
                 print(f"   Error: {error_data}")
             except:
                 print(f"   Error: {response.text}")
-            return False
+            return False, False
             
     except Exception as e:
-        print(f"❌ Suggest-features endpoint exception: {str(e)}")
-        return False
+        print(f"❌ Training metadata endpoint exception: {str(e)}")
+        return False, False
 
 def test_hyperparameter_tuning_endpoint(dataset_id):
     """Test: Hyperparameter Tuning Endpoint (REPORTED 500 ERROR) - POST /api/analysis/hyperparameter-tuning"""
