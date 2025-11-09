@@ -27,6 +27,14 @@ router = APIRouter(prefix="/datasource", tags=["datasource"])
 logger = logging.getLogger(__name__)
 
 
+class LoadTableRequest(BaseModel):
+    """Request model for loading table data"""
+    source_type: str
+    config: dict
+    table_name: str = None  # Can also be passed as query param
+    limit: int = 1000
+
+
 def create_db_connection(db_type: str, config: dict):
     """
     Create database connection with Kerberos support
