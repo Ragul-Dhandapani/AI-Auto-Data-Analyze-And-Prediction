@@ -1493,6 +1493,478 @@ const DocumentationPage = () => {
             </div>
           </TabsContent>
 
+          {/* VISUALIZATIONS TAB */}
+          <TabsContent value="visualizations">
+            <div className="space-y-6">
+              <Card className="p-6">
+                <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  📊 Intelligent Visualization System
+                </h2>
+                <p className="text-lg text-gray-700 mb-4">
+                  PROMISE AI features a world-class AI-powered visualization engine that analyzes your data and automatically
+                  generates the most suitable charts across 8 categories with 28+ chart types.
+                </p>
+                
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg mb-6">
+                  <h3 className="font-bold text-purple-900 mb-2">🧠 Key Features</h3>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    <li>✅ <strong>Deep Data Profiling</strong> - Statistical analysis, pattern detection, outlier identification</li>
+                    <li>✅ <strong>Smart Chart Recommendation</strong> - AI determines which charts fit your data</li>
+                    <li>✅ <strong>28+ Chart Types</strong> - Across 8 comprehensive categories</li>
+                    <li>✅ <strong>Azure OpenAI Insights</strong> - 5 key findings about your data</li>
+                    <li>✅ <strong>Clear Labels & Descriptions</strong> - Every chart explains what it shows and why</li>
+                    <li>✅ <strong>Graceful Failure Handling</strong> - Shows why charts can't be generated</li>
+                  </ul>
+                </div>
+              </Card>
+
+              {/* Category 1: Distribution */}
+              <Card className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50">
+                <h3 className="text-2xl font-bold mb-4 text-blue-900">1️⃣ Distribution Analysis (6 Chart Types)</h3>
+                <p className="text-gray-700 mb-4">Understand how your data values are spread and distributed.</p>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">📊 Histogram</h4>
+                    <p className="text-sm text-gray-600 mt-2">Shows frequency distribution of numeric values. Includes mean, median, std dev.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> For all numeric columns (top 5)</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">📦 Box Plot</h4>
+                    <p className="text-sm text-gray-600 mt-2">Detects outliers and shows value ranges. Displays middle 50% of data with whiskers.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> Up to 6 numeric columns</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">🎻 Violin Plot</h4>
+                    <p className="text-sm text-gray-600 mt-2">Combines box plot with density curve (KDE). Shows distribution shape.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> Top 3 numeric columns</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">🌊 Density Plot (KDE)</h4>
+                    <p className="text-sm text-gray-600 mt-2">Smooth distribution curve showing probability density.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> Top 3 numeric columns</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">🥧 Pie Chart</h4>
+                    <p className="text-sm text-gray-600 mt-2">Shows proportions across categories. Includes percentages and top category.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> Categorical columns with ≤10 unique values</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">📈 ECDF Plot</h4>
+                    <p className="text-sm text-gray-600 mt-2">Empirical Cumulative Distribution Function.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> Based on data suitability</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Category 2: Relationships */}
+              <Card className="p-6 bg-gradient-to-br from-green-50 to-teal-50">
+                <h3 className="text-2xl font-bold mb-4 text-green-900">2️⃣ Relationship Analysis (5 Chart Types)</h3>
+                <p className="text-gray-700 mb-4">Discover correlations and relationships between variables.</p>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-green-700">🔗 Scatter Plot</h4>
+                    <p className="text-sm text-gray-600 mt-2">Shows relationship between two numeric variables. Includes trend line and correlation strength.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> Top 3 correlated pairs</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-green-700">🔥 Correlation Heatmap</h4>
+                    <p className="text-sm text-gray-600 mt-2">Matrix showing correlation between all numeric variables. Hover shows variable names and strength.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> ≥2 numeric columns</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-green-700">🫧 Bubble Chart</h4>
+                    <p className="text-sm text-gray-600 mt-2">3D relationship visualization with size encoding third variable.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> ≥3 numeric columns</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-green-700">🔲 Pair Plot</h4>
+                    <p className="text-sm text-gray-600 mt-2">All variable pair combinations in a matrix.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> 2-5 numeric columns (readability)</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-green-700">🔷 Hexbin Plot</h4>
+                    <p className="text-sm text-gray-600 mt-2">Density of points for large datasets.</p>
+                    <p className="text-xs text-gray-500 mt-1"><strong>When shown:</strong> High-density data</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Category 3-8: Compact View */}
+              <Card className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50">
+                <h3 className="text-2xl font-bold mb-4 text-purple-900">3️⃣ Categorical Data Analysis (4 Chart Types)</h3>
+                <div className="space-y-2 text-sm">
+                  <p>📊 <strong>Bar Chart</strong> - Frequency distribution, top category with percentage</p>
+                  <p>📚 <strong>Stacked Bar</strong> - Distribution across subgroups (2 categorical columns)</p>
+                  <p>📈 <strong>Grouped Bar</strong> - Average numeric values by category</p>
+                  <p>🔢 <strong>Count Plot</strong> - Value frequencies per category</p>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-gradient-to-br from-amber-50 to-yellow-50">
+                <h3 className="text-2xl font-bold mb-4 text-amber-900">4️⃣ Time Series Analysis (5 Chart Types)</h3>
+                <div className="space-y-2 text-sm">
+                  <p>📈 <strong>Line Plot</strong> - Value over time with trend analysis (increasing/decreasing/stable)</p>
+                  <p>🌊 <strong>Rolling Average</strong> - Smoothed trends (7-period moving average)</p>
+                  <p>📅 <strong>Seasonality Plot</strong> - Monthly/weekly patterns</p>
+                  <p>⏱️ <strong>Lag Plot</strong> - Autocorrelation check</p>
+                  <p>🗓️ <strong>Calendar Heatmap</strong> - Daily/weekly intensity</p>
+                </div>
+                <p className="text-xs text-gray-600 mt-3"><strong>Requirement:</strong> Dataset must have datetime column</p>
+              </Card>
+
+              <Card className="p-6 bg-gradient-to-br from-red-50 to-pink-50">
+                <h3 className="text-2xl font-bold mb-4 text-red-900">5️⃣ Data Quality & Profiling (4 Chart Types)</h3>
+                <div className="space-y-2 text-sm">
+                  <p>🔍 <strong>Missing Value Heatmap</strong> - Visualize null patterns (sample of 500 rows)</p>
+                  <p>📊 <strong>Missing % Bar Chart</strong> - Percentage of nulls per column</p>
+                  <p>🎨 <strong>Data Type Distribution</strong> - Breakdown of numeric/categorical/datetime columns</p>
+                  <p>🔄 <strong>Duplicate Rows Analysis</strong> - Count and percentage of duplicates</p>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-gradient-to-br from-indigo-50 to-blue-50">
+                <h3 className="text-2xl font-bold mb-4 text-indigo-900">6️⃣ Dimensionality & Clustering (4 Chart Types)</h3>
+                <div className="space-y-2 text-sm">
+                  <p>🎯 <strong>PCA Scatter</strong> - 2D projection of high-dimensional data with variance explained</p>
+                  <p>🔮 <strong>K-Means Clustering</strong> - Identifies 3-5 natural clusters</p>
+                  <p>🌳 <strong>Dendrogram</strong> - Hierarchical clustering tree (max 100 samples)</p>
+                  <p>📐 <strong>Silhouette Plot</strong> - Cluster quality validation</p>
+                </div>
+                <p className="text-xs text-gray-600 mt-3"><strong>Requirement:</strong> ≥2 numeric columns, ≥10 data points</p>
+              </Card>
+
+              <Card className="p-6 bg-gradient-to-br from-teal-50 to-cyan-50">
+                <h3 className="text-2xl font-bold mb-4 text-teal-900">7️⃣ Dashboard Components (2 Types)</h3>
+                <div className="space-y-2 text-sm">
+                  <p>📋 <strong>KPI Cards</strong> - Dataset summary (rows, columns, missing, duplicates)</p>
+                  <p>🕸️ <strong>Radar Chart</strong> - Multi-dimensional feature comparison (≥3 numeric columns)</p>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-gradient-to-br from-orange-50 to-red-50">
+                <h3 className="text-2xl font-bold mb-4 text-orange-900">8️⃣ Custom / AI-Generated Charts</h3>
+                <p className="text-gray-700 mb-3">Chat with AI assistant to generate custom visualizations:</p>
+                <div className="space-y-2 text-sm">
+                  <p>💬 "Show me a scatter plot of price vs sales"</p>
+                  <p>💬 "Generate a correlation heatmap"</p>
+                  <p>💬 "Create a bar chart comparing regions"</p>
+                </div>
+              </Card>
+
+              {/* AI Insights */}
+              <Card className="p-6 bg-gradient-to-r from-purple-100 to-pink-100">
+                <h3 className="text-2xl font-bold mb-4 text-purple-900">🤖 AI Insights (Azure OpenAI)</h3>
+                <p className="text-gray-700 mb-3">Every visualization run includes 5 key insights about your data:</p>
+                <div className="bg-white p-4 rounded-lg">
+                  <p className="text-sm"><strong>Example Insights:</strong></p>
+                  <ul className="text-sm text-gray-700 space-y-1 mt-2 list-disc list-inside">
+                    <li>Dataset contains 10,000 rows with 12 columns</li>
+                    <li>Strong correlation between cpu_usage and memory_usage (0.82)</li>
+                    <li>42 outliers detected in latency_ms variable</li>
+                    <li>Data quality: 98.5% complete with minimal missing values</li>
+                    <li>Recommendation: Consider feature engineering for date columns</li>
+                  </ul>
+                </div>
+              </Card>
+
+              {/* What Changed */}
+              <Card className="p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400">
+                <h3 className="text-2xl font-bold mb-4 text-yellow-900">🔔 Recent Updates</h3>
+                <div className="space-y-3">
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-bold text-green-700 mb-2">✅ Removed from Predictions Tab</h4>
+                    <p className="text-sm text-gray-700">
+                      Auto-generated charts are NO LONGER shown in the Predictive Analysis tab. 
+                      The Predictions tab now focuses exclusively on ML models, feature importance, and model metrics.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-bold text-blue-700 mb-2">✅ Enhanced Visualizations Tab</h4>
+                    <p className="text-sm text-gray-700">
+                      All 28+ charts are now exclusively in the Visualizations tab with:
+                    </p>
+                    <ul className="text-xs text-gray-600 mt-2 space-y-1 list-disc list-inside">
+                      <li>Categorized display (8 categories)</li>
+                      <li>Clear axis labels with variable names</li>
+                      <li>1-2 line descriptions explaining what each chart shows</li>
+                      <li>Hover tooltips with detailed information</li>
+                      <li>Skipped charts with explanations</li>
+                    </ul>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* MCP SERVER TAB */}
+          <TabsContent value="mcp">
+            <div className="space-y-6">
+              <Card className="p-6">
+                <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  🔌 MCP Server (Model Context Protocol)
+                </h2>
+                <p className="text-lg text-gray-700 mb-4">
+                  The PROMISE AI MCP Server enables programmatic access to all platform features through a standardized protocol.
+                  Perfect for automation, integration, and building AI agents.
+                </p>
+                
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4">
+                  <h3 className="font-bold text-blue-900 mb-2">📍 Location</h3>
+                  <p className="text-sm text-gray-700 font-mono">/app/mcp_server/promise_ai_mcp.py</p>
+                </div>
+              </Card>
+
+              {/* 12 MCP Tools */}
+              <Card className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50">
+                <h3 className="text-2xl font-bold mb-4 text-blue-900">🛠️ 12 Available Tools</h3>
+                
+                <div className="space-y-4">
+                  {/* Tool 1 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">1. upload_dataset</h4>
+                    <p className="text-sm text-gray-600 mt-2">Upload CSV or Excel files to the platform.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> file_path: string<br/>
+                      <strong>Returns:</strong> dataset_id, row_count, column_count, column_list
+                    </div>
+                  </div>
+
+                  {/* Tool 2 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">2. profile_data</h4>
+                    <p className="text-sm text-gray-600 mt-2">Generate comprehensive data profile with statistics, missing values, outliers.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> dataset_id: string<br/>
+                      <strong>Returns:</strong> Full data profile with statistics
+                    </div>
+                  </div>
+
+                  {/* Tool 3 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">3. train_models</h4>
+                    <p className="text-sm text-gray-600 mt-2">Train 35+ ML models with auto problem type detection.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> dataset_id, target_variable, feature_variables, problem_type, models<br/>
+                      <strong>Returns:</strong> Trained models with metrics, feature importance, best model
+                    </div>
+                  </div>
+
+                  {/* Tool 4 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">4. generate_visualizations</h4>
+                    <p className="text-sm text-gray-600 mt-2">Generate 28+ intelligent visualizations across 8 categories.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> dataset_id: string<br/>
+                      <strong>Returns:</strong> Charts array, AI insights, skipped charts with reasons
+                    </div>
+                  </div>
+
+                  {/* Tool 5 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">5. get_training_metadata</h4>
+                    <p className="text-sm text-gray-600 mt-2">Retrieve historical training results and model performance.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> dataset_id (optional), workspace_name (optional)<br/>
+                      <strong>Returns:</strong> Training history with metrics
+                    </div>
+                  </div>
+
+                  {/* Tool 6 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">6. save_workspace</h4>
+                    <p className="text-sm text-gray-600 mt-2">Save complete workspace state (models, charts, configurations).</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> workspace_name, dataset_id, state: object<br/>
+                      <strong>Returns:</strong> Success confirmation
+                    </div>
+                  </div>
+
+                  {/* Tool 7 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">7. load_workspace</h4>
+                    <p className="text-sm text-gray-600 mt-2">Load previously saved workspace with all cached results.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> workspace_name, dataset_id<br/>
+                      <strong>Returns:</strong> Complete workspace state
+                    </div>
+                  </div>
+
+                  {/* Tool 8 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">8. chat_assistant</h4>
+                    <p className="text-sm text-gray-600 mt-2">Interact with AI chat assistant (Azure OpenAI GPT-4o) with context-aware responses.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> message, dataset_id, conversation_history<br/>
+                      <strong>Returns:</strong> AI response, action type, suggestions
+                    </div>
+                  </div>
+
+                  {/* Tool 9 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">9. list_datasets</h4>
+                    <p className="text-sm text-gray-600 mt-2">List all uploaded datasets with metadata.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> limit: integer (default 50)<br/>
+                      <strong>Returns:</strong> Array of datasets with id, name, rows, columns
+                    </div>
+                  </div>
+
+                  {/* Tool 10 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">10. switch_database</h4>
+                    <p className="text-sm text-gray-600 mt-2">Switch between MongoDB and Oracle databases.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> db_type: "mongodb" | "oracle"<br/>
+                      <strong>Returns:</strong> Switch confirmation (requires backend restart)
+                    </div>
+                  </div>
+
+                  {/* Tool 11 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">11. hyperparameter_tuning</h4>
+                    <p className="text-sm text-gray-600 mt-2">Optimize model hyperparameters using Grid Search CV.</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> dataset_id, model_name, target_variable, feature_variables<br/>
+                      <strong>Returns:</strong> Best hyperparameters and improved metrics
+                    </div>
+                  </div>
+
+                  {/* Tool 12 */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 className="font-bold text-blue-700">12. delete_dataset</h4>
+                    <p className="text-sm text-gray-600 mt-2">Delete dataset and all associated data (⚠️ irreversible).</p>
+                    <div className="bg-gray-50 p-2 rounded mt-2 text-xs font-mono">
+                      <strong>Input:</strong> dataset_id: string<br/>
+                      <strong>Returns:</strong> Deletion confirmation
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Installation */}
+              <Card className="p-6 bg-gradient-to-br from-green-50 to-teal-50">
+                <h3 className="text-2xl font-bold mb-4 text-green-900">⚙️ Installation & Setup</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-bold text-green-700 mb-2">1. Install MCP Package</h4>
+                    <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm">
+                      pip install mcp aiohttp aiofiles
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-green-700 mb-2">2. Configure Backend URL</h4>
+                    <p className="text-sm text-gray-700 mb-2">Edit <code className="bg-gray-100 px-2 py-1 rounded">/app/mcp_server/promise_ai_mcp.py</code></p>
+                    <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm">
+                      self.backend_url = "http://localhost:8001/api"  # Development<br/>
+                      # or<br/>
+                      self.backend_url = "https://api.yourdomain.com/api"  # Production
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-green-700 mb-2">3. Run MCP Server</h4>
+                    <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm">
+                      cd /app/mcp_server<br/>
+                      python promise_ai_mcp.py
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Usage Examples */}
+              <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50">
+                <h3 className="text-2xl font-bold mb-4 text-purple-900">💡 Usage Examples</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-bold text-purple-700 mb-2">Example 1: Complete Analysis Workflow</h4>
+                    <div className="bg-gray-900 text-purple-400 p-3 rounded font-mono text-xs overflow-x-auto">
+{`# 1. Upload dataset
+result = await upload_dataset(file_path="data.csv")
+dataset_id = result['dataset_id']
+
+# 2. Profile data
+profile = await profile_data(dataset_id=dataset_id)
+
+# 3. Train models
+models = await train_models(
+    dataset_id=dataset_id,
+    target_variable="price",
+    feature_variables=["size", "location", "bedrooms"],
+    problem_type="auto"
+)
+
+# 4. Generate visualizations
+viz = await generate_visualizations(dataset_id=dataset_id)
+
+# 5. Save workspace
+await save_workspace(
+    workspace_name="price_analysis_nov2025",
+    dataset_id=dataset_id,
+    state={...}
+)`}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-purple-700 mb-2">Example 2: Chat Assistant</h4>
+                    <div className="bg-gray-900 text-purple-400 p-3 rounded font-mono text-xs overflow-x-auto">
+{`response = await chat_assistant(
+    message="Show me outliers in the data",
+    dataset_id=dataset_id,
+    conversation_history=[]
+)
+
+print(response['response'])  # AI explanation
+if response['action'] == 'chart':
+    display(response['data']['chart'])  # Generated chart`}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Features */}
+              <Card className="p-6 bg-gradient-to-r from-indigo-50 to-blue-50">
+                <h3 className="text-2xl font-bold mb-4 text-indigo-900">✨ Key Features</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-bold text-indigo-700">🔄 Asynchronous Operations</h4>
+                    <p className="text-sm text-gray-600 mt-2">All tools use async/await for non-blocking execution.</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-bold text-indigo-700">🎯 Type-Safe</h4>
+                    <p className="text-sm text-gray-600 mt-2">Pydantic schemas for input validation.</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-bold text-indigo-700">🚀 High Performance</h4>
+                    <p className="text-sm text-gray-600 mt-2">Direct API communication with minimal overhead.</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-bold text-indigo-700">🔐 Secure</h4>
+                    <p className="text-sm text-gray-600 mt-2">Uses same authentication as web interface.</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* FAQ TAB */}
           <TabsContent value="faq">
             <div className="space-y-4">
