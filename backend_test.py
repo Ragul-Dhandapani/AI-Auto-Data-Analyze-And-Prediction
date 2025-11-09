@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-PROMISE AI Backend Testing - Critical Endpoints
-Tests the recent fixes to the PROMISE AI platform as requested
+PROMISE AI Backend Testing - Training Metadata Investigation
+Investigating the "latency_nov" workspace training metadata issue
 """
 
 import requests
@@ -10,9 +10,19 @@ import sys
 import os
 import time
 from datetime import datetime
+import cx_Oracle
 
 # Get backend URL from environment
 BACKEND_URL = "https://ai-insight-hub-4.preview.emergentagent.com/api"
+
+# Oracle connection details for direct database queries
+ORACLE_CONFIG = {
+    'user': 'testuser',
+    'password': 'DbPasswordTest',
+    'host': 'promise-ai-test-oracle.cgxf9inhpsec.us-east-1.rds.amazonaws.com',
+    'port': '1521',
+    'service_name': 'ORCL'
+}
 
 def test_backend_health():
     """Test: Backend Health - Verify backend is running and responsive"""
