@@ -363,20 +363,44 @@ async def get_tables(request: DataSourceTest):
         raise HTTPException(500, f"Error getting tables: {str(e)}")
 
 
+class LoadTableRequest(BaseModel):
+    source_type: str
+    config: dict
+    table_name: str
+    limit: int = 1000
+
+
 @router.post("/load-table")
 async def load_table(
-    source_type: str = Form(...),
-    config: str = Form(...),
-    table_name: str = Form(...),
-    limit: int = Form(1000)
+    request: LoadTableRequest = None,
+    table_name: str = None,
+    source_type: str = Form(None),
+    config: str = Form(None),
+    limit: int = Form(None)
 ):
-    """Load data from database table"""
+    """Load data from database table (supports both JSON and Form data)"""
     try:
         import json
-        config_dict = json.loads(config)
+        
+        # Support both JSON body and Form data for backward compatibility
+        if request:
+            # JSON body (new format)
+            source_type_val = request.source_type
+            config_dict = request.config
+            table_name_val = request.table_name or table_name  # Allow query param override
+            limit_val = request.limit
+        else:
+            # Form data (legacy format)
+            source_type_val = source_type
+            config_dict = json.loads(config) if config else {}
+            table_name_val = table_name
+            limit_val = limit or 1000
+        
+        if not source_type_val or not table_name_val:
+            raise HTTPException(400, "source_type and table_name are required")
         
         # Load data from table
-        df = load_table_data(source_type, config_dict, table_name, limit)
+        df = load_table_data(source_type_val, config_dict, table_name_val, limit_val)
         
         if df.empty:
             raise HTTPException(400, f"Table '{table_name}' is empty or could not be loaded")
