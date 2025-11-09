@@ -90,6 +90,7 @@ async def run_analysis(request: Dict[str, Any]):
             # 🧠 INTELLIGENT VISUALIZATION SYSTEM
             # Use advanced AI-powered visualization engine
             from app.services.intelligent_visualization_service import get_intelligent_visualization_service
+            import json
             
             logger.info(f"🧠 Starting intelligent visualization analysis for dataset: {dataset_id}")
             
@@ -119,15 +120,30 @@ async def run_analysis(request: Dict[str, Any]):
             
             logger.info(f"✅ Generated {len(all_charts)} intelligent charts across {len(categories_data)} categories")
             
-            return {
+            # Convert to JSON and back to ensure everything is serializable
+            response_data = {
                 "charts": all_charts,
                 "skipped": all_skipped,
-                "categories": categories_data,  # Include categorized view
                 "insights": result.get('insights', []),
-                "profile": result.get('profile', {}),
                 "total_charts": result.get('total_charts', 0),
                 "total_skipped": result.get('total_skipped', 0)
             }
+            
+            # Test serialization
+            try:
+                json.dumps(response_data)
+            except Exception as e:
+                logger.error(f"Serialization test failed: {str(e)}")
+                # Return simplified response
+                return {
+                    "charts": all_charts[:10],  # Limit to first 10
+                    "skipped": [str(s) for s in all_skipped],
+                    "insights": result.get('insights', []),
+                    "total_charts": len(all_charts),
+                    "total_skipped": len(all_skipped)
+                }
+            
+            return response_data
         
         elif analysis_type == "insights":
             # Generate AI insights using Azure OpenAI
