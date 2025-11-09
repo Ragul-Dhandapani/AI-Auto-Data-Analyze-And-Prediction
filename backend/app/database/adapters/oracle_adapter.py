@@ -772,7 +772,7 @@ class OracleAdapter(DatabaseAdapter):
         
         query = " ".join(query_parts)
         
-        result = await self._execute(query, params, commit=True, fetch_all=False)
+        result = await self._execute(query, params)
         deleted_count = result if result else 0
         
         logger.info(f"Deleted {deleted_count} training metadata records for workspace: {workspace_name}")
