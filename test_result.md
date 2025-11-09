@@ -521,6 +521,72 @@ result = await viz_service.analyze_and_generate(df)
 
 ---
 
+## 📊 ENHANCEMENT - Clear Axis Labels & Meaningful Descriptions - Nov 9, 2025 19:35 UTC
+
+### User Feedback: Charts Need Better Context
+**Request**: 
+1. Clearer x and y axis labels (not just variable names)
+2. One or two liner descriptions explaining:
+   - What the chart shows
+   - Which variables/keys are used
+   - What insight it reveals
+
+### Improvements Applied ✅
+**File Modified**: `/app/backend/app/services/intelligent_visualization_service.py`
+
+**Enhanced All Chart Types**:
+
+**1. Histograms**
+- Added: Clear axis labels ("Value", "Count (Number of Occurrences)")
+- Added: Statistics in description (Mean, Median, Std Dev)
+- Example: "Shows how latency_ms values are distributed. Mean: 245.32, Median: 198.50, Std Dev: 87.12. Helps identify if data is normally distributed, skewed, or has multiple peaks."
+
+**2. Pie Charts**
+- Added: Hover info with count and percentage
+- Added: Inside labels with percentages
+- Added: Top category identification
+- Example: "Shows distribution of status across 4 categories. Top category: 'success' (78.5%). Each slice represents the proportion of records in that category."
+
+**3. Box Plots**
+- Added: "Value Range", "Variables" axis labels
+- Added: Outlier counts per variable
+- Example: "Compares value ranges and detects outliers across 6 variables. Box shows middle 50% of data, whiskers show typical range. Points outside whiskers are potential outliers. Outliers found in: latency_ms (12), cpu_usage (8)."
+
+**4. Scatter Plots**
+- Added: Correlation strength interpretation (strong/moderate/weak)
+- Added: Direction and trend explanation
+- Example: "Shows strong positive relationship between cpu_usage and memory_usage (correlation: 0.82). Each point represents one record. Trend line indicates the overall pattern. As one increases, the other tends to increase."
+
+**5. Correlation Heatmap**
+- Added: Color legend explanation (Red=positive, Blue=negative)
+- Added: Strong correlation count
+- Example: "Shows correlation strength between all 5 numeric variables. Red = positive correlation (variables move together), Blue = negative correlation (inverse relationship), White = no correlation. Range: -1 to +1. Strong correlations: 3 pairs."
+
+**6. Bar Charts (Categorical)**
+- Added: Top category with count and percentage
+- Added: Category coverage info
+- Example: "Shows frequency of each category in region. Most common: 'us-east' with 1,234 records (45.2% of total). Displaying top 10 out of 15 categories."
+
+**7. Time Series**
+- Added: Trend analysis (increasing/decreasing/stable)
+- Added: Percentage change from start to end
+- Example: "Shows how requests_per_sec changes over time using timestamp. Trend: increasing (+23.5% change from start to end). Each point represents a time period. Useful for identifying patterns, seasonality, and anomalies."
+
+**8. PCA (Clustering)**
+- Added: Variance explanation percentages
+- Added: Dimensionality context
+- Example: "Reduces 8 dimensions to 2D visualization. These two components explain 73.2% of data variance. Each point is a record. Proximity = similarity. Helps identify clusters and outliers in high-dimensional data."
+
+### Results ✅
+- All 28+ chart types now have meaningful descriptions
+- Axis labels are clear and descriptive
+- Users understand what each chart reveals
+- Context includes actual data values and insights
+
+**Status**: Backend restarted with enhanced descriptions
+
+---
+
 ## 🔧 HOTFIX - Database Connection Test Error - Nov 9, 2025 18:30 UTC
 
 ### Issue: Database Connection Test Failed
