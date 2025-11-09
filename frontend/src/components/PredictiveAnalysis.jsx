@@ -1867,8 +1867,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
 
 
-      {/* Auto-Generated Charts Section */}
-      {analysisResults.auto_charts && analysisResults.auto_charts.filter(chart => chart && chart.plotly_data).length > 0 && !collapsed.auto_charts && (
+      {/* Auto-Generated Charts Section - HIDDEN: These charts belong in Visualizations tab */}
+      {false && analysisResults.auto_charts && analysisResults.auto_charts.filter(chart => chart && chart.plotly_data).length > 0 && !collapsed.auto_charts && (
         <Card id="auto-charts-section" className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
