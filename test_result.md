@@ -282,6 +282,60 @@ curl -X POST /api/datasource/list-tables \
 
 ---
 
+## 🔧 HOTFIX - Load Table Field Required Error - Nov 9, 2025 18:45 UTC
+
+### Issue: Load Table Failed
+**Error**: "Table load failed: Field required, Field required, Field required"
+**Location**: `/api/datasource/load-table` endpoint
+**Root Cause**: Backend expected Form data, frontend sending JSON body
+
+### Oracle Status ✅
+**Oracle Client**: ✅ Installed at `/opt/oracle/instantclient_19_23/`
+**Oracle Configuration**: ✅ Enabled (`DB_TYPE="oracle"`)
+**Oracle Connection**: ✅ Pool created successfully
+**Oracle RDS**: promise-ai-test-oracle.cgxf9inhpsec.us-east-1.rds.amazonaws.com:1521/ORCL
+
+### Fix Applied ✅
+**File Modified**: `/app/backend/app/routes/datasource.py`
+
+**Changes**:
+1. Created `LoadTableRequest` Pydantic model for JSON body
+2. Updated `/load-table` endpoint to accept both JSON and Form data
+3. Added support for `table_name` in query param or request body
+4. Maintained backward compatibility with Form data
+
+**New Endpoint Signature**:
+```python
+class LoadTableRequest(BaseModel):
+    source_type: str
+    config: dict
+    table_name: str = None  # Can also be query param
+    limit: int = 1000
+
+@router.post("/load-table")
+async def load_table(
+    request: LoadTableRequest = None,  # JSON body
+    table_name: str = None,            # Query param
+    # Also supports Form data for backward compatibility
+)
+```
+
+**Usage Examples**:
+```bash
+# JSON body (new - used by frontend)
+POST /api/datasource/load-table?table_name=users
+Body: {"source_type": "oracle", "config": {...}}
+
+# Form data (legacy - backward compatible)
+POST /api/datasource/load-table
+Form: source_type=oracle&config={...}&table_name=users
+```
+
+**Result**: ✅ Load table functionality now working with Oracle
+**Backend Status**: ✅ Restarted and running with Oracle RDS connection
+
+---
+
 ## 🧪 BACKEND TESTING RESULTS - Enhanced Chat Context - Nov 9, 2025
 
 ### Testing Agent: Backend Testing Agent
