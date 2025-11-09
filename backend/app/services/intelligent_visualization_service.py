@@ -142,7 +142,7 @@ class IntelligentVisualizationService:
         
         # Correlation matrix (numeric only)
         if len(numeric_cols) >= 2:
-            self.profile['correlations'] = df[numeric_cols].corr().to_plotly_json()
+            self.profile['correlations'] = df[numeric_cols].corr().to_dict()
         
         # Duplicates
         self.profile['duplicate_rows'] = int(df.duplicated().sum())
