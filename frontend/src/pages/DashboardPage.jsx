@@ -329,7 +329,18 @@ const DashboardPage = () => {
   const loadWorkspaceState = async (stateId) => {
     try {
       const response = await axios.get(`${API}/analysis/load-state/${stateId}`);
-      const loadedData = response.data.analysis_data;
+      
+      // Handle both response structures:
+      // 1. {analysis_data: {predictive_analysis: {...}, visualization: {...}}}
+      // 2. {predictive_analysis: {...}, visualization: {...}} (direct structure)
+      let loadedData = response.data.analysis_data || response.data;
+      
+      console.log('Loaded workspace data structure:', {
+        hasAnalysisData: !!response.data.analysis_data,
+        hasPredictiveAnalysis: !!(loadedData && loadedData.predictive_analysis),
+        hasVisualization: !!(loadedData && loadedData.visualization),
+        keys: loadedData ? Object.keys(loadedData) : []
+      });
       
       // Get workspace name from the saved states list
       const workspaceState = savedStates.find(state => state.id === stateId);
@@ -340,19 +351,23 @@ const DashboardPage = () => {
       console.log('Set current workspace on load:', workspaceName);
       
       // Restore all cached states
-      if (loadedData.predictive_analysis) {
+      if (loadedData && loadedData.predictive_analysis) {
         setPredictiveAnalysisCache(loadedData.predictive_analysis);
+        console.log('✅ Restored predictive_analysis cache');
       }
-      if (loadedData.visualization) {
+      if (loadedData && loadedData.visualization) {
         setVisualizationCache(loadedData.visualization);
+        console.log('✅ Restored visualization cache');
       }
-      if (loadedData.data_profiler) {
+      if (loadedData && loadedData.data_profiler) {
         setDataProfilerCache(loadedData.data_profiler);
+        console.log('✅ Restored data_profiler cache');
       }
       
       toast.success(`Workspace "${workspaceName}" loaded successfully`);
       setShowLoadDialog(false);
     } catch (error) {
+      console.error('Load workspace error:', error);
       toast.error("Failed to load workspace: " + (error.response?.data?.detail || error.message));
     }
   };
