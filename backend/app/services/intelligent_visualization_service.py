@@ -137,8 +137,8 @@ class IntelligentVisualizationService:
         
         # Missing values
         missing = df.isnull().sum()
-        self.profile['missing_values'] = missing[missing > 0].to_plotly_json()
-        self.profile['missing_percentage'] = (missing / len(df) * 100).to_plotly_json()
+        self.profile['missing_values'] = missing[missing > 0].to_dict()
+        self.profile['missing_percentage'] = (missing / len(df) * 100).to_dict()
         
         # Correlation matrix (numeric only)
         if len(numeric_cols) >= 2:
