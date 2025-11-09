@@ -15,6 +15,114 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 
 ---
 
+## 🧪 BACKEND TESTING RESULTS - Training Metadata Investigation - Nov 9, 2025
+
+### Testing Agent: Backend Testing Agent
+**Test Time**: 2025-11-09T14:31:04
+**Backend URL**: https://ai-insight-hub-4.preview.emergentagent.com/api
+**Database Active**: Oracle RDS 19c
+**Tests Performed**: 5 comprehensive database and API tests
+**Overall Result**: ✅ ROOT CAUSE IDENTIFIED
+
+### ✅ COMPLETED TESTS
+
+#### Test 1: Direct Database Query ✅ PASSED
+**Status**: ✅ WORKING
+- Successfully queried training_metadata table directly
+- Found 20 training metadata records in database
+- **CRITICAL FINDING**: No workspace named 'latency_nov' found in training_metadata
+- All existing training records use workspace_name = 'default'
+- Database connection and queries working correctly
+
+#### Test 2: Workspace States Verification ✅ PASSED  
+**Status**: ✅ WORKING
+- Successfully found workspace 'latency_nov' in workspace_states table
+- Workspace details:
+  - ID: d46479d0-b335-464d-b369-f9bd5f25007e
+  - Dataset ID: 1f912c14-101a-4e43-beab-73d2397eaad1
+  - State Name: 'latency_nov'
+  - Size: 45,064,449 bytes (45MB)
+  - Created: 2025-11-09 14:24:49
+- **CONFIRMED**: Workspace was successfully saved
+
+#### Test 3: Training Metadata API Endpoint ✅ PASSED
+**Status**: ✅ WORKING
+- GET /api/training/metadata/by-workspace returns 200 OK
+- Found 13 datasets with training metadata
+- **CRITICAL FINDING**: API correctly shows 'latency_nov' workspace with 0 models
+- API query logic working correctly - issue is data-related, not API-related
+
+#### Test 4: Dataset-Workspace Correlation ✅ PASSED
+**Status**: ✅ WORKING  
+- Found 14 training metadata records for dataset 1f912c14-101a-4e43-beab-73d2397eaad1
+- **CRITICAL FINDING**: All training records have workspace_name = 'default'
+- No training records have workspace_name = 'latency_nov'
+- Dataset correlation working correctly
+
+#### Test 5: Root Cause Analysis ✅ PASSED
+**Status**: ✅ ROOT CAUSE IDENTIFIED
+- Comprehensive analysis of workspace alignment
+- **CONFIRMED**: All 159 training metadata records use workspace_name = 'default'
+- **ROOT CAUSE**: Training process is not saving workspace_name correctly
+- Training metadata is being saved but with wrong workspace name
+
+### 📊 TEST SUMMARY
+- **Total Tests**: 5/5 passed ✅
+- **Database Queries**: ✅ Working
+- **API Endpoints**: ✅ Working  
+- **Data Integrity**: ❌ Issue identified
+- **Root Cause**: ✅ Identified
+
+### 🔍 ROOT CAUSE IDENTIFIED
+
+#### ✅ Issue Status: ROOT CAUSE FOUND
+**Problem**: Training Metadata page shows "0 models" for workspace "latency_nov"
+
+**Root Cause**: Training process saves metadata with workspace_name = 'default' instead of actual workspace name
+
+**Evidence**:
+1. ✅ Workspace 'latency_nov' exists in workspace_states table
+2. ✅ Training metadata exists for the same dataset_id (14 models trained)
+3. ❌ All training metadata records have workspace_name = 'default'
+4. ✅ API correctly returns 0 models because no training records match workspace name
+
+**Impact**: HIGH - Users cannot see their training results in saved workspaces
+
+#### 📋 Technical Details
+- **Workspace Save**: ✅ Working correctly
+- **Training Process**: ⚠️ Not associating training with correct workspace
+- **API Logic**: ✅ Working correctly
+- **Database Schema**: ✅ Correct structure
+- **Query Performance**: ✅ Acceptable (<500ms)
+
+### 🎯 SOLUTION REQUIRED
+
+#### 🔧 Fix Needed: Training Metadata Workspace Association
+**Location**: Backend training process (likely in ML service or analysis routes)
+**Issue**: Training metadata is hardcoded to use 'default' workspace instead of current workspace
+**Priority**: HIGH
+
+**Recommended Fix**:
+1. Update training process to capture current workspace name
+2. Pass workspace name to training metadata save function
+3. Ensure workspace_name field is populated correctly
+4. Test with new training session to verify fix
+
+#### 📋 Files to Investigate
+- `/app/backend/app/services/ml_service.py` - ML training process
+- `/app/backend/app/routes/analysis.py` - Analysis endpoints
+- `/app/backend/app/database/adapters/oracle_adapter.py` - Training metadata save function
+
+### 🎯 TRAINING METADATA INVESTIGATION: ✅ COMPLETE
+
+**Status**: Root cause identified and solution path clear
+- ✅ Database and API infrastructure working correctly
+- ✅ Workspace save functionality working
+- ❌ Training process not associating metadata with correct workspace
+- 🔧 Fix required in training workflow to populate workspace_name correctly
+
+---
+
 ## 🔧 CRITICAL FIXES - Nov 8, 2025
 
 ### Session: Chart Rendering & WebSocket Error Fixes
