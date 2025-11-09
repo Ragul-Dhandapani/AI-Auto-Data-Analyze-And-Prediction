@@ -418,23 +418,68 @@ class IntelligentVisualizationService:
                         if corr_val >= 0.5:
                             strong_corrs.append((corr_matrix.columns[i], corr_matrix.columns[j], corr_val))
                 
-                fig = px.imshow(
-                    corr_matrix,
-                    text_auto='.2f',
-                    aspect='auto',
-                    color_continuous_scale='RdBu_r',
-                    title='Correlation Heatmap',
-                    labels=dict(x='Variables', y='Variables', color='Correlation')
-                )
+                # Create custom hover text with column names
+                hover_text = []
+                for i, row_var in enumerate(corr_matrix.index):
+                    hover_row = []
+                    for j, col_var in enumerate(corr_matrix.columns):
+                        corr_val = corr_matrix.iloc[i, j]
+                        # Interpret correlation
+                        if abs(corr_val) >= 0.7:
+                            strength = 'Strong'
+                        elif abs(corr_val) >= 0.4:
+                            strength = 'Moderate'
+                        else:
+                            strength = 'Weak'
+                        
+                        direction = 'Positive' if corr_val > 0 else 'Negative'
+                        
+                        hover_row.append(
+                            f'<b>X-axis: {col_var}</b><br>' +
+                            f'<b>Y-axis: {row_var}</b><br>' +
+                            f'Correlation: {corr_val:.3f}<br>' +
+                            f'{strength} {direction} relationship<br>' +
+                            f'Range: -1 (inverse) to +1 (direct)'
+                        )
+                    hover_text.append(hover_row)
+                
+                # Create heatmap with proper labels
+                fig = go.Figure(data=go.Heatmap(
+                    z=corr_matrix.values,
+                    x=corr_matrix.columns.tolist(),
+                    y=corr_matrix.index.tolist(),
+                    colorscale='RdBu_r',
+                    zmid=0,
+                    text=corr_matrix.values,
+                    texttemplate='%{text:.2f}',
+                    textfont={"size": 10},
+                    hovertext=hover_text,
+                    hovertemplate='%{hovertext}<extra></extra>',
+                    colorbar=dict(
+                        title="Correlation<br>Coefficient",
+                        tickmode='linear',
+                        tick0=-1,
+                        dtick=0.5
+                    )
+                ))
+                
                 fig.update_layout(
+                    title='Correlation Heatmap: Variable Relationships',
                     height=500,
-                    xaxis_title='Variables',
-                    yaxis_title='Variables'
+                    xaxis=dict(
+                        title='Variables (Horizontal Axis)',
+                        side='bottom',
+                        tickangle=-45
+                    ),
+                    yaxis=dict(
+                        title='Variables (Vertical Axis)',
+                        side='left'
+                    )
                 )
                 
                 # Meaningful description
                 strong_text = f'Strong correlations: {len(strong_corrs)} pairs' if strong_corrs else 'No strong correlations found'
-                description = f'Shows correlation strength between all {len(numeric_cols)} numeric variables. Red = positive correlation (variables move together), Blue = negative correlation (inverse relationship), White = no correlation. Range: -1 to +1. {strong_text}.'
+                description = f'Shows correlation strength between all {len(numeric_cols)} numeric variables. Red = positive correlation (variables move together), Blue = negative correlation (inverse relationship), White = no correlation. Range: -1 to +1. Hover over cells to see detailed relationship between specific variable pairs. {strong_text}.'
                 
                 charts.append({
                     'type': 'heatmap',
