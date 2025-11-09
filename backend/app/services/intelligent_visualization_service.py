@@ -168,18 +168,32 @@ class IntelligentVisualizationService:
         # 1. Histograms for numeric columns
         for col in numeric_cols[:5]:  # Limit to top 5
             try:
+                # Get statistics for meaningful description
+                mean_val = self.df[col].mean()
+                median_val = self.df[col].median()
+                std_val = self.df[col].std()
+                
                 fig = px.histogram(
                     self.df, x=col, nbins=30,
                     title=f'Distribution of {col}',
-                    labels={col: col},
+                    labels={col: f'{col} (Value)', 'count': 'Frequency'},
                     color_discrete_sequence=['#3b82f6']
                 )
-                fig.update_layout(showlegend=False, height=400)
+                fig.update_layout(
+                    showlegend=False, 
+                    height=400,
+                    xaxis_title=f'{col}',
+                    yaxis_title='Count (Number of Occurrences)'
+                )
+                
+                # Create meaningful description
+                description = f'Shows how {col} values are distributed. Mean: {mean_val:.2f}, Median: {median_val:.2f}, Std Dev: {std_val:.2f}. Helps identify if data is normally distributed, skewed, or has multiple peaks.'
+                
                 charts.append({
                     'type': 'histogram',
                     'title': f'Histogram: {col}',
-                    'description': f'Distribution of {col} values',
-                    'data': fig.to_plotly_json(),  # Use to_plotly_json() instead of to_dict()
+                    'description': description,
+                    'data': fig.to_plotly_json(),
                     'column': col
                 })
             except Exception as e:
