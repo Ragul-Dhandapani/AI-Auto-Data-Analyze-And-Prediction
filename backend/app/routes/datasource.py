@@ -4,6 +4,7 @@ Handles file upload, database connections, and data loading
 """
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 from typing import List
+from pydantic import BaseModel
 import pandas as pd
 import uuid
 from datetime import datetime, timezone
