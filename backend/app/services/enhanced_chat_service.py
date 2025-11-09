@@ -117,12 +117,16 @@ class EnhancedChatService:
                 return await self._handle_trend_analysis(dataset, message)
             
             if any(keyword in message_lower for keyword in ['what does this mean', 'interpret', 'explain']):
-                return await self._handle_interpretation(dataset, analysis_results, message)
+                return await self._handle_interpretation(dataset, analysis_results, message, conversation_history)
+            
+            # Handle "what does X mean" type questions - context-aware
+            if 'what does' in message_lower or 'what is' in message_lower or 'define' in message_lower:
+                return await self._handle_general_query(message, dataset, analysis_results, conversation_history)
             
             if 'what next' in message_lower or 'suggestion' in message_lower or 'recommend' in message_lower:
                 return await self._handle_suggestions(dataset, analysis_results)
             
-            # 5. General Query - Use Azure OpenAI
+            # 5. General Query - Use Azure OpenAI with conversation history
             return await self._handle_general_query(message, dataset, analysis_results, conversation_history)
             
         except Exception as e:
