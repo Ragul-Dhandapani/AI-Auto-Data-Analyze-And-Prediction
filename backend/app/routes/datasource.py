@@ -281,6 +281,20 @@ async def upload_file(file: UploadFile = File(...)):
         raise HTTPException(500, f"Error uploading file: {str(e)}")
 
 
+@router.post("/parse-connection-string")
+async def parse_connection_string_endpoint(
+    source_type: str = Form(...),
+    connection_string: str = Form(...)
+):
+    """Parse database connection string into config object"""
+    try:
+        config = parse_connection_string(source_type, connection_string)
+        return {"success": True, "config": config}
+    except Exception as e:
+        logger.error(f"Failed to parse connection string: {str(e)}")
+        return {"success": False, "message": str(e)}
+
+
 @router.post("/test-connection")
 async def test_connection(request: DataSourceTest):
     """Test database connection"""
