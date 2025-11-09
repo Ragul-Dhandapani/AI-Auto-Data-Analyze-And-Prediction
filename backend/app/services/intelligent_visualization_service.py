@@ -179,7 +179,7 @@ class IntelligentVisualizationService:
                     'type': 'histogram',
                     'title': f'Histogram: {col}',
                     'description': f'Distribution of {col} values',
-                    'data': fig.to_dict(),
+                    'data': fig.to_plotly_json(),  # Use to_plotly_json() instead of to_dict()
                     'column': col
                 })
             except Exception as e:
