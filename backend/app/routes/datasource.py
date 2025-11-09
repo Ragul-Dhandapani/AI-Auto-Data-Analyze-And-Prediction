@@ -374,33 +374,23 @@ async def get_tables(request: DataSourceTest):
 
 @router.post("/load-table")
 async def load_table(
-    table_name: str,  # Query parameter (required)
-    request: LoadTableRequest = None,
-    source_type: str = Form(None),
-    config: str = Form(None),
-    limit: int = Form(None)
+    table_name: str = Query(..., description="Table name to load"),
+    request: LoadTableRequest = Body(None, description="Request body with source config")
 ):
-    """Load data from database table (supports both JSON and Form data)"""
+    """Load data from database table (JSON body required)"""
     try:
         import json
         
-        # Support both JSON body and Form data for backward compatibility
-        if request and request.source_type:
-            # JSON body (new format)
-            source_type_val = request.source_type
-            config_dict = request.config
-            table_name_val = table_name  # Always use query param
-            limit_val = request.limit
-            logger.info(f"Loading table via JSON: {table_name_val} from {source_type_val}")
-        elif source_type:
-            # Form data (legacy format)
-            source_type_val = source_type
-            config_dict = json.loads(config) if config else {}
-            table_name_val = table_name
-            limit_val = limit or 1000
-            logger.info(f"Loading table via Form: {table_name_val} from {source_type_val}")
-        else:
-            raise HTTPException(400, "source_type must be provided in request body or form data")
+        if not request:
+            raise HTTPException(400, "Request body with source_type and config is required")
+        
+        # Extract from JSON body
+        source_type_val = request.source_type
+        config_dict = request.config
+        table_name_val = table_name  # From query param
+        limit_val = request.limit or 1000
+        
+        logger.info(f"Loading table: {table_name_val} from {source_type_val}, limit: {limit_val}")
         
         if not source_type_val or not table_name_val:
             raise HTTPException(400, f"source_type and table_name are required (got: source_type={source_type_val}, table_name={table_name_val})")
