@@ -391,18 +391,37 @@ class IntelligentVisualizationService:
         if len(numeric_cols) >= 2:
             try:
                 corr_matrix = self.df[numeric_cols].corr()
+                
+                # Find strongest correlations
+                strong_corrs = []
+                for i in range(len(corr_matrix.columns)):
+                    for j in range(i+1, len(corr_matrix.columns)):
+                        corr_val = abs(corr_matrix.iloc[i, j])
+                        if corr_val >= 0.5:
+                            strong_corrs.append((corr_matrix.columns[i], corr_matrix.columns[j], corr_val))
+                
                 fig = px.imshow(
                     corr_matrix,
                     text_auto='.2f',
                     aspect='auto',
                     color_continuous_scale='RdBu_r',
-                    title='Correlation Heatmap'
+                    title='Correlation Heatmap',
+                    labels=dict(x='Variables', y='Variables', color='Correlation')
                 )
-                fig.update_layout(height=500)
+                fig.update_layout(
+                    height=500,
+                    xaxis_title='Variables',
+                    yaxis_title='Variables'
+                )
+                
+                # Meaningful description
+                strong_text = f'Strong correlations: {len(strong_corrs)} pairs' if strong_corrs else 'No strong correlations found'
+                description = f'Shows correlation strength between all {len(numeric_cols)} numeric variables. Red = positive correlation (variables move together), Blue = negative correlation (inverse relationship), White = no correlation. Range: -1 to +1. {strong_text}.'
+                
                 charts.append({
                     'type': 'heatmap',
                     'title': 'Correlation Heatmap',
-                    'description': f'Correlation matrix for {len(numeric_cols)} numeric variables',
+                    'description': description,
                     'data': fig.to_plotly_json()
                 })
             except Exception as e:
