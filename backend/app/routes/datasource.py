@@ -409,6 +409,25 @@ async def load_table(
         # Generate unique dataset ID
         dataset_id = str(uuid.uuid4())
         
+        # CRITICAL: Prepare data preview (same as file upload)
+        # Show up to 1000 records for preview (balance between completeness and performance)
+        preview_df = df.head(1000).copy()
+        
+        # Clean all non-JSON-serializable values
+        preview_df = preview_df.replace([float('inf'), float('-inf')], None)
+        preview_df = preview_df.where(pd.notna(preview_df), None)
+        
+        # Convert to dict and ensure all values are JSON-serializable
+        data_preview = preview_df.to_dict('records')
+        
+        # Double-check: clean any remaining NaN/inf values
+        import math
+        for row in data_preview:
+            for key, value in row.items():
+                if isinstance(value, float):
+                    if math.isnan(value) or math.isinf(value):
+                        row[key] = None
+        
         # Prepare dataset metadata
         dataset_doc = {
             "id": dataset_id,
@@ -416,7 +435,8 @@ async def load_table(
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": list(df.columns),
-            "dtypes": df.dtypes.astype(str).to_dict(),  # Changed from data_types to dtypes
+            "dtypes": df.dtypes.astype(str).to_dict(),
+            "data_preview": data_preview,  # CRITICAL: Add preview for Data Preview section
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "source_type": source_type_val,
