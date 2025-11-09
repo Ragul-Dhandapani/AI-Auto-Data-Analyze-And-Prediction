@@ -350,6 +350,15 @@ def train_models_with_selection(df, target_column, problem_type, selected_models
     is_numeric_continuous = pd.api.types.is_numeric_dtype(y) and unique_values > 20
     is_categorical = pd.api.types.is_object_dtype(y) or pd.api.types.is_categorical_dtype(y) or unique_values <= 20
     
+    # Auto-detect problem type if set to "auto"
+    if problem_type == 'auto':
+        if is_numeric_continuous:
+            problem_type = 'regression'
+            logger.info(f"🔍 Auto-detected REGRESSION (target has {unique_values} unique continuous values)")
+        else:
+            problem_type = 'classification'
+            logger.info(f"🔍 Auto-detected CLASSIFICATION (target has {unique_values} unique categorical values)")
+    
     # Validate and auto-correct problem type
     if problem_type == 'classification' and is_numeric_continuous:
         logger.warning(f"⚠️ Problem type mismatch: '{problem_type}' selected but target has {unique_values} unique continuous values")
