@@ -359,8 +359,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         refCount: previousResultsRef.current?.ml_models?.length || 0
       });
       
-      // Merge if we have previous results to preserve (from selected model training)
-      if (selectedModels && previousResults && previousResults.ml_models && previousResults.ml_models.length > 0) {
+      // Merge if we have previous results to preserve
+      if (previousResults && previousResults.ml_models && previousResults.ml_models.length > 0) {
         const existingModels = previousResults.ml_models || [];
         const newModels = response.data.ml_models || [];
         
