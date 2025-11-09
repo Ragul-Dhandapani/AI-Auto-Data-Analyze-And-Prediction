@@ -246,6 +246,42 @@ POST /api/datasource/parse-connection-string
 
 ---
 
+## 🔧 HOTFIX - Load Tables Error - Nov 9, 2025 18:35 UTC
+
+### Issue: Failed to Load Tables
+**Error**: "Failed to load tables: Not Found" (after successful connection test)
+**Location**: Missing endpoint `/api/datasource/list-tables`
+**Root Cause**: Frontend calls `list-tables` but backend only had `get-tables`
+
+### Fix Applied ✅
+**File Modified**: `/app/backend/app/routes/datasource.py`
+
+**Changes**:
+1. Created shared implementation `_get_tables_impl(source_type, config)`
+2. Added primary endpoint `/list-tables` (used by frontend)
+3. Kept `/get-tables` for backward compatibility
+4. Changed parameter from `DataSourceConfig` to `DataSourceTest` (simpler model without required `name` field)
+
+**Endpoints Available**:
+```python
+POST /api/datasource/list-tables      # Primary endpoint
+POST /api/datasource/get-tables       # Backward compatibility
+# Both accept: {"source_type": "postgresql|mysql|oracle|sqlserver|mongodb", "config": {...}}
+# Both return: {"tables": [...]}
+```
+
+**Tested**:
+```bash
+curl -X POST /api/datasource/list-tables \
+  -d '{"source_type": "mongodb", "config": {}}'
+# Returns: {"tables": []}
+```
+
+**Result**: ✅ Load tables functionality now working correctly
+**Backend Status**: ✅ Restarted and running
+
+---
+
 ## 🧪 BACKEND TESTING RESULTS - Enhanced Chat Context - Nov 9, 2025
 
 ### Testing Agent: Backend Testing Agent
