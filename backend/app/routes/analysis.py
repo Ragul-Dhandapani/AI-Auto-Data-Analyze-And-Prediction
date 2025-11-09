@@ -1132,36 +1132,37 @@ async def save_analysis_state(request: SaveStateRequest):
         state_id = str(uuid.uuid4())
         
         # OPTIMIZATION 1: Remove large/redundant data from analysis_data before saving
+        # analysis_data structure: {predictive_analysis: {...}, visualization: {...}, data_profiler: {...}}
         optimized_analysis_data = {}
         if request.analysis_data:
-            for key, value in request.analysis_data.items():
-                # Skip storing large chart data - only store config
-                if key == "auto_charts" and isinstance(value, list):
-                    optimized_analysis_data[key] = [
-                        {
-                            "chart_type": chart.get("chart_type"),
-                            "title": chart.get("title"),
-                            "description": chart.get("description"),
-                            # Don't store full plotly data, only metadata
-                        }
-                        for chart in value[:5]  # Limit to first 5 charts
-                    ]
-                # Store model results but limit detail
-                elif key == "ml_models" and isinstance(value, list):
-                    optimized_analysis_data[key] = [
-                        {
-                            "model_name": model.get("model_name"),
-                            "r2_score": model.get("r2_score"),
-                            "rmse": model.get("rmse"),
-                            "accuracy": model.get("accuracy"),
-                            "f1_score": model.get("f1_score"),
-                            "feature_importance": model.get("feature_importance", [])[:10],  # Top 10 features only
-                        }
-                        for model in value
-                    ]
-                # Skip raw data, keep only metadata
-                elif key not in ["raw_data", "full_dataset", "data_preview"]:
-                    optimized_analysis_data[key] = value
+            for section_key, section_value in request.analysis_data.items():
+                # Handle each section (predictive_analysis, visualization, data_profiler)
+                if not isinstance(section_value, dict):
+                    optimized_analysis_data[section_key] = section_value
+                    continue
+                
+                optimized_section = {}
+                for key, value in section_value.items():
+                    # Skip storing large chart data - only store config
+                    if key == "auto_charts" and isinstance(value, list):
+                        optimized_section[key] = [
+                            {
+                                "chart_type": chart.get("chart_type"),
+                                "title": chart.get("title"),
+                                "description": chart.get("description"),
+                                # Don't store full plotly data, only metadata
+                            }
+                            for chart in value[:5]  # Limit to first 5 charts
+                        ]
+                    # Store model results - KEEP FULL MODEL DATA FOR RESTORE
+                    elif key == "ml_models" and isinstance(value, list):
+                        # CRITICAL FIX: Store complete model data for proper restore
+                        optimized_section[key] = value
+                    # Skip raw data, keep only metadata
+                    elif key not in ["raw_data", "full_dataset", "data_preview"]:
+                        optimized_section[key] = value
+                
+                optimized_analysis_data[section_key] = optimized_section
         
         # OPTIMIZATION 2: Limit chat history to last 50 messages
         optimized_chat_history = request.chat_history[-50:] if request.chat_history else []
