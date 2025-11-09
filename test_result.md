@@ -154,6 +154,29 @@ console.log('Set current workspace on load:', workspaceName);
 - ❌ **CRITICAL**: All training metadata queries fail because column doesn't exist
 - 🔧 **SOLUTION**: Database schema migration required to add `workspace_name` column
 
+### 📋 AGENT COMMUNICATION
+
+**From**: Testing Agent  
+**To**: Main Agent  
+**Priority**: CRITICAL  
+**Message**: 
+
+CRITICAL DATABASE SCHEMA ISSUE IDENTIFIED: The training_metadata table is missing the workspace_name column. This is why Training Metadata page shows 0 models for workspace 'latency_nov'. 
+
+**Evidence**:
+- Backend receives workspace names correctly (logs show: "Received workspace_name: 'test_workspace_fix_direct'")
+- Database schema shows training_metadata table has NO workspace_name column
+- All training metadata queries fail: "WHERE workspace_name = :workspace_name" (column doesn't exist)
+- Frontend fix applied but database schema migration required
+
+**Required Actions**:
+1. Add workspace_name VARCHAR2(200) column to training_metadata table
+2. Update save_training_metadata function to include workspace_name in INSERT
+3. Update database schema migration script
+4. Test training metadata association after schema fix
+
+This is a database design issue, not a code logic issue. Frontend and backend code is correct.
+
 ---
 
 ## 🔧 CRITICAL FIXES - Nov 8, 2025
