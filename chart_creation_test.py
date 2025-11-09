@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Backend URL
-BACKEND_URL = "https://promise-ai-platform.preview.emergentagent.com/api"
+BACKEND_URL = "https://data-prophet-4.preview.emergentagent.com/api"
 
 def get_test_dataset():
     """Get a dataset from Oracle for testing"""
