@@ -405,7 +405,7 @@ async def load_table(
         df = load_table_data(source_type_val, config_dict, table_name_val, limit_val)
         
         if df.empty:
-            raise HTTPException(400, f"Table '{table_name}' is empty or could not be loaded")
+            raise HTTPException(400, f"Table '{table_name_val}' is empty or could not be loaded")
         
         # Generate unique dataset ID
         dataset_id = str(uuid.uuid4())
@@ -413,15 +413,15 @@ async def load_table(
         # Prepare dataset metadata
         dataset_doc = {
             "id": dataset_id,
-            "name": f"{table_name}_{source_type}",
+            "name": f"{table_name_val}_{source_type_val}",
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": list(df.columns),
             "dtypes": df.dtypes.astype(str).to_dict(),  # Changed from data_types to dtypes
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
-            "source_type": source_type,
-            "source_table": table_name,
+            "source_type": source_type_val,
+            "source_table": table_name_val,
             "source_config": config_dict
         }
         
@@ -438,7 +438,7 @@ async def load_table(
             file_id = await db_adapter.store_file(
                 f"table_{dataset_id}.json",
                 data_json.encode('utf-8'),
-                metadata={"dataset_id": dataset_id, "source_table": table_name}
+                metadata={"dataset_id": dataset_id, "source_table": table_name_val}
             )
             
             dataset_doc["storage_type"] = "blob"
