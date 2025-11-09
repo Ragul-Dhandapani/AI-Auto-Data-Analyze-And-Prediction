@@ -455,6 +455,35 @@ result = await viz_service.analyze_and_generate(df)
 
 ---
 
+## 🔧 HOTFIX - Chart Serialization Error - Nov 9, 2025 19:25 UTC
+
+### Issue: Chart Generation 500 Error
+**Error**: "Chart generation failed: Request failed with status code 500"
+**Root Cause**: Plotly `fig.to_dict()` returns non-JSON-serializable objects that FastAPI can't encode
+
+### Fix Applied ✅
+**File Modified**: `/app/backend/app/services/intelligent_visualization_service.py`
+
+**Changes**:
+```python
+# BEFORE: Non-serializable
+'data': fig.to_dict()
+
+# AFTER: JSON-serializable
+'data': fig.to_plotly_json()
+```
+
+**What Happened**:
+- System successfully generated 34 intelligent charts
+- Plotly figures contained complex objects (numpy arrays, pd.Series)
+- FastAPI's `jsonable_encoder()` failed during serialization
+- Solution: Use Plotly's built-in `to_plotly_json()` method
+
+**Result**: ✅ Chart generation now returns valid JSON
+**Status**: Backend fixed and restarted
+
+---
+
 ## 🔧 HOTFIX - Database Connection Test Error - Nov 9, 2025 18:30 UTC
 
 ### Issue: Database Connection Test Failed
