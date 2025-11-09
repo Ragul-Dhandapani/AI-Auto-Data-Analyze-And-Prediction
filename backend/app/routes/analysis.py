@@ -87,29 +87,46 @@ async def run_analysis(request: Dict[str, Any]):
             }
         
         elif analysis_type == "visualize":
-            # Generate auto charts for visualization panel
-            auto_charts, skipped_charts = generate_auto_charts(df, max_charts=15)
+            # 🧠 INTELLIGENT VISUALIZATION SYSTEM
+            # Use advanced AI-powered visualization engine
+            from app.services.intelligent_visualization_service import get_intelligent_visualization_service
             
-            # Convert to frontend format with proper structure
-            charts = []
+            logger.info(f"🧠 Starting intelligent visualization analysis for dataset: {dataset_id}")
             
-            for chart in auto_charts:
-                if chart and chart.get("plotly_data"):
-                    charts.append({
-                        "title": chart.get("title", "Chart"),
-                        "description": chart.get("description", ""),
-                        "type": chart.get("type", "unknown"),
-                        "data": chart.get("plotly_data")  # Frontend expects 'data' field
+            viz_service = get_intelligent_visualization_service()
+            result = await viz_service.analyze_and_generate(df)
+            
+            # Flatten categories into a single list for frontend compatibility
+            all_charts = []
+            all_skipped = []
+            
+            categories_data = result.get('categories', {})
+            for category_name, category_data in categories_data.items():
+                charts = category_data.get('charts', [])
+                skipped = category_data.get('skipped', [])
+                
+                # Add category tag to each chart
+                for chart in charts:
+                    chart['category'] = category_name
+                    all_charts.append(chart)
+                
+                # Add category info to skipped messages
+                for skip_msg in skipped:
+                    all_skipped.append({
+                        'category': category_name,
+                        'message': skip_msg
                     })
-                else:
-                    skipped_charts.append({
-                        "title": chart.get("title", "Chart"),
-                        "reason": "Missing or invalid plotly data"
-                    })
+            
+            logger.info(f"✅ Generated {len(all_charts)} intelligent charts across {len(categories_data)} categories")
             
             return {
-                "charts": charts,
-                "skipped_charts": skipped_charts  # Return why charts were skipped
+                "charts": all_charts,
+                "skipped": all_skipped,
+                "categories": categories_data,  # Include categorized view
+                "insights": result.get('insights', []),
+                "profile": result.get('profile', {}),
+                "total_charts": result.get('total_charts', 0),
+                "total_skipped": result.get('total_skipped', 0)
             }
         
         elif analysis_type == "insights":
