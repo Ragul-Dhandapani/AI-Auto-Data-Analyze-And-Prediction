@@ -184,6 +184,30 @@ ldconfig
 
 ---
 
+## 🔧 HOTFIX - File Upload Logger Error - Nov 9, 2025 18:25 UTC
+
+### Issue: File Upload Failed
+**Error**: `name 'logger' is not defined`
+**Location**: `/app/backend/app/routes/datasource.py` line 212
+**Root Cause**: `logger` was used but not imported
+
+### Fix Applied ✅
+**File Modified**: `/app/backend/app/routes/datasource.py`
+
+**Changes**:
+```python
+# Added missing imports:
+import logging
+
+# Added logger initialization:
+logger = logging.getLogger(__name__)
+```
+
+**Result**: ✅ File upload now working correctly
+**Backend Status**: ✅ Restarted and running
+
+---
+
 ## 🧪 BACKEND TESTING RESULTS - Enhanced Chat Context - Nov 9, 2025
 
 ### Testing Agent: Backend Testing Agent
