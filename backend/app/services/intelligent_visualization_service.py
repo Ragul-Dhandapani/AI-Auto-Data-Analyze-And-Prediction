@@ -604,16 +604,31 @@ class IntelligentVisualizationService:
         # 1. Line Plot (value over time)
         for num_col in numeric_cols[:3]:
             try:
+                # Calculate trend
+                start_val = df_ts[num_col].iloc[0]
+                end_val = df_ts[num_col].iloc[-1]
+                change_pct = ((end_val - start_val) / start_val * 100) if start_val != 0 else 0
+                trend_direction = 'increasing' if change_pct > 5 else 'decreasing' if change_pct < -5 else 'stable'
+                
                 fig = px.line(
                     df_ts, x=date_col, y=num_col,
                     title=f'{num_col} Over Time',
-                    markers=True if len(df_ts) <= 50 else False
+                    markers=True if len(df_ts) <= 50 else False,
+                    labels={date_col: 'Date/Time', num_col: f'{num_col}'}
                 )
-                fig.update_layout(height=400)
+                fig.update_layout(
+                    height=400,
+                    xaxis_title='Time Period',
+                    yaxis_title=num_col
+                )
+                
+                # Meaningful description
+                description = f'Shows how {num_col} changes over time using {date_col}. Trend: {trend_direction} ({change_pct:+.1f}% change from start to end). Each point represents a time period. Useful for identifying patterns, seasonality, and anomalies.'
+                
                 charts.append({
                     'type': 'line',
                     'title': f'Time Series: {num_col}',
-                    'description': f'Trend of {num_col} over time',
+                    'description': description,
                     'data': fig.to_plotly_json(),
                     'columns': [date_col, num_col]
                 })
