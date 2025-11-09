@@ -92,6 +92,22 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     }
   }, [analysisResults, dataset?.id]);
   
+  // CRITICAL FIX: Update ref when analysisCache changes (workspace load scenario)
+  // This ensures that when a user loads a workspace, the ref is immediately updated
+  // so that subsequent model training can merge correctly
+  useEffect(() => {
+    if (analysisCache && analysisCache.ml_models && analysisCache.ml_models.length > 0) {
+      previousResultsRef.current = analysisCache;
+      console.log('✅ Updated previousResultsRef from analysisCache prop change with', analysisCache.ml_models.length, 'models');
+      
+      // Also update the state to ensure UI shows the loaded data
+      if (!analysisResults || analysisResults !== analysisCache) {
+        setAnalysisResults(analysisCache);
+        console.log('✅ Updated analysisResults state from analysisCache');
+      }
+    }
+  }, [analysisCache]); // Only watch analysisCache changes
+  
   // Debug: Log the variableSelection prop value whenever it changes
   useEffect(() => {
     console.log('PredictiveAnalysis received variableSelection prop:', variableSelection);
