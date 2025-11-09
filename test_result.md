@@ -587,6 +587,90 @@ result = await viz_service.analyze_and_generate(df)
 
 ---
 
+## 🔧 HOTFIX - Pie Chart Labels & Correlation Hover Info - Nov 9, 2025 19:40 UTC
+
+### Issue 1: Pie Chart Showing Numbers Instead of Category Names
+**Problem**: Pie chart displaying 0, 1, 2, 3 instead of actual category names
+**Root Cause**: Using px.pie() which auto-indexed categories
+
+**Fix Applied** ✅:
+```python
+# BEFORE: px.pie() with auto-indexing
+fig = px.pie(values=value_counts.values, names=value_counts.index)
+
+# AFTER: go.Pie() with explicit labels
+categories = [str(name) for name in value_counts.index]
+fig = go.Figure(data=[go.Pie(
+    labels=categories,  # Explicit category names
+    values=values,
+    textinfo='label+percent',  # Show both name and %
+    hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}'
+)])
+```
+
+**Improvements**:
+- ✅ Shows actual category names (e.g., "success", "error", "pending")
+- ✅ Legend displays all categories with proper names
+- ✅ Hover shows: category name, count, and percentage
+- ✅ Inside labels show category name + percentage
+
+---
+
+### Issue 2: Correlation Heatmap - Unclear Axis & Hover Info
+**Problem**: 
+1. Axes showing "variables" text instead of actual column names
+2. Hover showing "1, 0" coordinates instead of meaningful info
+
+**Fix Applied** ✅:
+```python
+# Create custom hover text with interpretations
+hover_text = []
+for i, row_var in enumerate(corr_matrix.index):
+    for j, col_var in enumerate(corr_matrix.columns):
+        corr_val = corr_matrix.iloc[i, j]
+        strength = 'Strong' if abs(corr_val) >= 0.7 else 'Moderate' if abs(corr_val) >= 0.4 else 'Weak'
+        direction = 'Positive' if corr_val > 0 else 'Negative'
+        
+        hover_text.append(
+            f'<b>X-axis: {col_var}</b><br>' +
+            f'<b>Y-axis: {row_var}</b><br>' +
+            f'Correlation: {corr_val:.3f}<br>' +
+            f'{strength} {direction} relationship'
+        )
+
+# Heatmap with actual column names on axes
+fig = go.Figure(data=go.Heatmap(
+    x=corr_matrix.columns.tolist(),  # Actual column names on X
+    y=corr_matrix.index.tolist(),     # Actual column names on Y
+    hovertext=hover_text,
+    hovertemplate='%{hovertext}<extra></extra>'
+))
+```
+
+**Improvements**:
+- ✅ X-axis: Shows actual variable names (e.g., "latency_ms", "cpu_usage")
+- ✅ Y-axis: Shows actual variable names
+- ✅ Hover info now shows:
+  - Which column is on X-axis
+  - Which column is on Y-axis  
+  - Correlation value (e.g., 0.823)
+  - Strength interpretation (Strong/Moderate/Weak)
+  - Direction (Positive/Negative relationship)
+  - Range explanation (-1 to +1)
+
+**Example Hover**:
+```
+X-axis: cpu_usage
+Y-axis: memory_usage
+Correlation: 0.823
+Strong Positive relationship
+Range: -1 (inverse) to +1 (direct)
+```
+
+**Status**: Backend restarted with fixes
+
+---
+
 ## 🔧 HOTFIX - Database Connection Test Error - Nov 9, 2025 18:30 UTC
 
 ### Issue: Database Connection Test Failed
