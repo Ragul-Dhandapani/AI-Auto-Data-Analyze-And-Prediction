@@ -147,7 +147,7 @@ class EnhancedChatTester:
         else:
             self.log_test("Context-Aware Follow-up", "FAIL", "No response received", response)
 
-def test_workspace_states_query():
+    def test_conversation_history_parameter(self):
     """Test 2: Check Workspace States - Verify workspace was saved"""
     print("\n=== Test 2: Check Workspace States ===")
     print("Verifying workspace 'latency_nov' exists in workspace_states...")
