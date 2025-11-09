@@ -315,43 +315,130 @@ def test_dataset_workspace_correlation(workspace_dataset_id):
         print(f"❌ Dataset-workspace correlation check failed: {str(e)}")
         return False, False
 
-def check_backend_logs():
-    """Check backend logs for any startup errors"""
-    print("\n=== Backend Logs Check ===")
+def test_root_cause_analysis():
+    """Test 5: Root Cause Analysis - Identify the exact issue"""
+    print("\n=== Test 5: Root Cause Analysis ===")
+    print("Performing comprehensive analysis to identify the root cause...")
     
     try:
-        # Check recent backend logs
-        import subprocess
-        result = subprocess.run(
-            ["tail", "-n", "20", "/var/log/supervisor/backend.err.log"],
-            capture_output=True,
-            text=True,
-            timeout=10
+        # Initialize Oracle client
+        try:
+            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+        except:
+            pass  # Already initialized
+        
+        # Create connection
+        dsn = cx_Oracle.makedsn(
+            ORACLE_CONFIG['host'],
+            ORACLE_CONFIG['port'],
+            service_name=ORACLE_CONFIG['service_name']
         )
         
-        if result.returncode == 0:
-            logs = result.stdout.strip()
-            if logs:
-                print("Recent backend error logs:")
-                print(logs)
-                
-                # Check for specific errors
-                if "ERROR" in logs:
-                    print("⚠️  Errors found in backend logs")
-                    return False
-                else:
-                    print("✅ No critical errors in recent logs")
-                    return True
-            else:
-                print("✅ No recent error logs")
-                return True
-        else:
-            print("⚠️  Could not access backend logs")
-            return True  # Don't fail the test for log access issues
+        connection = cx_Oracle.connect(
+            user=ORACLE_CONFIG['user'],
+            password=ORACLE_CONFIG['password'],
+            dsn=dsn
+        )
+        
+        cursor = connection.cursor()
+        
+        print("\n   🔍 Analysis 1: Check workspace_name patterns in training_metadata")
+        query1 = """
+        SELECT DISTINCT workspace_name, COUNT(*) as count
+        FROM training_metadata 
+        GROUP BY workspace_name
+        ORDER BY count DESC
+        """
+        
+        cursor.execute(query1)
+        workspace_patterns = cursor.fetchall()
+        
+        print(f"   Found {len(workspace_patterns)} unique workspace names:")
+        for pattern in workspace_patterns:
+            workspace_name = pattern[0] or 'NULL'
+            count = pattern[1]
+            print(f"      - '{workspace_name}': {count} models")
             
+            if workspace_name and 'latency' in workspace_name.lower():
+                print(f"        🎯 LATENCY WORKSPACE FOUND: '{workspace_name}'")
+        
+        print("\n   🔍 Analysis 2: Check dataset_id patterns")
+        query2 = """
+        SELECT tm.dataset_id, d.name as dataset_name, COUNT(tm.id) as training_count
+        FROM training_metadata tm
+        LEFT JOIN datasets d ON tm.dataset_id = d.id
+        GROUP BY tm.dataset_id, d.name
+        ORDER BY training_count DESC
+        """
+        
+        cursor.execute(query2)
+        dataset_patterns = cursor.fetchall()
+        
+        print(f"   Found {len(dataset_patterns)} datasets with training metadata:")
+        for pattern in dataset_patterns:
+            dataset_id = pattern[0] or 'NULL'
+            dataset_name = pattern[1] or 'Unknown'
+            count = pattern[2]
+            print(f"      - Dataset: '{dataset_name}' (ID: {dataset_id[:8]}...): {count} models")
+        
+        print("\n   🔍 Analysis 3: Check workspace_states vs training_metadata alignment")
+        query3 = """
+        SELECT ws.state_name, ws.dataset_id, 
+               COUNT(tm.id) as training_count,
+               MAX(tm.created_at) as last_training
+        FROM workspace_states ws
+        LEFT JOIN training_metadata tm ON ws.dataset_id = tm.dataset_id 
+                                       AND ws.state_name = tm.workspace_name
+        GROUP BY ws.state_name, ws.dataset_id
+        ORDER BY ws.state_name
+        """
+        
+        cursor.execute(query3)
+        alignment_data = cursor.fetchall()
+        
+        print(f"   Workspace alignment analysis:")
+        latency_nov_alignment = None
+        for row in alignment_data:
+            state_name = row[0]
+            dataset_id = row[1]
+            training_count = row[2] or 0
+            last_training = row[3]
+            
+            print(f"      - Workspace: '{state_name}' -> {training_count} training records")
+            
+            if 'latency_nov' in state_name.lower():
+                latency_nov_alignment = {
+                    'workspace_name': state_name,
+                    'dataset_id': dataset_id,
+                    'training_count': training_count,
+                    'last_training': last_training
+                }
+                print(f"        🎯 LATENCY_NOV ALIGNMENT: {training_count} training records")
+        
+        cursor.close()
+        connection.close()
+        
+        # Determine root cause
+        if latency_nov_alignment:
+            if latency_nov_alignment['training_count'] == 0:
+                print("\n   🔍 ROOT CAUSE IDENTIFIED:")
+                print("      ❌ Workspace 'latency_nov' exists but has NO training metadata")
+                print("      ❌ This explains why Training Metadata page shows '0 models'")
+                print("      🔧 SOLUTION: Check if training was actually completed and saved")
+                return True, "workspace_exists_no_training"
+            else:
+                print("\n   ✅ Workspace 'latency_nov' has training metadata")
+                print("      🔍 Issue might be in API query logic or frontend display")
+                return True, "training_exists_api_issue"
+        else:
+            print("\n   🔍 ROOT CAUSE IDENTIFIED:")
+            print("      ❌ Workspace 'latency_nov' not found in workspace_states")
+            print("      ❌ Workspace was never saved or has different name")
+            return True, "workspace_not_found"
+        
     except Exception as e:
-        print(f"⚠️  Could not check backend logs: {str(e)}")
-        return True  # Don't fail the test for log access issues
+        print(f"❌ Root cause analysis failed: {str(e)}")
+        return False, "analysis_failed"
 
 def main():
     """Run Critical Backend Tests"""
