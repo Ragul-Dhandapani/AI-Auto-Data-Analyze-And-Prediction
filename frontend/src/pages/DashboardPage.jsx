@@ -331,6 +331,14 @@ const DashboardPage = () => {
       const response = await axios.get(`${API}/analysis/load-state/${stateId}`);
       const loadedData = response.data.analysis_data;
       
+      // Get workspace name from the saved states list
+      const workspaceState = savedStates.find(state => state.id === stateId);
+      const workspaceName = workspaceState?.state_name || 'default';
+      
+      // Store workspace name in localStorage for linking future training runs
+      localStorage.setItem('current_workspace_name', workspaceName);
+      console.log('Set current workspace on load:', workspaceName);
+      
       // Restore all cached states
       if (loadedData.predictive_analysis) {
         setPredictiveAnalysisCache(loadedData.predictive_analysis);
@@ -342,7 +350,7 @@ const DashboardPage = () => {
         setDataProfilerCache(loadedData.data_profiler);
       }
       
-      toast.success("Workspace loaded successfully");
+      toast.success(`Workspace "${workspaceName}" loaded successfully`);
       setShowLoadDialog(false);
     } catch (error) {
       toast.error("Failed to load workspace: " + (error.response?.data?.detail || error.message));
