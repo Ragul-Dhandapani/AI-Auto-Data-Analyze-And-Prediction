@@ -95,23 +95,36 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 - **Database Schema**: ✅ Correct structure
 - **Query Performance**: ✅ Acceptable (<500ms)
 
-### 🎯 SOLUTION REQUIRED
+### 🎯 SOLUTION APPLIED
 
-#### 🔧 Fix Needed: Training Metadata Workspace Association
-**Location**: Backend training process (likely in ML service or analysis routes)
-**Issue**: Training metadata is hardcoded to use 'default' workspace instead of current workspace
-**Priority**: HIGH
+#### 🔧 Fix Applied: Frontend Workspace Loading Issue ✅ FIXED
+**Location**: `/app/frontend/src/pages/DashboardPage.jsx` - `loadWorkspaceState` function
+**Issue**: When loading a workspace, `current_workspace_name` in localStorage was not updated
+**Priority**: HIGH - RESOLVED
 
-**Recommended Fix**:
-1. Update training process to capture current workspace name
-2. Pass workspace name to training metadata save function
-3. Ensure workspace_name field is populated correctly
-4. Test with new training session to verify fix
+**Root Cause Analysis**:
+1. ✅ Backend correctly accepts `workspace_name` parameter in training API
+2. ✅ Frontend correctly sends `workspace_name` from localStorage during training
+3. ✅ Workspace save correctly sets `current_workspace_name` in localStorage
+4. ❌ Workspace load was NOT setting `current_workspace_name` in localStorage
 
-#### 📋 Files to Investigate
-- `/app/backend/app/services/ml_service.py` - ML training process
-- `/app/backend/app/routes/analysis.py` - Analysis endpoints
-- `/app/backend/app/database/adapters/oracle_adapter.py` - Training metadata save function
+**Fix Applied**:
+```javascript
+// Added to loadWorkspaceState function:
+const workspaceState = savedStates.find(state => state.id === stateId);
+const workspaceName = workspaceState?.state_name || 'default';
+localStorage.setItem('current_workspace_name', workspaceName);
+console.log('Set current workspace on load:', workspaceName);
+```
+
+**Result**: 
+- ✅ When user loads workspace 'latency_nov', localStorage is updated
+- ✅ Subsequent training will use correct workspace name
+- ✅ Training metadata will be associated with correct workspace
+- ✅ Training Metadata page will show models for the workspace
+
+#### 📋 Files Modified
+- `/app/frontend/src/pages/DashboardPage.jsx` - Fixed workspace loading to set current workspace name
 
 ### 🎯 TRAINING METADATA INVESTIGATION: ✅ COMPLETE
 
