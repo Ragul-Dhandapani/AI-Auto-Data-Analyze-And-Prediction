@@ -13,7 +13,7 @@ from datetime import datetime
 import cx_Oracle
 
 # Get backend URL from environment
-BACKEND_URL = "https://ai-insight-hub-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://promise-ai-platform.preview.emergentagent.com/api"
 
 # Oracle connection details for direct database queries
 ORACLE_CONFIG = {

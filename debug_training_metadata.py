@@ -10,7 +10,7 @@ import cx_Oracle
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://ai-insight-hub-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://promise-ai-platform.preview.emergentagent.com/api"
 ORACLE_CONFIG = {
     'user': 'testuser',
     'password': 'DbPasswordTest',
