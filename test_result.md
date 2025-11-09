@@ -208,6 +208,89 @@ logger = logging.getLogger(__name__)
 
 ---
 
+## 🔧 CRITICAL FIXES - Data Preview & Chart Duplication - Nov 9, 2025 19:00 UTC
+
+### Issue 1: Empty Data Preview for Database Tables
+**Error**: Data Preview section shows no data/pagination for database-loaded tables
+**Context**: File upload shows data preview correctly ✅
+**Root Cause**: `data_preview` field was missing when storing database table datasets
+
+### Fix 1 Applied ✅
+**File Modified**: `/app/backend/app/routes/datasource.py`
+
+**Changes**:
+```python
+# Added data preview generation (same as file upload)
+preview_df = df.head(1000).copy()
+
+# Clean non-JSON-serializable values
+preview_df = preview_df.replace([float('inf'), float('-inf')], None)
+preview_df = preview_df.where(pd.notna(preview_df), None)
+
+# Convert to dict for preview
+data_preview = preview_df.to_dict('records')
+
+# Add to dataset metadata
+dataset_doc = {
+    ...
+    "data_preview": data_preview,  # Shows up to 1000 rows
+    ...
+}
+```
+
+**Result**: ✅ Data Preview now shows data and pagination for database tables
+
+---
+
+### Issue 2: Same Charts in Predictions & Visualizations Tabs
+**Problem**: Both tabs showing identical distribution/box plot charts
+**Root Cause**: `auto_charts` from holistic analysis were being displayed in Predictive Analysis tab, but these are general data visualizations meant for the Visualizations tab only
+
+**Architecture Clarification**:
+- **Predictive Analysis Tab**: Should show ML-specific content
+  - ML Model Comparison
+  - Feature Importance
+  - Predictions vs Actuals
+  - Model Performance Metrics
+  - ~~Auto-generated data visualizations~~ ❌ (removed)
+  
+- **Visualizations Tab**: Should show data exploration charts
+  - Distribution charts
+  - Box plots
+  - Correlation heatmaps
+  - Time series plots
+  - Custom chat-generated charts
+
+### Fix 2 Applied ✅
+**File Modified**: `/app/frontend/src/components/PredictiveAnalysis.jsx`
+
+**Changes**:
+```javascript
+// BEFORE: auto_charts displayed in Predictive Analysis tab
+{analysisResults.auto_charts && ...}
+
+// AFTER: auto_charts hidden from Predictive Analysis tab
+{false && analysisResults.auto_charts && ...}
+// These charts now only appear in Visualizations tab
+```
+
+**Result**: ✅ Tabs now show different, context-appropriate content
+- Predictions tab: ML models, metrics, feature importance
+- Visualizations tab: Data exploration charts (independent generation)
+
+**Impact on File Upload**: ✅ NO IMPACT - file upload functionality unchanged
+
+---
+
+**Summary**:
+1. ✅ Data Preview working for database tables (with pagination)
+2. ✅ Chart duplication eliminated (tabs show different content)
+3. ✅ File upload unchanged and working
+
+**Status**: Both issues resolved. Frontend and backend restarted.
+
+---
+
 ## 🔧 HOTFIX - Database Connection Test Error - Nov 9, 2025 18:30 UTC
 
 ### Issue: Database Connection Test Failed
