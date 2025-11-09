@@ -131,7 +131,7 @@ class IntelligentVisualizationService:
                 unique_count = df[col].nunique()
                 cat_info[col] = {
                     'unique': int(unique_count),
-                    'top_5': df[col].value_counts().head(5).to_plotly_json()
+                    'top_5': df[col].value_counts().head(5).to_dict()
                 }
             self.profile['categorical_stats'] = cat_info
         
