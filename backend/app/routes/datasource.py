@@ -195,9 +195,25 @@ async def upload_file(file: UploadFile = File(...)):
                     if math.isnan(value) or math.isinf(value):
                         row[key] = None
         
+        # Check for duplicate dataset names and make unique
+        db_adapter = get_db()
+        existing_datasets = await db_adapter.list_datasets()
+        existing_names = [ds.get('name') for ds in existing_datasets]
+        
+        unique_filename = filename
+        if unique_filename in existing_names:
+            # Append number to make unique
+            base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
+            extension = '.' + filename.rsplit('.', 1)[1] if '.' in filename else ''
+            counter = 1
+            while unique_filename in existing_names:
+                unique_filename = f"{base_name} ({counter}){extension}"
+                counter += 1
+            logger.info(f"Duplicate dataset name detected. Renamed '{filename}' to '{unique_filename}'")
+        
         dataset_doc = {
             "id": dataset_id,
-            "name": filename,
+            "name": unique_filename,
             "row_count": len(df),
             "column_count": len(df.columns),
             "columns": list(df.columns),
