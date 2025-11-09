@@ -112,7 +112,7 @@ class IntelligentVisualizationService:
         
         # Statistical summaries
         if numeric_cols:
-            self.profile['numeric_stats'] = df[numeric_cols].describe().to_plotly_json()
+            self.profile['numeric_stats'] = df[numeric_cols].describe().to_dict()
             
             # Detect outliers using IQR method
             outlier_info = {}
