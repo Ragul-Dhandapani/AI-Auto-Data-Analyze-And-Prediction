@@ -371,7 +371,19 @@ class EnhancedChatTester:
             "context_working": context_working >= len(context_tests) * 0.7
         }
 
-def test_training_metadata_endpoint():
+def main():
+    """Main test execution"""
+    tester = EnhancedChatTester()
+    results = tester.run_all_tests()
+    
+    # Exit with appropriate code
+    if results["failed"] > 0:
+        sys.exit(1)
+    else:
+        sys.exit(0)
+
+if __name__ == "__main__":
+    main()
     """Test 3: Training Metadata Endpoint - GET /api/training/metadata/by-workspace"""
     print("\n=== Test 3: Training Metadata Endpoint ===")
     print("Testing the endpoint that the Training Metadata page uses...")
