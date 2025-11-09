@@ -320,30 +320,46 @@ async def test_connection(request: DataSourceTest):
         return {"success": False, "message": str(e)}
 
 
+async def _get_tables_impl(request: DataSourceConfig):
+    """Internal implementation for getting tables/collections from database"""
+    if request.source_type == 'postgresql':
+        tables = get_postgresql_tables(request.config)
+    elif request.source_type == 'mysql':
+        tables = get_mysql_tables(request.config)
+    elif request.source_type == 'oracle':
+        tables = get_oracle_tables(request.config)
+    elif request.source_type == 'sqlserver':
+        tables = get_sqlserver_tables(request.config)
+    elif request.source_type == 'mongodb':
+        db_adapter = get_db()
+        if hasattr(db_adapter, 'db'):  # MongoDB adapter
+            collections = await db_adapter.db.list_collection_names()
+            tables = [c for c in collections if not c.startswith('system.')]
+        else:
+            tables = []
+    else:
+        raise HTTPException(400, f"Unsupported source type: {request.source_type}")
+    
+    return {"tables": tables}
+
+
+@router.post("/list-tables")
+async def list_tables(request: DataSourceConfig):
+    """Get list of tables/collections from database (primary endpoint)"""
+    try:
+        return await _get_tables_impl(request)
+    except Exception as e:
+        logger.error(f"Error getting tables: {str(e)}")
+        raise HTTPException(500, f"Error getting tables: {str(e)}")
+
+
 @router.post("/get-tables")
 async def get_tables(request: DataSourceConfig):
-    """Get list of tables/collections from database"""
+    """Get list of tables/collections from database (backward compatibility)"""
     try:
-        if request.source_type == 'postgresql':
-            tables = get_postgresql_tables(request.config)
-        elif request.source_type == 'mysql':
-            tables = get_mysql_tables(request.config)
-        elif request.source_type == 'oracle':
-            tables = get_oracle_tables(request.config)
-        elif request.source_type == 'sqlserver':
-            tables = get_sqlserver_tables(request.config)
-        elif request.source_type == 'mongodb':
-            db_adapter = get_db()
-            if hasattr(db_adapter, 'db'):  # MongoDB adapter
-                collections = await db_adapter.db.list_collection_names()
-                tables = [c for c in collections if not c.startswith('system.')]
-            else:
-                tables = []
-        else:
-            raise HTTPException(400, f"Unsupported source type: {request.source_type}")
-        
-        return {"tables": tables}
+        return await _get_tables_impl(request)
     except Exception as e:
+        logger.error(f"Error getting tables: {str(e)}")
         raise HTTPException(500, f"Error getting tables: {str(e)}")
 
 
