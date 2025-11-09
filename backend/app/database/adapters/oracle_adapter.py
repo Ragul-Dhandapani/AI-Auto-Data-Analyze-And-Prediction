@@ -731,7 +731,21 @@ class OracleAdapter(DatabaseAdapter):
             'dataset_id': dataset_id
         }
         
-        result = await self._execute(query, params, commit=True)
+        # Execute update without fetch
+        async with self.pool.acquire() as connection:
+            cursor = connection.cursor()
+            try:
+                cursor.execute(query, params)
+                rows_updated = cursor.rowcount
+                connection.commit()
+                logger.info(f"✅ Updated {rows_updated} training metadata records for dataset {dataset_id} with workspace_name: {workspace_name}")
+                return rows_updated
+            except Exception as e:
+                connection.rollback()
+                logger.error(f"Failed to update training metadata workspace_name: {e}")
+                raise
+            finally:
+                cursor.close()
 
     async def delete_training_metadata_by_workspace(self, workspace_name: str, dataset_id: Optional[str] = None):
         """
