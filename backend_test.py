@@ -384,7 +384,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-    """Test 3: Training Metadata Endpoint - GET /api/training/metadata/by-workspace"""
     print("\n=== Test 3: Training Metadata Endpoint ===")
     print("Testing the endpoint that the Training Metadata page uses...")
     
