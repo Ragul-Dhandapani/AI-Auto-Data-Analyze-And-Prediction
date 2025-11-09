@@ -425,25 +425,36 @@ async def load_table(
             "storage_format": "csv"  # Indicate format for BLOB storage
         }
         
-        # Store data
-        data_dict = df.to_dict('records')
-        data_size = len(str(data_dict))
+        # Store data - use CSV format for consistency with file uploads
+        # Convert DataFrame to CSV bytes (same format as file uploads)
+        csv_buffer = io.BytesIO()
+        df.to_csv(csv_buffer, index=False)
+        csv_bytes = csv_buffer.getvalue()
+        data_size = len(csv_bytes)
         
-        if data_size > 5 * 1024 * 1024:  # 5MB threshold
-            # GridFS storage for large datasets
-            import json
-            data_json = json.dumps(data_dict)
-            
-            db_adapter = get_db()
+        db_adapter = get_db()
+        is_oracle = hasattr(db_adapter, 'pool')  # Oracle adapter has pool attribute
+        
+        if data_size > 5 * 1024 * 1024 or is_oracle:  # 5MB threshold OR Oracle database
+            # BLOB storage (same as file uploads)
             file_id = await db_adapter.store_file(
-                f"table_{dataset_id}.json",
-                data_json.encode('utf-8'),
-                metadata={"dataset_id": dataset_id, "source_table": table_name_val}
+                f"{table_name_val}_{source_type_val}.csv",
+                csv_bytes,
+                metadata={
+                    "dataset_id": dataset_id,
+                    "source_table": table_name_val,
+                    "source_type": source_type_val,
+                    "row_count": len(df),
+                    "column_count": len(df.columns),
+                    "columns": list(df.columns)
+                }
             )
             
             dataset_doc["storage_type"] = "blob"
             dataset_doc["gridfs_file_id"] = file_id
         else:
+            # Store directly in document (MongoDB only, for small datasets)
+            data_dict = df.to_dict('records')
             dataset_doc["data"] = data_dict
             dataset_doc["storage_type"] = "direct"
         
