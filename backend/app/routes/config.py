@@ -59,8 +59,7 @@ async def switch_database(request: DatabaseSwitchRequest):
             raise HTTPException(400, "Invalid database type. Must be 'mongodb' or 'oracle'")
         
         # Read current .env file
-        env_path = '/app/backend/.env'
-        with open(env_path, 'r') as f:
+        with open(ENV_PATH, 'r') as f:
             lines = f.readlines()
         
         # Update DB_TYPE line
