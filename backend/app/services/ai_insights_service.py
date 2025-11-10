@@ -6,12 +6,14 @@ import os
 import json
 import logging
 from typing import Dict, List, Optional
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Standardized .env loading
+ROOT_DIR = Path(__file__).parent.parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 
