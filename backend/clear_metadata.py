@@ -5,9 +5,12 @@ Keeps the module intact, only removes records
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Standardized .env loading
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 async def clear_training_metadata():
     """Clear all training metadata and datasets"""
