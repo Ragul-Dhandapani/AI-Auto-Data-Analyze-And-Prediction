@@ -7,9 +7,12 @@ import json
 import os
 import logging
 from typing import Dict, Optional
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Standardized .env loading
+ROOT_DIR = Path(__file__).parent.parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 
