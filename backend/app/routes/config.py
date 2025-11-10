@@ -23,10 +23,9 @@ async def get_current_database():
     """Get currently active database type - reads from .env file"""
     try:
         # Read directly from .env file to get current setting
-        env_path = '/app/backend/.env'
         db_type = 'mongodb'  # default
         
-        with open(env_path, 'r') as f:
+        with open(ENV_PATH, 'r') as f:
             for line in f:
                 if line.startswith('DB_TYPE='):
                     db_type = line.split('=')[1].strip().strip('"')
