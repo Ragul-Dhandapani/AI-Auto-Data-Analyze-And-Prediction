@@ -4,10 +4,12 @@ Run this once when setting up Oracle for the first time
 """
 import cx_Oracle
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Standardized .env loading
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 def init_oracle_schema():
     """Initialize Oracle database schema"""
