@@ -4,11 +4,16 @@ Temporary endpoints for switching databases via UI
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from pathlib import Path
 import os
 import logging
 
 router = APIRouter(prefix="/config", tags=["Configuration"])
 logger = logging.getLogger(__name__)
+
+# Standardized .env path
+ROOT_DIR = Path(__file__).parent.parent.parent
+ENV_PATH = ROOT_DIR / '.env'
 
 class DatabaseSwitchRequest(BaseModel):
     db_type: str  # 'mongodb' or 'oracle'
