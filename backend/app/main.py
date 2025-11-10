@@ -4,12 +4,14 @@ Refactored modular FastAPI application with dual-database support
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 from dotenv import load_dotenv
 import os
 import logging
 
-# Load environment variables
-load_dotenv()
+# Standardized .env loading
+ROOT_DIR = Path(__file__).parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 # Configure logging
 logging.basicConfig(
