@@ -9,7 +9,14 @@ from openai import AzureOpenAI
 from dotenv import load_dotenv
 import json
 
-load_dotenv()
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.parent
+print("ROOT_DIR path from azure_openai_service :",ROOT_DIR)
+load_dotenv(ROOT_DIR / '.env')
+print("AZURE_OPENAI_ENDPOINT from azure_openai_service :",os.getenv("AZURE_OPENAI_ENDPOINT"))
+print("AZURE_OPENAI_KEY from azure_openai_service :",os.getenv("AZURE_OPENAI_KEY"))
+print("AZURE_OPENAI_API_VERSION from azure_openai_service :",os.getenv("AZURE_OPENAI_API_VERSION"))
+print("AZURE_OPENAI_DEPLOYMENT_NAME from azure_openai_service :",os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"))
 
 logger = logging.getLogger(__name__)
 

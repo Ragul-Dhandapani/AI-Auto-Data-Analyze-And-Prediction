@@ -157,7 +157,7 @@ IMPORTANT RULES:
 apt-get install -y unzip libaio1
 wget https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
 unzip instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip -d /opt/oracle/
-echo "/opt/oracle/instantclient_19_23" > /etc/ld.so.conf.d/oracle-instantclient.conf
+echo "/opt/oracle/instantclient_23_3" > /etc/ld.so.conf.d/oracle-instantclient.conf
 ldconfig
 ```
 **Result**: ✅ Backend started successfully with Oracle RDS connection
@@ -753,7 +753,7 @@ curl -X POST /api/datasource/list-tables \
 **Root Cause**: Backend expected Form data, frontend sending JSON body
 
 ### Oracle Status ✅
-**Oracle Client**: ✅ Installed at `/opt/oracle/instantclient_19_23/`
+**Oracle Client**: ✅ Installed at `/opt/oracle/instantclient_23_3/`
 **Oracle Configuration**: ✅ Enabled (`DB_TYPE="oracle"`)
 **Oracle Connection**: ✅ Pool created successfully
 **Oracle RDS**: promise-ai-test-oracle.cgxf9inhpsec.us-east-1.rds.amazonaws.com:1521/ORCL
@@ -1478,7 +1478,7 @@ log: Loaded datasets count: 10
 
 **Problem**: 
 - DPI-1047: Cannot locate a 64-bit Oracle Client library
-- `/opt/oracle/instantclient_19_23/libclntsh.so: cannot open shared object file`
+- `/opt/oracle/instantclient_23_3/libclntsh.so: cannot open shared object file`
 
 **Solution**:
 ```bash
@@ -1488,11 +1488,11 @@ apt-get install -y libaio1
 # Downloaded Oracle Instant Client 19.23 for ARM64
 wget https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
 
-# Extracted to /opt/oracle/instantclient_19_23
+# Extracted to /opt/oracle/instantclient_23_3
 unzip instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip -d /opt/oracle/
 
 # Configured system linker (persistent solution)
-echo "/opt/oracle/instantclient_19_23" > /etc/ld.so.conf.d/oracle-instantclient.conf
+echo "/opt/oracle/instantclient_23_3" > /etc/ld.so.conf.d/oracle-instantclient.conf
 ldconfig
 ```
 
@@ -2146,20 +2146,20 @@ All critical Oracle integration requirements have been successfully implemented 
 #### Issue: Oracle Client Library Path
 **Status**: ✅ FIXED
 **Problem**: DPI-1047 error - Oracle client library not found after container restart
-**Root Cause**: Library path changed from `/opt/oracle` to `/opt/oracle/instantclient_19_23`
+**Root Cause**: Library path changed from `/opt/oracle` to `/opt/oracle/instantclient_23_3`
 **Solution**:
 ```bash
 # Reinstalled Oracle Instant Client
 wget https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
 unzip -d /opt/oracle/
-echo "/opt/oracle/instantclient_19_23" > /etc/ld.so.conf.d/oracle-instantclient.conf
+echo "/opt/oracle/instantclient_23_3" > /etc/ld.so.conf.d/oracle-instantclient.conf
 ldconfig
 
 # Installed required dependency
 apt-get install -y libaio1
 
 # Updated oracle_adapter.py
-cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_23_3')
 ```
 
 **Result**: ✅ Backend started successfully, Oracle connection established
@@ -2661,9 +2661,9 @@ chat = LlmChat(
 #### 5. Oracle Client Re-initialization Fix
 **Status**: ✅ RESOLVED
 **Issue**: Oracle Instant Client library path lost after backend restart
-**Root Cause**: Files moved from `/opt/oracle/instantclient_19_23/` to `/opt/oracle/`
+**Root Cause**: Files moved from `/opt/oracle/instantclient_23_3/` to `/opt/oracle/`
 **Solution**:
-- Updated `oracle_adapter.py` to use `/opt/oracle` instead of `/opt/oracle/instantclient_19_23`
+- Updated `oracle_adapter.py` to use `/opt/oracle` instead of `/opt/oracle/instantclient_23_3`
 - Reinstalled libaio1 dependency
 - Updated system linker configuration (`/etc/ld.so.conf.d/oracle-instantclient.conf`)
 - Backend now starts successfully with Oracle RDS connection
@@ -5005,7 +5005,7 @@ wget https://download.oracle.com/otn_software/linux/instantclient/1923000/instan
 unzip -q instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip
 
 # Configure system linker
-echo "/opt/oracle/instantclient_19_23" > /etc/ld.so.conf.d/oracle-instantclient.conf
+echo "/opt/oracle/instantclient_23_3" > /etc/ld.so.conf.d/oracle-instantclient.conf
 ldconfig
 
 # Verify installation

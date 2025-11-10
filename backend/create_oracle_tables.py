@@ -6,7 +6,7 @@ import os
 
 # Initialize client
 try:
-    cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+    cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_23_3')
     print("✅ Oracle Client initialized")
 except Exception as e:
     print(f"⚠️  Oracle Client: {e}")

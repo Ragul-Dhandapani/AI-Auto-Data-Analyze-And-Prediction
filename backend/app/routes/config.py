@@ -18,7 +18,9 @@ async def get_current_database():
     """Get currently active database type - reads from .env file"""
     try:
         # Read directly from .env file to get current setting
-        env_path = '/app/backend/.env'
+        from pathlib import Path
+        ROOT_DIR = Path(__file__).parent.parent.parent
+        env_path = ROOT_DIR / '.env'
         db_type = 'mongodb'  # default
         
         with open(env_path, 'r') as f:
@@ -55,7 +57,9 @@ async def switch_database(request: DatabaseSwitchRequest):
             raise HTTPException(400, "Invalid database type. Must be 'mongodb' or 'oracle'")
         
         # Read current .env file
-        env_path = '/app/backend/.env'
+        from pathlib import Path
+        ROOT_DIR = Path(__file__).parent.parent.parent
+        env_path = ROOT_DIR / '.env'
         with open(env_path, 'r') as f:
             lines = f.readlines()
         

@@ -12,7 +12,7 @@ try:
     import cx_Oracle
     # Initialize Oracle Client with library path
     try:
-        cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+        cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_23_3')
         logger = logging.getLogger(__name__)
         logger.info("✅ Oracle Client initialized")
     except Exception as e:
@@ -57,7 +57,7 @@ class OracleAdapter(DatabaseAdapter):
         try:
             # Initialize Oracle Instant Client
             try:
-                cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+                cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_23_3')
                 logger.info("✅ Oracle Client initialized")
             except cx_Oracle.ProgrammingError:
                 # Already initialized

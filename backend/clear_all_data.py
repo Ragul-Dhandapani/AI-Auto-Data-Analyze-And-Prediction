@@ -7,7 +7,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 async def clear_all_data():
     """Clear all datasets, training metadata, and workspace data"""

@@ -846,7 +846,7 @@ ORACLE_DSN="host:1521/ORCL"
 
 # AI Provider
 AI_PROVIDER="azure_openai"
-AZURE_OPENAI_API_KEY="your-key"
+AZURE_OPENAI_KEY="your-key"
 AZURE_OPENAI_ENDPOINT="https://resource.openai.azure.com/"
 ```
 

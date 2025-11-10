@@ -9,7 +9,9 @@ import logging
 from typing import Dict, Optional
 from dotenv import load_dotenv
 
-load_dotenv()
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 

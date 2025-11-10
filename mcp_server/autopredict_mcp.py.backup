@@ -28,7 +28,9 @@ import plotly.express as px
 from dotenv import load_dotenv
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
-load_dotenv()
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.parent
+load_dotenv(ROOT_DIR / '.env')
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
 datasets = {}

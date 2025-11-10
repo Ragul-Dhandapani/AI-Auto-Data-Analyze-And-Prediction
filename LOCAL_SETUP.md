@@ -67,7 +67,13 @@ git clone <repository-url>
 cd promise-ai-platform
 ```
 
+
+
+
 ### Step 4: Setup Backend
+
+Oracle client installation in windows: 
+
 
 ```powershell
 cd backend
@@ -99,6 +105,11 @@ yarn install
 copy .env.example .env
 # Edit .env with backend URL
 notepad .env
+
+cd /app/frontend
+yarn dev
+# or
+npm run dev
 ```
 
 ### Step 6: Oracle Instant Client (If using Oracle)
@@ -195,16 +206,16 @@ nano .env
 # Download Oracle Instant Client for macOS (ARM64 for M1/M2/M3)
 # https://www.oracle.com/database/technologies/instant-client/downloads.html
 
-# Extract to /opt/oracle/instantclient_19_23
+# Extract to /opt/oracle/instantclient_23_3
 sudo mkdir -p /opt/oracle
 sudo unzip instantclient-basic-macos.arm64-19.23.0.0.0dbru.zip -d /opt/oracle/
 
 # Add to PATH
-echo 'export PATH="/opt/oracle/instantclient_19_23:$PATH"' >> ~/.zshrc
+echo 'export PATH="/opt/oracle/instantclient_23_3:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 
 # Update library path
-echo '/opt/oracle/instantclient_19_23' | sudo tee -a /etc/ld.so.conf.d/oracle-instantclient.conf
+echo '/opt/oracle/instantclient_23_3' | sudo tee -a /etc/ld.so.conf.d/oracle-instantclient.conf
 sudo ldconfig
 ```
 
@@ -301,11 +312,11 @@ sudo mkdir -p /opt/oracle
 sudo unzip instantclient-basic-linux.arm64-19.23.0.0.0dbru.zip -d /opt/oracle/
 
 # Update library path
-echo '/opt/oracle/instantclient_19_23' | sudo tee -a /etc/ld.so.conf.d/oracle-instantclient.conf
+echo '/opt/oracle/instantclient_23_3' | sudo tee -a /etc/ld.so.conf.d/oracle-instantclient.conf
 sudo ldconfig
 
 # Verify
-ls -la /opt/oracle/instantclient_19_23/
+ls -la /opt/oracle/instantclient_23_3/
 ```
 
 ---
@@ -356,8 +367,7 @@ ORACLE_POOL_SIZE="10"
 AI_PROVIDER="azure_openai"  # or "none"
 
 # Azure OpenAI Configuration
-AZURE_OPENAI_API_KEY="your_api_key"
-AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
+AZURE_OPENAI_ENDPOINT=""
 AZURE_OPENAI_DEPLOYMENT="gpt-4o"
 AZURE_OPENAI_API_VERSION="2024-12-01-preview"
 
@@ -555,7 +565,22 @@ yarn lint
 # Edit backend/.env: DB_TYPE="oracle"
 
 # Restart backend
+# Restart backend
 sudo supervisorctl restart backend
+
+# Start backend
+cd /app/backend
+python server.py or
+sudo supervisorctl start backend
+
+# Stop backend
+sudo supervisorctl stop backend
+
+# Check status
+sudo supervisorctl status backend
+
+# View logs
+tail -n 100 /var/log/supervisor/backend.*.log
 ```
 
 ---

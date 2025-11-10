@@ -27,7 +27,7 @@ def debug_specific_workspace():
     try:
         # Initialize Oracle client
         try:
-            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_23_3')
         except:
             pass
         
@@ -159,7 +159,7 @@ def test_api_query_directly():
     try:
         # Initialize Oracle client
         try:
-            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+            cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_23_3')
         except:
             pass
         

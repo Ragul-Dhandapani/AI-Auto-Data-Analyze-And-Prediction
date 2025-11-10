@@ -6,6 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).parent.parent
+print("ROOT_DIR from config.py which loads the .env file:",ROOT_DIR)
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB Configuration

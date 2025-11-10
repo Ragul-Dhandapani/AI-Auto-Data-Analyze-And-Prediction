@@ -7,7 +7,9 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 def init_oracle_schema():
     """Initialize Oracle database schema"""
@@ -25,7 +27,7 @@ def init_oracle_schema():
     
     try:
         # Initialize Oracle client
-        cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_23')
+        cx_Oracle.init_oracle_client(lib_dir='/opt/oracle/instantclient_23_3')
         print("✅ Oracle Client initialized")
     except Exception as e:
         print(f"⚠️  Oracle Client already initialized: {e}")

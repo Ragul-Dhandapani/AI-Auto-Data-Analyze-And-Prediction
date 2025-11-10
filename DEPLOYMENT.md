@@ -54,7 +54,7 @@ ORACLE_SERVICE_NAME="ORCL"
 ORACLE_POOL_SIZE="20"  # Increased for production
 
 # Azure OpenAI Configuration
-AZURE_OPENAI_API_KEY="<production-key>"
+AZURE_OPENAI_KEY="<production-key>"
 AZURE_OPENAI_ENDPOINT="https://prod-resource.openai.azure.com/"
 AZURE_OPENAI_DEPLOYMENT="gpt-4o"
 AZURE_OPENAI_API_VERSION="2024-12-01-preview"
@@ -158,7 +158,7 @@ services:
       - ORACLE_USER=${ORACLE_USER}
       - ORACLE_PASSWORD=${ORACLE_PASSWORD}
       - ORACLE_DSN=${ORACLE_DSN}
-      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
     volumes:
       - ./backend/logs:/app/logs
     depends_on:
@@ -247,7 +247,7 @@ type: Opaque
 stringData:
   ORACLE_USER: "prod_user"
   ORACLE_PASSWORD: "<strong-password>"
-  AZURE_OPENAI_API_KEY: "<api-key>"
+  AZURE_OPENAI_KEY: "<api-key>"
 ```
 
 **Backend Deployment**:

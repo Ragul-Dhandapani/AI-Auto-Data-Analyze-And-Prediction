@@ -26,7 +26,9 @@ import httpx
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv('/app/backend/.env')
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
