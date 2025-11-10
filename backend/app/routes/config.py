@@ -77,7 +77,7 @@ async def switch_database(request: DatabaseSwitchRequest):
             updated_lines.insert(0, f'DB_TYPE="{db_type}"\n')
         
         # Write back to .env
-        with open(env_path, 'w') as f:
+        with open(ENV_PATH, 'w') as f:
             f.writelines(updated_lines)
         
         logger.info(f"✅ Database type switched to: {db_type}")
