@@ -5,11 +5,14 @@ Provides advanced AI capabilities for PROMISE AI platform
 import os
 import logging
 from typing import Dict, List, Optional, Any
+from pathlib import Path
 from openai import AzureOpenAI
 from dotenv import load_dotenv
 import json
 
-load_dotenv()
+# Standardized .env loading
+ROOT_DIR = Path(__file__).parent.parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 
