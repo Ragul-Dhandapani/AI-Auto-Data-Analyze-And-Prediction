@@ -53,7 +53,7 @@ class OracleAdapter(DatabaseAdapter):
             raise
     
     def _create_pool(self):
-        """Create Oracle connection pool (sync)"""
+        """Create Oracle connection pool (sync) - supports both Kerberos and standard auth"""
         try:
             # Initialize Oracle Instant Client
             try:
@@ -65,31 +65,72 @@ class OracleAdapter(DatabaseAdapter):
             except Exception as e:
                 logger.warning(f"Oracle Client init warning: {e}")
             
-            # Parse connection string for better error handling
-            # Format: user/password@host:port/service_name
+            # Check if using Kerberos/external authentication
+            use_kerberos = os.getenv('ORACLE_USE_KERBEROS', 'false').lower() == 'true'
+            
+            if use_kerberos:
+                # Kerberos/External Authentication
+                logger.info("🔐 Using Kerberos/External Authentication")
+                return self._create_pool_kerberos()
+            else:
+                # Standard username/password authentication
+                logger.info("🔑 Using standard username/password authentication")
+                return self._create_pool_standard()
+                
+        except Exception as e:
+            logger.error(f"Failed to create connection pool: {str(e)}")
+            raise
+    
+    def _create_pool_kerberos(self):
+        """Create Oracle SessionPool with Kerberos/External authentication"""
+        host = os.getenv('ORACLE_HOST')
+        port = os.getenv('ORACLE_PORT', '1521')
+        service_name = os.getenv('ORACLE_SERVICE_NAME')
+        
+        if not all([host, service_name]):
+            raise ValueError("ORACLE_HOST and ORACLE_SERVICE_NAME required for Kerberos auth")
+        
+        # Create DSN without credentials
+        dsn = cx_Oracle.makedsn(host, int(port), service_name=service_name)
+        
+        logger.info(f"🔐 Kerberos connection to {host}:{port}/{service_name}")
+        
+        # Create SessionPool with external auth
+        # DO NOT pass user/password when using external_auth=True
+        return cx_Oracle.SessionPool(
+            dsn=dsn,
+            min=2,
+            max=self.pool_size,
+            increment=1,
+            threaded=True,
+            external_auth=True  # Uses Kerberos/OS authentication
+        )
+    
+    def _create_pool_standard(self):
+        """Create Oracle SessionPool with username/password"""
+        # Try to get credentials from environment or parse connection string
+        user = os.getenv('ORACLE_USER')
+        password = os.getenv('ORACLE_PASSWORD')
+        host = os.getenv('ORACLE_HOST')
+        port = os.getenv('ORACLE_PORT', '1521')
+        service_name = os.getenv('ORACLE_SERVICE_NAME')
+        
+        # If env vars not set, try parsing connection string
+        if not all([user, password, host, service_name]):
+            # Parse connection string: user/password@host:port/service_name
             parts = self.connection_string.split('@')
             if len(parts) == 2:
                 user_pass = parts[0].split('/')
                 host_info = parts[1]
                 
-                # Create DSN properly
-                dsn = cx_Oracle.makedsn(
-                    host_info.split(':')[0],  # host
-                    int(host_info.split(':')[1].split('/')[0]),  # port
-                    service_name=host_info.split('/')[-1]  # service name
-                )
-                
-                return cx_Oracle.SessionPool(
-                    user=user_pass[0],
-                    password=user_pass[1],
-                    dsn=dsn,
-                    min=2,
-                    max=self.pool_size,
-                    increment=1,
-                    threaded=True
-                )
+                user = user_pass[0]
+                password = user_pass[1]
+                host = host_info.split(':')[0]
+                port = host_info.split(':')[1].split('/')[0]
+                service_name = host_info.split('/')[-1]
             else:
                 # Fallback to direct connection string
+                logger.warning("Using direct connection string (not recommended)")
                 return cx_Oracle.SessionPool(
                     self.connection_string,
                     min=2,
@@ -97,9 +138,23 @@ class OracleAdapter(DatabaseAdapter):
                     increment=1,
                     threaded=True
                 )
-        except Exception as e:
-            logger.error(f"Failed to create connection pool: {str(e)}")
-            raise
+        
+        # Create DSN
+        dsn = cx_Oracle.makedsn(host, int(port), service_name=service_name)
+        
+        logger.info(f"🔑 Standard auth for {user}@{host}:{port}/{service_name}")
+        
+        # Create SessionPool with credentials
+        # DO NOT use external_auth when passing user/password
+        return cx_Oracle.SessionPool(
+            user=user,
+            password=password,
+            dsn=dsn,
+            min=2,
+            max=self.pool_size,
+            increment=1,
+            threaded=True
+        )
     
     async def disconnect(self):
         """Close Oracle connection pool"""
