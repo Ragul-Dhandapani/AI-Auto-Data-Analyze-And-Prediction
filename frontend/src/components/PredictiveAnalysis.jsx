@@ -332,10 +332,11 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       // Add variable selection and problem_type if provided
       if (variableSelection && variableSelection.mode !== 'skip') {
         payload.user_selection = {
-          target_variable: variableSelection.target,
-          selected_features: variableSelection.features,
+          // Handle both formats: transformed (target_variable/selected_features) and original (target/features)
+          target_variable: variableSelection.target_variable || variableSelection.target,
+          selected_features: variableSelection.selected_features || variableSelection.features,
           mode: variableSelection.mode,
-          ai_suggestions: variableSelection.aiSuggestions
+          ai_suggestions: variableSelection.ai_suggestions || variableSelection.aiSuggestions
         };
         
         // Add problem_type if specified
