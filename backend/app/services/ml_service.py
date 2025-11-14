@@ -188,6 +188,23 @@ def train_multiple_models(
             else:
                 confidence = "Low"
             
+            # Generate sample predictions for interpretation
+            # Take first 5 test samples to show actual vs predicted
+            sample_size = min(5, len(X_test))
+            sample_predictions = []
+            
+            for i in range(sample_size):
+                sample_input = {}
+                for j, col in enumerate(feature_cols):
+                    sample_input[col] = float(X_test.iloc[i, j]) if isinstance(X_test, pd.DataFrame) else float(X_test[i, j])
+                
+                sample_predictions.append({
+                    "input": sample_input,
+                    "actual": float(y_test.iloc[i]) if isinstance(y_test, pd.Series) else float(y_test[i]),
+                    "predicted": float(y_pred_test[i]),
+                    "error": abs(float(y_test.iloc[i] if isinstance(y_test, pd.Series) else y_test[i]) - float(y_pred_test[i]))
+                })
+            
             model_result = {
                 "model_name": model_name,
                 "r2_score": float(r2_test),
@@ -201,7 +218,8 @@ def train_multiple_models(
                 "target": target_column,
                 "target_column": target_column,  # Frontend expects this
                 "n_train_samples": len(X_train),
-                "n_test_samples": len(X_test)
+                "n_test_samples": len(X_test),
+                "sample_predictions": sample_predictions  # NEW: Actual prediction examples
             }
             
             results.append(model_result)
