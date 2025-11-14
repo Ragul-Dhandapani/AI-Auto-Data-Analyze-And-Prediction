@@ -1850,9 +1850,9 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                         {/* NEW: Prediction Examples Section */}
                         {model.sample_predictions && model.sample_predictions.length > 0 && (
                           <div className="mt-6">
-                            <h5 className="font-semibold mb-3 text-indigo-900">📊 Sample Predictions - What This Means</h5>
+                            <h5 className="font-semibold mb-3 text-indigo-900">📊 Real Prediction Examples - See How It Works</h5>
                             <p className="text-sm text-gray-600 mb-4">
-                              Here's how the model makes predictions. Each example shows the input features and the predicted outcome:
+                              These are actual predictions the model made on test data. Each example shows the input features and the predicted outcome:
                             </p>
                             <div className="space-y-3">
                               {model.sample_predictions.map((pred, idx) => {
