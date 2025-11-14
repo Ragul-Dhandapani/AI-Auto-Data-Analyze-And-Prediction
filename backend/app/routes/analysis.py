@@ -577,8 +577,9 @@ async def holistic_analysis(request: Dict[str, Any]):
                     logging.error(f"Variable validation failed: {str(e)}")
                     # Fall back to manual validation below
         
-            # Manual fallback validation (if AI validation failed)
-            if user_selection and user_selection != {}:
+            # Manual fallback validation (if AI validation failed or wasn't attempted)
+            # ONLY run if target_cols is still empty (AI validation didn't add targets)
+            if user_selection and user_selection != {} and len(target_cols) == 0:
                 user_targets = user_selection.get("target_variables", [])
                 user_target = user_selection.get("target_variable")
                 
