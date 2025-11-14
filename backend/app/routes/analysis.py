@@ -494,9 +494,13 @@ async def holistic_analysis(request: Dict[str, Any]):
             
             # Convert to list format
             if user_target and not user_targets:
-                user_targets = [{"target": user_target, "features": user_selection.get("selected_features", [])}]
+                features_from_selection = user_selection.get("selected_features", [])
+                logging.info(f"🔍 DEBUG - Converting single target. Features extracted: {features_from_selection}")
+                user_targets = [{"target": user_target, "features": features_from_selection}]
+                logging.info(f"🔍 DEBUG - Converted user_targets: {user_targets}")
             elif not user_targets and not user_target:
                 user_targets = []
+                logging.info("🔍 DEBUG - No targets found, setting empty array")
             
             # Extract all targets and features for validation
             all_user_targets = []
