@@ -170,7 +170,7 @@ const DataProfiler = ({ dataset, onLoadNewDataset }) => {
       {/* Header with Controls */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Data Profile</h2>
+          <h2 className="text-2xl font-bold">📊 Data Quality Report</h2>
           <p className="text-sm text-gray-600">Comprehensive data quality and statistics analysis</p>
         </div>
         <div className="flex gap-2">
