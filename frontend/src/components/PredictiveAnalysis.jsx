@@ -1846,6 +1846,68 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                             </div>
                           </div>
                         )}
+                        
+                        {/* NEW: Prediction Examples Section */}
+                        {model.sample_predictions && model.sample_predictions.length > 0 && (
+                          <div className="mt-6">
+                            <h5 className="font-semibold mb-3 text-indigo-900">📊 Sample Predictions - What This Means</h5>
+                            <p className="text-sm text-gray-600 mb-4">
+                              Here's how the model makes predictions. Each example shows the input features and the predicted outcome:
+                            </p>
+                            <div className="space-y-3">
+                              {model.sample_predictions.map((pred, idx) => {
+                                // Create human-readable explanation
+                                const inputDesc = Object.entries(pred.input)
+                                  .map(([feature, value]) => {
+                                    // Format the value nicely
+                                    const formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
+                                    // Clean up feature name
+                                    const cleanFeature = feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    return `${cleanFeature} = ${formattedValue}`;
+                                  })
+                                  .join(', ');
+                                
+                                const targetName = model.target_column.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                const errorPercent = ((pred.error / pred.actual) * 100).toFixed(1);
+                                const isAccurate = Math.abs(pred.error) < Math.abs(pred.actual) * 0.1; // Within 10%
+                                
+                                return (
+                                  <div key={idx} className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                                    <div className="flex items-start gap-3">
+                                      <div className="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">
+                                        {idx + 1}
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-medium text-gray-900 mb-2">
+                                          💡 <strong>Prediction:</strong> "{targetName} is predicted to be <span className="text-indigo-700 font-bold">{pred.predicted.toFixed(2)}</span> when {inputDesc}"
+                                        </p>
+                                        <div className="grid grid-cols-3 gap-2 text-xs mt-2">
+                                          <div className="bg-white rounded px-2 py-1 border border-gray-200">
+                                            <span className="text-gray-500">Actual:</span> <span className="font-semibold">{pred.actual.toFixed(2)}</span>
+                                          </div>
+                                          <div className="bg-white rounded px-2 py-1 border border-gray-200">
+                                            <span className="text-gray-500">Predicted:</span> <span className="font-semibold text-indigo-700">{pred.predicted.toFixed(2)}</span>
+                                          </div>
+                                          <div className={`rounded px-2 py-1 border ${isAccurate ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
+                                            <span className="text-gray-500">Error:</span> <span className={`font-semibold ${isAccurate ? 'text-green-700' : 'text-orange-700'}`}>
+                                              {pred.error.toFixed(2)} ({errorPercent}%)
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-sm text-blue-900">
+                                <strong>ℹ️ How to use this:</strong> These examples show real predictions from the test dataset. 
+                                You can use this model to predict {model.target_column} for new data by providing the required features: {Object.keys(model.sample_predictions[0].input).join(', ')}.
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
                     );
