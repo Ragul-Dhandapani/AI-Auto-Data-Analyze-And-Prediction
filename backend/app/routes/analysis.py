@@ -483,9 +483,14 @@ async def holistic_analysis(request: Dict[str, Any]):
         
         # AI-POWERED VARIABLE VALIDATION
         if user_selection and user_selection != {}:
+            # DEBUG: Log what we actually received
+            logging.info(f"🔍 DEBUG - Received user_selection: {json.dumps(user_selection, indent=2)}")
+            
             # Extract user's choices
             user_targets = user_selection.get("target_variables", [])
             user_target = user_selection.get("target_variable")
+            
+            logging.info(f"🔍 DEBUG - user_target: {user_target}, user_targets: {user_targets}")
             
             # Convert to list format
             if user_target and not user_targets:
