@@ -317,7 +317,8 @@ def train_multiple_models(
             "train_samples": len(X_train),
             "test_samples": len(X_test),
             "total_features": len(feature_cols)
-        }
+        },
+        "preprocessing_report": preprocessing_report  # NEW: Show what cleaning was applied
     }
 
 
