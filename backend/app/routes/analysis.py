@@ -438,10 +438,16 @@ def train_models_with_selection(df, target_column, problem_type, selected_models
 async def holistic_analysis(request: Dict[str, Any]):
     """Perform comprehensive analysis with optional user variable selection and multiple targets"""
     try:
+        # DEBUG: Log the RAW request immediately
+        logging.info(f"🔍 RAW REQUEST RECEIVED: {json.dumps(request, indent=2)}")
+        
         dataset_id = request.get("dataset_id")
         workspace_name = request.get("workspace_name", "default")  # NEW: Workspace name for linking training metadata
         logger.info(f"🔍 DEBUG: Received workspace_name: '{workspace_name}' for dataset {dataset_id}")
         user_selection = request.get("user_selection")  # Optional user-provided target and features
+        
+        # DEBUG: Log user_selection immediately after extraction
+        logging.info(f"🔍 USER_SELECTION EXTRACTED: {json.dumps(user_selection, indent=2) if user_selection else 'None'}")
         problem_type = request.get("problem_type", "auto")  # "auto", "regression", "classification", or "time_series"
         selected_models = request.get("selected_models")  # NEW: Optional list of model keys to train
         use_ai_recommendations = request.get("use_ai_recommendations", False)  # NEW: Use AI model recommendations
