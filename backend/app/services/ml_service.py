@@ -41,9 +41,80 @@ def train_multiple_models(
     if not feature_cols:
         raise ValueError("No numeric features available for training")
     
-    # Handle missing values
-    X = df[feature_cols].fillna(df[feature_cols].mean())
-    y = df[target_column].fillna(df[target_column].mean())
+    # ====================================================================
+    # COMPREHENSIVE DATA PREPROCESSING
+    # ====================================================================
+    logging.info("🧹 Starting comprehensive data preprocessing...")
+    
+    # Track preprocessing metrics
+    original_rows = len(df)
+    missing_values_filled = 0
+    outliers_capped = 0
+    
+    # 1. Remove duplicate rows
+    duplicates_count = df.duplicated().sum()
+    if duplicates_count > 0:
+        df = df.drop_duplicates()
+        logging.info(f"✓ Removed {duplicates_count} duplicate rows")
+    
+    # 2. Handle missing values (median is more robust than mean for outliers)
+    for col in feature_cols:
+        missing_count = df[col].isnull().sum()
+        if missing_count > 0:
+            df[col].fillna(df[col].median(), inplace=True)
+            missing_values_filled += missing_count
+            logging.info(f"✓ Filled {missing_count} missing values in '{col}' with median")
+    
+    # Handle missing values in target
+    target_missing = df[target_column].isnull().sum()
+    if target_missing > 0:
+        df[target_column].fillna(df[target_column].median(), inplace=True)
+        missing_values_filled += target_missing
+        logging.info(f"✓ Filled {target_missing} missing values in target '{target_column}'")
+    
+    # 3. Handle outliers using IQR method (cap, don't remove to preserve data)
+    for col in feature_cols:
+        Q1 = df[col].quantile(0.25)
+        Q3 = df[col].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        
+        # Count outliers before capping
+        outliers = ((df[col] < lower_bound) | (df[col] > upper_bound)).sum()
+        if outliers > 0:
+            outliers_capped += outliers
+            # Cap outliers to bounds
+            df[col] = df[col].clip(lower_bound, upper_bound)
+    
+    if outliers_capped > 0:
+        logging.info(f"✓ Capped {outliers_capped} outliers across all features using IQR method")
+    
+    # Extract features and target after cleaning
+    X = df[feature_cols].copy()
+    y = df[target_column].copy()
+    
+    # 4. Normalize features using StandardScaler
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    X = pd.DataFrame(X_scaled, columns=feature_cols, index=X.index)
+    
+    logging.info(f"✓ Normalized {len(feature_cols)} features using StandardScaler")
+    logging.info(f"✅ Preprocessing complete: {original_rows} → {len(df)} rows")
+    
+    # Create preprocessing report
+    preprocessing_report = {
+        "duplicates_removed": int(duplicates_count),
+        "missing_values_filled": int(missing_values_filled),
+        "outliers_capped": int(outliers_capped),
+        "features_normalized": True,
+        "normalization_method": "StandardScaler (z-score)",
+        "original_rows": int(original_rows),
+        "cleaned_rows": int(len(df)),
+        "imputation_method": "median",
+        "outlier_method": "IQR capping (1.5 * IQR)"
+    }
     
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
