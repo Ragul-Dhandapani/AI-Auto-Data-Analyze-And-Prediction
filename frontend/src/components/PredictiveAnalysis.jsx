@@ -1421,6 +1421,74 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       {/* Rest of sections... */}
 
 
+      {/* Data Preprocessing Report */}
+      {analysisResults.preprocessing_report && (
+        <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 mb-6">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl">
+              🧹
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-blue-900 mb-1">
+                Data Preprocessing Applied
+              </h3>
+              <p className="text-sm text-blue-700">
+                Your data was automatically cleaned and optimized before training to improve model performance
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="text-2xl font-bold text-blue-600 mb-1">
+                {analysisResults.preprocessing_report.duplicates_removed}
+              </div>
+              <div className="text-xs text-gray-600 mb-1">Duplicates Removed</div>
+              <div className="text-xs text-blue-700">
+                {analysisResults.preprocessing_report.original_rows} → {analysisResults.preprocessing_report.cleaned_rows} rows
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="text-2xl font-bold text-green-600 mb-1">
+                {analysisResults.preprocessing_report.missing_values_filled}
+              </div>
+              <div className="text-xs text-gray-600 mb-1">Missing Values Filled</div>
+              <div className="text-xs text-green-700">
+                Method: {analysisResults.preprocessing_report.imputation_method || 'median'}
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="text-2xl font-bold text-orange-600 mb-1">
+                {analysisResults.preprocessing_report.outliers_capped}
+              </div>
+              <div className="text-xs text-gray-600 mb-1">Outliers Capped</div>
+              <div className="text-xs text-orange-700">
+                {analysisResults.preprocessing_report.outlier_method || 'IQR method'}
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="text-2xl font-bold text-purple-600 mb-1">
+                {analysisResults.preprocessing_report.features_normalized ? '✓' : '—'}
+              </div>
+              <div className="text-xs text-gray-600 mb-1">Feature Normalization</div>
+              <div className="text-xs text-purple-700">
+                {analysisResults.preprocessing_report.normalization_method || 'StandardScaler'}
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
+            <p className="text-xs text-blue-900">
+              <strong>ℹ️ Note:</strong> These preprocessing steps were applied automatically to improve model accuracy. 
+              Your original uploaded data remains unchanged in the database. The cleaned version was used only for training these models.
+            </p>
+          </div>
+        </Card>
+      )}
+
       {/* ML Models Section */}
       {analysisResults.ml_models && analysisResults.ml_models.length > 0 && (
         <Card id="ml-models-section" className="p-6">
