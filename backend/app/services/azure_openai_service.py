@@ -599,7 +599,6 @@ Example for Food: {{"domain": "food_agriculture", "terminology": {{"metric_name"
             suggestion_text = response.choices[0].message.content
             
             # Parse JSON
-            import json
             if "```json" in suggestion_text:
                 suggestion_text = suggestion_text.split("```json")[1].split("```")[0].strip()
             elif "```" in suggestion_text:
