@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 """
-Enhanced Chat Service Testing with Conversation History Context
-Tests the enhanced chat endpoint at /api/enhanced-chat/message
+Enhanced User Expectation Feature Testing for PROMISE AI Platform
+Tests the enhanced user expectation feature in holistic analysis
 """
 
 import requests
 import json
 import sys
+import time
 from typing import Dict, List, Any
 
 # Backend URL from environment
 BACKEND_URL = "https://promise-ai-1.preview.emergentagent.com/api"
-
-# Test dataset ID (from the available datasets)
-DATASET_ID = "d77c5cd7-8c3f-4e2a-acec-266e446c941e"  # application_latency.csv
 
 class EnhancedChatTester:
     def __init__(self):
