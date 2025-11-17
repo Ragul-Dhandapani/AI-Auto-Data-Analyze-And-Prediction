@@ -99,7 +99,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
     updateTargetVariable(activeTargetIndex, 'features', updated);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     // Validate all targets
     const validTargets = targetVariables.filter(tv => tv.target && tv.features.length > 0);
     
@@ -115,6 +115,19 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
     if (problemType === "time_series" && !timeColumn) {
       toast.error("Please select a time/date column for time series analysis");
       return;
+    }
+
+    // Save user expectation to dataset for future auto-population
+    if (userExpectation && userExpectation.trim().length > 0) {
+      try {
+        await axios.put(`${API}/datasource/datasets/${dataset.id}/expectation`, {
+          user_expectation: userExpectation
+        });
+        console.log('✅ Saved user expectation to dataset for future use');
+      } catch (error) {
+        console.error('Failed to save user expectation to dataset:', error);
+        // Non-blocking error - continue with selection
+      }
     }
 
     // Check if multiple targets
