@@ -876,12 +876,14 @@ async def holistic_analysis(request: Dict[str, Any]):
                     'ml_models': all_models[:3]  # Top 3 models
                 }
                 
+                # CRITICAL NEW: Include user expectation in insights generation
                 insights = await azure_service.generate_insights(
                     data_summary=data_summary,
                     analysis_results=analysis_results,
-                    context='business'
+                    context='business',
+                    user_expectation=user_expectation  # User's prediction goal context
                 )
-                logger.info("✅ Azure OpenAI insights generated")
+                logger.info("✅ Azure OpenAI insights generated with user context")
             else:
                 # Fallback to existing insights
                 # Prepare correlation matrix for insights
