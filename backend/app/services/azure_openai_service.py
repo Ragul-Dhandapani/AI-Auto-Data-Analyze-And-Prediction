@@ -257,19 +257,23 @@ User can ask for:
         model_results: Dict,
         data_summary: Dict,
         target_column: str,
-        user_expectation: str = None
+        user_expectation: str = None,
+        domain: str = "general",
+        columns: list = None
     ) -> Dict:
         """
-        Generate SRE-style forecasting summaries with predictive insights
+        Generate domain-adapted forecasting summaries with predictive insights
         
         Args:
             model_results: ML model performance and predictions
             data_summary: Dataset statistics and trends
             target_column: The target variable being predicted
             user_expectation: User's prediction goal context
+            domain: Detected domain (it_infrastructure, finance_trading, ecommerce, etc.)
+            columns: Dataset columns for context
         
         Returns:
-            Dictionary with SRE-style forecasts and recommendations
+            Dictionary with domain-adapted forecasts and recommendations
         """
         if not self.is_available():
             return {
@@ -279,17 +283,48 @@ User can ask for:
             }
         
         try:
+            # Detect domain from user expectation and columns if not provided
+            if domain == "general" and user_expectation and columns:
+                domain_info = await self.detect_domain_and_adapt(user_expectation, columns)
+                domain = domain_info.get('domain', 'general')
+            
+            # Build domain-specific context
+            domain_templates = {
+                "it_infrastructure": "SRE (Site Reliability Engineer) analyzing system reliability and performance",
+                "finance_trading": "financial analyst analyzing market trends and investment risks",
+                "ecommerce": "business analyst analyzing customer behavior and revenue trends",
+                "food_agriculture": "agricultural economist analyzing supply, demand, and price volatility",
+                "payments_banking": "fraud analyst and risk manager analyzing transaction patterns",
+                "healthcare": "healthcare analyst analyzing patient outcomes and resource utilization",
+                "logistics": "supply chain analyst analyzing delivery performance and capacity",
+                "general": "data analyst providing predictive insights"
+            }
+            
+            domain_terminology = {
+                "it_infrastructure": "Use SRE terminology: SLO, latency, p95/p99, error budget, uptime, capacity",
+                "finance_trading": "Use finance terminology: volatility, returns, risk, portfolio, market trends",
+                "ecommerce": "Use business terminology: conversion rate, revenue, churn, customer lifetime value",
+                "food_agriculture": "Use agriculture terminology: price volatility, supply shortage, demand spike, seasonality",
+                "payments_banking": "Use banking terminology: fraud rate, transaction volume, risk score, compliance",
+                "healthcare": "Use healthcare terminology: patient outcomes, readmission rate, resource utilization",
+                "logistics": "Use logistics terminology: delivery time, capacity utilization, route optimization",
+                "general": "Use clear, domain-appropriate terminology"
+            }
+            
+            expert_role = domain_templates.get(domain, domain_templates["general"])
+            terminology_guide = domain_terminology.get(domain, domain_terminology["general"])
+            
             # Build context
             user_context = ""
             if user_expectation:
-                user_context = f"\n\nUser's Goal: {user_expectation}\nIMPORTANT: Frame all forecasts and recommendations around this specific goal."
+                user_context = f"\n\nUser's Goal: {user_expectation}\nIMPORTANT: Frame all forecasts and recommendations around this specific goal and use domain-appropriate terminology."
             
             # Get best model info
             best_model = model_results.get('ml_models', [{}])[0] if model_results.get('ml_models') else {}
             model_name = best_model.get('model_name', 'Unknown')
             score = best_model.get('r2_score') or best_model.get('accuracy', 0)
             
-            prompt = f"""You are an expert SRE (Site Reliability Engineer) analyzing system predictions.{user_context}
+            prompt = f"""You are an expert {expert_role}.{user_context}
 
 **Prediction Context:**
 - Target Metric: {target_column}
