@@ -66,6 +66,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     feature_importance: false,
     predictions: false,
     preprocessing: false,
+    sre_forecast: false, // NEW: Forecasting & Predictive Insights
     auto_charts: false, // NEW: Collapsible auto-generated charts
     custom_charts: false
   });
