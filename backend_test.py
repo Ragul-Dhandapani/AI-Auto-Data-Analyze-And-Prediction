@@ -120,14 +120,15 @@ class UserExpectationTester:
 
     def test_setup_dataset(self):
         """Test 1: Setup test dataset"""
-        # First try to find existing dataset
+        # First try to find existing dataset with direct storage (not GridFS)
         datasets = self.get_available_datasets()
         
-        # Look for a suitable dataset (preferably with latency data)
+        # Look for a suitable dataset with direct storage (to avoid GridFS issues)
         suitable_dataset = None
         for dataset in datasets:
             name = dataset.get("name", "").lower()
-            if "latency" in name or "performance" in name or "cpu" in name:
+            storage_type = dataset.get("storage_type", "")
+            if ("test_data" in name or "latency" in name) and storage_type == "direct":
                 suitable_dataset = dataset
                 break
         
