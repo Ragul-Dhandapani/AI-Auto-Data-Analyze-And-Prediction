@@ -29,6 +29,12 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
       if (numericCols.length > 0 && !targetVariables[0].target) {
         setTargetVariables([{ target: numericCols[0], features: [] }]);
       }
+      
+      // Auto-populate user expectation if dataset has stored expectation
+      if (dataset.last_user_expectation && !userExpectation) {
+        setUserExpectation(dataset.last_user_expectation);
+        console.log('📝 Auto-populated user expectation from dataset:', dataset.last_user_expectation);
+      }
     }
   }, [dataset]);
 
