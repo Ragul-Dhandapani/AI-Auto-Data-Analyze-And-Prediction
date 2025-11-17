@@ -141,7 +141,7 @@ Model Results:
 {json.dumps(analysis_results.get('ml_models', [])[:3], indent=2)}
 
 Provide:
-1. Key findings from the analysis{' specifically related to the user\'s goal' if user_expectation else ''}
+1. Key findings from the analysis{' specifically related to the user goal' if user_expectation else ''}
 2. Business recommendations{' aligned with their prediction objective' if user_expectation else ''}
 3. Model performance interpretation{' in context of what they want to predict' if user_expectation else ''}
 4. Actionable next steps{' to improve predictions for their use case' if user_expectation else ''}
