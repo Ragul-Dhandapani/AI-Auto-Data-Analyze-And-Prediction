@@ -230,26 +230,50 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
           </Card>
         </div>
 
-        {/* NEW: User Expectation / Context Input */}
+        {/* NEW: User Expectation / Context Input with Domain Guidance */}
         <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border-2 border-indigo-200">
           <Label className="text-lg font-semibold mb-2 block flex items-center gap-2">
             <Info className="w-5 h-5 text-indigo-600" />
-            💭 What are you trying to predict? (Optional)
+            💭 What are you trying to predict? (Recommended)
           </Label>
           <p className="text-sm text-gray-600 mb-3">
-            Help AI understand your goal for better insights and predictions
+            <strong>Format:</strong> Domain: Your prediction goal
           </p>
+          
+          {/* Example Prompts Section */}
+          <div className="mb-3 p-3 bg-white rounded-lg border border-indigo-200">
+            <p className="text-xs font-semibold text-indigo-800 mb-2">📋 Example Prompts (Click to use):</p>
+            <div className="space-y-1">
+              {[
+                "Food: Predict the price and revenue for 2026",
+                "IT - Investment Banking: Predict the trade latency of E2E for the client/product wise",
+                "E-commerce: Predict customer churn to improve retention strategies",
+                "Healthcare: Predict patient readmission rates for resource planning",
+                "Finance: Predict stock price volatility for risk management",
+                "Payments: Detect fraudulent transactions to minimize losses",
+                "Logistics: Predict delivery delays for capacity optimization"
+              ].map((example, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setUserExpectation(example)}
+                  className="text-xs text-left w-full p-2 hover:bg-indigo-50 rounded transition-colors text-gray-700"
+                >
+                  • {example}
+                </button>
+              ))}
+            </div>
+          </div>
+          
           <textarea
             value={userExpectation}
             onChange={(e) => setUserExpectation(e.target.value)}
-            placeholder="Example: I am trying to predict the average e2e latency for client or product wise to identify performance bottlenecks..."
+            placeholder="Domain: Your prediction goal (e.g., 'IT: Predict system latency for performance optimization')"
             className="w-full p-3 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all resize-none"
             rows={3}
           />
           <p className="text-xs text-indigo-700 mt-2 mb-3">
-            💡 <strong>Tip:</strong> Be specific about what you want to predict and why. 
-            This helps generate business-relevant insights and recommendations.
-            If left empty, the system will proceed with standard analysis.
+            💡 <strong>Tip:</strong> Start with your domain (IT, Finance, Healthcare, etc.) followed by your specific prediction goal. 
+            This helps AI generate domain-specific insights with appropriate terminology.
           </p>
           
           {/* Smart Selection Button */}
