@@ -868,6 +868,37 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </CardContent>
       </Card>
 
+      {/* Self-Training Model Card */}
+      {analysisResults && analysisResults.training_metadata && (
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-l-green-500">
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Activity className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Self-Training Model</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Trained {analysisResults.training_metadata.training_count || 0} times on this dataset
+                  </p>
+                  {analysisResults.training_metadata.last_trained_at && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Last trained: {new Date(analysisResults.training_metadata.last_trained_at).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-semibold text-gray-700">
+                  Dataset Size: {analysisResults.training_metadata.dataset_size?.toLocaleString() || 0} rows
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* Selection Feedback (AI Validation) */}
       {selectionFeedback && (
         <Card className="border-l-4 border-l-blue-500">
