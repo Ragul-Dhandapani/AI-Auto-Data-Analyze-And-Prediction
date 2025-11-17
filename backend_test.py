@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Enhanced User Expectation Feature Testing for PROMISE AI Platform
-Tests the enhanced user expectation feature in holistic analysis
+SRE-Style Forecasting Feature Testing for PROMISE AI Platform
+Tests the SRE forecasting feature in holistic analysis
 """
 
 import requests
@@ -13,7 +13,7 @@ from typing import Dict, List, Any
 # Backend URL from environment
 BACKEND_URL = "https://promise-ai-1.preview.emergentagent.com/api"
 
-class UserExpectationTester:
+class SREForecastTester:
     def __init__(self):
         self.backend_url = BACKEND_URL
         self.test_results = []
