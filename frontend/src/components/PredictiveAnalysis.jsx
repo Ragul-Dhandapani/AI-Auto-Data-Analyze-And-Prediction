@@ -1926,8 +1926,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                           </div>
                         )}
                         
-                        {/* NEW: Prediction Examples Section */}
-                        {model.sample_predictions && model.sample_predictions.length > 0 && (
+                        {/* REMOVED: Real Prediction Examples - Replaced by Forecasting section */}
+                        {false && model.sample_predictions && model.sample_predictions.length > 0 && (
                           <div className="mt-6">
                             <h5 className="font-semibold mb-3 text-indigo-900">📊 Real Prediction Examples - See How It Works</h5>
                             <p className="text-sm text-gray-600 mb-4">
