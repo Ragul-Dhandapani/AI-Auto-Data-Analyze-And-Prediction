@@ -442,7 +442,7 @@ class SREForecastTester:
 
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🧪 Enhanced User Expectation Feature Testing for PROMISE AI Platform")
+        print("🧪 SRE-Style Forecasting Feature Testing for PROMISE AI Platform")
         print("=" * 80)
         print(f"Backend URL: {self.backend_url}")
         print()
