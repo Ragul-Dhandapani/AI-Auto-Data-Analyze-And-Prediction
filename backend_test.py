@@ -87,7 +87,7 @@ class SREForecastTester:
 
         try:
             files = {
-                'file': ('test_latency_data.csv', test_csv_content, 'text/csv')
+                'file': ('sre_test_latency_data.csv', test_csv_content, 'text/csv')
             }
             
             response = requests.post(
@@ -99,14 +99,15 @@ class SREForecastTester:
             if response.status_code == 200:
                 data = response.json()
                 dataset_id = data.get("dataset_id")
-                print(f"✅ Test dataset uploaded successfully: {dataset_id}")
+                print(f"✅ SRE test dataset uploaded successfully: {dataset_id} (500 rows)")
                 return dataset_id
             else:
-                print(f"❌ Failed to upload test dataset: {response.status_code}")
+                print(f"❌ Failed to upload SRE test dataset: {response.status_code}")
+                print(f"Response: {response.text}")
                 return None
                 
         except Exception as e:
-            print(f"❌ Exception during dataset upload: {str(e)}")
+            print(f"❌ Exception during SRE dataset upload: {str(e)}")
             return None
 
     def run_holistic_analysis(self, dataset_id: str, user_selection: Dict = None) -> Dict:
