@@ -175,59 +175,48 @@ class SREForecastTester:
                          "Analysis did not return expected results", response)
             return None
 
-    def test_analysis_with_user_expectation(self):
-        """Test 3: Analysis WITH user expectation (new feature)"""
+    def test_analysis_with_sre_forecast_generation(self):
+        """Test 3: Analysis WITH SRE Forecast Generation (CRITICAL TEST)"""
         if not self.test_dataset_id:
-            self.log_test("Analysis With User Expectation", "SKIP", "No test dataset available")
+            self.log_test("Analysis With SRE Forecast Generation", "SKIP", "No test dataset available")
             return None
         
-        # Define user selection with expectation
+        # Define user selection with expectation for SRE forecasting
         user_selection = {
             "target_variable": "latency_ms",
             "selected_features": ["cpu_usage", "memory_usage"],
             "mode": "manual",
-            "user_expectation": "I want to predict average end-to-end latency to identify performance bottlenecks in our system"
+            "user_expectation": "Predict system latency to prevent performance degradation"
         }
         
-        print("🔍 Running analysis WITH user expectation...")
+        print("🔍 Running analysis WITH SRE forecast generation...")
         response = self.run_holistic_analysis(self.test_dataset_id, user_selection)
         
         if "error" in response:
-            self.log_test("Analysis With User Expectation", "FAIL", 
+            self.log_test("Analysis With SRE Forecast Generation", "FAIL", 
                          f"Error: {response['error']}", response)
             return None
         
         # Check if analysis completed successfully
         if "insights" in response and "ml_models" in response:
-            insights = response.get("insights", "")
             models = response.get("ml_models", [])
             
-            # CRITICAL: Check if insights mention performance bottlenecks or latency prediction
-            insights_lower = insights.lower()
-            context_keywords = [
-                "performance bottleneck", "bottleneck", "latency prediction", 
-                "end-to-end latency", "system performance", "predict latency"
-            ]
+            # CRITICAL: Check for sre_forecast field
+            sre_forecast = response.get("sre_forecast")
             
-            context_found = any(keyword in insights_lower for keyword in context_keywords)
-            
-            if context_found:
-                self.log_test("Analysis With User Expectation", "PASS", 
-                             f"✅ CONTEXT-AWARE: Insights mention user's goal. Generated {len(models)} models.")
+            if sre_forecast:
+                self.log_test("Analysis With SRE Forecast Generation", "PASS", 
+                             f"✅ SRE FORECAST FOUND: Generated {len(models)} models with SRE forecasting.")
                 
-                # Log which keywords were found
-                found_keywords = [kw for kw in context_keywords if kw in insights_lower]
-                print(f"   🎯 Context keywords found: {found_keywords}")
-                
+                # Store for detailed validation
+                self.sre_forecast_response = response
+                return response
             else:
-                self.log_test("Analysis With User Expectation", "PARTIAL", 
-                             f"Analysis completed but insights may not be context-aware. Generated {len(models)} models.")
-            
-            # Store for comparison
-            self.expectation_response = response
-            return response
+                self.log_test("Analysis With SRE Forecast Generation", "FAIL", 
+                             f"❌ SRE FORECAST MISSING: Analysis completed with {len(models)} models but no sre_forecast field.")
+                return None
         else:
-            self.log_test("Analysis With User Expectation", "FAIL", 
+            self.log_test("Analysis With SRE Forecast Generation", "FAIL", 
                          "Analysis did not return expected results", response)
             return None
 
