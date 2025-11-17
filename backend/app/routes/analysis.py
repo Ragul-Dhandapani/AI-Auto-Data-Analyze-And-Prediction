@@ -1378,6 +1378,15 @@ async def save_analysis_state(request: SaveStateRequest):
             logger.info(f"Stored in BLOB storage with compression: {len(compressed_data) / 1024:.2f} KB")
         else:
             # Store directly in database
+            # Extract user expectation from analysis data if present
+            user_expectation = None
+            detected_domain = None
+            if analysis_data and isinstance(analysis_data, dict):
+                if 'user_expectation' in analysis_data:
+                    user_expectation = analysis_data.get('user_expectation')
+                if 'detected_domain' in analysis_data:
+                    detected_domain = analysis_data.get('detected_domain')
+            
             state_doc = {
                 "id": state_id,
                 "dataset_id": request.dataset_id,
@@ -1386,6 +1395,8 @@ async def save_analysis_state(request: SaveStateRequest):
                 "analysis_data": optimized_analysis_data,
                 "chat_history": optimized_chat_history,
                 "size_bytes": state_size,
+                "user_expectation": user_expectation,  # NEW: Store user's prediction goal
+                "detected_domain": detected_domain,  # NEW: Store detected domain
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
