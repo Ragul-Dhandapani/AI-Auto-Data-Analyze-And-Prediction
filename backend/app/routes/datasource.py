@@ -536,6 +536,42 @@ async def get_dataset(dataset_id: str):
         raise HTTPException(500, f"Error fetching dataset: {str(e)}")
 
 
+@router.put("/datasets/{dataset_id}/expectation")
+async def update_dataset_expectation(dataset_id: str, request: dict):
+    """
+    Update dataset's last user expectation for auto-population
+    Stores the user's prediction goal with the dataset for future reference
+    """
+    try:
+        user_expectation = request.get("user_expectation")
+        if not user_expectation:
+            raise HTTPException(400, "user_expectation is required")
+        
+        db_adapter = get_db()
+        dataset = await db_adapter.get_dataset(dataset_id)
+        
+        if not dataset:
+            raise HTTPException(404, "Dataset not found")
+        
+        # Update dataset with last user expectation
+        await db_adapter.update_dataset(dataset_id, {
+            "last_user_expectation": user_expectation,
+            "last_expectation_updated_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        logger.info(f"✅ Updated dataset {dataset_id} with user expectation: {user_expectation[:50]}...")
+        
+        return {
+            "success": True,
+            "message": "Dataset expectation updated successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update dataset expectation: {str(e)}")
+        raise HTTPException(500, f"Error updating dataset expectation: {str(e)}")
+
+
 @router.delete("/datasets/{dataset_id}")
 async def delete_dataset(dataset_id: str):
     """Delete dataset and associated data"""
