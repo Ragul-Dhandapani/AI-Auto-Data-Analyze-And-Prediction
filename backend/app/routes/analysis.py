@@ -876,14 +876,28 @@ async def holistic_analysis(request: Dict[str, Any]):
                     'ml_models': all_models[:3]  # Top 3 models
                 }
                 
-                # CRITICAL NEW: Include user expectation in insights generation
+                # CRITICAL: Include user expectation and domain context in insights generation
+                # Detect domain if user expectation is provided
+                detected_domain = "general"
+                if user_expectation:
+                    try:
+                        domain_info = await azure_service.detect_domain_and_adapt(
+                            user_expectation=user_expectation,
+                            columns=df_analysis.columns.tolist()
+                        )
+                        detected_domain = domain_info.get('domain', 'general')
+                        logger.info(f"📊 Domain detected for insights: {detected_domain}")
+                    except:
+                        pass
+                
                 insights = await azure_service.generate_insights(
                     data_summary=data_summary,
                     analysis_results=analysis_results,
                     context='business',
-                    user_expectation=user_expectation  # User's prediction goal context
+                    user_expectation=user_expectation,  # User's prediction goal context
+                    domain=detected_domain  # Domain-adapted terminology
                 )
-                logger.info("✅ Azure OpenAI insights generated with user context")
+                logger.info(f"✅ Azure OpenAI insights generated with user context (domain: {detected_domain})")
             else:
                 # Fallback to existing insights
                 # Prepare correlation matrix for insights
