@@ -680,6 +680,115 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       {/* Results Section - Only show if analysis completed */}
       {analysisResults && (
         <div className="space-y-6">
+          {/* SRE Forecast */}
+          {analysisResults.sre_forecast && (
+            <Card className="border-l-4 border-l-cyan-500 bg-gradient-to-r from-cyan-50 to-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-cyan-600" />
+                  🔮 SRE Forecasting & Predictive Insights
+                </CardTitle>
+                <CardDescription>
+                  Forward-looking predictions and reliability recommendations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Forecasts */}
+                {analysisResults.sre_forecast.forecasts && analysisResults.sre_forecast.forecasts.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">📈 Trend Predictions</h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {analysisResults.sre_forecast.forecasts.map((forecast, idx) => (
+                        <div key={idx} className="p-4 bg-white rounded-lg border-2 border-cyan-200">
+                          <div className="flex items-start justify-between mb-2">
+                            <span className="text-xs font-semibold text-cyan-700 uppercase">{forecast.timeframe}</span>
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              forecast.confidence === 'high' ? 'bg-green-100 text-green-700' :
+                              forecast.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {forecast.confidence} confidence
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2">{forecast.prediction}</p>
+                          {forecast.value && forecast.value !== 'N/A' && (
+                            <p className="text-lg font-bold text-cyan-600">{forecast.value}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Critical Alerts */}
+                {analysisResults.sre_forecast.critical_alerts && analysisResults.sre_forecast.critical_alerts.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">⚠️ Critical Alerts</h3>
+                    <div className="space-y-2">
+                      {analysisResults.sre_forecast.critical_alerts.map((alert, idx) => (
+                        <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                          alert.severity === 'high' ? 'bg-red-50 border-red-500' :
+                          alert.severity === 'medium' ? 'bg-orange-50 border-orange-500' :
+                          'bg-yellow-50 border-yellow-500'
+                        }`}>
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className={`w-5 h-5 mt-0.5 ${
+                              alert.severity === 'high' ? 'text-red-600' :
+                              alert.severity === 'medium' ? 'text-orange-600' :
+                              'text-yellow-600'
+                            }`} />
+                            <div className="flex-1">
+                              <span className={`text-xs font-semibold uppercase ${
+                                alert.severity === 'high' ? 'text-red-700' :
+                                alert.severity === 'medium' ? 'text-orange-700' :
+                                'text-yellow-700'
+                              }`}>
+                                {alert.severity} severity
+                              </span>
+                              <p className="text-sm text-gray-700 mt-1">{alert.alert}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {analysisResults.sre_forecast.recommendations && analysisResults.sre_forecast.recommendations.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">💡 Actionable Recommendations</h3>
+                    <div className="space-y-2">
+                      {analysisResults.sre_forecast.recommendations.map((rec, idx) => (
+                        <div key={idx} className="p-3 bg-white rounded-lg border border-gray-200 hover:border-cyan-300 transition-colors">
+                          <div className="flex items-start gap-2">
+                            <CheckCircle className={`w-5 h-5 mt-0.5 ${
+                              rec.priority === 'high' ? 'text-red-600' :
+                              rec.priority === 'medium' ? 'text-yellow-600' :
+                              'text-gray-600'
+                            }`} />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
+                                  rec.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                  rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {rec.priority} priority
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700">{rec.action}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Preprocessing Report */}
           {renderPreprocessingReport()}
 
