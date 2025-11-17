@@ -2007,6 +2007,80 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
+      {/* Historical Trends Analysis - NEW SECTION */}
+      {analysisResults.historical_trends && !collapsed.historical_trends && (
+        <Card className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-l-indigo-500">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">📊 Historical Trends Analysis</h3>
+              <p className="text-sm text-gray-600 italic mt-1">
+                {analysisResults.historical_trends.target_variable} trends based on {analysisResults.historical_trends.data_points} data points
+              </p>
+            </div>
+            <Button onClick={() => toggleSection('historical_trends')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-4">
+            {/* Current Value */}
+            <div className="p-4 bg-white rounded-lg border-2 border-indigo-200">
+              <p className="text-xs text-gray-500 uppercase mb-1">Current Value</p>
+              <p className="text-2xl font-bold text-indigo-600">
+                {analysisResults.historical_trends.current_value?.toFixed(2) || 'N/A'}
+              </p>
+              <p className={`text-xs mt-1 ${
+                analysisResults.historical_trends.trend === 'increasing' ? 'text-orange-600' :
+                analysisResults.historical_trends.trend === 'decreasing' ? 'text-green-600' :
+                'text-gray-600'
+              }`}>
+                {analysisResults.historical_trends.trend === 'increasing' ? '↗ Increasing trend' :
+                 analysisResults.historical_trends.trend === 'decreasing' ? '↘ Decreasing trend' :
+                 '→ Stable trend'}
+              </p>
+            </div>
+
+            {/* Historical Average */}
+            <div className="p-4 bg-white rounded-lg border-2 border-indigo-200">
+              <p className="text-xs text-gray-500 uppercase mb-1">Historical Average</p>
+              <p className="text-2xl font-bold text-gray-700">
+                {analysisResults.historical_trends.historical_avg?.toFixed(2)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Across all data</p>
+            </div>
+
+            {/* Recent Average */}
+            <div className="p-4 bg-white rounded-lg border-2 border-indigo-200">
+              <p className="text-xs text-gray-500 uppercase mb-1">Recent Average</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {analysisResults.historical_trends.recent_avg?.toFixed(2)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Last 10 points</p>
+            </div>
+
+            {/* Range */}
+            <div className="p-4 bg-white rounded-lg border-2 border-indigo-200">
+              <p className="text-xs text-gray-500 uppercase mb-1">Range</p>
+              <p className="text-sm font-bold text-gray-700">
+                {analysisResults.historical_trends.min?.toFixed(2)} - {analysisResults.historical_trends.max?.toFixed(2)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                σ = {analysisResults.historical_trends.std?.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.historical_trends && collapsed.historical_trends && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('historical_trends')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">📊 Historical Trends Analysis</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
       {/* Forecasting & Predictive Insights - WITH TABS FOR EACH MODEL */}
       {analysisResults.sre_forecast && analysisResults.ml_models && analysisResults.ml_models.length > 0 && !collapsed.sre_forecast && (
         <Card id="forecasting-section" className="p-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-l-cyan-500">
@@ -2021,6 +2095,34 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
               <ChevronUp className="w-4 h-4" />
             </Button>
           </div>
+
+          {/* Feature Influence Summary */}
+          {analysisResults.sre_forecast.feature_influence && (
+            <div className="mb-4 p-4 bg-white rounded-lg border-2 border-cyan-300">
+              <p className="text-sm font-semibold text-cyan-800">
+                💡 {analysisResults.sre_forecast.feature_influence}
+              </p>
+            </div>
+          )}
+
+          {/* Good News Predictions */}
+          {analysisResults.sre_forecast.good_news && analysisResults.sre_forecast.good_news.length > 0 && (
+            <div className="mb-4">
+              {analysisResults.sre_forecast.good_news.map((news, idx) => (
+                <div key={idx} className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500 mb-2">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-green-800">{news.message}</p>
+                      {news.period && (
+                        <p className="text-xs text-green-600 mt-1">Period: {news.period}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Tabs for each ML model */}
           <Tabs defaultValue={analysisResults.ml_models[0].model_name} className="w-full">
