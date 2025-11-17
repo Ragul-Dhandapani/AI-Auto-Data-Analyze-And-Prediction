@@ -13,12 +13,11 @@ from typing import Dict, List, Any
 # Backend URL from environment
 BACKEND_URL = "https://promise-ai-1.preview.emergentagent.com/api"
 
-class EnhancedChatTester:
+class UserExpectationTester:
     def __init__(self):
         self.backend_url = BACKEND_URL
-        self.dataset_id = DATASET_ID
-        self.conversation_history = []
         self.test_results = []
+        self.test_dataset_id = None
         
     def log_test(self, test_name: str, status: str, details: str = "", response_data: Dict = None):
         """Log test results"""
