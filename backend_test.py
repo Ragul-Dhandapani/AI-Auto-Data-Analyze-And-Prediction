@@ -28,14 +28,14 @@ class UserExpectationTester:
             "response_data": response_data
         }
         self.test_results.append(result)
-        print(f"{'✅' if status == 'PASS' else '❌'} {test_name}: {status}")
+        print(f"{'✅' if status == 'PASS' else '❌' if status == 'FAIL' else '🟡'} {test_name}: {status}")
         if details:
             print(f"   Details: {details}")
         if status == "FAIL" and response_data:
             print(f"   Response: {response_data}")
         print()
 
-    def send_chat_message(self, message: str, conversation_history: List[Dict] = None) -> Dict:
+    def get_available_datasets(self) -> List[Dict]:
         """Send a message to the enhanced chat endpoint"""
         if conversation_history is None:
             conversation_history = self.conversation_history
