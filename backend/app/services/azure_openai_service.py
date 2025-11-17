@@ -455,9 +455,10 @@ Be specific with numbers, use SRE terminology, and focus on actionable insights.
         except Exception as e:
             logger.error(f"Failed to generate SRE forecast: {str(e)}")
             return {
+                "feature_influence": f"{target_column} analysis unavailable",
                 "forecasts": [],
+                "good_news": [],
                 "critical_alerts": [],
-                "recommendations": [],
                 "error": str(e)
             }
     
