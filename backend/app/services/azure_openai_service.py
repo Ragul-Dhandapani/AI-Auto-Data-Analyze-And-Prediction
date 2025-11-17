@@ -379,6 +379,198 @@ Be specific with numbers, use SRE terminology, and focus on actionable insights.
                 "error": str(e)
             }
     
+    async def detect_domain_and_adapt(
+        self,
+        user_expectation: str,
+        columns: list,
+        sample_data: Dict = None
+    ) -> Dict:
+        """
+        Detect dataset domain and adapt terminology for domain-specific insights
+        
+        Args:
+            user_expectation: User's natural language prediction goal
+            columns: List of column names in dataset
+            sample_data: Optional sample rows for context
+        
+        Returns:
+            Dictionary with detected domain and adapted terminology
+        """
+        if not self.is_available():
+            return {"domain": "general", "terminology": "standard"}
+        
+        try:
+            prompt = f"""Analyze this prediction task and dataset to detect the domain/industry.
+
+User's Goal: "{user_expectation}"
+
+Dataset Columns: {', '.join(columns[:20])}
+
+Identify the domain from these categories:
+- it_infrastructure: IT systems, latency, servers, performance monitoring
+- finance_trading: Stock prices, trading, portfolios, market data
+- ecommerce: Sales, products, customers, orders, revenue
+- food_agriculture: Food prices, crops, supply chain, farming
+- payments_banking: Payments, transactions, credit cards, fraud
+- healthcare: Patients, medical records, treatments, diagnoses
+- logistics: Shipping, delivery, routes, inventory
+- general: Other domains
+
+Output JSON:
+{{
+  "domain": "detected_domain",
+  "confidence": "high|medium|low",
+  "terminology": {{
+    "metric_name": "adapted term for target variable",
+    "forecast_term": "adapted term for predictions",
+    "alert_term": "adapted term for alerts"
+  }}
+}}
+
+Example for IT: {{"domain": "it_infrastructure", "terminology": {{"metric_name": "latency", "forecast_term": "SLO breach", "alert_term": "threshold"}}}}
+Example for Finance: {{"domain": "finance_trading", "terminology": {{"metric_name": "volatility", "forecast_term": "price movement", "alert_term": "risk"}}}}
+Example for Food: {{"domain": "food_agriculture", "terminology": {{"metric_name": "price volatility", "forecast_term": "supply/demand shift", "alert_term": "shortage risk"}}}}"""
+
+            response = self.client.chat.completions.create(
+                model=self.deployment,
+                messages=[
+                    {"role": "system", "content": "You are a domain detection expert. Always respond with valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=300
+            )
+            
+            result_text = response.choices[0].message.content
+            
+            # Parse JSON
+            import json
+            if "```json" in result_text:
+                result_text = result_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in result_text:
+                result_text = result_text.split("```")[1].split("```")[0].strip()
+            
+            domain_info = json.loads(result_text)
+            logger.info(f"✅ Domain detected: {domain_info.get('domain', 'general')}")
+            return domain_info
+            
+        except Exception as e:
+            logger.error(f"Domain detection failed: {str(e)}")
+            return {"domain": "general", "confidence": "low", "terminology": {}}
+    
+    async def suggest_target_and_features(
+        self,
+        user_expectation: str,
+        columns: list,
+        dtypes: Dict,
+        sample_data: Dict = None
+    ) -> Dict:
+        """
+        Smart Selection: Suggest target variable and features based on natural language
+        
+        Args:
+            user_expectation: User's natural language prediction goal
+            columns: List of column names
+            dtypes: Dictionary of column data types
+            sample_data: Optional sample rows for better suggestions
+        
+        Returns:
+            Dictionary with suggested target, features, problem_type, and explanation
+        """
+        if not self.is_available():
+            return {
+                "suggested_target": None,
+                "suggested_features": [],
+                "problem_type": "auto",
+                "confidence": "low",
+                "explanation": "AI suggestions unavailable - Azure OpenAI not configured"
+            }
+        
+        try:
+            # Build column information
+            column_info = []
+            for col in columns[:30]:  # Limit to 30 columns for token efficiency
+                dtype = dtypes.get(col, "unknown")
+                column_info.append(f"- {col} ({dtype})")
+            
+            sample_context = ""
+            if sample_data:
+                sample_context = f"\n\nSample Data (first row):\n{json.dumps(sample_data, indent=2)}"
+            
+            prompt = f"""You are an expert data scientist helping a user select the right target variable and features for their prediction goal.
+
+**User's Prediction Goal:**
+"{user_expectation}"
+
+**Available Columns:**
+{chr(10).join(column_info)}
+{sample_context}
+
+**Task:** Analyze the user's goal and dataset to suggest:
+1. Which column should be the TARGET (what they want to predict)
+2. Which columns should be FEATURES (predictors/inputs)
+3. What type of problem this is (regression, classification, time_series)
+
+**Output JSON:**
+{{
+  "suggested_target": "column_name",
+  "suggested_features": ["feature1", "feature2", "feature3"],
+  "problem_type": "regression|classification|time_series",
+  "confidence": "high|medium|low",
+  "explanation": "Brief explanation of why these selections make sense for the user's goal"
+}}
+
+**Guidelines:**
+- Match column names to user's prediction intent (e.g., "predict churn" → target: churn_status)
+- Select features that logically influence the target
+- Suggest 3-10 most relevant features (prioritize high correlation potential)
+- For classification: look for categorical/binary columns as targets
+- For regression: look for numeric columns as targets
+- For time series: look for date/time columns and sequential data"""
+
+            response = self.client.chat.completions.create(
+                model=self.deployment,
+                messages=[
+                    {"role": "system", "content": "You are an expert data scientist providing smart variable suggestions. Always respond with valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=800
+            )
+            
+            suggestion_text = response.choices[0].message.content
+            
+            # Parse JSON
+            import json
+            if "```json" in suggestion_text:
+                suggestion_text = suggestion_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in suggestion_text:
+                suggestion_text = suggestion_text.split("```")[1].split("```")[0].strip()
+            
+            suggestions = json.loads(suggestion_text)
+            
+            # Validate suggestions against actual columns
+            if suggestions.get('suggested_target') not in columns:
+                suggestions['suggested_target'] = None
+                suggestions['confidence'] = 'low'
+                suggestions['explanation'] += " (Warning: Suggested target not found in dataset)"
+            
+            valid_features = [f for f in suggestions.get('suggested_features', []) if f in columns]
+            suggestions['suggested_features'] = valid_features
+            
+            logger.info(f"✅ Smart selection: target={suggestions.get('suggested_target')}, features={len(valid_features)}")
+            return suggestions
+            
+        except Exception as e:
+            logger.error(f"Smart selection failed: {str(e)}")
+            return {
+                "suggested_target": None,
+                "suggested_features": [],
+                "problem_type": "auto",
+                "confidence": "low",
+                "explanation": f"Failed to generate suggestions: {str(e)}"
+            }
+    
     async def parse_chart_request(
         self,
         user_message: str,
