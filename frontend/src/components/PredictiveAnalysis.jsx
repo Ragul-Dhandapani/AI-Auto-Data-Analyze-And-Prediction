@@ -403,14 +403,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   };
 
   const handleRunAdditionalModels = () => {
-    setShowModelSelection(true);
-  };
-
-  const handleModelSelectionComplete = (models) => {
-    setSelectedModels(models);
-    setShowModelSelection(false);
-    // Trigger analysis with selected models
-    setTimeout(() => runHolisticAnalysis(), 100);
+    // Future implementation: model selection modal
+    toast.info("Additional model selection coming soon!");
   };
 
   const toggleSection = (section) => {
