@@ -228,6 +228,29 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
           </Card>
         </div>
 
+        {/* NEW: User Expectation / Context Input */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border-2 border-indigo-200">
+          <Label className="text-lg font-semibold mb-2 block flex items-center gap-2">
+            <Info className="w-5 h-5 text-indigo-600" />
+            💭 What are you trying to predict? (Optional)
+          </Label>
+          <p className="text-sm text-gray-600 mb-3">
+            Help AI understand your goal for better insights and predictions
+          </p>
+          <textarea
+            value={userExpectation}
+            onChange={(e) => setUserExpectation(e.target.value)}
+            placeholder="Example: I am trying to predict the average e2e latency for client or product wise to identify performance bottlenecks..."
+            className="w-full p-3 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all resize-none"
+            rows={3}
+          />
+          <p className="text-xs text-indigo-700 mt-2">
+            💡 <strong>Tip:</strong> Be specific about what you want to predict and why. 
+            This helps generate business-relevant insights and recommendations.
+            If left empty, the system will proceed with standard analysis.
+          </p>
+        </div>
+
         {/* Problem Type Selection - ALL 7 CATEGORIES */}
         <div className="mb-6">
           <Label className="text-lg font-semibold mb-3 block">
