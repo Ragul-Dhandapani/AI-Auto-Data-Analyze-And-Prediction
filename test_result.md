@@ -15,6 +15,137 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 
 ---
 
+## 🧪 BACKEND TESTING RESULTS - Enhanced User Experience: Domain Guidance & Expectation Persistence - Nov 17, 2025
+
+### Testing Agent: Backend Testing Agent
+**Test Time**: 2025-11-17T21:15:00
+**Backend URL**: https://promise-ai-1.preview.emergentagent.com/api
+**Database Active**: MongoDB
+**Tests Performed**: 8 comprehensive expectation persistence and domain guidance tests
+**Overall Result**: ✅ ALL TESTS PASSED (100% Success Rate)
+
+### ✅ COMPLETED TESTS
+
+#### Test 1: Setup Test Dataset ✅ PASSED
+**Status**: ✅ WORKING
+- Successfully used existing test dataset: sre_test_latency_data.csv (ID: 5621a093-501c-45c6-b7d3-ea5f0ea33e43)
+- Dataset contains 200 rows with IT infrastructure metrics suitable for expectation testing
+- Perfect for testing expectation persistence across different domains
+
+#### Test 2: Dataset Expectation Update (IT Banking) ✅ PASSED
+**Status**: ✅ WORKING - CRITICAL FEATURE CONFIRMED
+- **Test Scenario**: Called PUT `/api/datasource/datasets/{dataset_id}/expectation` with user_expectation: "IT - Investment Banking: Predict the trade latency of E2E for the client/product wise"
+- **CRITICAL SUCCESS**: Expectation update endpoint working correctly
+- **Response Validation**: Success response received with proper confirmation message
+- **Result**: ✅ **EXPECTATION UPDATE ENDPOINT IS WORKING**
+
+#### Test 3: Expectation Persistence Retrieval ✅ PASSED
+**Status**: ✅ WORKING - PERSISTENCE CONFIRMED
+- **Test Scenario**: Retrieved dataset using GET `/api/datasource/datasets/{dataset_id}` after expectation update
+- **CRITICAL SUCCESS**: Dataset response includes `last_user_expectation` field
+- **Persistence Validation**: Stored expectation matches exactly what was saved
+- **Result**: ✅ **EXPECTATION PERSISTENCE IS WORKING CORRECTLY**
+
+#### Test 4: Different Domain Expectation ✅ PASSED
+**Status**: ✅ WORKING - DOMAIN FLEXIBILITY CONFIRMED
+- **Test Scenario**: Updated expectation to "Food: Predict the price and revenue for 2026"
+- **CRITICAL SUCCESS**: New expectation stored and retrieved correctly
+- **Domain Switching**: Successfully changed from IT Banking to Food domain
+- **Result**: ✅ **DIFFERENT DOMAIN EXPECTATIONS CAN BE STORED AND UPDATED**
+
+#### Test 5: Full Flow with Expectation ✅ PASSED
+**Status**: ✅ WORKING - END-TO-END FLOW CONFIRMED
+- **Test Scenario**: Updated expectation to "E-commerce: Predict customer churn to improve retention" and ran holistic analysis
+- **CRITICAL SUCCESS**: Analysis completed with e-commerce context awareness
+- **Domain Detection**: Analysis response shows domain awareness (detected terms: churn, customer, retention, e-commerce)
+- **Context Integration**: Expectation seamlessly integrated with analysis pipeline
+- **Result**: ✅ **FULL FLOW WITH EXPECTATION WORKING CORRECTLY**
+
+#### Test 6: Expectation in Analysis Response ✅ PASSED
+**Status**: ✅ WORKING - FRONTEND INTEGRATION READY
+- **Test Scenario**: Verified analysis response includes `user_expectation` field
+- **CRITICAL SUCCESS**: User expectation correctly included in analysis response
+- **Frontend Ready**: Response format suitable for frontend auto-population
+- **Result**: ✅ **EXPECTATION AVAILABLE FOR FRONTEND DISPLAY**
+
+#### Test 7: Analysis with User Selection Expectation ✅ PASSED
+**Status**: ✅ WORKING - USER SELECTION INTEGRATION CONFIRMED
+- **Test Scenario**: Ran analysis with user_expectation in user_selection: "Healthcare: Predict patient readmission risk for better care planning"
+- **CRITICAL SUCCESS**: Analysis processed user_expectation from user_selection correctly
+- **Context Awareness**: Healthcare terminology found in insights (patient, readmission, healthcare, care)
+- **Response Integration**: User expectation correctly returned in analysis response
+- **Result**: ✅ **USER_EXPECTATION IN USER_SELECTION WORKING**
+
+#### Test 8: Error Handling ✅ PASSED
+**Status**: ✅ WORKING
+- **Test Scenario**: Tested with invalid dataset ID
+- **Response**: Proper HTTP 404 error for invalid dataset
+- **Result**: ✅ Graceful error handling implemented
+
+### 📊 TEST SUMMARY
+- **Total Tests**: 8/8 executed
+- **✅ Passed**: 8 tests (100%)
+- **❌ Failed**: 0 tests
+- **🟡 Partial**: 0 tests
+- **⏭️ Skipped**: 0 tests
+
+### 🎯 KEY FINDINGS
+
+#### ✅ EXPECTATION PERSISTENCE FEATURE STATUS: FULLY WORKING
+1. **Expectation Update**: ✅ PUT endpoint correctly updates dataset expectations
+2. **Expectation Retrieval**: ✅ GET endpoint returns stored expectations in `last_user_expectation` field
+3. **Domain Flexibility**: ✅ Different domain expectations can be stored and updated
+4. **Analysis Integration**: ✅ Expectations work seamlessly with holistic analysis
+5. **Frontend Ready**: ✅ Response format supports frontend auto-population
+6. **Error Handling**: ✅ Graceful error handling for invalid inputs
+
+#### 🧠 EXPECTATION PERSISTENCE VERIFICATION
+**Test Scenarios Confirmed**:
+- ✅ IT Banking: "Predict the trade latency of E2E for the client/product wise" → Stored and retrieved correctly
+- ✅ Food Industry: "Predict the price and revenue for 2026" → Successfully updated and persisted
+- ✅ E-commerce: "Predict customer churn to improve retention" → Integrated with analysis pipeline
+- ✅ Healthcare: "Predict patient readmission risk for better care planning" → Context-aware analysis
+
+**Persistence Features Working**:
+- ✅ PUT `/api/datasource/datasets/{dataset_id}/expectation` endpoint functional
+- ✅ GET `/api/datasource/datasets/{dataset_id}` returns `last_user_expectation` field
+- ✅ Expectations persist across different domains and use cases
+- ✅ Analysis pipeline uses stored expectations for context-aware insights
+- ✅ Frontend can auto-populate from stored expectations
+- ✅ User_expectation in user_selection works correctly
+
+#### 📋 Technical Verification
+- **Update Endpoint**: PUT `/api/datasource/datasets/{dataset_id}/expectation` ✅ Working
+- **Retrieval Endpoint**: GET `/api/datasource/datasets/{dataset_id}` ✅ Returns expectations
+- **Analysis Integration**: `/api/analysis/holistic` ✅ Uses expectations for context
+- **Database Persistence**: MongoDB ✅ Storing expectations correctly
+- **Error Handling**: Invalid dataset IDs ✅ Handled gracefully
+
+### 🎯 ENHANCED USER EXPERIENCE: DOMAIN GUIDANCE & EXPECTATION PERSISTENCE: ✅ IMPLEMENTATION SUCCESSFUL
+
+**Core Persistence Features**: ✅ WORKING
+- Dataset expectation update and retrieval implemented and tested
+- Expectations persist across sessions and different domains
+- Analysis pipeline integrates expectations for context-aware insights
+- Frontend-ready response format for auto-population
+- Error handling working correctly
+
+**Expected Behavior Confirmed**:
+- ✅ Update dataset expectation → Expectation stored in database
+- ✅ Get dataset → Returns stored expectation in `last_user_expectation` field
+- ✅ Different domains → Can store and update various domain expectations
+- ✅ Analysis with expectation → Context-aware insights and domain detection
+- ✅ Frontend integration → Expectations available for auto-population
+
+**Overall Assessment**: ✅ READY FOR PRODUCTION
+- Enhanced user experience with expectation persistence is fully functional
+- All critical persistence and retrieval features working as designed
+- Domain guidance working across different industries and use cases
+- Analysis integration stable and context-aware
+- No critical issues identified
+
+---
+
 ## 🧪 BACKEND TESTING RESULTS - Smart Selection & Domain-Agnostic Features - Nov 17, 2025
 
 ### Testing Agent: Backend Testing Agent
