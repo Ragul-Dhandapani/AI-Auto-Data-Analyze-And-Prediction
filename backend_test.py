@@ -136,18 +136,18 @@ class SREForecastTester:
 
     def test_setup_dataset(self):
         """Test 1: Setup test dataset"""
-        # Look for datasets with direct storage (not GridFS) to avoid data loading issues
+        # Look for existing SRE test dataset first
         datasets = self.get_available_datasets()
         
-        # Look for suitable dataset with direct storage (not GridFS)
+        # Look for our SRE test dataset
         suitable_dataset = None
         for dataset in datasets:
             name = dataset.get("name", "").lower()
             row_count = dataset.get("row_count", 0)
             storage_type = dataset.get("storage_type", "")
             
-            # Prefer direct storage datasets to avoid GridFS issues
-            if storage_type == "direct" and row_count >= 10:
+            # Look for our SRE test dataset or any dataset with enough rows for ML
+            if ("sre_test" in name and row_count >= 100) or (storage_type == "direct" and row_count >= 100):
                 suitable_dataset = dataset
                 break
         
@@ -156,8 +156,8 @@ class SREForecastTester:
             self.log_test("Setup Test Dataset", "PASS", 
                          f"Using existing dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id}, {suitable_dataset.get('row_count')} rows, storage: {suitable_dataset.get('storage_type')})")
         else:
-            # Upload a new SRE test dataset
-            print("🔄 No suitable direct storage dataset found, uploading SRE test dataset...")
+            # Upload a new SRE test dataset with enough data for ML training
+            print("🔄 No suitable dataset found for ML training, uploading SRE test dataset...")
             self.test_dataset_id = self.upload_test_dataset()
             if self.test_dataset_id:
                 self.log_test("Setup Test Dataset", "PASS", 
