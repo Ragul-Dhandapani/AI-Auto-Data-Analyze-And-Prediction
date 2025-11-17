@@ -677,15 +677,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
-      {/* Model Selection Modal */}
-      {showModelSelection && (
-        <ModelSelectionPanel
-          onClose={() => setShowModelSelection(false)}
-          onConfirm={handleModelSelectionComplete}
-          problemType={analysisResults?.problem_type || 'auto'}
-        />
-      )}
-
       {/* Results Section - Only show if analysis completed */}
       {analysisResults && (
         <div className="space-y-6">
