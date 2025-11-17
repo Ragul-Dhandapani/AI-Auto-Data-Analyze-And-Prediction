@@ -1135,6 +1135,62 @@ async def holistic_analysis(request: Dict[str, Any]):
         raise HTTPException(500, f"Analysis failed: {str(e)}")
 
 
+@router.post("/suggest-from-expectation")
+async def suggest_from_expectation(request: Dict[str, Any]):
+    """
+    Smart Selection: Suggest target and features based on user's natural language expectation
+    DOMAIN-AGNOSTIC: Works for any dataset type (IT, finance, ecommerce, food, healthcare, etc.)
+    """
+    try:
+        dataset_id = request.get("dataset_id")
+        user_expectation = request.get("user_expectation", "")
+        
+        if not user_expectation:
+            raise HTTPException(400, "user_expectation is required")
+        
+        # Load dataset
+        df = await load_dataframe(dataset_id)
+        
+        # Prepare column information
+        columns = df.columns.tolist()
+        dtypes = {col: str(df[col].dtype) for col in columns}
+        
+        # Get sample data (first row as dict)
+        sample_data = df.head(1).to_dict('records')[0] if len(df) > 0 else {}
+        
+        # Use Azure OpenAI for smart suggestions
+        azure_service = get_azure_openai_service()
+        
+        if not azure_service.is_available():
+            raise HTTPException(503, "AI suggestions require Azure OpenAI to be configured")
+        
+        logger.info(f"🧠 Generating smart selection for: '{user_expectation}'")
+        
+        suggestions = await azure_service.suggest_target_and_features(
+            user_expectation=user_expectation,
+            columns=columns,
+            dtypes=dtypes,
+            sample_data=sample_data
+        )
+        
+        logger.info(f"✅ Smart selection generated: target={suggestions.get('suggested_target')}, features={len(suggestions.get('suggested_features', []))}")
+        
+        return {
+            "success": True,
+            "suggestions": suggestions,
+            "dataset_info": {
+                "total_columns": len(columns),
+                "row_count": len(df)
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Smart selection failed: {str(e)}")
+        raise HTTPException(500, f"Failed to generate suggestions: {str(e)}")
+
+
 @router.post("/chat-action")
 async def chat_action(request: Dict[str, Any]):
     """Handle chat-based analysis actions with Azure OpenAI intelligence"""
