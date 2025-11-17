@@ -517,7 +517,7 @@ class SREForecastTester:
 
 def main():
     """Main test execution"""
-    tester = UserExpectationTester()
+    tester = SREForecastTester()
     results = tester.run_all_tests()
     
     # Exit with appropriate code
