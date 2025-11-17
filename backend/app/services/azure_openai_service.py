@@ -345,8 +345,8 @@ User can ask for:
 2. **Critical Alerts** (2-3 alerts)
    - Approaching thresholds
    - Anomaly risks
-   - Capacity concerns
-   - Use SRE terminology: SLO, error budget, latency percentiles
+   - Business/operational concerns
+   - Use domain-appropriate terminology based on detected domain
 
 3. **Actionable Recommendations** (3-4 items)
    - Preventive actions
