@@ -92,7 +92,7 @@ class SREForecastTester:
             if response.status_code == 200:
                 data = response.json()
                 dataset_id = data.get("dataset_id")
-                print(f"✅ SRE test dataset uploaded successfully: {dataset_id} (500 rows)")
+                print(f"✅ SRE test dataset uploaded successfully: {dataset_id} (200 rows)")
                 return dataset_id
             else:
                 print(f"❌ Failed to upload SRE test dataset: {response.status_code}")
