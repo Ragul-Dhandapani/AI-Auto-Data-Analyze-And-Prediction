@@ -36,35 +36,17 @@ class UserExpectationTester:
         print()
 
     def get_available_datasets(self) -> List[Dict]:
-        """Send a message to the enhanced chat endpoint"""
-        if conversation_history is None:
-            conversation_history = self.conversation_history
-            
-        payload = {
-            "message": message,
-            "dataset_id": self.dataset_id,
-            "conversation_history": conversation_history
-        }
-        
+        """Get list of available datasets"""
         try:
-            response = requests.post(
-                f"{self.backend_url}/enhanced-chat/message",
-                json=payload,
-                timeout=30
-            )
-            
+            response = requests.get(f"{self.backend_url}/datasets", timeout=10)
             if response.status_code == 200:
-                return response.json()
+                data = response.json()
+                return data.get("datasets", [])
             else:
-                return {
-                    "error": f"HTTP {response.status_code}",
-                    "details": response.text
-                }
+                return []
         except Exception as e:
-            return {
-                "error": "Request failed",
-                "details": str(e)
-            }
+            print(f"Failed to get datasets: {str(e)}")
+            return []
 
     def test_basic_endpoint_availability(self):
         """Test 1: Basic endpoint availability"""
