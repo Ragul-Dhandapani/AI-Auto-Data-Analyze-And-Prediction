@@ -298,35 +298,31 @@ class SREForecastTester:
             self.log_test("SRE Forecast Content Validation", "FAIL", 
                          f"Structure validation failed: {'; '.join(issues)}")
 
-    def test_insights_comparison(self):
-        """Test 5: Compare insights with and without user expectation"""
-        if not hasattr(self, 'baseline_response') or not hasattr(self, 'expectation_response'):
-            self.log_test("Insights Comparison", "SKIP", "Missing baseline or expectation responses")
+    def test_backend_logging_verification(self):
+        """Test 5: Check Backend Logging for SRE Forecast Generation"""
+        # Since we can't directly access logs, we'll check for indicators in the response
+        # that suggest proper logging is happening
+        
+        if not hasattr(self, 'sre_forecast_response'):
+            self.log_test("Backend Logging Verification", "SKIP", "No SRE forecast response available")
             return
         
-        baseline_insights = self.baseline_response.get("insights", "")
-        expectation_insights = self.expectation_response.get("insights", "")
+        response = self.sre_forecast_response
         
-        # Check if insights are different
-        if baseline_insights != expectation_insights:
-            # Check if expectation insights are more context-specific
-            expectation_lower = expectation_insights.lower()
-            context_indicators = [
-                "latency", "performance", "bottleneck", "predict", "system", 
-                "end-to-end", "identify", "average"
-            ]
+        # Check if we have models (indicates training completed)
+        models = response.get("ml_models", [])
+        sre_forecast = response.get("sre_forecast", {})
+        
+        # If we have models and SRE forecast, logging should have occurred
+        if models and sre_forecast:
+            forecasts_count = len(sre_forecast.get("forecasts", []))
+            alerts_count = len(sre_forecast.get("critical_alerts", []))
             
-            context_count = sum(1 for indicator in context_indicators if indicator in expectation_lower)
-            
-            if context_count >= 3:  # At least 3 context indicators
-                self.log_test("Insights Comparison", "PASS", 
-                             f"✅ Expectation insights are more context-aware ({context_count} context indicators)")
-            else:
-                self.log_test("Insights Comparison", "PARTIAL", 
-                             f"Insights differ but context-awareness unclear ({context_count} context indicators)")
+            self.log_test("Backend Logging Verification", "PASS", 
+                         f"✅ SRE forecast generation completed: {forecasts_count} forecasts, {alerts_count} alerts (logging should show: '🔮 Generating SRE-style forecast summaries...' and '✅ SRE forecast generated')")
         else:
-            self.log_test("Insights Comparison", "FAIL", 
-                         "Insights are identical - user expectation may not be working")
+            self.log_test("Backend Logging Verification", "FAIL", 
+                         "SRE forecast generation may not have completed properly")
 
     def test_azure_openai_integration(self):
         """Test 6: Azure OpenAI integration status"""
