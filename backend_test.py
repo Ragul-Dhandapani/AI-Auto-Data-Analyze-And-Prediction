@@ -511,7 +511,7 @@ class SREForecastTester:
             "failed": failed,
             "partial": partial,
             "success_rate": success_rate,
-            "expectation_working": expectation_working >= len(expectation_tests) * 0.7,
+            "sre_working": sre_working >= len(sre_tests) * 0.7,
             "ai_working": ai_working
         }
 
