@@ -563,7 +563,12 @@ Example for Food: {{"domain": "food_agriculture", "terminology": {{"metric_name"
 - Suggest 3-10 most relevant features (prioritize high correlation potential)
 - For classification: look for categorical/binary columns as targets
 - For regression: look for numeric columns as targets
-- For time series: look for date/time columns and sequential data"""
+- For time series: look for date/time columns and sequential data
+
+**Examples:**
+- "Predict food prices" → target: price, features: supply, demand, season
+- "Detect fraud in payments" → target: is_fraud, features: amount, merchant, time
+- "Predict customer churn" → target: churned, features: usage, satisfaction, tenure"""
 
             response = self.client.chat.completions.create(
                 model=self.deployment,
