@@ -61,7 +61,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const [expandedRow, setExpandedRow] = useState(null);
   const [selectedModels, setSelectedModels] = useState([]);
   const [selectionFeedback, setSelectionFeedback] = useState(null);
-  const [showModelSelection, setShowModelSelection] = useState(false);
   const [collapsed, setCollapsed] = useState({
     model_comparison: false,
     feature_importance: false,
