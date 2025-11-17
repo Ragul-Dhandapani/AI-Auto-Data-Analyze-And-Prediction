@@ -404,7 +404,6 @@ Be specific with numbers, use SRE terminology, and focus on actionable insights.
             
             # Try to parse JSON response
             try:
-                import json
                 # Extract JSON if wrapped in markdown code blocks
                 if "```json" in forecast_text:
                     forecast_text = forecast_text.split("```json")[1].split("```")[0].strip()
