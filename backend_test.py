@@ -48,240 +48,287 @@ class UserExpectationTester:
             print(f"Failed to get datasets: {str(e)}")
             return []
 
-    def test_basic_endpoint_availability(self):
-        """Test 1: Basic endpoint availability"""
+    def upload_test_dataset(self) -> str:
+        """Upload a small test dataset for testing"""
+        # Create a small CSV dataset for testing
+        test_csv_content = """cpu_usage,memory_usage,latency_ms,status
+85.2,67.4,245,success
+92.1,78.9,312,success
+76.3,45.2,189,success
+88.7,82.1,398,error
+79.4,56.8,234,success
+91.2,89.3,456,error
+73.8,41.7,167,success
+86.5,72.6,289,success
+94.3,91.2,523,error
+81.7,59.4,201,success"""
+
         try:
-            response = requests.get(f"{self.backend_url}/health", timeout=10)
-            if response.status_code == 200:
-                self.log_test("Basic Endpoint Availability", "PASS", "Backend is accessible")
-            else:
-                self.log_test("Basic Endpoint Availability", "FAIL", f"Backend returned {response.status_code}")
-        except Exception as e:
-            self.log_test("Basic Endpoint Availability", "FAIL", f"Cannot reach backend: {str(e)}")
-
-    def test_chat_without_history(self):
-        """Test 2: Chat without conversation history"""
-        message = "Show me outliers in the data"
-        response = self.send_chat_message(message, [])
-        
-        if "error" in response:
-            self.log_test("Chat Without History", "FAIL", f"Error: {response['error']}", response)
-            return None
-        
-        if "response" in response and len(response["response"]) > 0:
-            self.log_test("Chat Without History", "PASS", f"Got response: {response['response'][:100]}...")
-            # Store this message in conversation history for next test
-            self.conversation_history.append({
-                "role": "user",
-                "message": message
-            })
-            self.conversation_history.append({
-                "role": "assistant", 
-                "response": response["response"]
-            })
-            return response
-        else:
-            self.log_test("Chat Without History", "FAIL", "No response received", response)
-            return None
-
-    def test_context_aware_follow_up(self):
-        """Test 3: Context-aware follow-up question"""
-        if not self.conversation_history:
-            self.log_test("Context-Aware Follow-up", "SKIP", "No conversation history available")
-            return
+            files = {
+                'file': ('test_latency_data.csv', test_csv_content, 'text/csv')
+            }
             
-        # Ask a follow-up question that requires context from previous conversation
-        follow_up_message = "What does outlier mean?"
-        response = self.send_chat_message(follow_up_message)
-        
-        if "error" in response:
-            self.log_test("Context-Aware Follow-up", "FAIL", f"Error: {response['error']}", response)
-            return
-        
-        if "response" in response:
-            response_text = response["response"].lower()
-            # Check if the response shows context awareness
-            context_indicators = [
-                "outlier", "anomaly", "unusual", "deviation", "data point",
-                "previous", "mentioned", "discussed", "context"
-            ]
-            
-            has_context = any(indicator in response_text for indicator in context_indicators)
-            
-            if has_context:
-                self.log_test("Context-Aware Follow-up", "PASS", 
-                             f"Response shows context awareness: {response['response'][:150]}...")
-                # Add to conversation history
-                self.conversation_history.append({
-                    "role": "user",
-                    "message": follow_up_message
-                })
-                self.conversation_history.append({
-                    "role": "assistant",
-                    "response": response["response"]
-                })
-            else:
-                self.log_test("Context-Aware Follow-up", "FAIL", 
-                             f"Response lacks context awareness: {response['response'][:150]}...")
-        else:
-            self.log_test("Context-Aware Follow-up", "FAIL", "No response received", response)
-
-    def test_conversation_history_parameter(self):
-        """Test 4: Conversation history parameter handling"""
-        # Test with explicit conversation history
-        test_history = [
-            {"role": "user", "message": "Check for anomalies in latency_ms"},
-            {"role": "assistant", "response": "I found several outliers in the latency_ms column with values above 500ms."}
-        ]
-        
-        follow_up = "What causes these high latency values?"
-        response = self.send_chat_message(follow_up, test_history)
-        
-        if "error" in response:
-            self.log_test("Conversation History Parameter", "FAIL", f"Error: {response['error']}", response)
-            return
-        
-        if "response" in response and len(response["response"]) > 0:
-            # Check if response references the context about latency/outliers
-            response_text = response["response"].lower()
-            context_refs = ["latency", "outlier", "anomal", "high", "500ms", "previous"]
-            
-            has_context_ref = any(ref in response_text for ref in context_refs)
-            
-            if has_context_ref:
-                self.log_test("Conversation History Parameter", "PASS", 
-                             f"Response uses conversation history: {response['response'][:150]}...")
-            else:
-                self.log_test("Conversation History Parameter", "PARTIAL", 
-                             f"Response may not fully use history: {response['response'][:150]}...")
-        else:
-            self.log_test("Conversation History Parameter", "FAIL", "No response received", response)
-
-    def test_dataset_awareness(self):
-        """Test 5: Dataset awareness in responses"""
-        message = "What columns are available in this dataset?"
-        response = self.send_chat_message(message, [])
-        
-        if "error" in response:
-            self.log_test("Dataset Awareness", "FAIL", f"Error: {response['error']}", response)
-            return
-        
-        if "response" in response:
-            response_text = response["response"].lower()
-            # Check for expected columns from application_latency.csv
-            expected_columns = ["latency_ms", "service_name", "endpoint", "region", "cpu_utilization"]
-            
-            column_mentions = sum(1 for col in expected_columns if col.lower() in response_text)
-            
-            if column_mentions >= 2:
-                self.log_test("Dataset Awareness", "PASS", 
-                             f"Response mentions dataset columns: {response['response'][:150]}...")
-            else:
-                self.log_test("Dataset Awareness", "PARTIAL", 
-                             f"Limited dataset awareness: {response['response'][:150]}...")
-        else:
-            self.log_test("Dataset Awareness", "FAIL", "No response received", response)
-
-    def test_error_handling(self):
-        """Test 6: Error handling with invalid dataset"""
-        invalid_payload = {
-            "message": "Test message",
-            "dataset_id": "invalid-dataset-id",
-            "conversation_history": []
-        }
-        
-        try:
             response = requests.post(
-                f"{self.backend_url}/enhanced-chat/message",
-                json=invalid_payload,
-                timeout=10
+                f"{self.backend_url}/datasource/upload",
+                files=files,
+                timeout=30
             )
             
             if response.status_code == 200:
                 data = response.json()
-                if "response" in data and ("not found" in data["response"].lower() or "error" in data["response"].lower()):
-                    self.log_test("Error Handling", "PASS", "Proper error handling for invalid dataset")
-                else:
-                    self.log_test("Error Handling", "PARTIAL", f"Unexpected response: {data}")
+                dataset_id = data.get("dataset_id")
+                print(f"✅ Test dataset uploaded successfully: {dataset_id}")
+                return dataset_id
             else:
-                self.log_test("Error Handling", "PASS", f"Proper HTTP error code: {response.status_code}")
+                print(f"❌ Failed to upload test dataset: {response.status_code}")
+                return None
                 
         except Exception as e:
-            self.log_test("Error Handling", "FAIL", f"Exception during error test: {str(e)}")
+            print(f"❌ Exception during dataset upload: {str(e)}")
+            return None
+
+    def run_holistic_analysis(self, dataset_id: str, user_selection: Dict = None) -> Dict:
+        """Run holistic analysis with optional user selection"""
+        payload = {
+            "dataset_id": dataset_id,
+            "workspace_name": "test_workspace_user_expectation",
+            "problem_type": "auto"
+        }
+        
+        if user_selection:
+            payload["user_selection"] = user_selection
+        
+        try:
+            response = requests.post(
+                f"{self.backend_url}/analysis/holistic",
+                json=payload,
+                timeout=60  # Longer timeout for analysis
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {
+                    "error": f"HTTP {response.status_code}",
+                    "details": response.text
+                }
+        except Exception as e:
+            return {
+                "error": "Request failed",
+                "details": str(e)
+            }
+
+    def test_setup_dataset(self):
+        """Test 1: Setup test dataset"""
+        # First try to find existing dataset
+        datasets = self.get_available_datasets()
+        
+        # Look for a suitable dataset (preferably with latency data)
+        suitable_dataset = None
+        for dataset in datasets:
+            name = dataset.get("name", "").lower()
+            if "latency" in name or "performance" in name or "cpu" in name:
+                suitable_dataset = dataset
+                break
+        
+        if suitable_dataset:
+            self.test_dataset_id = suitable_dataset.get("id")
+            self.log_test("Setup Test Dataset", "PASS", 
+                         f"Using existing dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id})")
+        else:
+            # Upload test dataset
+            self.test_dataset_id = self.upload_test_dataset()
+            if self.test_dataset_id:
+                self.log_test("Setup Test Dataset", "PASS", 
+                             f"Uploaded new test dataset (ID: {self.test_dataset_id})")
+            else:
+                self.log_test("Setup Test Dataset", "FAIL", "Could not setup test dataset")
+
+    def test_analysis_without_user_expectation(self):
+        """Test 2: Analysis WITHOUT user expectation (baseline)"""
+        if not self.test_dataset_id:
+            self.log_test("Analysis Without User Expectation", "SKIP", "No test dataset available")
+            return None
+        
+        print("🔍 Running baseline analysis without user expectation...")
+        response = self.run_holistic_analysis(self.test_dataset_id)
+        
+        if "error" in response:
+            self.log_test("Analysis Without User Expectation", "FAIL", 
+                         f"Error: {response['error']}", response)
+            return None
+        
+        # Check if analysis completed successfully
+        if "insights" in response and "ml_models" in response:
+            insights = response.get("insights", "")
+            models = response.get("ml_models", [])
+            
+            self.log_test("Analysis Without User Expectation", "PASS", 
+                         f"Analysis completed. Generated {len(models)} models and insights ({len(insights)} chars)")
+            
+            # Store baseline for comparison
+            self.baseline_response = response
+            return response
+        else:
+            self.log_test("Analysis Without User Expectation", "FAIL", 
+                         "Analysis did not return expected results", response)
+            return None
+
+    def test_analysis_with_user_expectation(self):
+        """Test 3: Analysis WITH user expectation (new feature)"""
+        if not self.test_dataset_id:
+            self.log_test("Analysis With User Expectation", "SKIP", "No test dataset available")
+            return None
+        
+        # Define user selection with expectation
+        user_selection = {
+            "target_variable": "latency_ms",
+            "selected_features": ["cpu_usage", "memory_usage"],
+            "mode": "manual",
+            "user_expectation": "I want to predict average end-to-end latency to identify performance bottlenecks in our system"
+        }
+        
+        print("🔍 Running analysis WITH user expectation...")
+        response = self.run_holistic_analysis(self.test_dataset_id, user_selection)
+        
+        if "error" in response:
+            self.log_test("Analysis With User Expectation", "FAIL", 
+                         f"Error: {response['error']}", response)
+            return None
+        
+        # Check if analysis completed successfully
+        if "insights" in response and "ml_models" in response:
+            insights = response.get("insights", "")
+            models = response.get("ml_models", [])
+            
+            # CRITICAL: Check if insights mention performance bottlenecks or latency prediction
+            insights_lower = insights.lower()
+            context_keywords = [
+                "performance bottleneck", "bottleneck", "latency prediction", 
+                "end-to-end latency", "system performance", "predict latency"
+            ]
+            
+            context_found = any(keyword in insights_lower for keyword in context_keywords)
+            
+            if context_found:
+                self.log_test("Analysis With User Expectation", "PASS", 
+                             f"✅ CONTEXT-AWARE: Insights mention user's goal. Generated {len(models)} models.")
+                
+                # Log which keywords were found
+                found_keywords = [kw for kw in context_keywords if kw in insights_lower]
+                print(f"   🎯 Context keywords found: {found_keywords}")
+                
+            else:
+                self.log_test("Analysis With User Expectation", "PARTIAL", 
+                             f"Analysis completed but insights may not be context-aware. Generated {len(models)} models.")
+            
+            # Store for comparison
+            self.expectation_response = response
+            return response
+        else:
+            self.log_test("Analysis With User Expectation", "FAIL", 
+                         "Analysis did not return expected results", response)
+            return None
+
+    def test_backend_logging_verification(self):
+        """Test 4: Backend logging verification"""
+        # This test checks if the backend logs show user expectation tracking
+        # Since we can't directly access logs, we'll check the response structure
+        
+        if not hasattr(self, 'expectation_response'):
+            self.log_test("Backend Logging Verification", "SKIP", "No expectation response available")
+            return
+        
+        response = self.expectation_response
+        
+        # Check if selection_feedback indicates user expectation was processed
+        selection_feedback = response.get("selection_feedback", {})
+        
+        if selection_feedback:
+            message = selection_feedback.get("message", "")
+            status = selection_feedback.get("status", "")
+            
+            if "target" in message.lower() and status in ["used", "override"]:
+                self.log_test("Backend Logging Verification", "PASS", 
+                             f"Selection feedback indicates user expectation was processed: {status}")
+            else:
+                self.log_test("Backend Logging Verification", "PARTIAL", 
+                             f"Selection feedback present but unclear: {status}")
+        else:
+            self.log_test("Backend Logging Verification", "PARTIAL", 
+                         "No selection feedback in response (may still be working)")
+
+    def test_insights_comparison(self):
+        """Test 5: Compare insights with and without user expectation"""
+        if not hasattr(self, 'baseline_response') or not hasattr(self, 'expectation_response'):
+            self.log_test("Insights Comparison", "SKIP", "Missing baseline or expectation responses")
+            return
+        
+        baseline_insights = self.baseline_response.get("insights", "")
+        expectation_insights = self.expectation_response.get("insights", "")
+        
+        # Check if insights are different
+        if baseline_insights != expectation_insights:
+            # Check if expectation insights are more context-specific
+            expectation_lower = expectation_insights.lower()
+            context_indicators = [
+                "latency", "performance", "bottleneck", "predict", "system", 
+                "end-to-end", "identify", "average"
+            ]
+            
+            context_count = sum(1 for indicator in context_indicators if indicator in expectation_lower)
+            
+            if context_count >= 3:  # At least 3 context indicators
+                self.log_test("Insights Comparison", "PASS", 
+                             f"✅ Expectation insights are more context-aware ({context_count} context indicators)")
+            else:
+                self.log_test("Insights Comparison", "PARTIAL", 
+                             f"Insights differ but context-awareness unclear ({context_count} context indicators)")
+        else:
+            self.log_test("Insights Comparison", "FAIL", 
+                         "Insights are identical - user expectation may not be working")
 
     def test_azure_openai_integration(self):
-        """Test 7: Azure OpenAI integration (may fail if not configured)"""
-        message = "Explain the relationship between CPU utilization and latency in simple terms"
-        response = self.send_chat_message(message, [])
-        
-        if "error" in response:
-            self.log_test("Azure OpenAI Integration", "EXPECTED_FAIL", 
-                         f"Azure OpenAI may not be configured: {response['error']}")
+        """Test 6: Azure OpenAI integration status"""
+        if not hasattr(self, 'expectation_response'):
+            self.log_test("Azure OpenAI Integration", "SKIP", "No expectation response available")
             return
         
-        if "response" in response:
-            response_text = response["response"]
-            # Check for AI-like response characteristics
-            ai_indicators = ["relationship", "correlation", "generally", "typically", "because", "when"]
-            
-            has_ai_characteristics = any(indicator in response_text.lower() for indicator in ai_indicators)
-            
-            if has_ai_characteristics and len(response_text) > 50:
-                self.log_test("Azure OpenAI Integration", "PASS", 
-                             f"AI-powered response detected: {response_text[:150]}...")
-            else:
-                self.log_test("Azure OpenAI Integration", "PARTIAL", 
-                             f"Basic response (fallback mode): {response_text[:150]}...")
+        insights = self.expectation_response.get("insights", "")
+        
+        # Check for AI-generated content characteristics
+        ai_indicators = [
+            "recommendation", "analysis", "findings", "performance", 
+            "model", "data", "business", "actionable"
+        ]
+        
+        ai_score = sum(1 for indicator in ai_indicators if indicator.lower() in insights.lower())
+        
+        if ai_score >= 4 and len(insights) > 200:
+            self.log_test("Azure OpenAI Integration", "PASS", 
+                         f"✅ AI-powered insights detected (score: {ai_score}/8, length: {len(insights)} chars)")
+        elif len(insights) > 50:
+            self.log_test("Azure OpenAI Integration", "PARTIAL", 
+                         f"Basic insights generated (score: {ai_score}/8, length: {len(insights)} chars)")
         else:
-            self.log_test("Azure OpenAI Integration", "FAIL", "No response received", response)
+            self.log_test("Azure OpenAI Integration", "FAIL", 
+                         "Minimal or no insights generated - Azure OpenAI may not be configured")
 
-    def test_conversation_context_limit(self):
-        """Test 8: Conversation context limit handling"""
-        # Create a long conversation history (more than 5 messages)
-        long_history = []
-        for i in range(10):
-            long_history.append({
-                "role": "user",
-                "message": f"Question {i+1}: Tell me about metric {i+1}"
-            })
-            long_history.append({
-                "role": "assistant", 
-                "response": f"Response {i+1}: Here's information about metric {i+1}"
-            })
-        
-        # Add a specific context message at the end
-        long_history.append({
-            "role": "user",
-            "message": "The latency spikes are concerning in the payment service"
-        })
-        long_history.append({
-            "role": "assistant",
-            "response": "Yes, I see the payment service latency spikes above 200ms which could impact user experience"
-        })
-        
-        # Ask a follow-up that should reference recent context
-        follow_up = "What should we do about those payment service issues?"
-        response = self.send_chat_message(follow_up, long_history)
-        
-        if "error" in response:
-            self.log_test("Conversation Context Limit", "FAIL", f"Error: {response['error']}", response)
+    def test_error_handling(self):
+        """Test 7: Error handling with invalid parameters"""
+        if not self.test_dataset_id:
+            self.log_test("Error Handling", "SKIP", "No test dataset available")
             return
         
-        if "response" in response:
-            response_text = response["response"].lower()
-            # Check if it references recent context (payment service)
-            recent_context = ["payment", "latency", "spike", "200ms", "service"]
-            
-            has_recent_context = any(ctx in response_text for ctx in recent_context)
-            
-            if has_recent_context:
-                self.log_test("Conversation Context Limit", "PASS", 
-                             f"Handles long history and uses recent context: {response['response'][:150]}...")
-            else:
-                self.log_test("Conversation Context Limit", "PARTIAL", 
-                             f"May not use recent context from long history: {response['response'][:150]}...")
+        # Test with invalid dataset ID
+        invalid_response = self.run_holistic_analysis("invalid-dataset-id")
+        
+        if "error" in invalid_response:
+            self.log_test("Error Handling", "PASS", 
+                         f"Proper error handling for invalid dataset: {invalid_response['error']}")
         else:
-            self.log_test("Conversation Context Limit", "FAIL", "No response received", response)
+            self.log_test("Error Handling", "FAIL", 
+                         "No error returned for invalid dataset ID")
 
     def run_all_tests(self):
         """Run all tests in sequence"""
