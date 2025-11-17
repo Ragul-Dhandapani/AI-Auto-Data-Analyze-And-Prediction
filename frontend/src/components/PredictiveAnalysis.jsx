@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { TrendingUp, Activity, BarChart3, Target, Zap, LineChart, AlertCircle, CheckCircle, Info, Brain, ChevronDown, ChevronUp, Code, Download, Eye } from "lucide-react";
-import ModelSelectionPanel from "./ModelSelectionPanel";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
