@@ -390,19 +390,19 @@ User can ask for:
 
 **Output Format (JSON):**
 {{
+  "feature_influence": "{target_column} is primarily influenced by feature_name1 (XX%) and feature_name2 (YY%)",
   "forecasts": [
-    {{"timeframe": "7 days", "prediction": "Latency will increase by 12%", "value": "145ms", "confidence": "high"}},
-    {{"timeframe": "30 days", "prediction": "...", "value": "...", "confidence": "medium"}},
-    {{"timeframe": "90 days", "prediction": "...", "value": "...", "confidence": "low"}}
+    {{"timeframe": "7 days", "prediction": "Specific prediction about {target_column}", "value": "XX units", "confidence": "high", "threshold_status": "within acceptable range"}},
+    {{"timeframe": "30 days", "prediction": "...", "value": "...", "confidence": "medium", "threshold_status": "..."}},
+    {{"timeframe": "90 days", "prediction": "...", "value": "...", "confidence": "low", "threshold_status": "..."}}
+  ],
+  "good_news": [
+    {{"message": "{target_column} is forecasted to remain under XXX for next 14 days with 95% confidence", "period": "14 days"}},
+    {{"message": "Optimal performance expected between...", "period": "..."}}
   ],
   "critical_alerts": [
-    {{"severity": "high", "alert": "Approaching p95 latency SLO threshold (200ms) by end of month"}},
+    {{"severity": "high", "alert": "Specific alert with actual values"}},
     {{"severity": "medium", "alert": "..."}}
-  ],
-  "recommendations": [
-    {{"priority": "high", "action": "Implement caching layer to reduce latency by 30%"}},
-    {{"priority": "medium", "action": "..."}},
-    {{"priority": "low", "action": "..."}}
   ]
 }}
 
