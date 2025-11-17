@@ -1158,8 +1158,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             </Card>
           )}
 
-          {/* AI Insights */}
-          {analysisResults.insights && (
+          {/* AI Insights with Outlier Detection */}
+          {(analysisResults.insights || (analysisResults.ai_insights && analysisResults.ai_insights.length > 0)) && (
             <Card className="border-l-4 border-l-orange-500">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1167,13 +1167,40 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                   AI-Powered Insights
                 </CardTitle>
                 <CardDescription>
-                  Key findings and recommendations from Azure OpenAI
+                  Key findings, outlier detection, and recommendations from Azure OpenAI
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm max-w-none">
-                  <div className="whitespace-pre-wrap text-gray-700">{analysisResults.insights}</div>
-                </div>
+                {/* Outlier Detection Cards */}
+                {analysisResults.ai_insights && analysisResults.ai_insights.length > 0 && (
+                  <div className="grid md:grid-cols-2 gap-4 mb-6">
+                    {analysisResults.ai_insights.filter(insight => insight.type === 'outlier_detection').map((insight, idx) => (
+                      <div key={idx} className="p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                        <div className="flex items-start gap-2 mb-2">
+                          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-800">{insight.title}</h4>
+                            <p className="text-sm text-gray-700 mt-1">{insight.description}</p>
+                          </div>
+                        </div>
+                        {insight.details && (
+                          <div className="mt-3 p-3 bg-white rounded border border-yellow-200">
+                            <p className="text-xs text-gray-600">
+                              <strong>💡 Tip:</strong> {insight.details}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* General AI Insights Text */}
+                {analysisResults.insights && (
+                  <div className="prose prose-sm max-w-none">
+                    <div className="whitespace-pre-wrap text-gray-700">{analysisResults.insights}</div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
