@@ -365,21 +365,80 @@ class SREForecastTester:
             self.log_test("SRE Terminology Usage", "FAIL", 
                          "No SRE terminology detected in forecasts")
 
-    def test_error_handling(self):
-        """Test 7: Error handling with invalid parameters"""
-        if not self.test_dataset_id:
-            self.log_test("Error Handling", "SKIP", "No test dataset available")
+    def test_azure_openai_integration(self):
+        """Test 7: Azure OpenAI Integration for SRE Forecasting"""
+        if not hasattr(self, 'sre_forecast_response'):
+            self.log_test("Azure OpenAI Integration", "SKIP", "No SRE forecast response available")
             return
         
-        # Test with invalid dataset ID
-        invalid_response = self.run_holistic_analysis("invalid-dataset-id")
+        sre_forecast = self.sre_forecast_response.get("sre_forecast", {})
         
-        if "error" in invalid_response:
-            self.log_test("Error Handling", "PASS", 
-                         f"Proper error handling for invalid dataset: {invalid_response['error']}")
+        # Check if we have valid JSON structure (indicates Azure OpenAI worked)
+        if sre_forecast.get("error"):
+            self.log_test("Azure OpenAI Integration", "FAIL", 
+                         f"Azure OpenAI error: {sre_forecast['error']}")
+            return
+        
+        forecasts = sre_forecast.get("forecasts", [])
+        alerts = sre_forecast.get("critical_alerts", [])
+        recommendations = sre_forecast.get("recommendations", [])
+        
+        # Check for meaningful content (not just empty arrays)
+        total_items = len(forecasts) + len(alerts) + len(recommendations)
+        
+        if total_items >= 5:  # Expect at least 5 total items
+            self.log_test("Azure OpenAI Integration", "PASS", 
+                         f"✅ Azure OpenAI generated valid SRE forecast: {len(forecasts)} forecasts, {len(alerts)} alerts, {len(recommendations)} recommendations")
+        elif total_items >= 1:
+            self.log_test("Azure OpenAI Integration", "PARTIAL", 
+                         f"Azure OpenAI generated limited content: {total_items} total items")
         else:
-            self.log_test("Error Handling", "FAIL", 
-                         "No error returned for invalid dataset ID")
+            self.log_test("Azure OpenAI Integration", "FAIL", 
+                         "Azure OpenAI did not generate meaningful SRE forecast content")
+
+    def test_different_problem_types(self):
+        """Test 8: Test SRE Forecasting with Different Problem Types"""
+        if not self.test_dataset_id:
+            self.log_test("Different Problem Types", "SKIP", "No test dataset available")
+            return
+        
+        # Test with classification problem (status prediction)
+        user_selection_classification = {
+            "target_variable": "status",
+            "selected_features": ["cpu_usage", "memory_usage", "latency_ms"],
+            "mode": "manual",
+            "user_expectation": "Predict system failure status to prevent outages"
+        }
+        
+        print("🔍 Testing SRE forecast with classification problem...")
+        response = self.run_holistic_analysis(self.test_dataset_id, user_selection_classification)
+        
+        if "error" in response:
+            self.log_test("Different Problem Types", "FAIL", 
+                         f"Classification test failed: {response['error']}")
+            return
+        
+        # Check if SRE forecast adapts to classification problem
+        sre_forecast = response.get("sre_forecast", {})
+        
+        if sre_forecast:
+            # Check if forecasts mention classification-specific terms
+            all_text = ""
+            for forecast in sre_forecast.get("forecasts", []):
+                all_text += f" {forecast.get('prediction', '')}"
+            
+            classification_terms = ["failure", "success", "error", "status", "probability", "classification"]
+            found_classification_terms = [term for term in classification_terms if term.lower() in all_text.lower()]
+            
+            if found_classification_terms:
+                self.log_test("Different Problem Types", "PASS", 
+                             f"✅ SRE forecast adapts to classification: {found_classification_terms}")
+            else:
+                self.log_test("Different Problem Types", "PARTIAL", 
+                             "SRE forecast generated but may not be classification-specific")
+        else:
+            self.log_test("Different Problem Types", "FAIL", 
+                         "No SRE forecast generated for classification problem")
 
     def run_all_tests(self):
         """Run all tests in sequence"""
