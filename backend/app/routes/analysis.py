@@ -1110,6 +1110,23 @@ async def holistic_analysis(request: Dict[str, Any]):
         if selection_feedback:
             response["selection_feedback"] = selection_feedback
         
+        # PHASE 3: Generate SRE-style forecasting summaries
+        sre_forecast = {}
+        if all_models and len(all_models) > 0 and target_cols:
+            try:
+                logger.info("🔮 Generating SRE-style forecast summaries...")
+                sre_forecast = await azure_service.generate_sre_forecast(
+                    model_results=models_result,
+                    data_summary=data_summary,
+                    target_column=target_cols[0] if target_cols else "unknown",
+                    user_expectation=user_expectation
+                )
+                if sre_forecast and not sre_forecast.get('error'):
+                    response["sre_forecast"] = sre_forecast
+                    logger.info(f"✅ SRE forecast generated: {len(sre_forecast.get('forecasts', []))} forecasts, {len(sre_forecast.get('critical_alerts', []))} alerts")
+            except Exception as e:
+                logger.error(f"Failed to generate SRE forecast: {str(e)}")
+        
         return response
         
     except HTTPException:
