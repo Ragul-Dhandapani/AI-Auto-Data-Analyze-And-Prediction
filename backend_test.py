@@ -324,31 +324,46 @@ class SREForecastTester:
             self.log_test("Backend Logging Verification", "FAIL", 
                          "SRE forecast generation may not have completed properly")
 
-    def test_azure_openai_integration(self):
-        """Test 6: Azure OpenAI integration status"""
-        if not hasattr(self, 'expectation_response'):
-            self.log_test("Azure OpenAI Integration", "SKIP", "No expectation response available")
+    def test_sre_terminology_usage(self):
+        """Test 6: Verify SRE Terminology is Used in Forecasts"""
+        if not hasattr(self, 'sre_forecast_response'):
+            self.log_test("SRE Terminology Usage", "SKIP", "No SRE forecast response available")
             return
         
-        insights = self.expectation_response.get("insights", "")
+        sre_forecast = self.sre_forecast_response.get("sre_forecast", {})
         
-        # Check for AI-generated content characteristics
-        ai_indicators = [
-            "recommendation", "analysis", "findings", "performance", 
-            "model", "data", "business", "actionable"
+        # Collect all text from forecasts, alerts, and recommendations
+        all_text = ""
+        
+        for forecast in sre_forecast.get("forecasts", []):
+            all_text += f" {forecast.get('prediction', '')} {forecast.get('value', '')}"
+        
+        for alert in sre_forecast.get("critical_alerts", []):
+            all_text += f" {alert.get('alert', '')}"
+        
+        for rec in sre_forecast.get("recommendations", []):
+            all_text += f" {rec.get('action', '')}"
+        
+        all_text = all_text.lower()
+        
+        # Check for SRE terminology
+        sre_terms = [
+            "slo", "latency", "threshold", "percentile", "p95", "p99", 
+            "error budget", "capacity", "performance", "monitoring", 
+            "reliability", "availability", "degradation", "optimization"
         ]
         
-        ai_score = sum(1 for indicator in ai_indicators if indicator.lower() in insights.lower())
+        found_terms = [term for term in sre_terms if term in all_text]
         
-        if ai_score >= 4 and len(insights) > 200:
-            self.log_test("Azure OpenAI Integration", "PASS", 
-                         f"✅ AI-powered insights detected (score: {ai_score}/8, length: {len(insights)} chars)")
-        elif len(insights) > 50:
-            self.log_test("Azure OpenAI Integration", "PARTIAL", 
-                         f"Basic insights generated (score: {ai_score}/8, length: {len(insights)} chars)")
+        if len(found_terms) >= 3:
+            self.log_test("SRE Terminology Usage", "PASS", 
+                         f"✅ SRE terminology detected: {found_terms}")
+        elif len(found_terms) >= 1:
+            self.log_test("SRE Terminology Usage", "PARTIAL", 
+                         f"Some SRE terminology found: {found_terms}")
         else:
-            self.log_test("Azure OpenAI Integration", "FAIL", 
-                         "Minimal or no insights generated - Azure OpenAI may not be configured")
+            self.log_test("SRE Terminology Usage", "FAIL", 
+                         "No SRE terminology detected in forecasts")
 
     def test_error_handling(self):
         """Test 7: Error handling with invalid parameters"""
