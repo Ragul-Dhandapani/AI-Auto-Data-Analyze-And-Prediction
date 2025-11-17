@@ -340,6 +340,20 @@ User can ask for:
             model_name = best_model.get('model_name', 'Unknown')
             score = best_model.get('r2_score') or best_model.get('accuracy', 0)
             
+            # Get feature importance for intelligent insights
+            top_features = []
+            if model_results.get('ml_models') and len(model_results['ml_models']) > 0:
+                best_ml_model = model_results['ml_models'][0]
+                if best_ml_model.get('feature_importance'):
+                    feature_imp = best_ml_model['feature_importance']
+                    sorted_features = sorted(feature_imp.items(), key=lambda x: x[1], reverse=True)
+                    top_features = [(feat, imp) for feat, imp in sorted_features[:5]]
+            
+            feature_context = ""
+            if top_features:
+                feature_list = ", ".join([f"{feat} ({imp*100:.1f}%)" for feat, imp in top_features])
+                feature_context = f"\n\n**Top Influencing Features:** {feature_list}"
+            
             prompt = f"""You are an expert {expert_role}.{user_context}
 
 **Prediction Context:**
@@ -347,10 +361,11 @@ User can ask for:
 - Best Model: {model_name} (Score: {score:.2%})
 - Dataset Size: {data_summary.get('row_count', 'N/A')} records
 - Problem Type: {model_results.get('problem_type', 'regression')}
-- Domain: {domain}
+- Domain: {domain}{feature_context}
 
-**Task:** Generate domain-adapted forecasting insights with:
+**Task:** Generate INTELLIGENT, DATA-DRIVEN forecasting insights with:
 **IMPORTANT:** {terminology_guide}
+**CRITICAL:** Generate insights that are SPECIFIC to this target variable ({target_column}) and its influencing features.
 
 1. **Trend Analysis** (3 forecasts)
    - Next 7 days prediction
