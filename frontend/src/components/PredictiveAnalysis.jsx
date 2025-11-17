@@ -2007,19 +2007,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
-      {/* Forecasting & Predictive Insights - NEW SECTION */}
-      {analysisResults.sre_forecast && !collapsed.sre_forecast && (
+      {/* Forecasting & Predictive Insights - WITH TABS FOR EACH MODEL */}
+      {analysisResults.sre_forecast && analysisResults.ml_models && analysisResults.ml_models.length > 0 && !collapsed.sre_forecast && (
         <Card id="forecasting-section" className="p-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-l-cyan-500">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">🔮 Forecasting & Predictive Insights</h3>
               <p className="text-sm text-gray-600 italic mt-1">
                 Forward-looking predictions based on trained ML models
-                {analysisResults.ml_models && analysisResults.ml_models[0] && (
-                  <span className="ml-2 font-semibold text-cyan-700">
-                    • Using: {analysisResults.ml_models[0].model_name}
-                  </span>
-                )}
               </p>
             </div>
             <Button onClick={() => toggleSection('sre_forecast')} variant="ghost" size="sm">
@@ -2027,120 +2022,106 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             </Button>
           </div>
 
-          {/* Feature Context - Shows which features predictions are based on */}
-          {analysisResults.ml_models && analysisResults.ml_models[0] && analysisResults.ml_models[0].feature_importance && (
-            <div className="mb-4 p-4 bg-white rounded-lg border border-cyan-200">
-              <p className="text-sm font-semibold text-gray-700 mb-3">📊 Predictions Based On These Features:</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(analysisResults.ml_models[0].feature_importance)
-                  .sort(([,a], [,b]) => b - a)
-                  .slice(0, 8)
-                  .map(([feature, importance], idx) => (
-                    <span key={idx} className="text-xs bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full font-medium">
-                      {feature} ({(importance * 100).toFixed(1)}% influence)
-                    </span>
-                  ))}
-              </div>
-              {Object.keys(analysisResults.ml_models[0].feature_importance).length > 8 && (
-                <p className="text-xs text-gray-500 mt-2">
-                  +{Object.keys(analysisResults.ml_models[0].feature_importance).length - 8} more features analyzed
-                </p>
-              )}
-            </div>
-          )}
-          
-          {/* Forecasts */}
-          {analysisResults.sre_forecast.forecasts && analysisResults.sre_forecast.forecasts.length > 0 && (
-            <div className="mb-6">
-              <h4 className="font-semibold text-gray-800 mb-3">📈 Trend Predictions</h4>
-              <div className="grid md:grid-cols-3 gap-4">
-                {analysisResults.sre_forecast.forecasts.map((forecast, idx) => (
-                  <div key={idx} className="p-4 bg-white rounded-lg border-2 border-cyan-200">
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="text-xs font-semibold text-cyan-700 uppercase">{forecast.timeframe}</span>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        forecast.confidence === 'high' ? 'bg-green-100 text-green-700' :
-                        forecast.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {forecast.confidence} confidence
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-2">{forecast.prediction}</p>
-                    {forecast.value && forecast.value !== 'N/A' && (
-                      <p className="text-lg font-bold text-cyan-600">{forecast.value}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Tabs for each ML model */}
+          <Tabs defaultValue={analysisResults.ml_models[0].model_name} className="w-full">
+            <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${Math.min(analysisResults.ml_models.length, 4)}, 1fr)`}}>
+              {analysisResults.ml_models.slice(0, 4).map((model) => (
+                <TabsTrigger key={model.model_name} value={model.model_name} className="text-xs">
+                  {model.model_name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-          {/* Critical Alerts */}
-          {analysisResults.sre_forecast.critical_alerts && analysisResults.sre_forecast.critical_alerts.length > 0 && (
-            <div className="mb-6">
-              <h4 className="font-semibold text-gray-800 mb-3">⚠️ Critical Alerts</h4>
-              <div className="space-y-2">
-                {analysisResults.sre_forecast.critical_alerts.map((alert, idx) => (
-                  <div key={idx} className={`p-3 rounded-lg border-l-4 ${
-                    alert.severity === 'high' ? 'bg-red-50 border-red-500' :
-                    alert.severity === 'medium' ? 'bg-orange-50 border-orange-500' :
-                    'bg-yellow-50 border-yellow-500'
-                  }`}>
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className={`w-5 h-5 mt-0.5 ${
-                        alert.severity === 'high' ? 'text-red-600' :
-                        alert.severity === 'medium' ? 'text-orange-600' :
-                        'text-yellow-600'
-                      }`} />
-                      <div className="flex-1">
-                        <span className={`text-xs font-semibold uppercase ${
-                          alert.severity === 'high' ? 'text-red-700' :
-                          alert.severity === 'medium' ? 'text-orange-700' :
-                          'text-yellow-700'
-                        }`}>
-                          {alert.severity} severity
-                        </span>
-                        <p className="text-sm text-gray-700 mt-1">{alert.alert}</p>
+            {analysisResults.ml_models.map((model) => (
+              <TabsContent key={model.model_name} value={model.model_name}>
+                <div className="bg-white rounded-lg p-4 border border-cyan-200">
+                  
+                  {/* Feature Context - Shows which features predictions are based on */}
+                  {model.feature_importance && Object.keys(model.feature_importance).length > 0 && (
+                    <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                      <p className="text-sm font-semibold text-gray-700 mb-3">📊 Predictions Based On These Features:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(model.feature_importance)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 8)
+                          .map(([feature, importance], idx) => (
+                            <span key={idx} className="text-xs bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full font-medium">
+                              {feature} ({(importance * 100).toFixed(1)}% influence)
+                            </span>
+                          ))}
+                      </div>
+                      {Object.keys(model.feature_importance).length > 8 && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          +{Object.keys(model.feature_importance).length - 8} more features analyzed
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Forecasts */}
+                  {analysisResults.sre_forecast.forecasts && analysisResults.sre_forecast.forecasts.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-gray-800 mb-3">📈 Trend Predictions (Using {model.model_name})</h4>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {analysisResults.sre_forecast.forecasts.map((forecast, idx) => (
+                          <div key={idx} className="p-4 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg border-2 border-cyan-200">
+                            <div className="flex items-start justify-between mb-2">
+                              <span className="text-xs font-semibold text-cyan-700 uppercase">{forecast.timeframe}</span>
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                forecast.confidence === 'high' ? 'bg-green-100 text-green-700' :
+                                forecast.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {forecast.confidence} confidence
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 mb-2">{forecast.prediction}</p>
+                            {forecast.value && forecast.value !== 'N/A' && (
+                              <p className="text-lg font-bold text-cyan-600">{forecast.value}</p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  )}
 
-          {/* Recommendations */}
-          {analysisResults.sre_forecast.recommendations && analysisResults.sre_forecast.recommendations.length > 0 && (
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-3">💡 Actionable Recommendations</h4>
-              <div className="space-y-2">
-                {analysisResults.sre_forecast.recommendations.map((rec, idx) => (
-                  <div key={idx} className="p-3 bg-white rounded-lg border border-gray-200 hover:border-cyan-300 transition-colors">
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className={`w-5 h-5 mt-0.5 ${
-                        rec.priority === 'high' ? 'text-red-600' :
-                        rec.priority === 'medium' ? 'text-yellow-600' :
-                        'text-gray-600'
-                      }`} />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
-                            rec.priority === 'high' ? 'bg-red-100 text-red-700' :
-                            rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-gray-100 text-gray-700'
+                  {/* Critical Alerts */}
+                  {analysisResults.sre_forecast.critical_alerts && analysisResults.sre_forecast.critical_alerts.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-3">⚠️ Critical Alerts</h4>
+                      <div className="space-y-2">
+                        {analysisResults.sre_forecast.critical_alerts.map((alert, idx) => (
+                          <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                            alert.severity === 'high' ? 'bg-red-50 border-red-500' :
+                            alert.severity === 'medium' ? 'bg-orange-50 border-orange-500' :
+                            'bg-yellow-50 border-yellow-500'
                           }`}>
-                            {rec.priority} priority
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700">{rec.action}</p>
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className={`w-5 h-5 mt-0.5 ${
+                                alert.severity === 'high' ? 'text-red-600' :
+                                alert.severity === 'medium' ? 'text-orange-600' :
+                                'text-yellow-600'
+                              }`} />
+                              <div className="flex-1">
+                                <span className={`text-xs font-semibold uppercase ${
+                                  alert.severity === 'high' ? 'text-red-700' :
+                                  alert.severity === 'medium' ? 'text-orange-700' :
+                                  'text-yellow-700'
+                                }`}>
+                                  {alert.severity} severity
+                                </span>
+                                <p className="text-sm text-gray-700 mt-1">{alert.alert}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  )}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </Card>
       )}
 
