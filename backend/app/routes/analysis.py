@@ -1124,6 +1124,10 @@ async def holistic_analysis(request: Dict[str, Any]):
         if selection_feedback:
             response["selection_feedback"] = selection_feedback
         
+        # Add user expectation to response for frontend display/storage
+        if user_expectation:
+            response["user_expectation"] = user_expectation
+        
         # PHASE 3: Generate domain-adapted forecasting summaries
         sre_forecast = {}
         if all_models and len(all_models) > 0 and target_cols:
