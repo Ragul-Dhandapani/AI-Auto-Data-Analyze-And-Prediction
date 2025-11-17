@@ -49,19 +49,41 @@ class SREForecastTester:
             return []
 
     def upload_test_dataset(self) -> str:
-        """Upload a small test dataset for testing"""
-        # Create a small CSV dataset for testing
-        test_csv_content = """cpu_usage,memory_usage,latency_ms,status
-85.2,67.4,245,success
-92.1,78.9,312,success
-76.3,45.2,189,success
-88.7,82.1,398,error
-79.4,56.8,234,success
-91.2,89.3,456,error
-73.8,41.7,167,success
-86.5,72.6,289,success
-94.3,91.2,523,error
-81.7,59.4,201,success"""
+        """Upload a larger test dataset for SRE forecasting testing"""
+        # Create a larger CSV dataset with enough data for ML training
+        import random
+        import io
+        
+        # Generate realistic latency data for SRE forecasting
+        csv_lines = ["timestamp,service_name,endpoint,region,latency_ms,cpu_utilization,memory_usage_mb,status_code,error_flag"]
+        
+        services = ["auth-service", "payment-service", "catalog-service", "user-service", "notification-service"]
+        endpoints = ["/api/v1/login", "/api/v1/payment", "/api/v1/products", "/api/v1/users", "/api/v1/notify"]
+        regions = ["us-east-1", "us-west-2", "eu-west-1", "ap-south-1"]
+        
+        # Generate 500 rows of realistic data
+        for i in range(500):
+            timestamp = f"2025-11-{17:02d}T{random.randint(0,23):02d}:{random.randint(0,59):02d}:{random.randint(0,59):02d}Z"
+            service = random.choice(services)
+            endpoint = random.choice(endpoints)
+            region = random.choice(regions)
+            
+            # Generate correlated metrics for realistic SRE data
+            base_latency = random.uniform(50, 300)
+            cpu_util = min(100, max(10, base_latency * 0.2 + random.uniform(-20, 20)))
+            memory_mb = random.uniform(500, 2000)
+            
+            # Higher latency = higher chance of error
+            if base_latency > 250:
+                status_code = 500 if random.random() < 0.3 else 200
+                error_flag = status_code != 200
+            else:
+                status_code = 200 if random.random() < 0.95 else 500
+                error_flag = status_code != 200
+            
+            csv_lines.append(f"{timestamp},{service},{endpoint},{region},{base_latency:.1f},{cpu_util:.1f},{memory_mb:.1f},{status_code},{error_flag}")
+        
+        test_csv_content = "\n".join(csv_lines)
 
         try:
             files = {
