@@ -504,6 +504,108 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     );
   };
 
+  const renderVolumeAnalysis = () => {
+    if (!analysisResults?.volume_analysis) {
+      return null;
+    }
+
+    const volumeData = analysisResults.volume_analysis;
+    
+    return (
+      <Card className="mt-6 border-l-4 border-l-blue-500">
+        <CardHeader className="cursor-pointer" onClick={() => toggleSection('volume_analysis')}>
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-blue-600" />
+              Volume Analysis
+            </CardTitle>
+            {collapsed.volume_analysis ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+          </div>
+          <CardDescription>
+            Comprehensive data distribution and pattern analysis
+            {volumeData.total_rows && (
+              <span className="ml-2">
+                • Total: {volumeData.total_rows.toLocaleString()} rows
+                • Columns: {volumeData.total_columns}
+                • Memory: {volumeData.memory_usage_mb?.toFixed(2)} MB
+              </span>
+            )}
+          </CardDescription>
+        </CardHeader>
+        {!collapsed.volume_analysis && (
+          <CardContent>
+            {/* Categorical Distribution */}
+            {volumeData.by_dimensions && volumeData.by_dimensions.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Categorical Distribution</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {volumeData.by_dimensions.map((dim, idx) => (
+                    <div key={idx} className="p-4 bg-white rounded-lg border border-gray-200">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-gray-800">{dim.dimension}</h4>
+                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">{dim.total_unique} unique</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">{dim.insights}</p>
+                      {dim.chart_data && dim.chart_data.labels && (
+                        <div className="space-y-1">
+                          {dim.chart_data.labels.slice(0, 5).map((label, i) => {
+                            const value = dim.chart_data.values[i];
+                            const percentage = ((value / volumeData.total_rows) * 100).toFixed(1);
+                            return (
+                              <div key={i} className="flex items-center gap-2">
+                                <div className="text-xs text-gray-600 w-32 truncate" title={label}>{label}</div>
+                                <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-blue-500"
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
+                                <div className="text-xs text-gray-600 w-12 text-right">{percentage}%</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Numeric Distribution */}
+            {volumeData.numeric_summary && volumeData.numeric_summary.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Numeric Distribution</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {volumeData.numeric_summary.map((num, idx) => (
+                    <div key={idx} className="p-4 bg-white rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-800 mb-2">{num.dimension}</h4>
+                      <p className="text-sm text-gray-600 mb-3">{num.insights}</p>
+                      <div className="flex justify-between items-center text-sm">
+                        <div className="text-center">
+                          <div className="text-xs text-gray-500">Min</div>
+                          <div className="font-semibold">{num.min}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xs text-gray-500">Mean</div>
+                          <div className="font-semibold">{num.mean}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xs text-gray-500">Max</div>
+                          <div className="font-semibold">{num.max}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+    );
+  };
+
   const renderPreprocessingReport = () => {
     if (!analysisResults?.preprocessing_report) {
       return null;
