@@ -143,25 +143,28 @@ class SREForecastTester:
 
     def test_setup_dataset(self):
         """Test 1: Setup test dataset"""
-        # Look for application_latency.csv dataset (large enough for ML training)
+        # Look for datasets with direct storage (not GridFS) to avoid data loading issues
         datasets = self.get_available_datasets()
         
-        # Look for application_latency dataset (has enough data for ML training)
+        # Look for suitable dataset with direct storage (not GridFS)
         suitable_dataset = None
         for dataset in datasets:
             name = dataset.get("name", "").lower()
             row_count = dataset.get("row_count", 0)
-            if "application_latency" in name and row_count > 1000:  # Need enough data for ML
+            storage_type = dataset.get("storage_type", "")
+            
+            # Prefer direct storage datasets to avoid GridFS issues
+            if storage_type == "direct" and row_count >= 10:
                 suitable_dataset = dataset
                 break
         
         if suitable_dataset:
             self.test_dataset_id = suitable_dataset.get("id")
             self.log_test("Setup Test Dataset", "PASS", 
-                         f"Using existing dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id}, {suitable_dataset.get('row_count')} rows)")
+                         f"Using existing dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id}, {suitable_dataset.get('row_count')} rows, storage: {suitable_dataset.get('storage_type')})")
         else:
             # Upload a new SRE test dataset
-            print("🔄 No suitable existing dataset found, uploading SRE test dataset...")
+            print("🔄 No suitable direct storage dataset found, uploading SRE test dataset...")
             self.test_dataset_id = self.upload_test_dataset()
             if self.test_dataset_id:
                 self.log_test("Setup Test Dataset", "PASS", 
