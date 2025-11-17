@@ -99,7 +99,8 @@ class AzureOpenAIService:
         self,
         data_summary: Dict,
         analysis_results: Dict,
-        context: str = "general"
+        context: str = "general",
+        user_expectation: str = None
     ) -> str:
         """
         Generate AI-powered insights about the analysis
@@ -108,15 +109,27 @@ class AzureOpenAIService:
             data_summary: Summary of the dataset
             analysis_results: ML model results
             context: Context for insights (general, business, technical)
+            user_expectation: User's natural language description of what they want to predict (NEW)
         
         Returns:
-            AI-generated insights
+            AI-generated insights tailored to user's prediction goals
         """
         if not self.is_available():
             return "AI insights unavailable - Azure OpenAI not configured"
         
         try:
+            # Build context-aware prompt
+            user_context_section = ""
+            if user_expectation:
+                user_context_section = f"""
+
+🎯 USER'S PREDICTION GOAL:
+"{user_expectation}"
+
+IMPORTANT: Frame all insights, recommendations, and explanations in the context of helping the user achieve this specific goal."""
+            
             prompt = f"""You are an expert data scientist analyzing results for a business user.
+{user_context_section}
 
 Dataset Summary:
 - Rows: {data_summary.get('row_count', 'N/A')}
@@ -128,25 +141,29 @@ Model Results:
 {json.dumps(analysis_results.get('ml_models', [])[:3], indent=2)}
 
 Provide:
-1. Key findings from the analysis
-2. Business recommendations
-3. Model performance interpretation
-4. Actionable next steps
+1. Key findings from the analysis{' specifically related to the user\'s goal' if user_expectation else ''}
+2. Business recommendations{' aligned with their prediction objective' if user_expectation else ''}
+3. Model performance interpretation{' in context of what they want to predict' if user_expectation else ''}
+4. Actionable next steps{' to improve predictions for their use case' if user_expectation else ''}
 
-Be concise, professional, and business-focused."""
+Be concise, professional, and business-focused. If user provided a prediction goal, make sure every insight directly addresses that goal."""
+
+            system_message = "You are an expert data scientist providing business insights."
+            if user_expectation:
+                system_message += f" Always consider the user's prediction goal: \"{user_expectation}\" when generating insights."
 
             response = self.client.chat.completions.create(
                 model=self.deployment,
                 messages=[
-                    {"role": "system", "content": "You are an expert data scientist providing business insights."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=800
+                max_tokens=1000  # Increased for context-aware insights
             )
             
             insights = response.choices[0].message.content
-            logger.info("✅ AI insights generated successfully")
+            logger.info(f"✅ AI insights generated successfully{' with user expectation context' if user_expectation else ''}")
             return insights
             
         except Exception as e:
