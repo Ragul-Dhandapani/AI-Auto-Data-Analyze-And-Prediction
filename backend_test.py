@@ -160,19 +160,14 @@ class SREForecastTester:
             self.log_test("Setup Test Dataset", "PASS", 
                          f"Using existing dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id}, {suitable_dataset.get('row_count')} rows)")
         else:
-            # Fallback to any dataset with enough rows
-            for dataset in datasets:
-                row_count = dataset.get("row_count", 0)
-                if row_count > 1000:
-                    suitable_dataset = dataset
-                    break
-            
-            if suitable_dataset:
-                self.test_dataset_id = suitable_dataset.get("id")
+            # Upload a new SRE test dataset
+            print("🔄 No suitable existing dataset found, uploading SRE test dataset...")
+            self.test_dataset_id = self.upload_test_dataset()
+            if self.test_dataset_id:
                 self.log_test("Setup Test Dataset", "PASS", 
-                             f"Using fallback dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id}, {suitable_dataset.get('row_count')} rows)")
+                             f"Uploaded new SRE test dataset (ID: {self.test_dataset_id})")
             else:
-                self.log_test("Setup Test Dataset", "FAIL", "No suitable dataset found with enough data for ML training")
+                self.log_test("Setup Test Dataset", "FAIL", "Could not setup SRE test dataset")
 
     def test_analysis_without_user_expectation(self):
         """Test 2: Analysis WITHOUT user expectation (baseline)"""
