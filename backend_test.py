@@ -120,30 +120,36 @@ class SREForecastTester:
 
     def test_setup_dataset(self):
         """Test 1: Setup test dataset"""
-        # First try to find existing dataset with direct storage (not GridFS)
+        # Look for application_latency.csv dataset (large enough for ML training)
         datasets = self.get_available_datasets()
         
-        # Look for a suitable dataset with direct storage (to avoid GridFS issues)
+        # Look for application_latency dataset (has enough data for ML training)
         suitable_dataset = None
         for dataset in datasets:
             name = dataset.get("name", "").lower()
-            storage_type = dataset.get("storage_type", "")
-            if ("test_data" in name or "latency" in name) and storage_type == "direct":
+            row_count = dataset.get("row_count", 0)
+            if "application_latency" in name and row_count > 1000:  # Need enough data for ML
                 suitable_dataset = dataset
                 break
         
         if suitable_dataset:
             self.test_dataset_id = suitable_dataset.get("id")
             self.log_test("Setup Test Dataset", "PASS", 
-                         f"Using existing dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id})")
+                         f"Using existing dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id}, {suitable_dataset.get('row_count')} rows)")
         else:
-            # Upload test dataset
-            self.test_dataset_id = self.upload_test_dataset()
-            if self.test_dataset_id:
+            # Fallback to any dataset with enough rows
+            for dataset in datasets:
+                row_count = dataset.get("row_count", 0)
+                if row_count > 1000:
+                    suitable_dataset = dataset
+                    break
+            
+            if suitable_dataset:
+                self.test_dataset_id = suitable_dataset.get("id")
                 self.log_test("Setup Test Dataset", "PASS", 
-                             f"Uploaded new test dataset (ID: {self.test_dataset_id})")
+                             f"Using fallback dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id}, {suitable_dataset.get('row_count')} rows)")
             else:
-                self.log_test("Setup Test Dataset", "FAIL", "Could not setup test dataset")
+                self.log_test("Setup Test Dataset", "FAIL", "No suitable dataset found with enough data for ML training")
 
     def test_analysis_without_user_expectation(self):
         """Test 2: Analysis WITHOUT user expectation (baseline)"""
