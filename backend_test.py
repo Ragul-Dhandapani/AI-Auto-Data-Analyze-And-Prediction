@@ -332,32 +332,29 @@ class UserExpectationTester:
 
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🧪 Enhanced Chat Service Testing with Conversation History Context")
-        print("=" * 70)
+        print("🧪 Enhanced User Expectation Feature Testing for PROMISE AI Platform")
+        print("=" * 80)
         print(f"Backend URL: {self.backend_url}")
-        print(f"Dataset ID: {self.dataset_id}")
         print()
         
         # Run tests in order
-        self.test_basic_endpoint_availability()
-        self.test_chat_without_history()
-        self.test_context_aware_follow_up()
-        self.test_conversation_history_parameter()
-        self.test_dataset_awareness()
-        self.test_error_handling()
+        self.test_setup_dataset()
+        self.test_analysis_without_user_expectation()
+        self.test_analysis_with_user_expectation()
+        self.test_backend_logging_verification()
+        self.test_insights_comparison()
         self.test_azure_openai_integration()
-        self.test_conversation_context_limit()
+        self.test_error_handling()
         
         # Summary
-        print("=" * 70)
+        print("=" * 80)
         print("📊 TEST SUMMARY")
-        print("=" * 70)
+        print("=" * 80)
         
         passed = sum(1 for r in self.test_results if r["status"] == "PASS")
         failed = sum(1 for r in self.test_results if r["status"] == "FAIL")
         partial = sum(1 for r in self.test_results if r["status"] == "PARTIAL")
         skipped = sum(1 for r in self.test_results if r["status"] == "SKIP")
-        expected_fail = sum(1 for r in self.test_results if r["status"] == "EXPECTED_FAIL")
         total = len(self.test_results)
         
         print(f"Total Tests: {total}")
@@ -365,28 +362,37 @@ class UserExpectationTester:
         print(f"❌ Failed: {failed}")
         print(f"🟡 Partial: {partial}")
         print(f"⏭️  Skipped: {skipped}")
-        print(f"⚠️  Expected Failures: {expected_fail}")
         print()
         
-        success_rate = ((passed + partial) / total) * 100 if total > 0 else 0
+        success_rate = ((passed + partial * 0.5) / total) * 100 if total > 0 else 0
         print(f"Success Rate: {success_rate:.1f}%")
         
-        # Critical issues
-        critical_failures = [r for r in self.test_results if r["status"] == "FAIL" and "Basic" in r["test"]]
+        # Critical findings
+        critical_failures = [r for r in self.test_results if r["status"] == "FAIL"]
         if critical_failures:
             print("\n🚨 CRITICAL ISSUES:")
             for failure in critical_failures:
                 print(f"   - {failure['test']}: {failure['details']}")
         
-        # Context-aware functionality status
-        context_tests = [r for r in self.test_results if "Context" in r["test"] or "History" in r["test"]]
-        context_working = sum(1 for r in context_tests if r["status"] in ["PASS", "PARTIAL"])
+        # User expectation feature status
+        expectation_tests = [r for r in self.test_results if "Expectation" in r["test"] or "Comparison" in r["test"]]
+        expectation_working = sum(1 for r in expectation_tests if r["status"] in ["PASS", "PARTIAL"])
         
-        print(f"\n🧠 CONVERSATION CONTEXT STATUS:")
-        if context_working >= len(context_tests) * 0.7:  # 70% threshold
-            print("   ✅ Context-aware responses are working")
+        print(f"\n🎯 USER EXPECTATION FEATURE STATUS:")
+        if expectation_working >= len(expectation_tests) * 0.7:  # 70% threshold
+            print("   ✅ User expectation feature is working")
         else:
-            print("   ❌ Context-aware responses need attention")
+            print("   ❌ User expectation feature needs attention")
+        
+        # Azure OpenAI status
+        ai_tests = [r for r in self.test_results if "Azure" in r["test"] or "AI" in r["test"]]
+        ai_working = any(r["status"] == "PASS" for r in ai_tests)
+        
+        print(f"\n🤖 AZURE OPENAI STATUS:")
+        if ai_working:
+            print("   ✅ Azure OpenAI integration is working")
+        else:
+            print("   ⚠️  Azure OpenAI may not be configured (acceptable)")
         
         return {
             "total": total,
@@ -394,12 +400,13 @@ class UserExpectationTester:
             "failed": failed,
             "partial": partial,
             "success_rate": success_rate,
-            "context_working": context_working >= len(context_tests) * 0.7
+            "expectation_working": expectation_working >= len(expectation_tests) * 0.7,
+            "ai_working": ai_working
         }
 
 def main():
     """Main test execution"""
-    tester = EnhancedChatTester()
+    tester = UserExpectationTester()
     results = tester.run_all_tests()
     
     # Exit with appropriate code
