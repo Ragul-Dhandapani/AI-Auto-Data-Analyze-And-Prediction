@@ -483,7 +483,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   };
 
   const collapseAll = () => {
-    const allSections = ['summary', 'volume', 'ai_insights', 'explainability', 'recommendations', 'correlations', 'custom_charts', 'ml_models', 'auto_charts'];
+    const allSections = ['summary', 'volume', 'ai_insights', 'explainability', 'recommendations', 'correlations', 'custom_charts', 'ml_models', 'sre_forecast', 'auto_charts'];
     const newCollapsed = {};
     allSections.forEach(s => newCollapsed[s] = true);
     setCollapsed(newCollapsed);
