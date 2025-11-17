@@ -105,7 +105,21 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
       // Add upload time to response
       response.data.upload_time = uploadTime;
       
-      toast.success(`File uploaded in ${uploadTime.toFixed(1)}s!`);
+      // Format upload time for display (min/hr format)
+      let timeDisplay;
+      if (uploadTime < 60) {
+        timeDisplay = `${uploadTime.toFixed(1)}s`;
+      } else if (uploadTime < 3600) {
+        const minutes = Math.floor(uploadTime / 60);
+        const seconds = Math.floor(uploadTime % 60);
+        timeDisplay = `${minutes}m ${seconds}s`;
+      } else {
+        const hours = Math.floor(uploadTime / 3600);
+        const minutes = Math.floor((uploadTime % 3600) / 60);
+        timeDisplay = `${hours}h ${minutes}m`;
+      }
+      
+      toast.success(`File uploaded in ${timeDisplay}!`);
       // Pass the dataset object, not the wrapper
       onDatasetLoaded(response.data.dataset || response.data);
     } catch (error) {
