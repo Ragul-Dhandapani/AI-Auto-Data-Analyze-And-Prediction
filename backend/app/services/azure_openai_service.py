@@ -252,6 +252,133 @@ User can ask for:
                 "type": "error"
             }
     
+    async def generate_sre_forecast(
+        self,
+        model_results: Dict,
+        data_summary: Dict,
+        target_column: str,
+        user_expectation: str = None
+    ) -> Dict:
+        """
+        Generate SRE-style forecasting summaries with predictive insights
+        
+        Args:
+            model_results: ML model performance and predictions
+            data_summary: Dataset statistics and trends
+            target_column: The target variable being predicted
+            user_expectation: User's prediction goal context
+        
+        Returns:
+            Dictionary with SRE-style forecasts and recommendations
+        """
+        if not self.is_available():
+            return {
+                "forecasts": [],
+                "critical_alerts": [],
+                "recommendations": []
+            }
+        
+        try:
+            # Build context
+            user_context = ""
+            if user_expectation:
+                user_context = f"\n\nUser's Goal: {user_expectation}\nIMPORTANT: Frame all forecasts and recommendations around this specific goal."
+            
+            # Get best model info
+            best_model = model_results.get('ml_models', [{}])[0] if model_results.get('ml_models') else {}
+            model_name = best_model.get('model_name', 'Unknown')
+            score = best_model.get('r2_score') or best_model.get('accuracy', 0)
+            
+            prompt = f"""You are an expert SRE (Site Reliability Engineer) analyzing system predictions.{user_context}
+
+**Prediction Context:**
+- Target Metric: {target_column}
+- Best Model: {model_name} (Score: {score:.2%})
+- Dataset Size: {data_summary.get('row_count', 'N/A')} records
+- Problem Type: {model_results.get('problem_type', 'regression')}
+
+**Task:** Generate SRE-style forecasting insights with:
+
+1. **Trend Analysis** (3 forecasts)
+   - Next 7 days prediction
+   - Next 30 days prediction  
+   - Next 90 days prediction
+   - Include percentage changes and specific values
+
+2. **Critical Alerts** (2-3 alerts)
+   - Approaching thresholds
+   - Anomaly risks
+   - Capacity concerns
+   - Use SRE terminology: SLO, error budget, latency percentiles
+
+3. **Actionable Recommendations** (3-4 items)
+   - Preventive actions
+   - Optimization suggestions
+   - Monitoring priorities
+   - Resource planning
+
+**Output Format (JSON):**
+{{
+  "forecasts": [
+    {{"timeframe": "7 days", "prediction": "Latency will increase by 12%", "value": "145ms", "confidence": "high"}},
+    {{"timeframe": "30 days", "prediction": "...", "value": "...", "confidence": "medium"}},
+    {{"timeframe": "90 days", "prediction": "...", "value": "...", "confidence": "low"}}
+  ],
+  "critical_alerts": [
+    {{"severity": "high", "alert": "Approaching p95 latency SLO threshold (200ms) by end of month"}},
+    {{"severity": "medium", "alert": "..."}}
+  ],
+  "recommendations": [
+    {{"priority": "high", "action": "Implement caching layer to reduce latency by 30%"}},
+    {{"priority": "medium", "action": "..."}},
+    {{"priority": "low", "action": "..."}}
+  ]
+}}
+
+Be specific with numbers, use SRE terminology, and focus on actionable insights."""
+
+            response = self.client.chat.completions.create(
+                model=self.deployment,
+                messages=[
+                    {"role": "system", "content": "You are an expert SRE providing predictive insights. Always respond with valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1200
+            )
+            
+            forecast_text = response.choices[0].message.content
+            
+            # Try to parse JSON response
+            try:
+                import json
+                # Extract JSON if wrapped in markdown code blocks
+                if "```json" in forecast_text:
+                    forecast_text = forecast_text.split("```json")[1].split("```")[0].strip()
+                elif "```" in forecast_text:
+                    forecast_text = forecast_text.split("```")[1].split("```")[0].strip()
+                
+                forecast_data = json.loads(forecast_text)
+                logger.info("✅ SRE forecast generated successfully")
+                return forecast_data
+            except json.JSONDecodeError:
+                # Fallback: return text-based forecast
+                logger.warning("Failed to parse JSON forecast, returning text format")
+                return {
+                    "forecasts": [{"timeframe": "general", "prediction": forecast_text, "value": "N/A", "confidence": "medium"}],
+                    "critical_alerts": [],
+                    "recommendations": []
+                }
+            
+        except Exception as e:
+            logger.error(f"Failed to generate SRE forecast: {str(e)}")
+            return {
+                "forecasts": [],
+                "critical_alerts": [],
+                "recommendations": [],
+                "error": str(e)
+            }
+    
     async def parse_chart_request(
         self,
         user_message: str,
