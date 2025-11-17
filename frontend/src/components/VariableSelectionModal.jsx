@@ -18,6 +18,7 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
   const [activeTargetIndex, setActiveTargetIndex] = useState(0);
   const [problemType, setProblemType] = useState("auto"); // "auto", "regression", "classification", "time_series", "clustering", "dimensionality", "anomaly"
   const [timeColumn, setTimeColumn] = useState(""); // For time series
+  const [userExpectation, setUserExpectation] = useState(""); // NEW: User's prediction expectation/context
 
   useEffect(() => {
     // Auto-select first numeric column as potential target
