@@ -661,6 +661,138 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     );
   };
 
+  const renderBusinessRecommendations = () => {
+    if (!analysisResults?.business_recommendations || analysisResults.business_recommendations.length === 0) {
+      return null;
+    }
+
+    return (
+      <Card className="mt-6 border-l-4 border-l-green-500">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="w-5 h-5 text-green-600" />
+            Business Recommendations
+          </CardTitle>
+          <CardDescription>
+            AI-generated strategic recommendations
+          </CardDescription>
+          <p className="text-xs text-gray-600 mt-2">
+            <strong>How to use:</strong> Review each recommendation, assess the effort vs. impact, and work with your technical team to implement high-priority items.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {analysisResults.business_recommendations.map((rec, idx) => (
+              <div key={idx} className={`p-4 rounded-lg border-l-4 ${
+                rec.priority === 'HIGH' ? 'bg-red-50 border-red-500' : 
+                rec.priority === 'MEDIUM' ? 'bg-yellow-50 border-yellow-500' : 
+                'bg-gray-50 border-gray-500'
+              }`}>
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-gray-800">{rec.recommendation}</h3>
+                  <span className={`text-xs px-2 py-1 rounded font-semibold ${
+                    rec.priority === 'HIGH' ? 'bg-red-100 text-red-700' :
+                    rec.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {rec.priority}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 mb-3">{rec.description}</p>
+                <div className="flex gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                    <span className="text-gray-600"><strong>Impact:</strong> {rec.impact}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Activity className="w-4 h-4 text-blue-600" />
+                    <span className="text-gray-600"><strong>Effort:</strong> {rec.effort}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderCorrelations = () => {
+    if (!analysisResults?.correlations || Object.keys(analysisResults.correlations).length === 0) {
+      return null;
+    }
+
+    // Extract top correlations
+    const correlations = analysisResults.correlations;
+    const corrPairs = [];
+    
+    Object.keys(correlations).forEach(key1 => {
+      Object.keys(correlations[key1]).forEach(key2 => {
+        if (key1 !== key2) {
+          const value = correlations[key1][key2];
+          if (Math.abs(value) > 0.3) { // Only show moderate to strong correlations
+            corrPairs.push({
+              var1: key1,
+              var2: key2,
+              value: value,
+              strength: Math.abs(value) > 0.7 ? 'strong' : Math.abs(value) > 0.5 ? 'moderate' : 'weak',
+              direction: value > 0 ? 'positive' : 'negative'
+            });
+          }
+        }
+      });
+    });
+
+    // Remove duplicates and sort by absolute value
+    const uniquePairs = corrPairs.filter((pair, idx, self) =>
+      idx === self.findIndex(p => 
+        (p.var1 === pair.var1 && p.var2 === pair.var2) ||
+        (p.var1 === pair.var2 && p.var2 === pair.var1)
+      )
+    ).sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+
+    if (uniquePairs.length === 0) {
+      return null;
+    }
+
+    return (
+      <Card className="mt-6 border-l-4 border-l-purple-500">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5 text-purple-600" />
+            Key Correlations
+          </CardTitle>
+          <CardDescription>
+            Statistical relationships between variables in your dataset
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-4">
+            {uniquePairs.slice(0, 6).map((pair, idx) => (
+              <div key={idx} className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-800">{pair.var1}</span>
+                    <span className="text-gray-400">→</span>
+                    <span className="font-semibold text-gray-800">{pair.var2}</span>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    pair.direction === 'positive' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {pair.direction}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  <strong>{pair.strength}</strong> correlation ({(pair.value * 100).toFixed(1)}%)
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   if (!dataset) {
     return (
       <div className="p-8 text-center text-gray-500">
