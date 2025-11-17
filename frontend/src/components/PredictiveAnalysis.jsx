@@ -1024,11 +1024,20 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
             </Card>
           )}
 
+          {/* Volume Analysis */}
+          {renderVolumeAnalysis()}
+          
           {/* Preprocessing Report */}
           {renderPreprocessingReport()}
 
           {/* Real Prediction Examples */}
           {renderPredictionExamples()}
+          
+          {/* Business Recommendations */}
+          {renderBusinessRecommendations()}
+          
+          {/* Key Correlations */}
+          {renderCorrelations()}
 
           {/* ML Model Comparison Table */}
           {analysisResults.ml_models && analysisResults.ml_models.length > 0 && (
