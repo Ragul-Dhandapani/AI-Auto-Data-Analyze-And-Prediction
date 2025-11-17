@@ -120,15 +120,29 @@ class AzureOpenAIService:
             return "AI insights unavailable - Azure OpenAI not configured"
         
         try:
-            # Build context-aware prompt
+            # Build context-aware prompt with domain adaptation
             user_context_section = ""
+            domain_context = ""
+            
+            if domain and domain != "general":
+                domain_names = {
+                    "it_infrastructure": "IT/Infrastructure",
+                    "finance_trading": "Finance/Trading",
+                    "ecommerce": "E-commerce",
+                    "food_agriculture": "Food/Agriculture",
+                    "payments_banking": "Payments/Banking",
+                    "healthcare": "Healthcare",
+                    "logistics": "Logistics/Supply Chain"
+                }
+                domain_context = f"\n\nDomain: {domain_names.get(domain, domain)}\nIMPORTANT: Use {domain}-specific terminology and business context."
+            
             if user_expectation:
                 user_context_section = f"""
 
 🎯 USER'S PREDICTION GOAL:
 "{user_expectation}"
 
-IMPORTANT: Frame all insights, recommendations, and explanations in the context of helping the user achieve this specific goal."""
+IMPORTANT: Frame all insights, recommendations, and explanations in the context of helping the user achieve this specific goal.{domain_context}"""
             
             prompt = f"""You are an expert data scientist analyzing results for a business user.
 {user_context_section}
