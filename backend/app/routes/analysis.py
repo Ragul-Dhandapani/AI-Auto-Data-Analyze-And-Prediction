@@ -446,6 +446,13 @@ async def holistic_analysis(request: Dict[str, Any]):
         logger.info(f"🔍 DEBUG: Received workspace_name: '{workspace_name}' for dataset {dataset_id}")
         user_selection = request.get("user_selection")  # Optional user-provided target and features
         
+        # CRITICAL NEW: Extract user expectation for AI context
+        user_expectation = None
+        if user_selection and isinstance(user_selection, dict):
+            user_expectation = user_selection.get("user_expectation")
+            if user_expectation:
+                logger.info(f"💭 USER EXPECTATION: {user_expectation}")
+        
         # DEBUG: Log user_selection immediately after extraction
         logging.info(f"🔍 USER_SELECTION EXTRACTED: {json.dumps(user_selection, indent=2) if user_selection else 'None'}")
         problem_type = request.get("problem_type", "auto")  # "auto", "regression", "classification", or "time_series"
