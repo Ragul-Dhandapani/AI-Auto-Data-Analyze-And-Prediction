@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Backend URL
-BACKEND_URL = "https://data-prophet-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://promise-ai-1.preview.emergentagent.com/api"
 
 def test_training_with_workspace():
     """Test training with explicit workspace name"""
