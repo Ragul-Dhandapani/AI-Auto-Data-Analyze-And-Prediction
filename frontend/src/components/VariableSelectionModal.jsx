@@ -120,7 +120,8 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
         mode: mode,
         problem_type: problemType,
         time_column: problemType === "time_series" ? timeColumn : undefined,
-        aiSuggestions: aiSuggestions
+        aiSuggestions: aiSuggestions,
+        user_expectation: userExpectation || null  // NEW: User's prediction context
       };
       console.log('Confirming single target selection:', selection);
       onConfirm(selection);
@@ -130,7 +131,8 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
         targets: validTargets,
         mode: mode,
         problem_type: problemType,
-        is_multi_target: true
+        is_multi_target: true,
+        user_expectation: userExpectation || null  // NEW: User's prediction context
       };
       console.log('Confirming multi-target selection:', selection);
       onConfirm(selection);
