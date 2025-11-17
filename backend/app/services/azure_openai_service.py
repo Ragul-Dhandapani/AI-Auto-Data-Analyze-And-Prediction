@@ -367,23 +367,26 @@ User can ask for:
 **IMPORTANT:** {terminology_guide}
 **CRITICAL:** Generate insights that are SPECIFIC to this target variable ({target_column}) and its influencing features.
 
-1. **Trend Analysis** (3 forecasts)
-   - Next 7 days prediction
-   - Next 30 days prediction  
-   - Next 90 days prediction
-   - Include percentage changes and specific values
+1. **Feature Influence Summary** (1 sentence)
+   - Explain which features most influence the target
+   - Example: "{target_column} is primarily influenced by {top_feature1} (98%) and {top_feature2} (2%)"
 
-2. **Critical Alerts** (2-3 alerts)
-   - Approaching thresholds
-   - Anomaly risks
-   - Business/operational concerns
-   - Use domain-appropriate terminology based on detected domain
+2. **Trend Predictions** (3 forecasts with SPECIFIC thresholds)
+   - Next 7 days: Include specific value prediction
+   - Next 30 days: Include specific value prediction
+   - Next 90 days: Include specific value prediction
+   - For each, mention if staying within acceptable range
+   - Example: "{target_column} is forecasted to remain under 100ms for next 14 days with 95% confidence"
 
-3. **Actionable Recommendations** (3-4 items)
-   - Preventive actions
-   - Optimization suggestions
-   - Monitoring priorities
-   - Resource planning
+3. **Critical Alerts** (2-3 alerts with SPECIFIC conditions)
+   - Threshold breaches with actual values
+   - Anomaly predictions with timeframes
+   - Use domain-appropriate terminology
+
+4. **Good News Predictions** (1-2 items)
+   - Positive forecasts (e.g., "will remain stable", "expected to improve")
+   - Time periods of optimal performance
+   - Confidence levels
 
 **Output Format (JSON):**
 {{
