@@ -1364,6 +1364,15 @@ async def save_analysis_state(request: SaveStateRequest):
             # Use 'blob' for Oracle, 'gridfs' is MongoDB-specific but we normalize to 'blob'
             storage_type = "blob"  # Works for both MongoDB (GridFS) and Oracle (BLOB)
             
+            # Extract user expectation and domain from analysis data if present
+            user_expectation = None
+            detected_domain = None
+            if analysis_data and isinstance(analysis_data, dict):
+                if 'user_expectation' in analysis_data:
+                    user_expectation = analysis_data.get('user_expectation')
+                if 'detected_domain' in analysis_data:
+                    detected_domain = analysis_data.get('detected_domain')
+            
             state_doc = {
                 "id": state_id,
                 "dataset_id": request.dataset_id,
@@ -1372,6 +1381,8 @@ async def save_analysis_state(request: SaveStateRequest):
                 "file_id": str(file_id),  # Renamed from gridfs_file_id for compatibility
                 "size_bytes": state_size,
                 "compressed_size": len(compressed_data),
+                "user_expectation": user_expectation,  # NEW: Store user's prediction goal
+                "detected_domain": detected_domain,  # NEW: Store detected domain
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
