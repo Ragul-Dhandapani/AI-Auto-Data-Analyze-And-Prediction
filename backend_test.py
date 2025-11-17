@@ -426,10 +426,10 @@ class SREForecastTester:
             self.log_test("Different Problem Types", "SKIP", "No test dataset available")
             return
         
-        # Test with classification problem (status prediction)
+        # Test with classification problem (error_flag prediction)
         user_selection_classification = {
-            "target_variable": "status",
-            "selected_features": ["cpu_usage", "memory_usage", "latency_ms"],
+            "target_variable": "error_flag",
+            "selected_features": ["cpu_utilization", "memory_usage_mb", "latency_ms"],
             "mode": "manual",
             "user_expectation": "Predict system failure status to prevent outages"
         }
