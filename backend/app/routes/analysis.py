@@ -1128,10 +1128,34 @@ async def holistic_analysis(request: Dict[str, Any]):
         if user_expectation:
             response["user_expectation"] = user_expectation
         
-        # PHASE 3: Generate domain-adapted forecasting summaries
+        # PHASE 3: Generate historical trends and domain-adapted forecasting summaries
         sre_forecast = {}
+        historical_trends = {}
         if all_models and len(all_models) > 0 and target_cols:
             try:
+                # Calculate historical trends for target variable
+                target_col = target_cols[0]
+                if target_col in df_analysis.columns:
+                    try:
+                        target_data = df_analysis[target_col].dropna()
+                        if len(target_data) > 0:
+                            historical_trends = {
+                                "target_variable": target_col,
+                                "current_value": float(target_data.iloc[-1]) if len(target_data) > 0 else None,
+                                "mean": float(target_data.mean()),
+                                "median": float(target_data.median()),
+                                "min": float(target_data.min()),
+                                "max": float(target_data.max()),
+                                "std": float(target_data.std()),
+                                "trend": "increasing" if len(target_data) > 10 and target_data.iloc[-5:].mean() > target_data.iloc[:5].mean() else "decreasing" if len(target_data) > 10 and target_data.iloc[-5:].mean() < target_data.iloc[:5].mean() else "stable",
+                                "recent_avg": float(target_data.iloc[-10:].mean()) if len(target_data) >= 10 else float(target_data.mean()),
+                                "historical_avg": float(target_data.mean()),
+                                "data_points": len(target_data)
+                            }
+                            logger.info(f"📊 Historical trends calculated for {target_col}")
+                    except Exception as e:
+                        logger.error(f"Failed to calculate historical trends: {str(e)}")
+                
                 logger.info("🔮 Generating domain-adapted forecast summaries...")
                 
                 # Detect domain for adapted terminology
