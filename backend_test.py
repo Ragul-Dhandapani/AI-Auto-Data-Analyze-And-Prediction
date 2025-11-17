@@ -220,33 +220,83 @@ class SREForecastTester:
                          "Analysis did not return expected results", response)
             return None
 
-    def test_backend_logging_verification(self):
-        """Test 4: Backend logging verification"""
-        # This test checks if the backend logs show user expectation tracking
-        # Since we can't directly access logs, we'll check the response structure
-        
-        if not hasattr(self, 'expectation_response'):
-            self.log_test("Backend Logging Verification", "SKIP", "No expectation response available")
+    def test_sre_forecast_content_validation(self):
+        """Test 4: Validate SRE Forecast Content Structure"""
+        if not hasattr(self, 'sre_forecast_response'):
+            self.log_test("SRE Forecast Content Validation", "SKIP", "No SRE forecast response available")
             return
         
-        response = self.expectation_response
+        sre_forecast = self.sre_forecast_response.get("sre_forecast", {})
         
-        # Check if selection_feedback indicates user expectation was processed
-        selection_feedback = response.get("selection_feedback", {})
+        # Check required fields
+        required_fields = ["forecasts", "critical_alerts", "recommendations"]
+        missing_fields = [field for field in required_fields if field not in sre_forecast]
         
-        if selection_feedback:
-            message = selection_feedback.get("message", "")
-            status = selection_feedback.get("status", "")
-            
-            if "target" in message.lower() and status in ["used", "override"]:
-                self.log_test("Backend Logging Verification", "PASS", 
-                             f"Selection feedback indicates user expectation was processed: {status}")
+        if missing_fields:
+            self.log_test("SRE Forecast Content Validation", "FAIL", 
+                         f"Missing required fields: {missing_fields}")
+            return
+        
+        # Validate forecasts structure
+        forecasts = sre_forecast.get("forecasts", [])
+        forecast_valid = True
+        forecast_details = []
+        
+        for i, forecast in enumerate(forecasts):
+            required_forecast_fields = ["timeframe", "prediction", "value", "confidence"]
+            missing_forecast_fields = [field for field in required_forecast_fields if field not in forecast]
+            if missing_forecast_fields:
+                forecast_valid = False
+                forecast_details.append(f"Forecast {i+1} missing: {missing_forecast_fields}")
             else:
-                self.log_test("Backend Logging Verification", "PARTIAL", 
-                             f"Selection feedback present but unclear: {status}")
+                forecast_details.append(f"Forecast {i+1}: {forecast['timeframe']} - {forecast['prediction']}")
+        
+        # Validate alerts structure
+        alerts = sre_forecast.get("critical_alerts", [])
+        alert_valid = True
+        alert_details = []
+        
+        for i, alert in enumerate(alerts):
+            required_alert_fields = ["severity", "alert"]
+            missing_alert_fields = [field for field in required_alert_fields if field not in alert]
+            if missing_alert_fields:
+                alert_valid = False
+                alert_details.append(f"Alert {i+1} missing: {missing_alert_fields}")
+            else:
+                alert_details.append(f"Alert {i+1}: {alert['severity']} - {alert['alert']}")
+        
+        # Validate recommendations structure
+        recommendations = sre_forecast.get("recommendations", [])
+        rec_valid = True
+        rec_details = []
+        
+        for i, rec in enumerate(recommendations):
+            required_rec_fields = ["priority", "action"]
+            missing_rec_fields = [field for field in required_rec_fields if field not in rec]
+            if missing_rec_fields:
+                rec_valid = False
+                rec_details.append(f"Recommendation {i+1} missing: {missing_rec_fields}")
+            else:
+                rec_details.append(f"Recommendation {i+1}: {rec['priority']} - {rec['action']}")
+        
+        # Overall validation
+        if forecast_valid and alert_valid and rec_valid:
+            self.log_test("SRE Forecast Content Validation", "PASS", 
+                         f"✅ All structures valid: {len(forecasts)} forecasts, {len(alerts)} alerts, {len(recommendations)} recommendations")
+            print(f"   📊 Forecasts: {forecast_details}")
+            print(f"   🚨 Alerts: {alert_details}")
+            print(f"   💡 Recommendations: {rec_details}")
         else:
-            self.log_test("Backend Logging Verification", "PARTIAL", 
-                         "No selection feedback in response (may still be working)")
+            issues = []
+            if not forecast_valid:
+                issues.extend(forecast_details)
+            if not alert_valid:
+                issues.extend(alert_details)
+            if not rec_valid:
+                issues.extend(rec_details)
+            
+            self.log_test("SRE Forecast Content Validation", "FAIL", 
+                         f"Structure validation failed: {'; '.join(issues)}")
 
     def test_insights_comparison(self):
         """Test 5: Compare insights with and without user expectation"""
