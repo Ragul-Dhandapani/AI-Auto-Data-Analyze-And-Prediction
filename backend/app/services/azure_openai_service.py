@@ -331,8 +331,10 @@ User can ask for:
 - Best Model: {model_name} (Score: {score:.2%})
 - Dataset Size: {data_summary.get('row_count', 'N/A')} records
 - Problem Type: {model_results.get('problem_type', 'regression')}
+- Domain: {domain}
 
-**Task:** Generate SRE-style forecasting insights with:
+**Task:** Generate domain-adapted forecasting insights with:
+**IMPORTANT:** {terminology_guide}
 
 1. **Trend Analysis** (3 forecasts)
    - Next 7 days prediction
