@@ -450,11 +450,12 @@ class SREForecastTester:
         # Run tests in order
         self.test_setup_dataset()
         self.test_analysis_without_user_expectation()
-        self.test_analysis_with_user_expectation()
+        self.test_analysis_with_sre_forecast_generation()
+        self.test_sre_forecast_content_validation()
         self.test_backend_logging_verification()
-        self.test_insights_comparison()
+        self.test_sre_terminology_usage()
         self.test_azure_openai_integration()
-        self.test_error_handling()
+        self.test_different_problem_types()
         
         # Summary
         print("=" * 80)
