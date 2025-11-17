@@ -485,15 +485,15 @@ class SREForecastTester:
             for failure in critical_failures:
                 print(f"   - {failure['test']}: {failure['details']}")
         
-        # User expectation feature status
-        expectation_tests = [r for r in self.test_results if "Expectation" in r["test"] or "Comparison" in r["test"]]
-        expectation_working = sum(1 for r in expectation_tests if r["status"] in ["PASS", "PARTIAL"])
+        # SRE forecasting feature status
+        sre_tests = [r for r in self.test_results if "SRE" in r["test"] or "Forecast" in r["test"]]
+        sre_working = sum(1 for r in sre_tests if r["status"] in ["PASS", "PARTIAL"])
         
-        print(f"\n🎯 USER EXPECTATION FEATURE STATUS:")
-        if expectation_working >= len(expectation_tests) * 0.7:  # 70% threshold
-            print("   ✅ User expectation feature is working")
+        print(f"\n🎯 SRE FORECASTING FEATURE STATUS:")
+        if sre_working >= len(sre_tests) * 0.7:  # 70% threshold
+            print("   ✅ SRE forecasting feature is working")
         else:
-            print("   ❌ User expectation feature needs attention")
+            print("   ❌ SRE forecasting feature needs attention")
         
         # Azure OpenAI status
         ai_tests = [r for r in self.test_results if "Azure" in r["test"] or "AI" in r["test"]]
