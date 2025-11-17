@@ -100,19 +100,21 @@ class AzureOpenAIService:
         data_summary: Dict,
         analysis_results: Dict,
         context: str = "general",
-        user_expectation: str = None
+        user_expectation: str = None,
+        domain: str = "general"
     ) -> str:
         """
-        Generate AI-powered insights about the analysis
+        Generate AI-powered insights about the analysis (domain-adapted)
         
         Args:
             data_summary: Summary of the dataset
             analysis_results: ML model results
             context: Context for insights (general, business, technical)
-            user_expectation: User's natural language description of what they want to predict (NEW)
+            user_expectation: User's natural language description of what they want to predict
+            domain: Detected domain for adapted terminology
         
         Returns:
-            AI-generated insights tailored to user's prediction goals
+            AI-generated insights tailored to user's prediction goals and domain
         """
         if not self.is_available():
             return "AI insights unavailable - Azure OpenAI not configured"
