@@ -488,6 +488,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       correlations: false,
       custom_charts: false,
       ml_models: false,
+      historical_trends: false,
       sre_forecast: false,
       auto_charts: false
     });
