@@ -208,7 +208,7 @@ class SREForecastTester:
         # Define user selection with expectation for SRE forecasting
         user_selection = {
             "target_variable": "latency_ms",
-            "selected_features": ["cpu_usage", "memory_usage"],
+            "selected_features": ["cpu_utilization", "memory_usage_mb"],
             "mode": "manual",
             "user_expectation": "Predict system latency to prevent performance degradation"
         }
