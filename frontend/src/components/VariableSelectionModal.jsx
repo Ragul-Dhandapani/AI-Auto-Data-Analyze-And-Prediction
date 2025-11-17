@@ -246,11 +246,79 @@ const VariableSelectionModal = ({ dataset, onClose, onConfirm }) => {
             className="w-full p-3 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all resize-none"
             rows={3}
           />
-          <p className="text-xs text-indigo-700 mt-2">
+          <p className="text-xs text-indigo-700 mt-2 mb-3">
             💡 <strong>Tip:</strong> Be specific about what you want to predict and why. 
             This helps generate business-relevant insights and recommendations.
             If left empty, the system will proceed with standard analysis.
           </p>
+          
+          {/* Smart Selection Button */}
+          {userExpectation && userExpectation.length > 10 && (
+            <Button
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  const response = await axios.post(`${API}/analysis/suggest-from-expectation`, {
+                    dataset_id: dataset.id,
+                    user_expectation: userExpectation
+                  });
+                  
+                  if (response.data.success) {
+                    const suggestions = response.data.suggestions;
+                    
+                    // Auto-populate target and features
+                    if (suggestions.suggested_target) {
+                      updateTargetVariable(activeTargetIndex, 'target', suggestions.suggested_target);
+                    }
+                    if (suggestions.suggested_features && suggestions.suggested_features.length > 0) {
+                      updateTargetVariable(activeTargetIndex, 'features', suggestions.suggested_features);
+                    }
+                    if (suggestions.problem_type) {
+                      setProblemType(suggestions.problem_type);
+                    }
+                    
+                    // Store suggestions for display
+                    setAiSuggestions({
+                      ...suggestions,
+                      from_expectation: true
+                    });
+                    
+                    toast.success(`🧠 AI suggested: ${suggestions.suggested_target} with ${suggestions.suggested_features?.length || 0} features`);
+                  }
+                } catch (error) {
+                  console.error("Smart selection error:", error);
+                  toast.error("Failed to get AI suggestions: " + (error.response?.data?.detail || error.message));
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              variant="outline"
+              className="w-full bg-white border-indigo-400 hover:bg-indigo-50 text-indigo-700"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Getting AI Suggestions...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  🧠 Get AI Suggestions (Smart Selection)
+                </>
+              )}
+            </Button>
+          )}
+          
+          {/* Show AI suggestions explanation if available */}
+          {aiSuggestions?.from_expectation && (
+            <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-300">
+              <p className="text-xs font-semibold text-indigo-800 mb-1">
+                ✨ AI Suggestions ({aiSuggestions.confidence} confidence)
+              </p>
+              <p className="text-xs text-gray-700">{aiSuggestions.explanation}</p>
+            </div>
+          )}
         </div>
 
         {/* Problem Type Selection - ALL 7 CATEGORIES */}
