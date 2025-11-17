@@ -479,7 +479,18 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   };
 
   const expandAll = () => {
-    setCollapsed({});
+    setCollapsed({
+      summary: false,
+      volume: false,
+      ai_insights: false,
+      explainability: false,
+      recommendations: false,
+      correlations: false,
+      custom_charts: false,
+      ml_models: false,
+      sre_forecast: false,
+      auto_charts: false
+    });
   };
 
   const collapseAll = () => {
