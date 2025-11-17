@@ -429,15 +429,27 @@ Be specific with numbers, use SRE terminology, and focus on actionable insights.
                     forecast_text = forecast_text.split("```")[1].split("```")[0].strip()
                 
                 forecast_data = json.loads(forecast_text)
+                
+                # Ensure all required fields exist
+                if 'feature_influence' not in forecast_data:
+                    forecast_data['feature_influence'] = f"{target_column} predictions generated"
+                if 'good_news' not in forecast_data:
+                    forecast_data['good_news'] = []
+                if 'forecasts' not in forecast_data:
+                    forecast_data['forecasts'] = []
+                if 'critical_alerts' not in forecast_data:
+                    forecast_data['critical_alerts'] = []
+                
                 logger.info("✅ SRE forecast generated successfully")
                 return forecast_data
             except json.JSONDecodeError:
                 # Fallback: return text-based forecast
                 logger.warning("Failed to parse JSON forecast, returning text format")
                 return {
+                    "feature_influence": f"{target_column} analysis",
                     "forecasts": [{"timeframe": "general", "prediction": forecast_text, "value": "N/A", "confidence": "medium"}],
-                    "critical_alerts": [],
-                    "recommendations": []
+                    "good_news": [],
+                    "critical_alerts": []
                 }
             
         except Exception as e:
