@@ -2083,6 +2083,14 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       )}
 
       {/* Forecasting & Predictive Insights - WITH TABS FOR EACH MODEL */}
+      {console.log('🔍 Forecasting Debug:', {
+        hasSreForecast: !!analysisResults.sre_forecast,
+        hasMlModels: !!analysisResults.ml_models,
+        mlModelsLength: analysisResults.ml_models?.length,
+        mlModelsType: typeof analysisResults.ml_models,
+        isCollapsed: collapsed.sre_forecast,
+        sampleForecast: analysisResults.sre_forecast ? Object.keys(analysisResults.sre_forecast) : 'none'
+      })}
       {analysisResults.sre_forecast && analysisResults.ml_models && analysisResults.ml_models.length > 0 && !collapsed.sre_forecast && (
         <Card id="forecasting-section" className="p-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-l-cyan-500">
           <div className="flex items-start justify-between mb-4">
