@@ -218,6 +218,9 @@ def train_multiple_models(
                 elif hasattr(model, 'coef_'):
                     # For Linear Regression - use absolute coefficients as importance
                     importances = np.abs(model.coef_)
+                    # CRITICAL FIX: Normalize to sum to 1.0 (like tree-based models)
+                    if importances.sum() > 0:
+                        importances = importances / importances.sum()
                     feature_imp_pairs = sorted(zip(feature_cols, importances), key=lambda x: x[1], reverse=True)
                     feature_importance_dict = {feat: float(imp) for feat, imp in feature_imp_pairs[:10]}
             elif is_lstm:
