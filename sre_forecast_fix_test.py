@@ -52,7 +52,17 @@ class SREForecastFixTester:
         """Find existing dataset suitable for SRE forecasting testing"""
         datasets = self.get_available_datasets()
         
-        # Look for existing SRE test dataset
+        # Look for the specific SRE test dataset first
+        for dataset in datasets:
+            name = dataset.get("name", "").lower()
+            dataset_id = dataset.get("id")
+            row_count = dataset.get("row_count", 0)
+            
+            if dataset_id == "5621a093-501c-45c6-b7d3-ea5f0ea33e43" or ("sre_test_latency_data" in name):
+                print(f"✅ Found SRE test dataset: {dataset.get('name')} (ID: {dataset_id}, {row_count} rows)")
+                return dataset_id
+        
+        # Look for any other suitable dataset
         for dataset in datasets:
             name = dataset.get("name", "").lower()
             row_count = dataset.get("row_count", 0)
