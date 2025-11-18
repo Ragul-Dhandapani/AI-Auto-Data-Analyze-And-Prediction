@@ -350,9 +350,18 @@ User can ask for:
                     top_features = [(feat, imp) for feat, imp in sorted_features[:5]]
             
             feature_context = ""
+            top_feature1 = "feature1"
+            top_feature2 = "feature2"
+            
             if top_features:
                 feature_list = ", ".join([f"{feat} ({imp*100:.1f}%)" for feat, imp in top_features])
                 feature_context = f"\n\n**Top Influencing Features:** {feature_list}"
+                
+                # Define top features for template
+                if len(top_features) >= 1:
+                    top_feature1 = top_features[0][0]
+                if len(top_features) >= 2:
+                    top_feature2 = top_features[1][0]
             
             prompt = f"""You are an expert {expert_role}.{user_context}
 
