@@ -368,6 +368,19 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       // Complete progress
       setProgress(100);
       
+      // DEBUGGING: Log what backend returned
+      console.log('🔍 Backend Response Keys:', Object.keys(response.data));
+      console.log('🔍 Has sre_forecast:', !!response.data.sre_forecast);
+      console.log('🔍 Has historical_trends:', !!response.data.historical_trends);
+      console.log('🔍 Has ml_models:', !!response.data.ml_models);
+      console.log('🔍 ml_models count:', response.data.ml_models?.length);
+      if (response.data.sre_forecast) {
+        console.log('🔍 sre_forecast keys:', Object.keys(response.data.sre_forecast));
+      }
+      if (response.data.historical_trends) {
+        console.log('🔍 historical_trends keys:', Object.keys(response.data.historical_trends));
+      }
+      
       // Check if backend returned selection feedback
       if (response.data.selection_feedback) {
         setSelectionFeedback(response.data.selection_feedback);
