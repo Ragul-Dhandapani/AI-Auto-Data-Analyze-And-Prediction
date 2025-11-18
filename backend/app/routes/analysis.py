@@ -1156,7 +1156,7 @@ async def holistic_analysis(request: Dict[str, Any]):
                     except Exception as e:
                         logger.error(f"Failed to calculate historical trends: {str(e)}")
                 
-                logger.info("🔮 Generating domain-adapted forecast summaries...")
+                logger.info(f"🔮 Generating domain-adapted forecast summaries for {len(all_models)} models...")
                 
                 # Detect domain for adapted terminology
                 domain = "general"
