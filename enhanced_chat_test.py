@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Backend URL
-BACKEND_URL = "https://promise-ai-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://mlpredict.preview.emergentagent.com/api"
 
 # Test dataset ID (from Oracle/MongoDB)
 DATASET_ID = "7fc830da-886f-4745-ac6d-ddee8c20af8a"  # application_latency_3.csv

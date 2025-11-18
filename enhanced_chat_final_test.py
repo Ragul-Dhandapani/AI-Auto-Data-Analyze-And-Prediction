@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL
-BACKEND_URL = "https://promise-ai-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://mlpredict.preview.emergentagent.com/api"
 
 def get_test_dataset():
     """Get a dataset ID from Oracle for testing"""

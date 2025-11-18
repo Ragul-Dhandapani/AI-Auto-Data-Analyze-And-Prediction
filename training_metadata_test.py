@@ -14,7 +14,7 @@ import pymongo
 from pymongo import MongoClient
 
 # Get backend URL from environment
-BACKEND_URL = "https://promise-ai-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://mlpredict.preview.emergentagent.com/api"
 
 def test_api_health():
     """Test if the API is running"""
