@@ -43,74 +43,32 @@ ORACLE_POOL_SIZE="10"
 - ✅ Backend configured with DB_TYPE="oracle"
 - ✅ All features working correctly
 
-## 🚀 How to Enable Oracle (Once RDS is Accessible)
+## 📊 Oracle Schema Details
 
-### Option 1: Quick Switch (If RDS credentials are correct)
+### Tables Created
+1. **DATASETS** - Stores dataset metadata and references to file storage
+2. **FILE_STORAGE** - Stores large files (datasets > 1MB, workspaces > 2MB) as BLOBs
+3. **WORKSPACE_STATES** - Stores saved analysis workspaces with results and chat history
+4. **PREDICTION_FEEDBACK** - Stores user feedback on model predictions for active learning
+5. **TRAINING_METADATA** - Tracks ML training sessions for reproducibility and experiment tracking
+
+### Indexes Created
+- Primary keys on all tables (id columns)
+- Performance indexes on frequently queried columns
+- Foreign key constraints for referential integrity
+
+## 🔄 Switch Back to MongoDB (If Needed)
+
 ```bash
 # Update .env file
-sed -i 's/DB_TYPE="mongodb"/DB_TYPE="oracle"/' /app/backend/.env
+sed -i 's/DB_TYPE="oracle"/DB_TYPE="mongodb"/' /app/backend/.env
 
 # Restart backend
 sudo supervisorctl restart backend
 
-# Verify Oracle connection
-tail -f /var/log/supervisor/backend.err.log
+# Verify database
+curl https://mlpredict.preview.emergentagent.com/api/config/current-database
 ```
-
-### Option 2: Update Oracle Credentials (If RDS details changed)
-```bash
-# Edit /app/backend/.env
-nano /app/backend/.env
-
-# Update these values:
-ORACLE_USER="your_username"
-ORACLE_PASSWORD="your_password"
-ORACLE_HOST="your-rds-endpoint.region.rds.amazonaws.com"
-ORACLE_PORT="1521"
-ORACLE_SERVICE_NAME="ORCL"
-
-# Set DB_TYPE to oracle
-DB_TYPE="oracle"
-
-# Restart backend
-sudo supervisorctl restart backend
-```
-
-### Option 3: Test Oracle Connection First
-```bash
-export LD_LIBRARY_PATH=/opt/oracle/instantclient_19_23:$LD_LIBRARY_PATH
-
-python3 << 'EOF'
-import cx_Oracle
-
-# Test connection
-dsn = cx_Oracle.makedsn(
-    "your-host.rds.amazonaws.com", 
-    "1521", 
-    service_name="ORCL"
-)
-
-try:
-    conn = cx_Oracle.connect(
-        user="your_user",
-        password="your_password",
-        dsn=dsn
-    )
-    print("✅ Oracle connection successful!")
-    print(f"Version: {conn.version}")
-    conn.close()
-except Exception as e:
-    print(f"❌ Connection failed: {e}")
-EOF
-```
-
-## 📋 To-Do for Oracle Enablement
-
-1. **Verify RDS Status**: Check AWS Console if RDS instance is running
-2. **Security Group**: Ensure port 1521 is open from this environment's IP
-3. **Network**: Verify VPC and subnet configuration
-4. **Credentials**: Confirm username/password are correct
-5. **Endpoint**: Verify the RDS endpoint hasn't changed
 
 ## ✅ Oracle Adapter Code: READY
 
