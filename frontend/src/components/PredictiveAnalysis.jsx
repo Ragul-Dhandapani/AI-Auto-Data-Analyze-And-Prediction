@@ -158,6 +158,22 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   useEffect(() => {
     hasRunAnalysisRef.current = !!analysisCache;
   }, [dataset?.id]);
+  
+  // Debug: Log analysisResults structure
+  useEffect(() => {
+    if (analysisResults) {
+      console.log('🔍 Analysis Results Debug:', {
+        hasHistoricalTrends: !!analysisResults.historical_trends,
+        hasSreForecast: !!analysisResults.sre_forecast,
+        hasMlModels: !!analysisResults.ml_models,
+        mlModelsLength: analysisResults.ml_models?.length,
+        isCollapsedForecast: collapsed.sre_forecast,
+        isCollapsedTrends: collapsed.historical_trends,
+        sreForecastKeys: analysisResults.sre_forecast ? Object.keys(analysisResults.sre_forecast) : 'none',
+        trendsKeys: analysisResults.historical_trends ? Object.keys(analysisResults.historical_trends) : 'none'
+      });
+    }
+  }, [analysisResults, collapsed]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
