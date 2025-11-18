@@ -1168,8 +1168,14 @@ async def holistic_analysis(request: Dict[str, Any]):
                     domain = domain_info.get('domain', 'general')
                     logger.info(f"📊 Detected domain: {domain}")
                 
+                # CRITICAL FIX: Azure service expects 'ml_models' key, not 'models'
+                model_results_for_forecast = {
+                    "ml_models": all_models,  # Use all_models directly
+                    "problem_type": problem_type
+                }
+                
                 sre_forecast = await azure_service.generate_sre_forecast(
-                    model_results=models_result,
+                    model_results=model_results_for_forecast,
                     data_summary=data_summary,
                     target_column=target_cols[0] if target_cols else "unknown",
                     user_expectation=user_expectation,
