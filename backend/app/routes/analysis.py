@@ -1186,6 +1186,8 @@ async def holistic_analysis(request: Dict[str, Any]):
                     response["sre_forecast"] = sre_forecast
                     response["detected_domain"] = domain  # Include domain in response
                     logger.info(f"✅ Domain-adapted forecast generated for {domain}: {len(sre_forecast.get('forecasts', []))} forecasts, {len(sre_forecast.get('critical_alerts', []))} alerts")
+                elif sre_forecast and sre_forecast.get('error'):
+                    logger.error(f"❌ SRE forecast generation failed: {sre_forecast.get('error')}")
                 
                 # Add historical trends to response
                 if historical_trends:
