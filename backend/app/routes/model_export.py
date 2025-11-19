@@ -1325,7 +1325,7 @@ import time
 from pathlib import Path
 
 # Available models
-AVAILABLE_MODELS = {[m['name'] for m in all_model_info]}
+AVAILABLE_MODELS = {}
 
 def train_model(model_name: str, data_path: str, output_path: str = None, chunksize: int = None):
     """
@@ -1436,7 +1436,7 @@ import pandas as pd
 import time
 
 # Available models
-AVAILABLE_MODELS = {[m['name'] for m in all_model_info]}
+AVAILABLE_MODELS = {}
 
 def make_predictions(model_name: str, model_path: str, data_path: str, output_path: str = "predictions.csv"):
     """
