@@ -305,31 +305,50 @@ class AutoMLTester:
                          "AutoML request did not return expected results", response)
             return None
 
-    def test_backend_logging_verification(self):
-        """Test 5: Check Backend Logging for SRE Forecast Generation"""
-        # Since we can't directly access logs, we'll check for indicators in the response
-        # that suggest proper logging is happening
-        
-        if not hasattr(self, 'sre_forecast_response'):
-            self.log_test("Backend Logging Verification", "SKIP", "No SRE forecast response available")
+    def test_automl_returns_optimized_hyperparameters(self):
+        """Test 5: Verify AutoML Returns Optimized Hyperparameters"""
+        if not hasattr(self, 'automl_rf_response'):
+            self.log_test("AutoML Returns Optimized Hyperparameters", "SKIP", "No AutoML response available")
             return
         
-        response = self.sre_forecast_response
+        response = self.automl_rf_response
+        data = response.get("data", {})
+        model_comparison = data.get("model_comparison", [])
         
-        # Check if we have models (indicates training completed)
-        models = response.get("ml_models", [])
-        sre_forecast = response.get("sre_forecast", {})
+        # Look for hyperparameters in the response
+        hyperparams_found = False
+        cv_scores_found = False
+        automl_optimized_found = False
         
-        # If we have models and SRE forecast, logging should have occurred
-        if models and sre_forecast:
-            forecasts_count = len(sre_forecast.get("forecasts", []))
-            alerts_count = len(sre_forecast.get("critical_alerts", []))
-            
-            self.log_test("Backend Logging Verification", "PASS", 
-                         f"✅ SRE forecast generation completed: {forecasts_count} forecasts, {alerts_count} alerts (logging should show: '🔮 Generating SRE-style forecast summaries...' and '✅ SRE forecast generated')")
+        for model in model_comparison:
+            model_str = str(model)
+            if "best_params" in model_str:
+                hyperparams_found = True
+            if "cv_score" in model_str:
+                cv_scores_found = True
+            if "automl_optimized" in model_str:
+                automl_optimized_found = True
+        
+        # Check training summary for AutoML indicators
+        training_summary = data.get("training_summary", {})
+        
+        success_indicators = []
+        if hyperparams_found:
+            success_indicators.append("best_params")
+        if cv_scores_found:
+            success_indicators.append("cv_score")
+        if automl_optimized_found:
+            success_indicators.append("automl_optimized")
+        
+        if len(success_indicators) >= 2:
+            self.log_test("AutoML Returns Optimized Hyperparameters", "PASS", 
+                         f"✅ AutoML hyperparameters found: {', '.join(success_indicators)}")
+        elif len(success_indicators) >= 1:
+            self.log_test("AutoML Returns Optimized Hyperparameters", "PARTIAL", 
+                         f"Some AutoML indicators found: {', '.join(success_indicators)}")
         else:
-            self.log_test("Backend Logging Verification", "FAIL", 
-                         "SRE forecast generation may not have completed properly")
+            self.log_test("AutoML Returns Optimized Hyperparameters", "FAIL", 
+                         "❌ No AutoML hyperparameter indicators found in response")
 
     def test_sre_terminology_usage(self):
         """Test 6: Verify SRE Terminology is Used in Forecasts"""
