@@ -605,6 +605,36 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     }
   };
 
+  const exportModelCode = async (modelName) => {
+    try {
+      const response = await axios.post(
+        `${API}/export/code`,
+        {
+          dataset_id: dataset.id,
+          model_name: modelName,
+          target_column: analysisResults.target_column || selectedTarget,
+          feature_columns: analysisResults.feature_columns || selectedFeatures
+        },
+        { responseType: 'blob' }
+      );
+      
+      // Download ZIP file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${modelName}_export.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      console.log(`✅ Exported ${modelName} code`);
+    } catch (error) {
+      console.error('❌ Export failed:', error);
+      alert('Failed to export model code. Please try again.');
+    }
+  };
+
   const executeAction = async (actionData) => {
     setChatLoading(true);
     try {
