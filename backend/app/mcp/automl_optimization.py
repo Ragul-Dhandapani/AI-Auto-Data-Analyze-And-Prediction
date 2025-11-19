@@ -357,12 +357,49 @@ class AutoMLOptimizer:
             }
         """
         
-        # Get parameter grid
-        param_key = f"{model_name}_{problem_type}"
-        if param_key not in self.PARAM_GRIDS and model_name in self.PARAM_GRIDS:
+        # Get parameter grid - try multiple naming variations
+        param_key = None
+        
+        # Try: model_name_problem_type (e.g., "random_forest_regression")
+        key1 = f"{model_name}_{problem_type}"
+        if key1 in self.PARAM_GRIDS:
+            param_key = key1
+        
+        # Try: just model_name (e.g., "xgboost")
+        elif model_name in self.PARAM_GRIDS:
             param_key = model_name
         
-        param_grid = self.PARAM_GRIDS.get(param_key)
+        # Try: normalize common variations
+        else:
+            # Handle "random_forest" vs "random_forest_regression"
+            normalized_names = {
+                'random_forest': f'random_forest_{problem_type}',
+                'extra_trees': f'extra_trees_{problem_type}',
+                'gradient_boosting': f'gradient_boosting_{problem_type}',
+                'decision_tree': f'decision_tree_{problem_type}',
+                'extra_tree': f'extra_tree_{problem_type}',
+                'adaboost': f'adaboost_{problem_type}',
+                'xgboost': f'xgboost_{problem_type}',
+                'lightgbm': f'lightgbm_{problem_type}',
+                'catboost': f'catboost_{problem_type}',
+                'svr': 'svr' if problem_type == 'regression' else 'svc',
+                'svc': 'svc',
+                'linear_svr': 'linear_svr' if problem_type == 'regression' else 'linear_svc',
+                'linear_svc': 'linear_svc',
+                'knn': f'knn_{problem_type}',
+                'mlp': f'mlp_{problem_type}',
+                'ridge': 'ridge_regression' if problem_type == 'regression' else model_name,
+                'lasso': 'lasso_regression' if problem_type == 'regression' else model_name,
+                'elastic_net': 'elastic_net_regression' if problem_type == 'regression' else model_name,
+                'logistic_regression': 'logistic_regression'
+            }
+            
+            if model_name in normalized_names:
+                param_key = normalized_names[model_name]
+                if param_key not in self.PARAM_GRIDS:
+                    param_key = None
+        
+        param_grid = self.PARAM_GRIDS.get(param_key) if param_key else None
         
         if not param_grid:
             logger.warning(f"No parameter grid for {model_name}, using defaults")
