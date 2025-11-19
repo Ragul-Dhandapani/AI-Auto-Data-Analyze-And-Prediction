@@ -279,6 +279,20 @@ def train_multiple_models(
                     "error": abs(float(y_test.iloc[i] if isinstance(y_test, pd.Series) else y_test[i]) - float(y_pred_test[i]))
                 })
             
+            # Generate full test set predictions for "Actual vs Predicted" chart
+            # Limit to 1000 points for performance
+            chart_size = min(1000, len(X_test))
+            actual_vs_predicted = []
+            
+            for i in range(chart_size):
+                actual_val = float(y_test.iloc[i]) if isinstance(y_test, pd.Series) else float(y_test[i])
+                predicted_val = float(y_pred_test[i])
+                
+                actual_vs_predicted.append({
+                    "actual": actual_val,
+                    "predicted": predicted_val
+                })
+            
             model_result = {
                 "model_name": model_name,
                 "r2_score": float(r2_test),
