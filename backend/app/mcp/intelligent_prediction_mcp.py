@@ -269,45 +269,74 @@ class IntelligentPredictionMCP:
         
         return (*train_test_split(X_scaled, y, test_size=test_size, random_state=42), scaler, le)
     
-    def _train_models(self, names, X_train, y_train, prob_type):
+    def _train_models(self, names, X_train, y_train, prob_type, use_automl=False, automl_level='fast'):
         """Train multiple models with optimized parameters"""
         trained = {}
         models = self.REGRESSION_MODELS if prob_type == 'regression' else self.CLASSIFICATION_MODELS
         
+        # Initialize AutoML optimizer if needed
+        automl_optimizer = None
+        if use_automl:
+            from app.mcp.automl_optimization import AutoMLOptimizer
+            automl_optimizer = AutoMLOptimizer(optimization_level=automl_level)
+            logger.info(f"🔧 AutoML enabled: {automl_level} optimization")
+        
         for name in names:
             if models.get(name):
                 logger.info(f"  Training {name}...")
-                
-                # Initialize with optimized parameters
-                if name == 'random_forest':
-                    model = models[name](n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
-                elif name == 'extra_trees':
-                    model = models[name](n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
-                elif name == 'gradient_boosting':
-                    model = models[name](n_estimators=100, max_depth=5, learning_rate=0.1, random_state=42)
-                elif name == 'xgboost':
-                    model = models[name](n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42)
-                elif name == 'lightgbm':
-                    model = models[name](n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42, verbose=-1)
-                elif name == 'catboost':
-                    model = models[name](iterations=100, depth=6, learning_rate=0.1, random_state=42, verbose=False)
-                elif name in ['ridge', 'lasso']:
-                    model = models[name](alpha=1.0)
-                elif name == 'elastic_net':
-                    model = models[name](alpha=1.0, l1_ratio=0.5)
-                elif name == 'knn':
-                    model = models[name](n_neighbors=5, n_jobs=-1)
-                elif name == 'mlp':
-                    model = models[name](hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
-                elif name == 'adaboost':
-                    model = models[name](n_estimators=50, learning_rate=1.0, random_state=42)
-                else:
-                    model = models[name]()
-                
                 start = time.time()
-                model.fit(X_train, y_train)
-                trained[name] = {'model': model, 'time': time.time() - start}
-                logger.info(f"  ✅ {name} trained in {trained[name]['time']:.2f}s")
+                
+                if use_automl and automl_optimizer:
+                    # Use AutoML hyperparameter optimization
+                    result = automl_optimizer.optimize_model(
+                        model_class=models[name],
+                        model_name=name,
+                        X_train=X_train,
+                        y_train=y_train,
+                        problem_type=prob_type
+                    )
+                    model = result['best_model']
+                    best_params = result['best_params']
+                    automl_score = result.get('best_score')
+                    
+                    trained[name] = {
+                        'model': model, 
+                        'time': time.time() - start,
+                        'automl_optimized': True,
+                        'best_params': best_params,
+                        'cv_score': automl_score
+                    }
+                    logger.info(f"  ✅ {name} optimized in {trained[name]['time']:.2f}s (CV score: {automl_score:.4f})")
+                else:
+                    # Use default/hardcoded parameters (fast training)
+                    if name == 'random_forest':
+                        model = models[name](n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
+                    elif name == 'extra_trees':
+                        model = models[name](n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
+                    elif name == 'gradient_boosting':
+                        model = models[name](n_estimators=100, max_depth=5, learning_rate=0.1, random_state=42)
+                    elif name == 'xgboost':
+                        model = models[name](n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42)
+                    elif name == 'lightgbm':
+                        model = models[name](n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42, verbose=-1)
+                    elif name == 'catboost':
+                        model = models[name](iterations=100, depth=6, learning_rate=0.1, random_state=42, verbose=False)
+                    elif name in ['ridge', 'lasso']:
+                        model = models[name](alpha=1.0)
+                    elif name == 'elastic_net':
+                        model = models[name](alpha=1.0, l1_ratio=0.5)
+                    elif name == 'knn':
+                        model = models[name](n_neighbors=5, n_jobs=-1)
+                    elif name == 'mlp':
+                        model = models[name](hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
+                    elif name == 'adaboost':
+                        model = models[name](n_estimators=50, learning_rate=1.0, random_state=42)
+                    else:
+                        model = models[name]()
+                    
+                    model.fit(X_train, y_train)
+                    trained[name] = {'model': model, 'time': time.time() - start}
+                    logger.info(f"  ✅ {name} trained in {trained[name]['time']:.2f}s")
         
         return trained
     
