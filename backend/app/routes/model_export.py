@@ -742,6 +742,9 @@ def generate_comprehensive_readme(request: ModelExportRequest, all_model_info: L
     # Format features list
     features_list = ', '.join(f"`{f}`" for f in request.feature_columns)
     
+    # Format feature columns for use in code examples
+    feature_columns_str = str(request.feature_columns)
+    
     readme = f'''# PROMISE AI - Production Model Export Package
 
 ## 📊 Model Selection Report
