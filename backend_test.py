@@ -246,83 +246,64 @@ class AutoMLTester:
                          "AutoML request did not return expected results", response)
             return None
 
-    def test_sre_forecast_content_validation(self):
-        """Test 4: Validate SRE Forecast Content Structure"""
-        if not hasattr(self, 'sre_forecast_response'):
-            self.log_test("SRE Forecast Content Validation", "SKIP", "No SRE forecast response available")
+    def test_automl_with_multiple_models(self):
+        """Test 4: Test AutoML with Multiple Models (XGBoost, Ridge)"""
+        if not hasattr(self, 'regression_path'):
+            self.log_test("AutoML with Multiple Models", "SKIP", "No test dataset available")
             return
         
-        sre_forecast = self.sre_forecast_response.get("sre_forecast", {})
+        print("🔍 Testing AutoML with XGBoost and Ridge...")
         
-        # Check required fields
-        required_fields = ["forecasts", "critical_alerts", "recommendations"]
-        missing_fields = [field for field in required_fields if field not in sre_forecast]
+        data_source = {"type": "file", "path": self.regression_path}
+        response = self.call_intelligent_prediction_api(
+            data_source=data_source,
+            user_prompt="Predict house prices with optimized XGBoost and Ridge models",
+            target_column="price",
+            feature_columns=["bedrooms", "bathrooms", "sqft", "age"],
+            models_to_train=["xgboost", "ridge"],
+            use_automl=True,
+            automl_optimization_level="fast"
+        )
         
-        if missing_fields:
-            self.log_test("SRE Forecast Content Validation", "FAIL", 
-                         f"Missing required fields: {missing_fields}")
+        if "error" in response:
+            self.log_test("AutoML with Multiple Models", "FAIL", 
+                         f"Error: {response['error']}", response)
             return
         
-        # Validate forecasts structure
-        forecasts = sre_forecast.get("forecasts", [])
-        forecast_valid = True
-        forecast_details = []
-        
-        for i, forecast in enumerate(forecasts):
-            required_forecast_fields = ["timeframe", "prediction", "value", "confidence"]
-            missing_forecast_fields = [field for field in required_forecast_fields if field not in forecast]
-            if missing_forecast_fields:
-                forecast_valid = False
-                forecast_details.append(f"Forecast {i+1} missing: {missing_forecast_fields}")
-            else:
-                forecast_details.append(f"Forecast {i+1}: {forecast['timeframe']} - {forecast['prediction']}")
-        
-        # Validate alerts structure
-        alerts = sre_forecast.get("critical_alerts", [])
-        alert_valid = True
-        alert_details = []
-        
-        for i, alert in enumerate(alerts):
-            required_alert_fields = ["severity", "alert"]
-            missing_alert_fields = [field for field in required_alert_fields if field not in alert]
-            if missing_alert_fields:
-                alert_valid = False
-                alert_details.append(f"Alert {i+1} missing: {missing_alert_fields}")
-            else:
-                alert_details.append(f"Alert {i+1}: {alert['severity']} - {alert['alert']}")
-        
-        # Validate recommendations structure
-        recommendations = sre_forecast.get("recommendations", [])
-        rec_valid = True
-        rec_details = []
-        
-        for i, rec in enumerate(recommendations):
-            required_rec_fields = ["priority", "action"]
-            missing_rec_fields = [field for field in required_rec_fields if field not in rec]
-            if missing_rec_fields:
-                rec_valid = False
-                rec_details.append(f"Recommendation {i+1} missing: {missing_rec_fields}")
-            else:
-                rec_details.append(f"Recommendation {i+1}: {rec['priority']} - {rec['action']}")
-        
-        # Overall validation
-        if forecast_valid and alert_valid and rec_valid:
-            self.log_test("SRE Forecast Content Validation", "PASS", 
-                         f"✅ All structures valid: {len(forecasts)} forecasts, {len(alerts)} alerts, {len(recommendations)} recommendations")
-            print(f"   📊 Forecasts: {forecast_details}")
-            print(f"   🚨 Alerts: {alert_details}")
-            print(f"   💡 Recommendations: {rec_details}")
-        else:
-            issues = []
-            if not forecast_valid:
-                issues.extend(forecast_details)
-            if not alert_valid:
-                issues.extend(alert_details)
-            if not rec_valid:
-                issues.extend(rec_details)
+        # Check if response is successful and contains AutoML results for multiple models
+        if response.get("status") == "success" and "data" in response:
+            data = response["data"]
+            model_comparison = data.get("model_comparison", [])
             
-            self.log_test("SRE Forecast Content Validation", "FAIL", 
-                         f"Structure validation failed: {'; '.join(issues)}")
+            # Check each model for AutoML optimization
+            optimized_models = []
+            for model in model_comparison:
+                model_name = model.get("model_name")
+                if model_name in ["xgboost", "ridge"]:
+                    # Check for AutoML indicators
+                    model_str = str(model)
+                    if "automl_optimized" in model_str or "best_params" in model_str:
+                        optimized_models.append(model_name)
+            
+            if len(optimized_models) >= 2:
+                self.log_test("AutoML with Multiple Models", "PASS", 
+                             f"✅ AutoML optimization detected for {len(optimized_models)} models: {', '.join(optimized_models)}")
+                
+                # Store for detailed validation
+                self.automl_multi_response = response
+                return response
+            elif len(optimized_models) >= 1:
+                self.log_test("AutoML with Multiple Models", "PARTIAL", 
+                             f"AutoML optimization detected for {len(optimized_models)} models: {', '.join(optimized_models)}")
+                return response
+            else:
+                self.log_test("AutoML with Multiple Models", "FAIL", 
+                             f"❌ AutoML optimization not detected for any models")
+                return None
+        else:
+            self.log_test("AutoML with Multiple Models", "FAIL", 
+                         "AutoML request did not return expected results", response)
+            return None
 
     def test_backend_logging_verification(self):
         """Test 5: Check Backend Logging for SRE Forecast Generation"""
