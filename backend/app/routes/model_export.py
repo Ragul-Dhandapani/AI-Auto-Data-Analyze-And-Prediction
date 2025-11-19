@@ -1510,6 +1510,9 @@ if __name__ == "__main__":
     return code
 
 
+def generate_readme_troubleshooting() -> str:
+    """Generate troubleshooting section for README"""
+    return '''
 ### Issue: MemoryError
 
 **Solution**: Use chunked processing or reduce data size
