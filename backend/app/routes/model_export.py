@@ -788,15 +788,15 @@ The following models were trained and evaluated on your dataset:
         
         readme += f"| {idx} | `{model_name}` | {metric}: {score:.4f} | {train_time:.2f}s | {recommendation} |\n"
     
-    readme += f'''
+    readme += '''
 ---
 
-## 🎯 Why {best_model_name.replace('_', ' ').title()} Was Chosen
+## 🎯 Why {} Was Chosen
 
 **Performance Analysis:**
-- **{metric}**: {formatted_best_score} (Best among all tested models)
-- **Ranking**: #1 out of {len(all_model_info)} models
-'''
+- **{}**: {} (Best among all tested models)
+- **Ranking**: #1 out of {} models
+'''.format(best_model_name.replace('_', ' ').title(), metric, formatted_best_score, len(all_model_info))
     
     # Add model-specific reasoning
     model_explanations = {
