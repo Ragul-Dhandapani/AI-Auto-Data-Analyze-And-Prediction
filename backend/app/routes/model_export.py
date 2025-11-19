@@ -714,6 +714,9 @@ self.model = {model_info.get('model_class', 'RandomForestRegressor')}(
    ```
 
 ## 🐛 Troubleshooting
+'''
+    
+    return readme
 
 
 # ============================================================================
