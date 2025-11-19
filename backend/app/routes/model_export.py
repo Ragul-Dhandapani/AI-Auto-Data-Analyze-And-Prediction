@@ -789,7 +789,7 @@ The following models were trained and evaluated on your dataset:
 ## 🎯 Why {best_model_name.replace('_', ' ').title()} Was Chosen
 
 **Performance Analysis:**
-- **{metric}**: {best_score:.4f} (Best among all tested models)
+- **{metric}**: {formatted_best_score} (Best among all tested models)
 - **Ranking**: #1 out of {len(all_model_info)} models
 '''
     
