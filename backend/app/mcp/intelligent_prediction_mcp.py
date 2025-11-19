@@ -172,7 +172,7 @@ class IntelligentPredictionMCP:
         )
         
         # Train models
-        trained = self._train_models(models_to_train, X_train, y_train, problem_type)
+        trained = self._train_models(models_to_train, X_train, y_train, problem_type, use_automl, automl_optimization_level)
         
         # Evaluate
         comparison = self._evaluate(trained, X_test, y_test, problem_type)
