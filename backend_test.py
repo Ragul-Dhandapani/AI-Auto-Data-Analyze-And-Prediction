@@ -96,22 +96,30 @@ class AutoMLTester:
         
         return regression_path, classification_path
 
-    def run_holistic_analysis(self, dataset_id: str, user_selection: Dict = None) -> Dict:
-        """Run holistic analysis with optional user selection"""
+    def call_intelligent_prediction_api(self, data_source: Dict, user_prompt: str, target_column: str, 
+                                       feature_columns: List[str], models_to_train: List[str] = None,
+                                       problem_type: str = None, use_automl: bool = False, 
+                                       automl_optimization_level: str = 'fast') -> Dict:
+        """Call the intelligent prediction API"""
         payload = {
-            "dataset_id": dataset_id,
-            "workspace_name": "test_workspace_user_expectation",
-            "problem_type": "auto"
+            "data_source": data_source,
+            "user_prompt": user_prompt,
+            "target_column": target_column,
+            "feature_columns": feature_columns,
+            "models_to_train": models_to_train or ["random_forest", "xgboost", "ridge"],
+            "problem_type": problem_type,
+            "include_forecasting": True,
+            "include_insights": True,
+            "test_size": 0.2,
+            "use_automl": use_automl,
+            "automl_optimization_level": automl_optimization_level
         }
-        
-        if user_selection:
-            payload["user_selection"] = user_selection
         
         try:
             response = requests.post(
-                f"{self.backend_url}/analysis/holistic",
+                f"{self.backend_url}/intelligent-prediction/train-and-predict",
                 json=payload,
-                timeout=60  # Longer timeout for analysis
+                timeout=300  # 5 minutes timeout for AutoML
             )
             
             if response.status_code == 200:
