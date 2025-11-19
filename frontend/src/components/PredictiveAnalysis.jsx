@@ -2638,6 +2638,135 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </div>
       )}
 
+
+      {/* Export Models Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <Download className="w-6 h-6 text-blue-600" />
+                    Export Production Code
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Select models to export as production-ready Python package
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Model Selection */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold text-gray-800">Select Models to Export</h4>
+                  <span className="text-sm text-gray-600">
+                    {modelsForExport.length} of {analysisResults?.ml_models?.length || 0} selected
+                  </span>
+                </div>
+                
+                <div className="space-y-2 max-h-96 overflow-y-auto bg-gray-50 p-4 rounded-lg">
+                  {(analysisResults?.ml_models || [])
+                    .sort((a, b) => {
+                      const scoreA = a.r2_score || a.accuracy || 0;
+                      const scoreB = b.r2_score || b.accuracy || 0;
+                      return scoreB - scoreA;
+                    })
+                    .map((model, idx) => {
+                      const isSelected = modelsForExport.includes(model.model_name);
+                      const isBest = idx === 0;
+                      const score = model.r2_score || model.accuracy || 0;
+                      const metric = analysisResults.problem_type === 'classification' ? 'Accuracy' : 'R²';
+                      
+                      return (
+                        <div
+                          key={model.model_name}
+                          className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer hover:bg-white ${
+                            isSelected 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 bg-white hover:border-blue-300'
+                          }`}
+                          onClick={() => toggleModelForExport(model.model_name)}
+                        >
+                          {/* Checkbox */}
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleModelForExport(model.model_name)}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                          />
+                          
+                          {/* Model Info */}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              {isBest && <span className="text-lg">🏆</span>}
+                              <span className="font-semibold text-gray-900">
+                                {model.model_name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </span>
+                              {isBest && (
+                                <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
+                                  BEST
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-600 mt-1 flex items-center gap-4">
+                              <span>{metric}: {score.toFixed(4)}</span>
+                              <span>•</span>
+                              <span>Training: {model.training_time?.toFixed(2) || 'N/A'}s</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* Export Package Info */}
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Export Package Contents
+                </h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>✓ Production-ready Python code for each model</li>
+                  <li>✓ requirements.txt with all dependencies</li>
+                  <li>✓ README.md with model selection rationale</li>
+                  <li>✓ Universal training & prediction scripts</li>
+                  <li>✓ Pre-trained model files (.pkl)</li>
+                  <li>✓ Deployment examples (API, batch processing)</li>
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowExportModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={exportModelCode}
+                  disabled={modelsForExport.length === 0}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export {modelsForExport.length} Model{modelsForExport.length !== 1 ? 's' : ''}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
