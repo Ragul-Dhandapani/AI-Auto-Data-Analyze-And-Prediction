@@ -389,3 +389,354 @@ print(f"⚠️  {len(high_sales_months)} months with sales > $10K predicted")
 
 For Basic MCP (batch predictions): See `/app/backend/app/mcp/README.md`
 For Full API docs: See `/app/MCP_DOCUMENTATION.md`
+
+---
+
+## 🎯 Complete List of 37 Available ML Models
+
+### Regression Models (19 models):
+
+#### Linear Models (6):
+```python
+models_to_train = [
+    'linear_regression',         # Ordinary Least Squares
+    'ridge',                      # Ridge Regression (L2 regularization)
+    'lasso',                      # Lasso Regression (L1 regularization)
+    'elastic_net',                # Elastic Net (L1 + L2 regularization)
+    'sgd_regressor',              # Stochastic Gradient Descent Regressor
+    'passive_aggressive_regressor' # Online learning algorithm
+]
+```
+
+#### Tree-Based Models (6):
+```python
+models_to_train = [
+    'decision_tree',    # Simple decision tree
+    'extra_tree',       # Extremely randomized tree
+    'random_forest',    # Ensemble of decision trees (RECOMMENDED)
+    'extra_trees',      # Ensemble of randomized trees
+    'gradient_boosting',# Gradient boosting trees (RECOMMENDED)
+    'adaboost'          # Adaptive boosting
+]
+```
+
+#### Advanced Gradient Boosting (3):
+```python
+models_to_train = [
+    'xgboost',    # XGBoost - eXtreme Gradient Boosting (if installed) (RECOMMENDED)
+    'lightgbm',   # LightGBM - Fast gradient boosting (if installed)
+    'catboost'    # CatBoost - Handles categorical features well (if installed)
+]
+```
+
+#### Support Vector Machines (2):
+```python
+models_to_train = [
+    'svr',        # Support Vector Regression
+    'linear_svr'  # Linear SVR (faster for large datasets)
+]
+```
+
+#### Neighbors (1):
+```python
+models_to_train = ['knn']  # K-Nearest Neighbors
+```
+
+#### Neural Networks (1):
+```python
+models_to_train = ['mlp']  # Multi-Layer Perceptron (Neural Network)
+```
+
+---
+
+### Classification Models (18 models):
+
+#### Linear Models (3):
+```python
+models_to_train = [
+    'logistic_regression',         # Logistic regression (RECOMMENDED for binary)
+    'sgd_classifier',               # Stochastic Gradient Descent Classifier
+    'passive_aggressive_classifier' # Online learning algorithm
+]
+```
+
+#### Tree-Based Models (6):
+```python
+models_to_train = [
+    'decision_tree',    # Simple decision tree
+    'extra_tree',       # Extremely randomized tree
+    'random_forest',    # Ensemble of decision trees (RECOMMENDED)
+    'extra_trees',      # Ensemble of randomized trees
+    'gradient_boosting',# Gradient boosting trees (RECOMMENDED)
+    'adaboost'          # Adaptive boosting
+]
+```
+
+#### Advanced Gradient Boosting (3):
+```python
+models_to_train = [
+    'xgboost',    # XGBoost (if installed) (RECOMMENDED)
+    'lightgbm',   # LightGBM (if installed)
+    'catboost'    # CatBoost (if installed)
+]
+```
+
+#### Support Vector Machines (2):
+```python
+models_to_train = [
+    'svc',        # Support Vector Classification
+    'linear_svc'  # Linear SVC (faster for large datasets)
+]
+```
+
+#### Neighbors (1):
+```python
+models_to_train = ['knn']  # K-Nearest Neighbors
+```
+
+#### Naive Bayes (3):
+```python
+models_to_train = [
+    'gaussian_nb',     # Gaussian Naive Bayes (continuous features)
+    'bernoulli_nb',    # Bernoulli Naive Bayes (binary features)
+    'multinomial_nb'   # Multinomial Naive Bayes (count features)
+]
+```
+
+#### Neural Networks (1):
+```python
+models_to_train = ['mlp']  # Multi-Layer Perceptron (Neural Network)
+```
+
+---
+
+## 📋 Example: Training ALL Models
+
+### Example 1: Train ALL Regression Models
+
+```python
+from app.mcp.intelligent_prediction_mcp import IntelligentPredictionMCP
+
+mcp = IntelligentPredictionMCP()
+
+# Get all available regression models
+all_regression_models = mcp.get_all_available_models(problem_type='regression')
+print(f"Training {len(all_regression_models)} regression models: {all_regression_models}")
+
+result = mcp.train_and_predict(
+    data_source={'type': 'file', 'path': '/data/sales.csv'},
+    user_prompt="Predict monthly sales to optimize inventory",
+    target_column='monthly_sales',
+    feature_columns=['historical_sales', 'season', 'promotions'],
+    models_to_train=all_regression_models,  # TRAIN ALL 19 MODELS!
+    include_forecasting=True,
+    include_insights=True
+)
+
+# See comparison of all models
+for model in result['model_comparison']:
+    print(f"{model['model_name']}: R² = {model['score']:.4f}")
+```
+
+**Output**:
+```
+Training 19 regression models: ['linear_regression', 'ridge', 'lasso', 'elastic_net', ...]
+  Training linear_regression...
+  ✅ linear_regression trained in 0.15s
+  Training ridge...
+  ✅ ridge trained in 0.12s
+  ...
+  Training xgboost...
+  ✅ xgboost trained in 8.7s
+
+linear_regression: R² = 0.7234
+ridge: R² = 0.7298
+lasso: R² = 0.7156
+xgboost: R² = 0.8934
+random_forest: R² = 0.8721
+gradient_boosting: R² = 0.8654
+...
+```
+
+---
+
+### Example 2: Train Specific Subset of Models
+
+```python
+# Train only top-performing gradient boosting models
+result = mcp.train_and_predict(
+    data_source={'type': 'file', 'path': '/data/customers.csv'},
+    user_prompt="Predict customer churn for retention campaigns",
+    target_column='churned',
+    feature_columns=['purchase_freq', 'support_tickets', 'account_age'],
+    models_to_train=[
+        'random_forest',
+        'gradient_boosting',
+        'xgboost',
+        'lightgbm',
+        'catboost'
+    ],  # Train only 5 best models
+    include_forecasting=True,
+    include_insights=True
+)
+```
+
+---
+
+### Example 3: Train ALL 18 Classification Models
+
+```python
+# Get all classification models
+all_classification_models = mcp.get_all_available_models(problem_type='classification')
+
+result = mcp.train_and_predict(
+    data_source={
+        'type': 'oracle',
+        'config': {
+            'host': 'your-host.com',
+            'port': '1521',
+            'service_name': 'ORCL',
+            'username': 'user',
+            'password': 'pass'
+        },
+        'table': 'customer_data'
+    },
+    user_prompt="Classify customers by churn risk level",
+    target_column='churn_risk',
+    feature_columns=['lifetime_value', 'engagement_score', 'complaints'],
+    models_to_train=all_classification_models,  # ALL 18 MODELS!
+    include_forecasting=True,
+    include_insights=True
+)
+
+# Best model automatically selected
+print(f"Best: {result['best_model']['model_name']} (Accuracy: {result['best_model']['score']:.4f})")
+```
+
+---
+
+### Example 4: Compare Linear vs Tree vs Neural Models
+
+```python
+# Compare different model families
+result = mcp.train_and_predict(
+    data_source={'type': 'file', 'path': '/data/housing.csv'},
+    user_prompt="Predict house prices based on features",
+    target_column='price',
+    feature_columns=['sqft', 'bedrooms', 'location_score'],
+    models_to_train=[
+        # Linear models
+        'linear_regression',
+        'ridge',
+        'lasso',
+        # Tree models
+        'random_forest',
+        'gradient_boosting',
+        'xgboost',
+        # Neural network
+        'mlp',
+        # Neighbors
+        'knn'
+    ],
+    include_forecasting=True,
+    include_insights=True
+)
+
+# Compare performance
+print("\n📊 Model Family Performance:")
+for model in result['model_comparison']:
+    family = "Linear" if model['model_name'] in ['linear_regression', 'ridge', 'lasso'] else \
+             "Tree" if model['model_name'] in ['random_forest', 'gradient_boosting', 'xgboost'] else \
+             "Neural" if model['model_name'] == 'mlp' else "Other"
+    print(f"  {family:8s} | {model['model_name']:20s} | R² = {model['score']:.4f}")
+```
+
+---
+
+## 💡 Model Selection Recommendations
+
+### For Regression Tasks:
+
+**Fast & Accurate (Recommended)**:
+```python
+models_to_train=['random_forest', 'gradient_boosting', 'xgboost']
+```
+
+**All Top Performers**:
+```python
+models_to_train=['random_forest', 'extra_trees', 'gradient_boosting', 'xgboost', 'lightgbm', 'catboost']
+```
+
+**Linear Models Only (Interpretable)**:
+```python
+models_to_train=['linear_regression', 'ridge', 'lasso', 'elastic_net']
+```
+
+**Complete Comparison (Slow but Thorough)**:
+```python
+models_to_train=mcp.get_all_available_models('regression')  # All 19 models
+```
+
+---
+
+### For Classification Tasks:
+
+**Fast & Accurate (Recommended)**:
+```python
+models_to_train=['logistic_regression', 'random_forest', 'xgboost']
+```
+
+**All Top Performers**:
+```python
+models_to_train=['random_forest', 'gradient_boosting', 'xgboost', 'lightgbm', 'catboost']
+```
+
+**Simple & Interpretable**:
+```python
+models_to_train=['logistic_regression', 'decision_tree']
+```
+
+**Probabilistic Models**:
+```python
+models_to_train=['logistic_regression', 'gaussian_nb', 'bernoulli_nb']
+```
+
+**Complete Comparison (Slow but Thorough)**:
+```python
+models_to_train=mcp.get_all_available_models('classification')  # All 18 models
+```
+
+---
+
+## ⚡ Performance Guide
+
+### Training Time Estimates (1M rows):
+
+**Fast Models (< 10 seconds)**:
+- Linear models: 1-5s
+- Naive Bayes: 1-3s
+- SGD models: 2-5s
+
+**Medium Speed (10-60 seconds)**:
+- Random Forest: 15-30s
+- Decision Trees: 5-15s
+- KNN: 10-20s
+
+**Slower but More Accurate (1-5 minutes)**:
+- Gradient Boosting: 60-120s
+- XGBoost: 30-90s
+- LightGBM: 20-60s
+- MLP Neural Network: 120-300s
+
+**Recommendation**: Start with fast models, then add slower ones if needed.
+
+---
+
+## 📊 Total Available: 37 ML Models
+
+- **19 Regression models**
+- **18 Classification models**
+- **User can train ANY combination**
+- **Not limited to 5 models anymore!**
+
+Train 1 model or train all 37 - you have full control! 🚀
