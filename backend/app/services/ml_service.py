@@ -696,7 +696,8 @@ def train_classification_models(
                 "n_train_samples": len(X_train),
                 "n_test_samples": len(X_test),
                 "n_classes": n_classes,
-                "class_labels": class_labels
+                "class_labels": class_labels,
+                "actual_vs_predicted": actual_vs_predicted  # NEW: Full test set for chart
             }
             
             results.append(model_result)
