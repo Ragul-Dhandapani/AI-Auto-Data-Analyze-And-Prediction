@@ -306,7 +306,10 @@ class IntelligentPredictionMCP:
                         'best_params': best_params,
                         'cv_score': automl_score
                     }
-                    logger.info(f"  ✅ {name} optimized in {trained[name]['time']:.2f}s (CV score: {automl_score:.4f})")
+                    if automl_score is not None:
+                        logger.info(f"  ✅ {name} optimized in {trained[name]['time']:.2f}s (CV score: {automl_score:.4f})")
+                    else:
+                        logger.info(f"  ✅ {name} optimized in {trained[name]['time']:.2f}s (no hyperparameters to optimize)")
                 else:
                     # Use default/hardcoded parameters (fast training)
                     if name == 'random_forest':
