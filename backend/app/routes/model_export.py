@@ -811,13 +811,16 @@ The following models were trained and evaluated on your dataset:
     }
     
     explanation = model_explanations.get(best_model_name, "This model was selected based on its superior performance on your specific dataset.")
-    readme += f"\n**Technical Rationale:**  \n{explanation}\n"
+    readme += "\n**Technical Rationale:**  \n{}\n".format(explanation)
     
-    readme += f'''
+    pattern_strength = 'Works well with non-linear patterns' if 'forest' in best_model_name or 'boost' in best_model_name else 'Provides interpretable linear relationships'
+    importance_feature = 'Provides feature importance rankings' if 'forest' in best_model_name or 'boost' in best_model_name or 'tree' in best_model_name else 'Fast training and prediction'
+    
+    readme += '''
 **Key Strengths for Your Use Case:**
-- Handles {len(request.feature_columns)} features effectively
-- {'Works well with non-linear patterns' if 'forest' in best_model_name or 'boost' in best_model_name else 'Provides interpretable linear relationships'}
-- {'Provides feature importance rankings' if 'forest' in best_model_name or 'boost' in best_model_name or 'tree' in best_model_name else 'Fast training and prediction'}
+- Handles {} features effectively
+- {}
+- {}
 - Production-ready with minimal preprocessing
 
 ---
@@ -832,22 +835,22 @@ pip install -r requirements.txt
 
 ### 2. Choose Your Model
 
-You have {len(all_model_info)} pre-trained models to choose from:
+You have {} pre-trained models to choose from:
 
-'''
+'''.format(len(request.feature_columns), pattern_strength, importance_feature, len(all_model_info))
     
     for model_data in all_model_info:
-        readme += f"- **{model_data['name']}**: Use `{model_data['name']}_model.py`\n"
+        readme += "- **{}**: Use `{}_model.py`\n".format(model_data['name'], model_data['name'])
     
-    readme += f'''
-**Recommended**: Start with `{best_model_name}_model.py` (best performance)
+    readme += '''
+**Recommended**: Start with `{}_model.py` (best performance)
 
 ### 3. Train on Your Full Dataset
 
 ```bash
 # Edit train_full_dataset.py to configure your data path and model choice
-python train_full_dataset.py --model {best_model_name}
-```
+python train_full_dataset.py --model {}
+```'''.format(best_model_name, best_model_name)
 
 ### 4. Make Predictions
 
