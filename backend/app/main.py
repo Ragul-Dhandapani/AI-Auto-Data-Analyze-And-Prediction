@@ -65,7 +65,7 @@ async def shutdown_event():
         logger.error(f"❌ Error closing database: {str(e)}")
 
 # Import and include routers
-from app.routes import datasource, analysis, training, config, models, enhanced_chat, migration, model_export, intelligent_prediction
+from app.routes import datasource, analysis, training, config, models, enhanced_chat, migration, model_export, intelligent_prediction, instant_api_deployment
 
 # Create main API router
 from fastapi import APIRouter
@@ -76,11 +76,12 @@ api_router.include_router(datasource.router)
 api_router.include_router(analysis.router)
 api_router.include_router(training.router)
 api_router.include_router(config.router)  # Database switcher
-api_router.include_router(models.router)  # Model management (NEW)
-api_router.include_router(enhanced_chat.router)  # Enhanced AI Chat Assistant (NEW)
-api_router.include_router(migration.router)  # Database migrations (NEW)
-api_router.include_router(model_export.router)  # Model Export (NEW)
-api_router.include_router(intelligent_prediction.router)  # Intelligent Prediction MCP (NEW)
+api_router.include_router(models.router)  # Model management
+api_router.include_router(enhanced_chat.router)  # Enhanced AI Chat Assistant
+api_router.include_router(migration.router)  # Database migrations
+api_router.include_router(model_export.router)  # Model Export
+api_router.include_router(intelligent_prediction.router)  # Intelligent Prediction MCP
+api_router.include_router(instant_api_deployment.router)  # Instant API Deployment (NEW)
 
 # Add root endpoint
 @api_router.get("/")
