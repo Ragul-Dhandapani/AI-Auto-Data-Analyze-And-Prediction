@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-SRE-Style Forecasting Feature Testing for PROMISE AI Platform
-Tests the SRE forecasting feature in holistic analysis
+AutoML Hyperparameter Optimization Testing for PROMISE AI Platform
+Tests the newly integrated AutoML feature for the MCP intelligent prediction endpoint
 """
 
 import requests
 import json
 import sys
 import time
+import csv
+import io
 from typing import Dict, List, Any
 
 # Backend URL from environment
 BACKEND_URL = "https://model-wizard-2.preview.emergentagent.com/api"
 
-class SREForecastTester:
+class AutoMLTester:
     def __init__(self):
         self.backend_url = BACKEND_URL
         self.test_results = []
