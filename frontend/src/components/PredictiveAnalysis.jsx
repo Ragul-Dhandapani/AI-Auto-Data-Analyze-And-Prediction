@@ -2133,6 +2133,203 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
+
+      {/* Actual vs. Predicted Chart - NEW SECTION */}
+      {analysisResults.ml_models && analysisResults.ml_models.length > 0 && analysisResults.ml_models[0].actual_vs_predicted && (
+        <Card className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-l-blue-500">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-2">🎯 Actual vs. Predicted Values</h3>
+            <p className="text-sm text-gray-600">
+              Scatter plot showing model prediction accuracy. Points closer to the diagonal line indicate better predictions.
+            </p>
+          </div>
+
+          {/* Model Selector for Chart */}
+          <div className="mb-4 flex gap-2 flex-wrap">
+            {analysisResults.ml_models.slice(0, 5).map((model, idx) => (
+              <button
+                key={model.model_name}
+                onClick={() => setSelectedChartModel(model.model_name)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  selectedChartModel === model.model_name || (!selectedChartModel && idx === 0)
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-white text-gray-700 hover:bg-blue-100 border border-gray-300'
+                }`}
+              >
+                {model.model_name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                {idx === 0 && ' 🏆'}
+              </button>
+            ))}
+          </div>
+
+          {(() => {
+            const chartModel = analysisResults.ml_models.find(m => m.model_name === selectedChartModel) || analysisResults.ml_models[0];
+            const data = chartModel.actual_vs_predicted || [];
+            const isRegression = chartModel.problem_type !== 'classification';
+            
+            if (data.length === 0) {
+              return <p className="text-gray-500 italic">No prediction data available for visualization.</p>;
+            }
+
+            // Calculate perfect prediction line bounds
+            const allValues = data.flatMap(d => [d.actual, d.predicted]);
+            const minVal = Math.min(...allValues);
+            const maxVal = Math.max(...allValues);
+            const padding = (maxVal - minVal) * 0.1;
+
+            return (
+              <div className="bg-white rounded-lg p-6 shadow-inner">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* Chart */}
+                  <div className="lg:col-span-3">
+                    <ResponsiveContainer width="100%" height={400}>
+                      <ScatterChart margin={{ top: 20, right: 30, bottom: 60, left: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                        <XAxis 
+                          type="number" 
+                          dataKey="actual" 
+                          name="Actual"
+                          domain={[minVal - padding, maxVal + padding]}
+                          label={{ value: 'Actual Values', position: 'insideBottom', offset: -10, style: { fontSize: 14, fontWeight: 600 } }}
+                        />
+                        <YAxis 
+                          type="number" 
+                          dataKey="predicted" 
+                          name="Predicted"
+                          domain={[minVal - padding, maxVal + padding]}
+                          label={{ value: 'Predicted Values', angle: -90, position: 'insideLeft', style: { fontSize: 14, fontWeight: 600 } }}
+                        />
+                        <Tooltip 
+                          cursor={{ strokeDasharray: '3 3' }}
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const point = payload[0].payload;
+                              const error = Math.abs(point.actual - point.predicted);
+                              const errorPct = ((error / point.actual) * 100).toFixed(1);
+                              
+                              return (
+                                <div className="bg-white p-3 border border-gray-300 rounded-lg shadow-lg">
+                                  <p className="font-semibold text-gray-800 mb-1">Data Point</p>
+                                  <p className="text-sm text-gray-700">
+                                    <span className="font-medium">Actual:</span> {point.actual.toFixed(2)}
+                                  </p>
+                                  <p className="text-sm text-gray-700">
+                                    <span className="font-medium">Predicted:</span> {point.predicted.toFixed(2)}
+                                  </p>
+                                  <p className="text-sm text-gray-700 mt-1">
+                                    <span className="font-medium">Error:</span> {error.toFixed(2)} ({errorPct}%)
+                                  </p>
+                                  {point.probability !== undefined && (
+                                    <p className="text-sm text-gray-700">
+                                      <span className="font-medium">Confidence:</span> {(point.probability * 100).toFixed(1)}%
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Legend 
+                          verticalAlign="top" 
+                          height={36}
+                          wrapperStyle={{ fontSize: '14px', fontWeight: 600 }}
+                        />
+                        
+                        {/* Perfect prediction line (diagonal) */}
+                        <ReferenceLine
+                          segment={[
+                            { x: minVal - padding, y: minVal - padding },
+                            { x: maxVal + padding, y: maxVal + padding }
+                          ]}
+                          stroke="#10b981"
+                          strokeWidth={2}
+                          strokeDasharray="5 5"
+                          label={{ value: 'Perfect Prediction', position: 'insideTopRight', fill: '#10b981', fontSize: 12 }}
+                        />
+                        
+                        {/* Actual data points */}
+                        <Scatter 
+                          name={`${chartModel.model_name.replace(/_/g, ' ')}`}
+                          data={data} 
+                          fill="#3b82f6"
+                          fillOpacity={0.6}
+                          stroke="#2563eb"
+                          strokeWidth={1}
+                        />
+                      </ScatterChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Stats Panel */}
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                      <h4 className="font-semibold text-blue-900 mb-3">Model Accuracy</h4>
+                      <div className="space-y-2">
+                        {isRegression ? (
+                          <>
+                            <div>
+                              <p className="text-xs text-blue-700">R² Score</p>
+                              <p className="text-2xl font-bold text-blue-900">{chartModel.r2_score.toFixed(3)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-blue-700">RMSE</p>
+                              <p className="text-lg font-semibold text-blue-800">{chartModel.rmse.toFixed(2)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-blue-700">MAE</p>
+                              <p className="text-lg font-semibold text-blue-800">{chartModel.mae.toFixed(2)}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div>
+                              <p className="text-xs text-blue-700">Accuracy</p>
+                              <p className="text-2xl font-bold text-blue-900">{(chartModel.accuracy * 100).toFixed(1)}%</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-blue-700">Precision</p>
+                              <p className="text-lg font-semibold text-blue-800">{(chartModel.precision * 100).toFixed(1)}%</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-blue-700">Recall</p>
+                              <p className="text-lg font-semibold text-blue-800">{(chartModel.recall * 100).toFixed(1)}%</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-800 mb-2 text-sm">Dataset Info</h4>
+                      <div className="space-y-1 text-sm">
+                        <p className="text-gray-700">
+                          <span className="font-medium">Test Points:</span> {data.length}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-medium">Train Samples:</span> {chartModel.n_train_samples}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-medium">Features:</span> {chartModel.features_used.length}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <h4 className="font-semibold text-green-900 mb-2 text-sm">Interpretation</h4>
+                      <p className="text-xs text-green-800">
+                        Points near the <span className="font-semibold">green diagonal line</span> indicate accurate predictions. 
+                        Scatter away from the line shows prediction error.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </Card>
+      )}
+
       {/* Historical Trends Analysis - NEW SECTION */}
       {analysisResults.historical_trends && !collapsed.historical_trends && (
         <Card className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-l-indigo-500">
