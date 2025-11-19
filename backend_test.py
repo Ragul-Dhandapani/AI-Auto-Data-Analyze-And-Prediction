@@ -350,46 +350,38 @@ class AutoMLTester:
             self.log_test("AutoML Returns Optimized Hyperparameters", "FAIL", 
                          "❌ No AutoML hyperparameter indicators found in response")
 
-    def test_sre_terminology_usage(self):
-        """Test 6: Verify SRE Terminology is Used in Forecasts"""
-        if not hasattr(self, 'sre_forecast_response'):
-            self.log_test("SRE Terminology Usage", "SKIP", "No SRE forecast response available")
+    def test_automl_performance_comparison(self):
+        """Test 6: Compare AutoML vs Default Performance"""
+        if not hasattr(self, 'regression_path') or not hasattr(self, 'baseline_response'):
+            self.log_test("AutoML Performance Comparison", "SKIP", "No baseline or AutoML response available")
             return
         
-        sre_forecast = self.sre_forecast_response.get("sre_forecast", {})
+        # Get baseline performance (without AutoML)
+        baseline_data = self.baseline_response.get("data", {})
+        baseline_comparison = baseline_data.get("model_comparison", [])
+        baseline_best = baseline_data.get("best_model", {})
+        baseline_score = baseline_best.get("score", 0)
         
-        # Collect all text from forecasts, alerts, and recommendations
-        all_text = ""
-        
-        for forecast in sre_forecast.get("forecasts", []):
-            all_text += f" {forecast.get('prediction', '')} {forecast.get('value', '')}"
-        
-        for alert in sre_forecast.get("critical_alerts", []):
-            all_text += f" {alert.get('alert', '')}"
-        
-        for rec in sre_forecast.get("recommendations", []):
-            all_text += f" {rec.get('action', '')}"
-        
-        all_text = all_text.lower()
-        
-        # Check for SRE terminology
-        sre_terms = [
-            "slo", "latency", "threshold", "percentile", "p95", "p99", 
-            "error budget", "capacity", "performance", "monitoring", 
-            "reliability", "availability", "degradation", "optimization"
-        ]
-        
-        found_terms = [term for term in sre_terms if term in all_text]
-        
-        if len(found_terms) >= 3:
-            self.log_test("SRE Terminology Usage", "PASS", 
-                         f"✅ SRE terminology detected: {found_terms}")
-        elif len(found_terms) >= 1:
-            self.log_test("SRE Terminology Usage", "PARTIAL", 
-                         f"Some SRE terminology found: {found_terms}")
+        # Get AutoML performance
+        if hasattr(self, 'automl_rf_response'):
+            automl_data = self.automl_rf_response.get("data", {})
+            automl_comparison = automl_data.get("model_comparison", [])
+            automl_best = automl_data.get("best_model", {})
+            automl_score = automl_best.get("score", 0)
+            
+            # Compare performance
+            if automl_score > baseline_score:
+                improvement = ((automl_score - baseline_score) / baseline_score) * 100
+                self.log_test("AutoML Performance Comparison", "PASS", 
+                             f"✅ AutoML improved performance: {baseline_score:.4f} → {automl_score:.4f} (+{improvement:.2f}%)")
+            elif automl_score >= baseline_score * 0.95:  # Within 5% is acceptable
+                self.log_test("AutoML Performance Comparison", "PASS", 
+                             f"✅ AutoML performance comparable: {baseline_score:.4f} → {automl_score:.4f}")
+            else:
+                self.log_test("AutoML Performance Comparison", "FAIL", 
+                             f"❌ AutoML performance worse: {baseline_score:.4f} → {automl_score:.4f}")
         else:
-            self.log_test("SRE Terminology Usage", "FAIL", 
-                         "No SRE terminology detected in forecasts")
+            self.log_test("AutoML Performance Comparison", "SKIP", "No AutoML response available for comparison")
 
     def test_azure_openai_integration(self):
         """Test 7: Azure OpenAI Integration for SRE Forecasting"""
