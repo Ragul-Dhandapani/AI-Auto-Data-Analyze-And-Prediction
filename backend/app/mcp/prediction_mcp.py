@@ -59,16 +59,85 @@ class PredictionMCP:
         )
     """
     
-    def __init__(self, chunk_size: int = 100000):
+    def __init__(self, chunk_size: int = 100000, models_dir: str = "/app/backend/models"):
         """
         Initialize Prediction MCP
         
         Args:
             chunk_size: Number of rows to process at once (default: 100K)
+            models_dir: Base directory for saved models
         """
         self.chunk_size = chunk_size
+        self.models_dir = Path(models_dir)
         self.supported_db_types = ['oracle', 'postgresql', 'mysql', 'mongodb']
         self.supported_file_types = ['.csv', '.xlsx', '.xls', '.parquet', '.json']
+    
+    def get_best_model_path(self, dataset_id: str) -> Optional[str]:
+        """
+        Auto-detect the best model for a dataset
+        
+        Args:
+            dataset_id: Dataset identifier
+        
+        Returns:
+            Path to best model or None if not found
+        """
+        dataset_dir = self.models_dir / dataset_id
+        
+        if not dataset_dir.exists():
+            logger.warning(f"No models found for dataset {dataset_id}")
+            return None
+        
+        # Look for model files
+        model_files = list(dataset_dir.glob("*.pkl")) + list(dataset_dir.glob("*.joblib"))
+        
+        if not model_files:
+            logger.warning(f"No model files found in {dataset_dir}")
+            return None
+        
+        # Try to load metadata to find best model
+        metadata_file = dataset_dir / "model_metadata.json"
+        if metadata_file.exists():
+            import json
+            with open(metadata_file, 'r') as f:
+                metadata = json.load(f)
+            best_model = metadata.get('best_model')
+            if best_model:
+                best_model_path = dataset_dir / f"{best_model}.pkl"
+                if best_model_path.exists():
+                    logger.info(f"✅ Using best model: {best_model}")
+                    return str(best_model_path)
+        
+        # Fallback: return first model found
+        first_model = str(model_files[0])
+        logger.info(f"✅ Using model: {first_model}")
+        return first_model
+    
+    def list_available_models(self, dataset_id: str) -> List[Dict[str, Any]]:
+        """
+        List all available models for a dataset
+        
+        Args:
+            dataset_id: Dataset identifier
+        
+        Returns:
+            List of model info dictionaries
+        """
+        dataset_dir = self.models_dir / dataset_id
+        
+        if not dataset_dir.exists():
+            return []
+        
+        models = []
+        for model_file in dataset_dir.glob("*.pkl"):
+            models.append({
+                'model_name': model_file.stem,
+                'model_path': str(model_file),
+                'file_size_mb': model_file.stat().st_size / (1024 * 1024),
+                'modified_date': datetime.fromtimestamp(model_file.stat().st_mtime).isoformat()
+            })
+        
+        return models
     
     def predict_from_file(
         self,
