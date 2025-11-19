@@ -731,6 +731,9 @@ def generate_comprehensive_readme(request: ModelExportRequest, all_model_info: L
     best_score = best_model['info'].get('r2_score') or best_model['info'].get('accuracy', 0)
     problem_type = best_model['info'].get('problem_type', 'regression')
     
+    # Define metric for use in f-strings
+    metric = 'R²' if problem_type == 'regression' else 'Accuracy'
+    
     readme = f'''# PROMISE AI - Production Model Export Package
 
 ## 📊 Model Selection Report
