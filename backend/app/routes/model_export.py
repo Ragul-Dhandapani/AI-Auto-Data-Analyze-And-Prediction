@@ -620,7 +620,7 @@ df = pd.read_csv("new_data.csv")
 df = model.preprocess(df)
 
 # Make predictions
-predictions = model.predict(df[{request.feature_columns}])
+predictions = model.predict(df[{feature_columns_str}])
 
 print(f"Predictions: {{predictions[:10]}}")
 ```
@@ -891,7 +891,7 @@ model = ProductionModel(model_path="models/{best_model_name}.pkl")
 df = pd.read_csv("new_data.csv")
 
 # Make predictions
-predictions = model.predict(df[{request.feature_columns}])
+predictions = model.predict(df[{feature_columns_str}])
 print(f"Predictions: {{predictions[:5]}}")
 ```
 
@@ -993,7 +993,7 @@ model = ProductionModel(model_path="models/{best_model_name}.pkl")
 
 # Process daily batch
 df = pd.read_csv(f"/data/batch_{{date.today()}}.csv")
-predictions = model.predict(df[{request.feature_columns}])
+predictions = model.predict(df[{feature_columns_str}])
 
 # Save results
 df['predictions'] = predictions
