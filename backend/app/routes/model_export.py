@@ -1015,8 +1015,8 @@ pip install -r requirements.txt
 **Solution**: Verify your new data has the same features and distribution as training data
 ```python
 # Check feature names and types
-print(df[{request.feature_columns}].dtypes)
-print(df[{request.feature_columns}].describe())
+print(df[''' + str(request.feature_columns) + '''].dtypes)
+print(df[''' + str(request.feature_columns) + '''].describe())
 ```
 
 ---
