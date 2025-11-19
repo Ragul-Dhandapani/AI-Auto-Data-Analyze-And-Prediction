@@ -6696,3 +6696,42 @@ All critical smart selection and domain-agnostic features are working as designe
 
 **Recommendation**: ✅ **AutoML feature complete and ready for production use**
 
+
+
+---
+## ✅ PHASE 1 COMPLETE: Actual vs. Predicted Chart - Nov 19, 2025
+
+**Status**: ✅ **IMPLEMENTED**
+
+### Implementation Summary:
+**Backend Changes:**
+- Modified  to include full test set predictions for both regression and classification
+- Added  array to model results (limited to 1000 points for performance)
+- For regression: Returns actual vs predicted values
+- For classification: Returns actual vs predicted classes + probabilities
+
+**Frontend Changes:**
+- Added new "Actual vs. Predicted Values" section in PredictiveAnalysis.jsx
+- Interactive scatter plot with model selector (top 5 models)
+- Shows perfect prediction diagonal line (green dashed)
+- Color-coded data points with hover tooltips showing error metrics
+- Stats panel showing R²/RMSE/MAE for regression or Accuracy/Precision/Recall for classification
+- Responsive design with Recharts library
+
+### Key Features:
+✅ Scatter plot with actual values on X-axis, predicted on Y-axis
+✅ Green diagonal line representing perfect predictions
+✅ Interactive tooltips with error percentage
+✅ Model selector buttons to compare different models
+✅ Accuracy metrics panel
+✅ Dataset info panel
+✅ Interpretation guide
+
+### Testing:
+- Backend: Tested and running ✅
+- Frontend: Component created ✅
+- Need user testing with actual analysis run
+
+**Next**: Moving to PHASE 2 - Domain-Specific Visualizations (4-6 hours)
+
+
