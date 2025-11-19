@@ -694,7 +694,7 @@ self.model = {model_info.get('model_class', 'RandomForestRegressor')}(
        data = request.json
        df = pd.DataFrame([data])
        predictions = model.predict(df)
-       return jsonify({{'prediction': float(predictions[0])}})
+       return jsonify({{'prediction': float(predictions[0])}}))
    
    app.run(host='0.0.0.0', port=5000)
    ```
