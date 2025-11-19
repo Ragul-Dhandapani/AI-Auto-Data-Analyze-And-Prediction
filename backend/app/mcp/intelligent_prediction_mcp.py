@@ -351,14 +351,23 @@ class IntelligentPredictionMCP:
             
             if prob_type == 'regression':
                 score = r2_score(y_test, pred)
+                rmse = np.sqrt(mean_squared_error(y_test, pred))
+                mae = mean_absolute_error(y_test, pred)
+                
+                # Handle NaN/infinity values
+                score = float(score) if np.isfinite(score) else 0.0
+                rmse = float(rmse) if np.isfinite(rmse) else 0.0
+                mae = float(mae) if np.isfinite(mae) else 0.0
+                
                 metrics = {
-                    'r2_score': float(score),
-                    'rmse': float(np.sqrt(mean_squared_error(y_test, pred))),
-                    'mae': float(mean_absolute_error(y_test, pred))
+                    'r2_score': score,
+                    'rmse': rmse,
+                    'mae': mae
                 }
             else:
                 score = accuracy_score(y_test, pred)
-                metrics = {'accuracy': float(score)}
+                score = float(score) if np.isfinite(score) else 0.0
+                metrics = {'accuracy': score}
             
             results.append({'model_name': name, 'score': score, 'metrics': metrics, 'training_time': info['time']})
         
