@@ -734,6 +734,9 @@ def generate_comprehensive_readme(request: ModelExportRequest, all_model_info: L
     # Define metric for use in f-strings
     metric = 'R²' if problem_type == 'regression' else 'Accuracy'
     
+    # Format the best score to avoid f-string formatting issues
+    formatted_best_score = f"{best_score:.4f}"
+    
     # Format features list
     features_list = ', '.join(f"`{f}`" for f in request.feature_columns)
     
