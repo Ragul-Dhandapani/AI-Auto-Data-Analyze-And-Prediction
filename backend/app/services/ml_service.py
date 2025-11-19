@@ -650,6 +650,34 @@ def train_classification_models(
             else:
                 confidence = "Low"
             
+            # Generate full test set predictions for "Actual vs Predicted" chart
+            # For classification, we'll show predicted probabilities vs actual classes
+            # Limit to 1000 points for performance
+            chart_size = min(1000, len(X_test))
+            actual_vs_predicted = []
+            
+            for i in range(chart_size):
+                actual_class = int(y_test.iloc[i]) if isinstance(y_test, pd.Series) else int(y_test[i])
+                predicted_class = int(y_pred_test[i])
+                
+                # For binary, add probability of positive class
+                if is_binary and not is_lstm:
+                    if hasattr(model, 'predict_proba'):
+                        prob = float(model.predict_proba(X_test.iloc[[i]] if isinstance(X_test, pd.DataFrame) else X_test[[i]])[0][1])
+                    else:
+                        prob = float(predicted_class)  # Fallback
+                    
+                    actual_vs_predicted.append({
+                        "actual": actual_class,
+                        "predicted": predicted_class,
+                        "probability": prob
+                    })
+                else:
+                    actual_vs_predicted.append({
+                        "actual": actual_class,
+                        "predicted": predicted_class
+                    })
+            
             model_result = {
                 "model_name": model_name,
                 "problem_type": "classification",
