@@ -1309,9 +1309,10 @@ if __name__ == "__main__":
 def generate_universal_training_script(request: ModelExportRequest, all_model_info: List[Dict]) -> str:
     """Generate universal training script that works with any exported model"""
     
+    available_models_list = [m['name'] for m in all_model_info]
     model_choices = '\n'.join([f"    '{m['name']}': Use {m['name']}_model.py" for m in all_model_info])
     
-    code = f'''"""
+    code = '''"""
 Universal Training Script
 Works with any exported model from PROMISE AI
 
