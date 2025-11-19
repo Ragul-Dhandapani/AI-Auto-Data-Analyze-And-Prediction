@@ -135,36 +135,17 @@ class AutoMLTester:
                 "details": str(e)
             }
 
-    def test_setup_dataset(self):
-        """Test 1: Setup test dataset"""
-        # Look for existing SRE test dataset first
-        datasets = self.get_available_datasets()
-        
-        # Look for our SRE test dataset
-        suitable_dataset = None
-        for dataset in datasets:
-            name = dataset.get("name", "").lower()
-            row_count = dataset.get("row_count", 0)
-            storage_type = dataset.get("storage_type", "")
+    def test_setup_datasets(self):
+        """Test 1: Setup test datasets for regression and classification"""
+        try:
+            regression_path, classification_path = self.create_test_datasets()
+            self.regression_path = regression_path
+            self.classification_path = classification_path
             
-            # Look for our SRE test dataset or any dataset with enough rows for ML
-            if ("sre_test" in name and row_count >= 100) or (storage_type == "direct" and row_count >= 100):
-                suitable_dataset = dataset
-                break
-        
-        if suitable_dataset:
-            self.test_dataset_id = suitable_dataset.get("id")
-            self.log_test("Setup Test Dataset", "PASS", 
-                         f"Using existing dataset: {suitable_dataset.get('name')} (ID: {self.test_dataset_id}, {suitable_dataset.get('row_count')} rows, storage: {suitable_dataset.get('storage_type')})")
-        else:
-            # Upload a new SRE test dataset with enough data for ML training
-            print("🔄 No suitable dataset found for ML training, uploading SRE test dataset...")
-            self.test_dataset_id = self.upload_test_dataset()
-            if self.test_dataset_id:
-                self.log_test("Setup Test Dataset", "PASS", 
-                             f"Uploaded new SRE test dataset (ID: {self.test_dataset_id})")
-            else:
-                self.log_test("Setup Test Dataset", "FAIL", "Could not setup SRE test dataset")
+            self.log_test("Setup Test Datasets", "PASS", 
+                         f"Created regression dataset: {regression_path} and classification dataset: {classification_path}")
+        except Exception as e:
+            self.log_test("Setup Test Datasets", "FAIL", f"Failed to create test datasets: {str(e)}")
 
     def test_analysis_without_user_expectation(self):
         """Test 2: Analysis WITHOUT user expectation (baseline)"""
