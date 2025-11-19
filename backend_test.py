@@ -547,25 +547,35 @@ class AutoMLTester:
             for failure in critical_failures:
                 print(f"   - {failure['test']}: {failure['details']}")
         
-        # SRE forecasting feature status
-        sre_tests = [r for r in self.test_results if "SRE" in r["test"] or "Forecast" in r["test"]]
-        sre_working = sum(1 for r in sre_tests if r["status"] in ["PASS", "PARTIAL"])
+        # AutoML feature status
+        automl_tests = [r for r in self.test_results if "AutoML" in r["test"] or "automl" in r["test"].lower()]
+        automl_working = sum(1 for r in automl_tests if r["status"] in ["PASS", "PARTIAL"])
         
-        print(f"\n🎯 SRE FORECASTING FEATURE STATUS:")
-        if sre_working >= len(sre_tests) * 0.7:  # 70% threshold
-            print("   ✅ SRE forecasting feature is working")
+        print(f"\n🎯 AUTOML HYPERPARAMETER OPTIMIZATION STATUS:")
+        if automl_working >= len(automl_tests) * 0.7:  # 70% threshold
+            print("   ✅ AutoML hyperparameter optimization is working")
         else:
-            print("   ❌ SRE forecasting feature needs attention")
+            print("   ❌ AutoML hyperparameter optimization needs attention")
         
-        # Azure OpenAI status
-        ai_tests = [r for r in self.test_results if "Azure" in r["test"] or "AI" in r["test"]]
-        ai_working = any(r["status"] == "PASS" for r in ai_tests)
+        # Endpoint status
+        endpoint_tests = [r for r in self.test_results if "Endpoint" in r["test"]]
+        endpoint_working = any(r["status"] == "PASS" for r in endpoint_tests)
         
-        print(f"\n🤖 AZURE OPENAI STATUS:")
-        if ai_working:
-            print("   ✅ Azure OpenAI integration is working")
+        print(f"\n🔗 INTELLIGENT PREDICTION ENDPOINT STATUS:")
+        if endpoint_working:
+            print("   ✅ /api/intelligent-prediction/train-and-predict endpoint is working")
         else:
-            print("   ⚠️  Azure OpenAI may not be configured (acceptable)")
+            print("   ❌ Endpoint may not be configured correctly")
+        
+        # Performance comparison status
+        performance_tests = [r for r in self.test_results if "Performance" in r["test"]]
+        performance_working = any(r["status"] == "PASS" for r in performance_tests)
+        
+        print(f"\n📊 AUTOML PERFORMANCE STATUS:")
+        if performance_working:
+            print("   ✅ AutoML shows performance improvements")
+        else:
+            print("   ⚠️  AutoML performance comparison inconclusive")
         
         return {
             "total": total,
@@ -573,8 +583,9 @@ class AutoMLTester:
             "failed": failed,
             "partial": partial,
             "success_rate": success_rate,
-            "sre_working": sre_working >= len(sre_tests) * 0.7,
-            "ai_working": ai_working
+            "automl_working": automl_working >= len(automl_tests) * 0.7,
+            "endpoint_working": endpoint_working,
+            "performance_working": performance_working
         }
 
 def main():
