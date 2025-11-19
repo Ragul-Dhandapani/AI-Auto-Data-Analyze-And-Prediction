@@ -1,5 +1,5 @@
 """
-Intelligent Prediction MCP - Complete ML Pipeline with User Control
+Intelligent Prediction MCP - Complete ML Pipeline with 35+ Models
 Includes: Training, Prediction, Forecasting, and Insights
 """
 
@@ -12,9 +12,13 @@ import time
 from datetime import datetime
 import logging
 
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, GradientBoostingRegressor, GradientBoostingClassifier, AdaBoostRegressor, AdaBoostClassifier, ExtraTreesRegressor, ExtraTreesClassifier
+from sklearn.linear_model import LinearRegression, LogisticRegression, Ridge, Lasso, ElasticNet, SGDRegressor, SGDClassifier, PassiveAggressiveRegressor, PassiveAggressiveClassifier
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier, ExtraTreeRegressor, ExtraTreeClassifier
+from sklearn.svm import SVR, SVC, LinearSVR, LinearSVC
+from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB, BernoulliNB, MultinomialNB
+from sklearn.neural_network import MLPRegressor, MLPClassifier
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error, accuracy_score
@@ -25,6 +29,18 @@ try:
 except:
     XGBOOST_AVAILABLE = False
 
+try:
+    from lightgbm import LGBMRegressor, LGBMClassifier
+    LIGHTGBM_AVAILABLE = True
+except:
+    LIGHTGBM_AVAILABLE = False
+
+try:
+    from catboost import CatBoostRegressor, CatBoostClassifier
+    CATBOOST_AVAILABLE = True
+except:
+    CATBOOST_AVAILABLE = False
+
 import cx_Oracle
 import pymongo
 from sqlalchemy import create_engine
@@ -32,25 +48,84 @@ from sqlalchemy import create_engine
 logger = logging.getLogger(__name__)
 
 class IntelligentPredictionMCP:
-    """Enhanced MCP with user prompt, model selection, forecasting & insights"""
+    """Enhanced MCP with 35+ ML models, user prompt, forecasting & insights"""
     
     REGRESSION_MODELS = {
+        # Linear Models
         'linear_regression': LinearRegression,
-        'random_forest': RandomForestRegressor,
+        'ridge': Ridge,
+        'lasso': Lasso,
+        'elastic_net': ElasticNet,
+        'sgd_regressor': SGDRegressor,
+        'passive_aggressive_regressor': PassiveAggressiveRegressor,
+        
+        # Tree-Based Models
         'decision_tree': DecisionTreeRegressor,
-        'xgboost': XGBRegressor if XGBOOST_AVAILABLE else None
+        'extra_tree': ExtraTreeRegressor,
+        'random_forest': RandomForestRegressor,
+        'extra_trees': ExtraTreesRegressor,
+        'gradient_boosting': GradientBoostingRegressor,
+        'adaboost': AdaBoostRegressor,
+        
+        # Advanced Gradient Boosting
+        'xgboost': XGBRegressor if XGBOOST_AVAILABLE else None,
+        'lightgbm': LGBMRegressor if LIGHTGBM_AVAILABLE else None,
+        'catboost': CatBoostRegressor if CATBOOST_AVAILABLE else None,
+        
+        # Support Vector Machines
+        'svr': SVR,
+        'linear_svr': LinearSVR,
+        
+        # Neighbors
+        'knn': KNeighborsRegressor,
+        
+        # Neural Networks
+        'mlp': MLPRegressor
     }
     
     CLASSIFICATION_MODELS = {
+        # Linear Models
         'logistic_regression': LogisticRegression,
-        'random_forest': RandomForestClassifier,
+        'sgd_classifier': SGDClassifier,
+        'passive_aggressive_classifier': PassiveAggressiveClassifier,
+        
+        # Tree-Based Models
         'decision_tree': DecisionTreeClassifier,
-        'xgboost': XGBClassifier if XGBOOST_AVAILABLE else None
+        'extra_tree': ExtraTreeClassifier,
+        'random_forest': RandomForestClassifier,
+        'extra_trees': ExtraTreesClassifier,
+        'gradient_boosting': GradientBoostingClassifier,
+        'adaboost': AdaBoostClassifier,
+        
+        # Advanced Gradient Boosting
+        'xgboost': XGBClassifier if XGBOOST_AVAILABLE else None,
+        'lightgbm': LGBMClassifier if LIGHTGBM_AVAILABLE else None,
+        'catboost': CatBoostClassifier if CATBOOST_AVAILABLE else None,
+        
+        # Support Vector Machines
+        'svc': SVC,
+        'linear_svc': LinearSVC,
+        
+        # Neighbors
+        'knn': KNeighborsClassifier,
+        
+        # Naive Bayes
+        'gaussian_nb': GaussianNB,
+        'bernoulli_nb': BernoulliNB,
+        'multinomial_nb': MultinomialNB,
+        
+        # Neural Networks
+        'mlp': MLPClassifier
     }
     
     def __init__(self, output_dir="/app/backend/models/mcp_models"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+    
+    def get_all_available_models(self, problem_type='regression'):
+        """Get list of all available models"""
+        models = self.REGRESSION_MODELS if problem_type == 'regression' else self.CLASSIFICATION_MODELS
+        return [name for name, cls in models.items() if cls is not None]
     
     def train_and_predict(
         self,
@@ -64,11 +139,7 @@ class IntelligentPredictionMCP:
         include_insights: bool = True,
         test_size: float = 0.2
     ) -> Dict[str, Any]:
-        """
-        Complete ML pipeline with user control
-        
-        Returns: predictions, forecasting, insights, model comparison
-        """
+        """Complete ML pipeline with user control"""
         start_time = time.time()
         logger.info(f"🚀 Pipeline: {user_prompt}")
         
@@ -83,9 +154,15 @@ class IntelligentPredictionMCP:
         # Auto-detect domain
         domain = self._detect_domain(user_prompt, feature_columns)
         
-        # Select models
+        # Select models (default to fast models if not specified)
         if not models_to_train:
-            models_to_train = ['random_forest', 'xgboost'] if XGBOOST_AVAILABLE else ['random_forest']
+            models_to_train = ['random_forest', 'gradient_boosting']
+            if XGBOOST_AVAILABLE:
+                models_to_train.append('xgboost')
+        
+        # Validate models
+        models_to_train = self._validate_models(models_to_train, problem_type)
+        logger.info(f"🤖 Training {len(models_to_train)} models: {', '.join(models_to_train)}")
         
         # Prepare data
         X_train, X_test, y_train, y_test, scaler, le = self._prepare_data(
@@ -119,7 +196,7 @@ class IntelligentPredictionMCP:
         if include_insights:
             insights = self._insights(user_prompt, best, feat_imp, forecasting, domain)
         
-        # Save model
+        # Save best model
         joblib.dump(best_model, self.output_dir / f"{best['model_name']}.pkl")
         
         return {
@@ -127,6 +204,7 @@ class IntelligentPredictionMCP:
                 'rows': len(df),
                 'problem_type': problem_type,
                 'domain': domain,
+                'models_trained': len(trained),
                 'user_prompt': user_prompt
             },
             'predictions': predictions.tolist(),
@@ -137,6 +215,17 @@ class IntelligentPredictionMCP:
             'insights': insights,
             'execution_time': time.time() - start_time
         }
+    
+    def _validate_models(self, models, prob_type):
+        """Validate user-selected models"""
+        available = self.REGRESSION_MODELS if prob_type == 'regression' else self.CLASSIFICATION_MODELS
+        valid = [m for m in models if m in available and available[m] is not None]
+        
+        if not valid:
+            logger.warning("No valid models, using defaults")
+            valid = ['random_forest', 'gradient_boosting']
+        
+        return valid
     
     def _load_data(self, source):
         """Load from file or database"""
@@ -153,7 +242,6 @@ class IntelligentPredictionMCP:
             df = pd.read_sql(f"SELECT * FROM {source['table']}", conn)
             conn.close()
             return df
-        # Add other DB types as needed
     
     def _detect_domain(self, prompt, features):
         """Auto-detect domain"""
@@ -180,22 +268,44 @@ class IntelligentPredictionMCP:
         return (*train_test_split(X_scaled, y, test_size=test_size, random_state=42), scaler, le)
     
     def _train_models(self, names, X_train, y_train, prob_type):
-        """Train multiple models"""
+        """Train multiple models with optimized parameters"""
         trained = {}
         models = self.REGRESSION_MODELS if prob_type == 'regression' else self.CLASSIFICATION_MODELS
         
         for name in names:
             if models.get(name):
-                if 'random_forest' in name:
+                logger.info(f"  Training {name}...")
+                
+                # Initialize with optimized parameters
+                if name == 'random_forest':
                     model = models[name](n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
-                elif 'xgboost' in name:
-                    model = models[name](n_estimators=100, max_depth=6, random_state=42)
+                elif name == 'extra_trees':
+                    model = models[name](n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
+                elif name == 'gradient_boosting':
+                    model = models[name](n_estimators=100, max_depth=5, learning_rate=0.1, random_state=42)
+                elif name == 'xgboost':
+                    model = models[name](n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42)
+                elif name == 'lightgbm':
+                    model = models[name](n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42, verbose=-1)
+                elif name == 'catboost':
+                    model = models[name](iterations=100, depth=6, learning_rate=0.1, random_state=42, verbose=False)
+                elif name in ['ridge', 'lasso']:
+                    model = models[name](alpha=1.0)
+                elif name == 'elastic_net':
+                    model = models[name](alpha=1.0, l1_ratio=0.5)
+                elif name == 'knn':
+                    model = models[name](n_neighbors=5, n_jobs=-1)
+                elif name == 'mlp':
+                    model = models[name](hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
+                elif name == 'adaboost':
+                    model = models[name](n_estimators=50, learning_rate=1.0, random_state=42)
                 else:
                     model = models[name]()
                 
                 start = time.time()
                 model.fit(X_train, y_train)
                 trained[name] = {'model': model, 'time': time.time() - start}
+                logger.info(f"  ✅ {name} trained in {trained[name]['time']:.2f}s")
         
         return trained
     
