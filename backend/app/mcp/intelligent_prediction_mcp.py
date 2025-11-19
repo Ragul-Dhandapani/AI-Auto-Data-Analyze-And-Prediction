@@ -137,7 +137,9 @@ class IntelligentPredictionMCP:
         problem_type: str = None,
         include_forecasting: bool = True,
         include_insights: bool = True,
-        test_size: float = 0.2
+        test_size: float = 0.2,
+        use_automl: bool = False,
+        automl_optimization_level: str = 'fast'
     ) -> Dict[str, Any]:
         """Complete ML pipeline with user control"""
         start_time = time.time()
