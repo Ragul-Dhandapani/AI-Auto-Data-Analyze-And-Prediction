@@ -1728,6 +1728,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                             </>
                           )}
                           <th className="p-3 text-right font-semibold">Training Time</th>
+                          <th className="p-3 text-center font-semibold">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
