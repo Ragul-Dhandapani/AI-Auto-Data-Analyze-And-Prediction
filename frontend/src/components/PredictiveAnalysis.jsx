@@ -607,15 +607,41 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     }
   };
 
-  const exportModelCode = async (modelName) => {
+  // Open export modal with all available models
+  const openExportModal = () => {
+    const allModels = analysisResults?.ml_models || [];
+    if (allModels.length === 0) {
+      toast.error("No trained models available for export");
+      return;
+    }
+    
+    // Initialize with best model pre-selected
+    const bestModel = allModels.reduce((best, model) => 
+      (model.r2_score || model.accuracy || 0) > (best.r2_score || best.accuracy || 0) ? model : best
+    , allModels[0]);
+    
+    setModelsForExport([bestModel.model_name]);
+    setShowExportModal(true);
+  };
+  
+  // Export selected models as ZIP
+  const exportModelCode = async () => {
+    if (modelsForExport.length === 0) {
+      toast.error("Please select at least one model to export");
+      return;
+    }
+    
     try {
+      toast.info(`Exporting ${modelsForExport.length} model(s)...`);
+      
       const response = await axios.post(
         `${API}/export/code`,
         {
           dataset_id: dataset.id,
-          model_name: modelName,
+          model_names: modelsForExport,
           target_column: analysisResults.target_column || selectedTarget,
-          feature_columns: analysisResults.feature_columns || selectedFeatures
+          feature_columns: analysisResults.feature_columns || selectedFeatures,
+          analysis_results: analysisResults // Include full results for better README
         },
         { responseType: 'blob' }
       );
@@ -624,17 +650,33 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${modelName}_export.zip`);
+      
+      const filename = modelsForExport.length === 1 
+        ? `${modelsForExport[0]}_export.zip`
+        : `promise_ai_${modelsForExport.length}_models_export.zip`;
+      
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
       
-      console.log(`✅ Exported ${modelName} code`);
+      toast.success(`✅ Exported ${modelsForExport.length} model(s) successfully!`);
+      console.log(`✅ Exported models: ${modelsForExport.join(', ')}`);
+      setShowExportModal(false);
     } catch (error) {
       console.error('❌ Export failed:', error);
-      alert('Failed to export model code. Please try again.');
+      toast.error('Failed to export model code. Please try again.');
     }
+  };
+  
+  // Toggle model selection
+  const toggleModelForExport = (modelName) => {
+    setModelsForExport(prev => 
+      prev.includes(modelName)
+        ? prev.filter(m => m !== modelName)
+        : [...prev, modelName]
+    );
   };
 
   const executeAction = async (actionData) => {
