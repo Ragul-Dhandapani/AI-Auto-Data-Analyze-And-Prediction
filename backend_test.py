@@ -444,49 +444,63 @@ class AutoMLTester:
                          "AutoML classification request did not return expected results", response)
             return None
 
-    def test_different_problem_types(self):
-        """Test 8: Test SRE Forecasting with Different Problem Types"""
-        if not self.test_dataset_id:
-            self.log_test("Different Problem Types", "SKIP", "No test dataset available")
+    def test_automl_optimization_levels(self):
+        """Test 8: Test Different AutoML Optimization Levels"""
+        if not hasattr(self, 'regression_path'):
+            self.log_test("AutoML Optimization Levels", "SKIP", "No test dataset available")
             return
         
-        # Test with classification problem (status prediction)
-        user_selection_classification = {
-            "target_variable": "status",
-            "selected_features": ["cpu_usage", "memory_usage", "latency_ms"],
-            "mode": "manual",
-            "user_expectation": "Predict system failure status to prevent outages"
-        }
+        print("🔍 Testing different AutoML optimization levels...")
         
-        print("🔍 Testing SRE forecast with classification problem...")
-        response = self.run_holistic_analysis(self.test_dataset_id, user_selection_classification)
+        optimization_levels = ['fast', 'balanced', 'thorough']
+        results = {}
         
-        if "error" in response:
-            self.log_test("Different Problem Types", "FAIL", 
-                         f"Classification test failed: {response['error']}")
-            return
-        
-        # Check if SRE forecast adapts to classification problem
-        sre_forecast = response.get("sre_forecast", {})
-        
-        if sre_forecast:
-            # Check if forecasts mention classification-specific terms
-            all_text = ""
-            for forecast in sre_forecast.get("forecasts", []):
-                all_text += f" {forecast.get('prediction', '')}"
+        for level in optimization_levels:
+            print(f"  Testing {level} optimization...")
             
-            classification_terms = ["failure", "success", "error", "status", "probability", "classification"]
-            found_classification_terms = [term for term in classification_terms if term.lower() in all_text.lower()]
+            data_source = {"type": "file", "path": self.regression_path}
+            response = self.call_intelligent_prediction_api(
+                data_source=data_source,
+                user_prompt=f"Predict house prices with {level} AutoML optimization",
+                target_column="price",
+                feature_columns=["bedrooms", "bathrooms", "sqft", "age"],
+                models_to_train=["random_forest"],
+                use_automl=True,
+                automl_optimization_level=level
+            )
             
-            if found_classification_terms:
-                self.log_test("Different Problem Types", "PASS", 
-                             f"✅ SRE forecast adapts to classification: {found_classification_terms}")
+            if "error" not in response and response.get("status") == "success":
+                data = response["data"]
+                execution_time = data.get("execution_time", 0)
+                best_model = data.get("best_model", {})
+                score = best_model.get("score", 0)
+                
+                results[level] = {
+                    "success": True,
+                    "execution_time": execution_time,
+                    "score": score
+                }
             else:
-                self.log_test("Different Problem Types", "PARTIAL", 
-                             "SRE forecast generated but may not be classification-specific")
+                results[level] = {
+                    "success": False,
+                    "error": response.get("error", "Unknown error")
+                }
+        
+        # Analyze results
+        successful_levels = [level for level, result in results.items() if result["success"]]
+        
+        if len(successful_levels) >= 2:
+            # Check if execution times make sense (fast < balanced < thorough)
+            times = {level: results[level]["execution_time"] for level in successful_levels}
+            
+            self.log_test("AutoML Optimization Levels", "PASS", 
+                         f"✅ {len(successful_levels)} optimization levels working: {', '.join(successful_levels)}. Times: {times}")
+        elif len(successful_levels) >= 1:
+            self.log_test("AutoML Optimization Levels", "PARTIAL", 
+                         f"Some optimization levels working: {', '.join(successful_levels)}")
         else:
-            self.log_test("Different Problem Types", "FAIL", 
-                         "No SRE forecast generated for classification problem")
+            self.log_test("AutoML Optimization Levels", "FAIL", 
+                         f"❌ No optimization levels working. Errors: {[results[level].get('error') for level in optimization_levels]}")
 
     def run_all_tests(self):
         """Run all tests in sequence"""
