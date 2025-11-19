@@ -37,77 +37,64 @@ class AutoMLTester:
             print(f"   Response: {response_data}")
         print()
 
-    def get_available_datasets(self) -> List[Dict]:
-        """Get list of available datasets"""
-        try:
-            response = requests.get(f"{self.backend_url}/datasets", timeout=10)
-            if response.status_code == 200:
-                data = response.json()
-                return data.get("datasets", [])
-            else:
-                return []
-        except Exception as e:
-            print(f"Failed to get datasets: {str(e)}")
-            return []
-
-    def upload_test_dataset(self) -> str:
-        """Upload a larger test dataset for SRE forecasting testing"""
-        # Create a larger CSV dataset with enough data for ML training
-        # Using same column names as test_data.csv but with more rows
+    def create_test_datasets(self):
+        """Create test datasets for regression and classification"""
         import random
+        import numpy as np
         
-        # Generate realistic latency data for SRE forecasting
-        csv_lines = ["cpu_usage,memory_usage,latency_ms,status"]
+        # Create regression dataset (predicting house prices)
+        regression_data = []
+        regression_data.append(["bedrooms", "bathrooms", "sqft", "age", "price"])
         
-        statuses = ["success", "error", "timeout", "warning"]
+        for i in range(300):  # Enough data for ML training
+            bedrooms = random.randint(1, 5)
+            bathrooms = random.randint(1, 4)
+            sqft = random.randint(800, 4000)
+            age = random.randint(0, 50)
+            
+            # Price formula with some noise
+            base_price = (sqft * 150) + (bedrooms * 10000) + (bathrooms * 15000) - (age * 1000)
+            noise = random.uniform(-50000, 50000)
+            price = max(100000, base_price + noise)
+            
+            regression_data.append([bedrooms, bathrooms, sqft, age, int(price)])
         
-        # Generate 200 rows of realistic data (enough for ML training)
-        for i in range(200):
-            # Generate correlated metrics for realistic SRE data
-            base_latency = random.uniform(50, 500)
-            cpu_usage = min(100, max(10, base_latency * 0.15 + random.uniform(-15, 15)))
-            memory_usage = min(100, max(10, base_latency * 0.12 + random.uniform(-10, 10)))
-            
-            # Higher latency = higher chance of error
-            if base_latency > 350:
-                status = random.choice(["error", "timeout"]) if random.random() < 0.4 else "success"
-            elif base_latency > 250:
-                status = "warning" if random.random() < 0.3 else "success"
-            else:
-                status = "success" if random.random() < 0.9 else random.choice(["warning", "error"])
-            
-            csv_lines.append(f"{cpu_usage:.1f},{memory_usage:.1f},{base_latency:.1f},{status}")
+        # Save regression dataset
+        regression_path = "/tmp/regression_test_data.csv"
+        with open(regression_path, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(regression_data)
         
-        test_csv_content = "\n".join(csv_lines)
-
-        try:
-            files = {
-                'file': ('sre_test_latency_data.csv', test_csv_content, 'text/csv')
-            }
+        # Create classification dataset (predicting customer churn)
+        classification_data = []
+        classification_data.append(["monthly_charges", "total_charges", "tenure_months", "support_calls", "churn"])
+        
+        for i in range(300):
+            monthly_charges = random.uniform(20, 120)
+            tenure_months = random.randint(1, 72)
+            total_charges = monthly_charges * tenure_months + random.uniform(-500, 500)
+            support_calls = random.randint(0, 10)
             
-            response = requests.post(
-                f"{self.backend_url}/datasource/upload",
-                files=files,
-                timeout=30
-            )
+            # Churn probability based on features
+            churn_prob = 0.1
+            if monthly_charges > 80:
+                churn_prob += 0.2
+            if tenure_months < 12:
+                churn_prob += 0.3
+            if support_calls > 5:
+                churn_prob += 0.4
             
-            if response.status_code == 200:
-                data = response.json()
-                dataset_id = data.get("dataset_id")
-                if dataset_id:
-                    print(f"✅ SRE test dataset uploaded successfully: {dataset_id} (200 rows)")
-                    return dataset_id
-                else:
-                    print(f"❌ Upload response missing dataset_id: {data}")
-                    return None
-            else:
-                print(f"❌ Failed to upload SRE test dataset: {response.status_code}")
-                print(f"Response: {response.text}")
-                return None
-                
-        except Exception as e:
-            print(f"❌ Exception during SRE dataset upload: {str(e)}")
-            return None
+            churn = 1 if random.random() < churn_prob else 0
+            
+            classification_data.append([monthly_charges, total_charges, tenure_months, support_calls, churn])
+        
+        # Save classification dataset
+        classification_path = "/tmp/classification_test_data.csv"
+        with open(classification_path, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(classification_data)
+        
+        return regression_path, classification_path
 
     def run_holistic_analysis(self, dataset_id: str, user_selection: Dict = None) -> Dict:
         """Run holistic analysis with optional user selection"""
