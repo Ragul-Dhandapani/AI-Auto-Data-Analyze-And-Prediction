@@ -19,11 +19,12 @@ router = APIRouter()
 
 class ModelExportRequest(BaseModel):
     dataset_id: str
-    model_name: str  # e.g., "random_forest", "xgboost", "linear_regression"
+    model_names: List[str]  # Multiple models: ["random_forest", "xgboost", "linear_regression"]
     include_preprocessing: bool = True
     include_evaluation: bool = True
     target_column: str
     feature_columns: List[str]
+    analysis_results: Optional[Dict[str, Any]] = None  # Full analysis results for model comparison
 
 
 @router.post("/export/code")
