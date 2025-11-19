@@ -383,36 +383,66 @@ class AutoMLTester:
         else:
             self.log_test("AutoML Performance Comparison", "SKIP", "No AutoML response available for comparison")
 
-    def test_azure_openai_integration(self):
-        """Test 7: Azure OpenAI Integration for SRE Forecasting"""
-        if not hasattr(self, 'sre_forecast_response'):
-            self.log_test("Azure OpenAI Integration", "SKIP", "No SRE forecast response available")
+    def test_automl_classification_problem(self):
+        """Test 7: Test AutoML with Classification Problem"""
+        if not hasattr(self, 'classification_path'):
+            self.log_test("AutoML Classification Problem", "SKIP", "No classification dataset available")
             return
         
-        sre_forecast = self.sre_forecast_response.get("sre_forecast", {})
+        print("🔍 Testing AutoML with classification problem...")
         
-        # Check if we have valid JSON structure (indicates Azure OpenAI worked)
-        if sre_forecast.get("error"):
-            self.log_test("Azure OpenAI Integration", "FAIL", 
-                         f"Azure OpenAI error: {sre_forecast['error']}")
+        data_source = {"type": "file", "path": self.classification_path}
+        response = self.call_intelligent_prediction_api(
+            data_source=data_source,
+            user_prompt="Predict customer churn to improve retention",
+            target_column="churn",
+            feature_columns=["monthly_charges", "total_charges", "tenure_months", "support_calls"],
+            models_to_train=["random_forest", "xgboost"],
+            problem_type="classification",
+            use_automl=True,
+            automl_optimization_level="fast"
+        )
+        
+        if "error" in response:
+            self.log_test("AutoML Classification Problem", "FAIL", 
+                         f"Error: {response['error']}", response)
             return
         
-        forecasts = sre_forecast.get("forecasts", [])
-        alerts = sre_forecast.get("critical_alerts", [])
-        recommendations = sre_forecast.get("recommendations", [])
-        
-        # Check for meaningful content (not just empty arrays)
-        total_items = len(forecasts) + len(alerts) + len(recommendations)
-        
-        if total_items >= 5:  # Expect at least 5 total items
-            self.log_test("Azure OpenAI Integration", "PASS", 
-                         f"✅ Azure OpenAI generated valid SRE forecast: {len(forecasts)} forecasts, {len(alerts)} alerts, {len(recommendations)} recommendations")
-        elif total_items >= 1:
-            self.log_test("Azure OpenAI Integration", "PARTIAL", 
-                         f"Azure OpenAI generated limited content: {total_items} total items")
+        # Check if response is successful and contains AutoML results for classification
+        if response.get("status") == "success" and "data" in response:
+            data = response["data"]
+            training_summary = data.get("training_summary", {})
+            problem_type = training_summary.get("problem_type")
+            
+            if problem_type == "classification":
+                model_comparison = data.get("model_comparison", [])
+                
+                # Check for AutoML optimization in classification models
+                optimized_models = []
+                for model in model_comparison:
+                    model_str = str(model)
+                    if "automl_optimized" in model_str or "best_params" in model_str:
+                        optimized_models.append(model.get("model_name"))
+                
+                if len(optimized_models) >= 1:
+                    self.log_test("AutoML Classification Problem", "PASS", 
+                                 f"✅ AutoML classification working: {len(optimized_models)} models optimized: {', '.join(optimized_models)}")
+                    
+                    # Store for detailed validation
+                    self.automl_classification_response = response
+                    return response
+                else:
+                    self.log_test("AutoML Classification Problem", "FAIL", 
+                                 f"❌ AutoML optimization not detected for classification models")
+                    return None
+            else:
+                self.log_test("AutoML Classification Problem", "FAIL", 
+                             f"❌ Problem type not detected as classification: {problem_type}")
+                return None
         else:
-            self.log_test("Azure OpenAI Integration", "FAIL", 
-                         "Azure OpenAI did not generate meaningful SRE forecast content")
+            self.log_test("AutoML Classification Problem", "FAIL", 
+                         "AutoML classification request did not return expected results", response)
+            return None
 
     def test_different_problem_types(self):
         """Test 8: Test SRE Forecasting with Different Problem Types"""
