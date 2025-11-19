@@ -504,20 +504,20 @@ class AutoMLTester:
 
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🧪 SRE-Style Forecasting Feature Testing for PROMISE AI Platform")
+        print("🧪 AutoML Hyperparameter Optimization Testing for PROMISE AI Platform")
         print("=" * 80)
         print(f"Backend URL: {self.backend_url}")
         print()
         
         # Run tests in order
-        self.test_setup_dataset()
-        self.test_analysis_without_user_expectation()
-        self.test_analysis_with_sre_forecast_generation()
-        self.test_sre_forecast_content_validation()
-        self.test_backend_logging_verification()
-        self.test_sre_terminology_usage()
-        self.test_azure_openai_integration()
-        self.test_different_problem_types()
+        self.test_setup_datasets()
+        self.test_endpoint_accepts_automl_parameter()
+        self.test_automl_with_random_forest()
+        self.test_automl_with_multiple_models()
+        self.test_automl_returns_optimized_hyperparameters()
+        self.test_automl_performance_comparison()
+        self.test_automl_classification_problem()
+        self.test_automl_optimization_levels()
         
         # Summary
         print("=" * 80)
