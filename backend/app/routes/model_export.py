@@ -1416,6 +1416,9 @@ if __name__ == "__main__":
     train_model(args.model, args.data, args.output, args.chunksize)
 '''
     
+    # Substitute the available models list
+    code = code.replace('{available_models_placeholder}', str(available_models_list))
+    
     return code
 
 
