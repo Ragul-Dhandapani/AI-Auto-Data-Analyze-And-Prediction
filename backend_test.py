@@ -147,34 +147,43 @@ class AutoMLTester:
         except Exception as e:
             self.log_test("Setup Test Datasets", "FAIL", f"Failed to create test datasets: {str(e)}")
 
-    def test_analysis_without_user_expectation(self):
-        """Test 2: Analysis WITHOUT user expectation (baseline)"""
-        if not self.test_dataset_id:
-            self.log_test("Analysis Without User Expectation", "SKIP", "No test dataset available")
+    def test_endpoint_accepts_automl_parameter(self):
+        """Test 2: Verify endpoint accepts use_automl parameter"""
+        if not hasattr(self, 'regression_path'):
+            self.log_test("Endpoint Accepts AutoML Parameter", "SKIP", "No test dataset available")
             return None
         
-        print("🔍 Running baseline analysis without user expectation...")
-        response = self.run_holistic_analysis(self.test_dataset_id)
+        print("🔍 Testing endpoint accepts use_automl parameter...")
+        
+        data_source = {"type": "file", "path": self.regression_path}
+        response = self.call_intelligent_prediction_api(
+            data_source=data_source,
+            user_prompt="Predict house prices for real estate analysis",
+            target_column="price",
+            feature_columns=["bedrooms", "bathrooms", "sqft", "age"],
+            models_to_train=["random_forest"],
+            use_automl=False  # Test with AutoML disabled first
+        )
         
         if "error" in response:
-            self.log_test("Analysis Without User Expectation", "FAIL", 
+            self.log_test("Endpoint Accepts AutoML Parameter", "FAIL", 
                          f"Error: {response['error']}", response)
             return None
         
-        # Check if analysis completed successfully
-        if "insights" in response and "ml_models" in response:
-            insights = response.get("insights", "")
-            models = response.get("ml_models", [])
+        # Check if response is successful
+        if response.get("status") == "success" and "data" in response:
+            data = response["data"]
+            training_summary = data.get("training_summary", {})
             
-            self.log_test("Analysis Without User Expectation", "PASS", 
-                         f"Analysis completed. Generated {len(models)} models and insights ({len(insights)} chars)")
+            self.log_test("Endpoint Accepts AutoML Parameter", "PASS", 
+                         f"Endpoint accepts use_automl parameter. Trained {training_summary.get('models_trained', 0)} models")
             
             # Store baseline for comparison
             self.baseline_response = response
             return response
         else:
-            self.log_test("Analysis Without User Expectation", "FAIL", 
-                         "Analysis did not return expected results", response)
+            self.log_test("Endpoint Accepts AutoML Parameter", "FAIL", 
+                         "Endpoint did not return expected results", response)
             return None
 
     def test_analysis_with_sre_forecast_generation(self):
