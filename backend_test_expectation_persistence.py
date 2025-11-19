@@ -11,7 +11,7 @@ import time
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://mlpredict.preview.emergentagent.com/api"
+BACKEND_URL = "https://model-wizard-2.preview.emergentagent.com/api"
 
 class ExpectationPersistenceTester:
     def __init__(self):

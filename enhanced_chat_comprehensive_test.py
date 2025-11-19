@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple
 
 # Backend URL
-BACKEND_URL = "https://mlpredict.preview.emergentagent.com/api"
+BACKEND_URL = "https://model-wizard-2.preview.emergentagent.com/api"
 
 # Test results tracking
 test_results = {

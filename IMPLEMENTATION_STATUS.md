@@ -11,7 +11,7 @@
 
 **Verification**:
 ```bash
-curl https://mlpredict.preview.emergentagent.com/api/config/current-database
+curl https://model-wizard-2.preview.emergentagent.com/api/config/current-database
 # Returns: {"current_database":"oracle"}
 ```
 

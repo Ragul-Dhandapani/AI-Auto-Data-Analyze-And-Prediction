@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL
-BACKEND_URL = "https://mlpredict.preview.emergentagent.com/api"
+BACKEND_URL = "https://model-wizard-2.preview.emergentagent.com/api"
 
 # Test dataset ID (Application Latency dataset from MongoDB)
 DATASET_ID = "7fc830da-886f-4745-ac6d-ddee8c20af8a"

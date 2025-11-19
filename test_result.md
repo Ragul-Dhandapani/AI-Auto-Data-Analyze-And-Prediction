@@ -19,7 +19,7 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 
 ### Testing Agent: Backend Testing Agent
 **Test Time**: 2025-11-18T10:11:00
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB
 **Tests Performed**: 6 comprehensive SRE forecasting fix validation tests
 **Overall Result**: ✅ ALL TESTS PASSED (100% Success Rate)
@@ -147,7 +147,7 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 
 ### Testing Agent: Backend Testing Agent
 **Test Time**: 2025-11-17T21:15:00
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB
 **Tests Performed**: 8 comprehensive expectation persistence and domain guidance tests
 **Overall Result**: ✅ ALL TESTS PASSED (100% Success Rate)
@@ -278,7 +278,7 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 
 ### Testing Agent: Backend Testing Agent
 **Test Time**: 2025-11-17T20:05:00
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB
 **Tests Performed**: 7 comprehensive smart selection and domain-agnostic feature tests
 **Overall Result**: ✅ 6/7 TESTS PASSED (92.9% Success Rate)
@@ -422,7 +422,7 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 
 ### Testing Agent: Backend Testing Agent
 **Test Time**: 2025-11-17T19:21:00
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB
 **Tests Performed**: 7 comprehensive user expectation feature tests
 **Overall Result**: ✅ ALL TESTS PASSED (100% Success Rate)
@@ -542,7 +542,7 @@ This file tracks all testing activities for the PROMISE AI platform. Testing age
 
 ### Testing Agent: Backend Testing Agent
 **Test Time**: 2025-11-17T19:39:00
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB
 **Tests Performed**: 8 comprehensive SRE forecasting feature tests
 **Overall Result**: ✅ 7/8 TESTS PASSED (93.8% Success Rate)
@@ -1578,7 +1578,7 @@ dataset_doc = {
 
 ### Testing Agent: Backend Testing Agent
 **Test Time**: 2025-11-09T18:30:00
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 **Tests Performed**: 8 comprehensive enhanced chat tests
 **Overall Result**: ✅ 7/8 TESTS PASSED (87.5% Success Rate)
@@ -1703,7 +1703,7 @@ dataset_doc = {
 
 ### Testing Agent: Backend Testing Agent
 **Test Time**: 2025-11-09T14:31:04
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 **Tests Performed**: 5 comprehensive database and API tests
 **Overall Result**: ✅ ROOT CAUSE IDENTIFIED
@@ -1847,7 +1847,7 @@ console.log('Set current workspace on load:', workspaceName);
 
 ### Testing Agent: Backend Testing Agent
 **Test Time**: 2025-11-09T16:56:20
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 **Tests Performed**: 5 comprehensive database and API tests + detailed debugging
 **Overall Result**: ✅ ROOT CAUSE IDENTIFIED - WORKSPACE NAME MISMATCH
@@ -2072,7 +2072,7 @@ console.error = function(...args) {
 
 **Console Output (Clean)**:
 ```
-log: Loading datasets from: https://mlpredict.preview.emergentagent.com/api/datasets
+log: Loading datasets from: https://model-wizard-2.preview.emergentagent.com/api/datasets
 log: 🔧 Initializing Storage Manager...
 log: 💾 LocalStorage usage: 223 Bytes / 5 MB (0%)
 log: ✅ Storage Manager initialized - Large dataset support enabled
@@ -2242,7 +2242,7 @@ All tests performed by deep_testing_backend_v2 agent. See detailed results below
 
 ### Test Execution Summary
 **Date**: November 3, 2025
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Initial Database**: Oracle RDS 19c
 **Tests Performed**: 6 comprehensive tests
 **Overall Result**: ✅ ALL TESTS PASSED
@@ -2316,7 +2316,7 @@ None at this time. All critical Oracle integration issues have been resolved.
 
 ### Testing Agent: Quick Functionality Verification
 **Test Time**: 2025-11-04T00:54:00
-**Frontend URL**: https://mlpredict.preview.emergentagent.com
+**Frontend URL**: https://model-wizard-2.preview.emergentagent.com
 **Database Active**: Oracle RDS 19c
 
 ### ✅ COMPLETED FRONTEND TESTS
@@ -2433,7 +2433,7 @@ All critical functionality has been verified and is working correctly:
 
 ### Testing Agent: Oracle Integration Verification
 **Test Time**: 2025-11-03T22:01:02
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 
 ### ✅ COMPLETED BACKEND TESTS
@@ -2548,7 +2548,7 @@ All critical Oracle integration requirements have been successfully implemented 
 
 ### Testing Agent: Comprehensive Frontend UI/UX Testing
 **Test Time**: 2025-11-07T12:04:21
-**Frontend URL**: https://mlpredict.preview.emergentagent.com
+**Frontend URL**: https://model-wizard-2.preview.emergentagent.com
 **Database Active**: MongoDB (Oracle toggle available)
 **Tests Performed**: 6 comprehensive test scenarios
 **Overall Result**: ✅ 5/6 TESTS PASSED (83% Success Rate)
@@ -2918,7 +2918,7 @@ if isinstance(value, str):
 
 ### Testing Agent: ML Expansion & Azure OpenAI Integration Testing
 **Test Time**: 2025-11-07T11:42:51
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 **Tests Performed**: 8 comprehensive tests
 **Overall Result**: ✅ 8/8 TESTS PASSED (100% Success Rate)
@@ -3475,7 +3475,7 @@ const failed = results.filter(r => r.status === 'rejected').length;
 
 ### Investigation: "Latency_2_Oracle" Workspace Missing from Training Metadata
 **Test Time**: 2025-11-03T22:51:09
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle (but routes use MongoDB directly as expected)
 
 ### ✅ INVESTIGATION RESULTS
@@ -3566,7 +3566,7 @@ Since the backend is working correctly but user reports the workspace is not vis
 
 ### Testing Agent: Enhancement Verification Testing
 **Test Time**: 2025-11-04T09:36:17
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 
 ### ✅ COMPLETED ENHANCEMENT TESTS
@@ -3759,7 +3759,7 @@ if (response.data.type === 'chart' && response.data.data && response.data.layout
 
 ### Testing Agent: Comprehensive Enhanced Chat Testing
 **Test Time**: 2025-11-07T22:35:00
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 **Tests Performed**: 51 comprehensive tests across 7 categories
 **Overall Result**: ⚠️ 78.4% SUCCESS RATE (40/51 tests passed)
@@ -4013,7 +4013,7 @@ if dataset is None or (isinstance(dataset, pd.DataFrame) and dataset.empty):
 
 ### Testing Agent: Chart Creation JSON Mode Fix Verification
 **Test Time**: 2025-11-07T22:40:54
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 **Test Dataset**: Credit Card Clustering GENERAL.csv (8,950 rows, 18 columns)
 **Tests Performed**: 7 comprehensive chart creation tests
@@ -4288,7 +4288,7 @@ The Azure OpenAI deployment or API version is not properly supporting JSON mode.
 
 ### Testing Agent: Backend Testing Agent (deep_testing_backend_v2)
 **Test Time**: 2025-11-07T22:51:00 - 2025-11-07T22:56:00
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB (switched from Oracle due to no datasets)
 **Tests Performed**: 13 tests (7 chart creation + 5 other features + 1 performance)
 **Overall Result**: ❌ BLOCKED BY DATA LOADING ISSUE
@@ -4465,7 +4465,7 @@ Response: {"detail":"No data found in dataset"}
 
 ### Testing Agent: Enhanced Chat Migration Assessment
 **Test Time**: 2025-11-07T23:04:06
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB
 **Test Dataset**: application_latency_3.csv (62,500 rows, 13 columns)
 **Tests Performed**: 27 comprehensive tests across 7 categories
@@ -4758,7 +4758,7 @@ The enhanced chat endpoint shows **excellent potential** with 5/7 categories at 
 
 ### Testing Agent: Final Comprehensive Test (Post-Fix)
 **Test Time**: 2025-11-07T23:13:14
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB
 **Test Dataset**: application_latency_3.csv (62,500 rows, 13 columns)
 **Tests Performed**: 17 comprehensive tests across 7 categories
@@ -5072,7 +5072,7 @@ Verify that the RecursionError fix, Plotly serialization fix, and confirmation w
 
 ### Testing Agent: Enhanced Chat Final Verification
 **Test Time**: 2025-11-08T13:08:38
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB (Oracle configured but empty)
 **Tests Performed**: 7 comprehensive tests (4 fixes + 3 regression tests)
 **Overall Result**: ❌ 4/7 TESTS PASSED (57.1% Success Rate)
@@ -5365,7 +5365,7 @@ Once these fixes are applied, re-test all 7 scenarios to verify 100% pass rate.
 
 ### Testing Agent: Final Verification of All Fixes
 **Test Time**: 2025-11-08T13:15:17
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: MongoDB (Oracle configured but empty)
 **Dataset Used**: application_latency_3.csv (62,500 rows, 13 columns)
 **Tests Performed**: 7 comprehensive scenarios
@@ -5695,7 +5695,7 @@ ldconfig -p | grep oracle
 #### API Endpoint Testing
 ```bash
 # Test endpoint with Oracle
-curl "https://mlpredict.preview.emergentagent.com/api/training/metadata/by-workspace"
+curl "https://model-wizard-2.preview.emergentagent.com/api/training/metadata/by-workspace"
 
 Response: {
   "datasets": [
@@ -5833,7 +5833,7 @@ console.log('Source:', analysisResults ? 'state' : previousResultsRef.current ? 
 
 **Verification**:
 ```bash
-curl "https://mlpredict.preview.emergentagent.com/api/training/metadata/by-workspace"
+curl "https://model-wizard-2.preview.emergentagent.com/api/training/metadata/by-workspace"
 # Shows: Dataset: application_latency.csv, Workspaces: ['latency_tested']
 ```
 
@@ -6344,7 +6344,7 @@ Garbage collection working properly
 
 ### Testing Agent: Backend Testing & Verification
 **Test Time**: 2025-11-08T23:14:42
-**Backend URL**: https://mlpredict.preview.emergentagent.com/api
+**Backend URL**: https://model-wizard-2.preview.emergentagent.com/api
 **Database Active**: Oracle RDS 19c
 **Tests Performed**: 5 critical endpoint tests
 **Overall Result**: ✅ 5/5 TESTS PASSED (100% Success Rate)

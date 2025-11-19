@@ -696,7 +696,7 @@ print(df[FEATURE_COLUMNS].describe())
 
 - **Scikit-learn Documentation**: https://scikit-learn.org/stable/
 - **Pandas User Guide**: https://pandas.pydata.org/docs/user_guide/
-- **PROMISE AI Application**: https://mlpredict.preview.emergentagent.com
+- **PROMISE AI Application**: https://model-wizard-2.preview.emergentagent.com
 
 ## 🆘 Support
 

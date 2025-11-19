@@ -95,14 +95,14 @@ async def deploy_model_as_api(request: DeployModelRequest):
                 'status': f"/api/instant-api/status/{api_id}",
                 'docs': f"/api/instant-api/docs/{api_id}"
             },
-            'curl_example': f'''curl -X POST https://mlpredict.preview.emergentagent.com/api/instant-api/predict/{api_id} \\
+            'curl_example': f'''curl -X POST https://model-wizard-2.preview.emergentagent.com/api/instant-api/predict/{api_id} \\
   -H "Content-Type: application/json" \\
   -d '{{"features": [1.0, 2.0, 3.0]}}'
 ''',
             'python_example': f'''import requests
 
 response = requests.post(
-    'https://mlpredict.preview.emergentagent.com/api/instant-api/predict/{api_id}',
+    'https://model-wizard-2.preview.emergentagent.com/api/instant-api/predict/{api_id}',
     json={{'features': [1.0, 2.0, 3.0]}}
 )
 print(response.json())
@@ -351,13 +351,13 @@ async def get_api_documentation(api_id: str):
             }
         },
         'examples': {
-            'curl': f'''curl -X POST https://mlpredict.preview.emergentagent.com/api/instant-api/predict/{api_id} \\
+            'curl': f'''curl -X POST https://model-wizard-2.preview.emergentagent.com/api/instant-api/predict/{api_id} \\
   -H "Content-Type: application/json" \\
   -d '{{"features": [1.0, 2.0, 3.0]}}'
 ''',
             'python': f'''import requests
 
-url = 'https://mlpredict.preview.emergentagent.com/api/instant-api/predict/{api_id}'
+url = 'https://model-wizard-2.preview.emergentagent.com/api/instant-api/predict/{api_id}'
 data = {{'features': [1.0, 2.0, 3.0]}}
 
 response = requests.post(url, json=data)
@@ -365,7 +365,7 @@ result = response.json()
 print(f"Prediction: {{result['prediction']}}")
 ''',
             'javascript': f'''const response = await fetch(
-  'https://mlpredict.preview.emergentagent.com/api/instant-api/predict/{api_id}',
+  'https://model-wizard-2.preview.emergentagent.com/api/instant-api/predict/{api_id}',
   {{
     method: 'POST',
     headers: {{'Content-Type': 'application/json'}},
