@@ -186,49 +186,64 @@ class AutoMLTester:
                          "Endpoint did not return expected results", response)
             return None
 
-    def test_analysis_with_sre_forecast_generation(self):
-        """Test 3: Analysis WITH SRE Forecast Generation (CRITICAL TEST)"""
-        if not self.test_dataset_id:
-            self.log_test("Analysis With SRE Forecast Generation", "SKIP", "No test dataset available")
+    def test_automl_with_random_forest(self):
+        """Test 3: Test AutoML with Random Forest (CRITICAL TEST)"""
+        if not hasattr(self, 'regression_path'):
+            self.log_test("AutoML with Random Forest", "SKIP", "No test dataset available")
             return None
         
-        # Define user selection with expectation for SRE forecasting
-        user_selection = {
-            "target_variable": "latency_ms",
-            "selected_features": ["cpu_usage", "memory_usage"],
-            "mode": "manual",
-            "user_expectation": "Predict system latency to prevent performance degradation"
-        }
+        print("🔍 Testing AutoML with Random Forest...")
         
-        print("🔍 Running analysis WITH SRE forecast generation...")
-        response = self.run_holistic_analysis(self.test_dataset_id, user_selection)
+        data_source = {"type": "file", "path": self.regression_path}
+        response = self.call_intelligent_prediction_api(
+            data_source=data_source,
+            user_prompt="Predict house prices with optimized Random Forest",
+            target_column="price",
+            feature_columns=["bedrooms", "bathrooms", "sqft", "age"],
+            models_to_train=["random_forest"],
+            use_automl=True,
+            automl_optimization_level="fast"
+        )
         
         if "error" in response:
-            self.log_test("Analysis With SRE Forecast Generation", "FAIL", 
+            self.log_test("AutoML with Random Forest", "FAIL", 
                          f"Error: {response['error']}", response)
             return None
         
-        # Check if analysis completed successfully
-        if "insights" in response and "ml_models" in response:
-            models = response.get("ml_models", [])
+        # Check if response is successful and contains AutoML results
+        if response.get("status") == "success" and "data" in response:
+            data = response["data"]
+            model_comparison = data.get("model_comparison", [])
             
-            # CRITICAL: Check for sre_forecast field
-            sre_forecast = response.get("sre_forecast")
+            # Look for AutoML indicators in the response
+            automl_found = False
+            best_params_found = False
+            cv_score_found = False
             
-            if sre_forecast:
-                self.log_test("Analysis With SRE Forecast Generation", "PASS", 
-                             f"✅ SRE FORECAST FOUND: Generated {len(models)} models with SRE forecasting.")
+            for model in model_comparison:
+                if model.get("model_name") == "random_forest":
+                    # Check if model has AutoML optimization indicators
+                    if "automl_optimized" in str(model) or "best_params" in str(model):
+                        automl_found = True
+                    if "best_params" in str(model):
+                        best_params_found = True
+                    if "cv_score" in str(model):
+                        cv_score_found = True
+            
+            if automl_found:
+                self.log_test("AutoML with Random Forest", "PASS", 
+                             f"✅ AutoML optimization detected for Random Forest. Best params: {best_params_found}, CV score: {cv_score_found}")
                 
                 # Store for detailed validation
-                self.sre_forecast_response = response
+                self.automl_rf_response = response
                 return response
             else:
-                self.log_test("Analysis With SRE Forecast Generation", "FAIL", 
-                             f"❌ SRE FORECAST MISSING: Analysis completed with {len(models)} models but no sre_forecast field.")
+                self.log_test("AutoML with Random Forest", "FAIL", 
+                             f"❌ AutoML optimization not detected in response")
                 return None
         else:
-            self.log_test("Analysis With SRE Forecast Generation", "FAIL", 
-                         "Analysis did not return expected results", response)
+            self.log_test("AutoML with Random Forest", "FAIL", 
+                         "AutoML request did not return expected results", response)
             return None
 
     def test_sre_forecast_content_validation(self):
