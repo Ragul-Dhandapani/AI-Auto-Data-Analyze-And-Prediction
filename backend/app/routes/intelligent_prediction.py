@@ -22,6 +22,8 @@ class IntelligentPredictionRequest(BaseModel):
     include_forecasting: bool = True
     include_insights: bool = True
     test_size: float = 0.2
+    use_automl: bool = False  # Enable AutoML hyperparameter optimization
+    automl_optimization_level: str = 'fast'  # 'fast', 'balanced', or 'thorough'
 
 
 @router.post("/train-and-predict")
