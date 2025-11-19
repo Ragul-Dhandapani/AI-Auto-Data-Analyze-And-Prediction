@@ -307,7 +307,8 @@ def train_multiple_models(
                 "target_column": target_column,  # Frontend expects this
                 "n_train_samples": len(X_train),
                 "n_test_samples": len(X_test),
-                "sample_predictions": sample_predictions  # NEW: Actual prediction examples
+                "sample_predictions": sample_predictions,  # Actual prediction examples
+                "actual_vs_predicted": actual_vs_predicted  # NEW: Full test set for chart
             }
             
             results.append(model_result)
