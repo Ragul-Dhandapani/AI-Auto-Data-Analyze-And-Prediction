@@ -1095,6 +1095,26 @@ async def holistic_analysis(request: Dict[str, Any]):
         
         volume_analysis["numeric_summary"] = numeric_volume
         
+        # PHASE 4: Domain Detection and Domain-Specific Insights
+        domain_info = None
+        domain_insights = None
+        
+        if target_cols and len(target_cols) > 0:
+            target_col = target_cols[0]
+            # Get feature columns
+            feature_columns = [col for col in df_analysis.select_dtypes(include=[np.number]).columns if col != target_col]
+            
+            # Detect domain
+            domain_info = detect_domain(df_analysis, feature_columns, target_col)
+            
+            # Get domain-specific insights
+            domain_insights = get_domain_specific_insights(
+                domain_info["domain"],
+                df_analysis,
+                target_col,
+                predictions=None  # We can pass predictions here if needed
+            )
+        
         response = {
             "profile": profile,
             "models": models_result.get("models", []),
