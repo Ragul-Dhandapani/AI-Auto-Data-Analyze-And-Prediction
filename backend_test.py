@@ -19,7 +19,7 @@ class AutoMLTester:
     def __init__(self):
         self.backend_url = BACKEND_URL
         self.test_results = []
-        self.test_dataset_id = None
+        self.test_csv_path = "/tmp/automl_test_data.csv"
         
     def log_test(self, test_name: str, status: str, details: str = "", response_data: Dict = None):
         """Log test results"""
