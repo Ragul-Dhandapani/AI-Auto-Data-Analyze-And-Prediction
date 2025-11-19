@@ -75,7 +75,9 @@ async def train_and_predict(request: IntelligentPredictionRequest):
             problem_type=request.problem_type,
             include_forecasting=request.include_forecasting,
             include_insights=request.include_insights,
-            test_size=request.test_size
+            test_size=request.test_size,
+            use_automl=request.use_automl,
+            automl_optimization_level=request.automl_optimization_level
         )
         
         logger.info(f"✅ Pipeline completed in {result['execution_time']:.1f}s")
