@@ -30,20 +30,21 @@ class ModelExportRequest(BaseModel):
 @router.post("/export/code")
 async def export_model_code(request: ModelExportRequest):
     """
-    Generate production-ready Python code for a trained model
+    Generate production-ready Python code for trained models
+    
+    Supports exporting multiple models at once!
     
     Returns a ZIP file containing:
-    - model_code.py (main model file)
+    - model_code.py (main model file for each model)
     - train_full_dataset.py (script to train on full data)
     - predict.py (prediction script)
-    - requirements.txt (dependencies)
-    - README.md (usage instructions)
+    - requirements.txt (dependencies for all models)
+    - README.md (comprehensive usage instructions with model selection rationale)
+    - trained model .pkl files
     """
     
-    # Check if model exists
-    model_path = Path(f"/app/backend/models/{request.dataset_id}/{request.model_name}.pkl")
-    if not model_path.exists():
-        raise HTTPException(status_code=404, detail=f"Model not found: {request.model_name}")
+    if not request.model_names or len(request.model_names) == 0:
+        raise HTTPException(status_code=400, detail="At least one model must be selected")
     
     # Load model metadata
     metadata_path = Path(f"/app/backend/models/{request.dataset_id}/model_metadata.json")
@@ -52,34 +53,79 @@ async def export_model_code(request: ModelExportRequest):
         with open(metadata_path, 'r') as f:
             metadata = json.load(f)
     
-    # Get model-specific info
-    model_info = next((m for m in metadata.get('models', []) if m.get('model_name') == request.model_name), {})
+    # Get info for all selected models
+    all_model_info = []
+    model_files = []
     
-    # Generate code files
-    files = {
-        'model_code.py': generate_model_code(request, model_info),
-        'train_full_dataset.py': generate_training_script(request, model_info),
-        'predict.py': generate_prediction_script(request, model_info),
-        'requirements.txt': generate_requirements(request.model_name),
-        'README.md': generate_readme(request, model_info)
-    }
+    for model_name in request.model_names:
+        model_path = Path(f"/app/backend/models/{request.dataset_id}/{model_name}.pkl")
+        
+        if model_path.exists():
+            model_info = next((m for m in metadata.get('models', []) if m.get('model_name') == model_name), {})
+            if not model_info and request.analysis_results:
+                # Try to get from analysis_results
+                ml_models = request.analysis_results.get('ml_models', [])
+                model_info = next((m for m in ml_models if m.get('model_name') == model_name), {})
+            
+            all_model_info.append({
+                'name': model_name,
+                'path': model_path,
+                'info': model_info
+            })
+            model_files.append((model_path, model_name))
+    
+    if not all_model_info:
+        raise HTTPException(status_code=404, detail="No valid models found")
+    
+    # Generate comprehensive README with model comparison
+    readme = generate_comprehensive_readme(request, all_model_info)
+    
+    # Generate requirements for all models
+    requirements = generate_requirements_for_multiple(request.model_names)
     
     # Create ZIP file in memory
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        for filename, content in files.items():
-            zip_file.writestr(filename, content)
+        # Add README (most important file)
+        zip_file.writestr('README.md', readme)
         
-        # Include the trained model file
-        zip_file.write(model_path, arcname=f"{request.model_name}.pkl")
+        # Add requirements.txt
+        zip_file.writestr('requirements.txt', requirements)
+        
+        # Add model code files for each model
+        for model_data in all_model_info:
+            model_name = model_data['name']
+            model_info = model_data['info']
+            
+            # Generate code specific to this model
+            model_code = generate_model_code_v2(request, model_info, model_name)
+            zip_file.writestr(f'{model_name}_model.py', model_code)
+            
+            # Include the trained model file
+            if model_data['path'].exists():
+                zip_file.write(model_data['path'], arcname=f"models/{model_name}.pkl")
+        
+        # Add universal training script (works with any model)
+        training_script = generate_universal_training_script(request, all_model_info)
+        zip_file.writestr('train_full_dataset.py', training_script)
+        
+        # Add universal prediction script
+        prediction_script = generate_universal_prediction_script(request, all_model_info)
+        zip_file.writestr('predict.py', prediction_script)
     
     zip_buffer.seek(0)
+    
+    # Generate filename based on number of models
+    if len(request.model_names) == 1:
+        filename = f"{request.model_names[0]}_export.zip"
+    else:
+        filename = f"promise_ai_{len(request.model_names)}_models_export.zip"
     
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
         headers={
-            "Content-Disposition": f"attachment; filename={request.model_name}_export.zip"
+            "Content-Disposition": f"attachment; filename={filename}"
         }
     )
 
