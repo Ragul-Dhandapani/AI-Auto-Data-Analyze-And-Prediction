@@ -1421,7 +1421,9 @@ if __name__ == "__main__":
 def generate_universal_prediction_script(request: ModelExportRequest, all_model_info: List[Dict]) -> str:
     """Generate universal prediction script"""
     
-    code = f'''"""
+    available_models_list = [m['name'] for m in all_model_info]
+    
+    code = '''"""
 Universal Prediction Script
 Works with any trained model from PROMISE AI
 
