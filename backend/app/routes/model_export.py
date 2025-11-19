@@ -1034,7 +1034,7 @@ print(df.describe())  # Feature statistics
 
 ## 📚 Additional Resources
 
-- **PROMISE AI Platform**: https://model-wizard-2.preview.emergentagent.com
+- **PROMISE AI Platform**: https://emergentagent.com
 - **Scikit-learn**: https://scikit-learn.org/stable/
 - **XGBoost**: https://xgboost.readthedocs.io/
 - **LightGBM**: https://lightgbm.readthedocs.io/
