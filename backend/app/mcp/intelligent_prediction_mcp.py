@@ -369,7 +369,17 @@ class IntelligentPredictionMCP:
                 score = float(score) if np.isfinite(score) else 0.0
                 metrics = {'accuracy': score}
             
-            results.append({'model_name': name, 'score': score, 'metrics': metrics, 'training_time': info['time']})
+            result_item = {'model_name': name, 'score': score, 'metrics': metrics, 'training_time': info['time']}
+            
+            # Add AutoML metadata if available
+            if 'automl_optimized' in info:
+                result_item['automl_optimized'] = info['automl_optimized']
+            if 'best_params' in info:
+                result_item['best_params'] = info['best_params']
+            if 'cv_score' in info:
+                result_item['cv_score'] = info['cv_score']
+            
+            results.append(result_item)
         
         return sorted(results, key=lambda x: x['score'], reverse=True)
     
