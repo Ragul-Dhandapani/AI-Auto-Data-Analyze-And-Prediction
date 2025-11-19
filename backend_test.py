@@ -590,7 +590,7 @@ class AutoMLTester:
 
 def main():
     """Main test execution"""
-    tester = SREForecastTester()
+    tester = AutoMLTester()
     results = tester.run_all_tests()
     
     # Exit with appropriate code
