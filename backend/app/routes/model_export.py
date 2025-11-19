@@ -1018,7 +1018,10 @@ pip install -r requirements.txt
 print(df[''' + str(request.feature_columns) + '''].dtypes)
 print(df[''' + str(request.feature_columns) + '''].describe())
 ```
-
+'''
+    
+    # Add the final section with URLs as a regular string to avoid f-string parsing issues
+    readme += '''
 ---
 
 ## 📚 Additional Resources
