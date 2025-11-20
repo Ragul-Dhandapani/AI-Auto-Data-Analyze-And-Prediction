@@ -1152,7 +1152,8 @@ async def holistic_analysis(request: Dict[str, Any]):
             "class_labels": models_result.get("class_labels"),  # For classification
             # Phase 4: Domain Detection
             "domain_info": domain_info,  # Domain detection results
-            "domain_insights": domain_insights  # Domain-specific insights and recommendations
+            "domain_insights": domain_insights,  # Domain-specific insights and recommendations
+            "domain_charts": domain_charts  # Domain-specific visualizations
         }
         
         # Add selection feedback if user made a selection
