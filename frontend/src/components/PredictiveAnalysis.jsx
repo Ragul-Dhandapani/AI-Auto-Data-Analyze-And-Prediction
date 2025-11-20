@@ -2332,6 +2332,328 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
+
+      {/* Domain-Specific Visualizations - NEW SECTION */}
+      {analysisResults.domain_info && analysisResults.domain_charts && analysisResults.domain_charts.length > 0 && (
+        <Card className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="text-3xl">
+                  {analysisResults.domain_info.domain === 'sre_infrastructure' && '🖥️'}
+                  {analysisResults.domain_info.domain === 'trading_finance' && '📈'}
+                  {analysisResults.domain_info.domain === 'payments' && '💳'}
+                  {analysisResults.domain_info.domain === 'capacity_planning' && '📊'}
+                  {analysisResults.domain_info.domain === 'food_economics' && '🌾'}
+                  {analysisResults.domain_info.domain === 'travel_transportation' && '✈️'}
+                  {analysisResults.domain_info.domain === 'expenses_budget' && '💰'}
+                  {analysisResults.domain_info.domain === 'latency_performance' && '⚡'}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-purple-900">
+                    {analysisResults.domain_info.domain_description}
+                  </h3>
+                  <p className="text-sm text-purple-700">
+                    Domain detected with {(analysisResults.domain_info.confidence * 100).toFixed(0)}% confidence
+                  </p>
+                </div>
+              </div>
+              <div className="bg-purple-100 px-4 py-2 rounded-lg border border-purple-300">
+                <span className="text-xs font-semibold text-purple-800">AUTO-DETECTED</span>
+              </div>
+            </div>
+
+            {/* Domain Insights & Alerts */}
+            {analysisResults.domain_insights && (
+              <div className="mb-4 space-y-2">
+                {analysisResults.domain_insights.alerts && analysisResults.domain_insights.alerts.length > 0 && (
+                  <div className="space-y-2">
+                    {analysisResults.domain_insights.alerts.map((alert, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-3 rounded-lg border-l-4 ${
+                          alert.level === 'critical'
+                            ? 'bg-red-50 border-red-500'
+                            : alert.level === 'warning'
+                            ? 'bg-yellow-50 border-yellow-500'
+                            : 'bg-blue-50 border-blue-500'
+                        }`}
+                      >
+                        <p className={`text-sm font-medium ${
+                          alert.level === 'critical'
+                            ? 'text-red-800'
+                            : alert.level === 'warning'
+                            ? 'text-yellow-800'
+                            : 'text-blue-800'
+                        }`}>
+                          {alert.level === 'critical' && '🚨'} {alert.level === 'warning' && '⚠️'} {alert.level === 'info' && 'ℹ️'} {alert.message}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Domain-Specific Charts */}
+          <div className="space-y-6">
+            {analysisResults.domain_charts.map((chart, chartIdx) => (
+              <div key={chartIdx} className="bg-white rounded-lg p-6 shadow-md">
+                {/* Capacity What-If Scenario Chart */}
+                {chart.chart_type === 'capacity_whatif' && (
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <span className="text-2xl">📈</span>
+                      Capacity Forecast & What-If Analysis
+                    </h4>
+                    
+                    {/* Key Metrics */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-xs text-blue-600 mb-1">Current Utilization</p>
+                        <p className="text-2xl font-bold text-blue-900">{chart.current_utilization}%</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <p className="text-xs text-green-600 mb-1">Headroom (to soft)</p>
+                        <p className="text-2xl font-bold text-green-900">{chart.soft_headroom}%</p>
+                      </div>
+                      <div className="bg-purple-50 p-4 rounded-lg">
+                        <p className="text-xs text-purple-600 mb-1">Trend</p>
+                        <p className="text-lg font-bold text-purple-900 capitalize">{chart.trend_direction}</p>
+                      </div>
+                      <div className="bg-orange-50 p-4 rounded-lg">
+                        <p className="text-xs text-orange-600 mb-1">Peak Utilization</p>
+                        <p className="text-2xl font-bold text-orange-900">{chart.peak_utilization}%</p>
+                      </div>
+                    </div>
+
+                    {/* Forecast Chart */}
+                    <ResponsiveContainer width="100%" height={350}>
+                      <LineChart margin={{ top: 20, right: 30, bottom: 60, left: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                        <XAxis 
+                          dataKey="index" 
+                          label={{ value: 'Time Period', position: 'insideBottom', offset: -10, style: { fontSize: 14, fontWeight: 600 } }}
+                        />
+                        <YAxis 
+                          label={{ value: 'Utilization %', angle: -90, position: 'insideLeft', style: { fontSize: 14, fontWeight: 600 } }}
+                          domain={[0, 100]}
+                        />
+                        <Tooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-white p-3 border border-gray-300 rounded-lg shadow-lg">
+                                  <p className="font-semibold text-gray-800">
+                                    {data.type === 'actual' ? 'Actual' : 'Forecast'}
+                                  </p>
+                                  <p className="text-sm text-gray-700">
+                                    Value: {data.value.toFixed(2)}%
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Legend verticalAlign="top" height={36} />
+                        
+                        {/* Soft Threshold Line */}
+                        <ReferenceLine
+                          y={chart.soft_threshold}
+                          stroke="#f59e0b"
+                          strokeWidth={2}
+                          strokeDasharray="5 5"
+                          label={{ value: `Soft Threshold (${chart.soft_threshold}%)`, fill: '#f59e0b', fontSize: 12 }}
+                        />
+                        
+                        {/* Hard Threshold Line */}
+                        <ReferenceLine
+                          y={chart.hard_threshold}
+                          stroke="#ef4444"
+                          strokeWidth={2}
+                          strokeDasharray="5 5"
+                          label={{ value: `Hard Threshold (${chart.hard_threshold}%)`, fill: '#ef4444', fontSize: 12 }}
+                        />
+                        
+                        {/* Historical Data */}
+                        <Line
+                          data={chart.historical_data}
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#3b82f6"
+                          strokeWidth={3}
+                          dot={{ fill: '#3b82f6', r: 4 }}
+                          name="Historical"
+                        />
+                        
+                        {/* Forecast Data */}
+                        <Line
+                          data={chart.forecast_data}
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#8b5cf6"
+                          strokeWidth={3}
+                          strokeDasharray="5 5"
+                          dot={{ fill: '#8b5cf6', r: 4 }}
+                          name="Forecast (30 days)"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+
+                    {/* Recommendation */}
+                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                      <p className="text-sm font-medium text-gray-800">
+                        <span className="font-bold">💡 Recommendation:</span> {chart.recommendation}
+                      </p>
+                      {chart.days_to_soft_threshold && (
+                        <p className="text-sm text-gray-700 mt-2">
+                          ⏰ Estimated {chart.days_to_soft_threshold} days until soft threshold at current growth rate
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Headroom vs Threshold Bar Chart */}
+                {chart.chart_type === 'headroom_threshold' && (
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <span className="text-2xl">📊</span>
+                      Headroom vs. Thresholds
+                    </h4>
+                    
+                    <div className={`mb-4 p-4 rounded-lg ${
+                      chart.status === 'critical' ? 'bg-red-50 border-2 border-red-300' :
+                      chart.status === 'warning' ? 'bg-yellow-50 border-2 border-yellow-300' :
+                      'bg-green-50 border-2 border-green-300'
+                    }`}>
+                      <p className="text-lg font-bold">
+                        Status: <span className={`${
+                          chart.status === 'critical' ? 'text-red-700' :
+                          chart.status === 'warning' ? 'text-yellow-700' :
+                          'text-green-700'
+                        }`}>
+                          {chart.status.toUpperCase()}
+                        </span>
+                      </p>
+                    </div>
+
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart
+                        data={chart.bars}
+                        margin={{ top: 20, right: 30, bottom: 60, left: 60 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis domain={[0, 100]} label={{ value: 'Utilization %', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip />
+                        <Bar dataKey="value">
+                          {chart.bars.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Percentile Chart */}
+                {chart.chart_type === 'percentile_distribution' && (
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <span className="text-2xl">⚡</span>
+                      Latency Percentile Distribution
+                    </h4>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      {Object.entries(chart.percentiles).slice(0, 4).map(([key, value]) => (
+                        <div key={key} className="bg-gray-50 p-4 rounded-lg">
+                          <p className="text-xs text-gray-600 mb-1">{key.toUpperCase()}</p>
+                          <p className="text-2xl font-bold text-gray-900">{value.toFixed(2)}ms</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart
+                        data={chart.bars}
+                        margin={{ top: 20, right: 30, bottom: 60, left: 60 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis label={{ value: 'Latency (ms)', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip />
+                        <Bar dataKey="value">
+                          {chart.bars.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+
+                    {/* SLA Compliance */}
+                    <div className="mt-4 grid grid-cols-2 gap-4">
+                      <div className={`p-3 rounded-lg ${
+                        chart.sla_compliance.p95 ? 'bg-green-50 border border-green-300' : 'bg-red-50 border border-red-300'
+                      }`}>
+                        <p className="text-sm font-semibold">
+                          P95 SLA: {chart.sla_compliance.p95 ? '✅ PASS' : '❌ FAIL'}
+                        </p>
+                        <p className="text-xs">Target: {chart.sla_thresholds.p95}ms</p>
+                      </div>
+                      <div className={`p-3 rounded-lg ${
+                        chart.sla_compliance.p99 ? 'bg-green-50 border border-green-300' : 'bg-red-50 border border-red-300'
+                      }`}>
+                        <p className="text-sm font-semibold">
+                          P99 SLA: {chart.sla_compliance.p99 ? '✅ PASS' : '❌ FAIL'}
+                        </p>
+                        <p className="text-xs">Target: {chart.sla_thresholds.p99}ms</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Volume Analysis Chart */}
+                {chart.chart_type === 'volume_analysis' && (
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <span className="text-2xl">📊</span>
+                      Volume & Transaction Analysis
+                    </h4>
+                    
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-xs text-blue-600 mb-1">Total Volume</p>
+                        <p className="text-2xl font-bold text-blue-900">{chart.total_volume.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <p className="text-xs text-green-600 mb-1">Average</p>
+                        <p className="text-2xl font-bold text-green-900">{chart.average_volume.toFixed(2)}</p>
+                      </div>
+                      <div className="bg-purple-50 p-4 rounded-lg">
+                        <p className="text-xs text-purple-600 mb-1">Peak</p>
+                        <p className="text-2xl font-bold text-purple-900">{chart.peak_volume.toFixed(2)}</p>
+                      </div>
+                    </div>
+
+                    {chart.anomaly_count > 0 && (
+                      <div className="p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+                        <p className="text-sm font-semibold text-yellow-800">
+                          ⚠️ {chart.anomaly_count} anomalies detected (values > {chart.anomaly_threshold.toFixed(2)})
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Historical Trends Analysis - NEW SECTION */}
       {analysisResults.historical_trends && !collapsed.historical_trends && (
         <Card className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-l-indigo-500">
