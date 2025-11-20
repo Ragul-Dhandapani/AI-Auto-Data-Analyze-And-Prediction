@@ -1142,14 +1142,22 @@ async def holistic_analysis(request: Dict[str, Any]):
                 predictions=None  # We can pass predictions here if needed
             )
             
-            # Generate domain-specific charts
-            if domain_info and domain_info.get("visualization_config"):
-                domain_charts = generate_domain_specific_charts(
-                    domain=domain_info["domain"],
-                    df=df_analysis,
-                    target_column=target_col,
-                    viz_config=domain_info["visualization_config"]
-                )
+            # Generate domain-specific charts (only for small-medium datasets to avoid slowdown)
+            if domain_info and domain_info.get("visualization_config") and len(df_analysis) <= 10000:
+                try:
+                    domain_charts = generate_domain_specific_charts(
+                        domain=domain_info["domain"],
+                        df=df_analysis,
+                        target_column=target_col,
+                        viz_config=domain_info["visualization_config"]
+                    )
+                    logging.info(f"Generated {len(domain_charts)} domain-specific charts")
+                except Exception as e:
+                    logging.error(f"Domain chart generation failed: {e}")
+                    domain_charts = []
+            elif len(df_analysis) > 10000:
+                logging.info(f"Skipping domain charts for large dataset ({len(df_analysis)} rows)")
+                domain_charts = []
         
         response = {
             "profile": profile,
