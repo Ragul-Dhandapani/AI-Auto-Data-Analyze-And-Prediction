@@ -1099,6 +1099,7 @@ async def holistic_analysis(request: Dict[str, Any]):
         # PHASE 4: Domain Detection and Domain-Specific Insights
         domain_info = None
         domain_insights = None
+        domain_charts = []
         
         if target_cols and len(target_cols) > 0:
             target_col = target_cols[0]
@@ -1115,6 +1116,15 @@ async def holistic_analysis(request: Dict[str, Any]):
                 target_col,
                 predictions=None  # We can pass predictions here if needed
             )
+            
+            # Generate domain-specific charts
+            if domain_info and domain_info.get("visualization_config"):
+                domain_charts = generate_domain_specific_charts(
+                    domain=domain_info["domain"],
+                    df=df_analysis,
+                    target_column=target_col,
+                    viz_config=domain_info["visualization_config"]
+                )
         
         response = {
             "profile": profile,
