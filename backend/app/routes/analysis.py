@@ -712,10 +712,9 @@ async def holistic_analysis(request: Dict[str, Any]):
                     if excluded_features:
                         feedback_parts.append(f"   • ⚠️ Excluded: {', '.join(excluded_features)}")
                     
-                    all_feedback_messages.append("\n".join(feedback_parts))
-                
-                # Train models for this target
-                try:
+                        feedback_parts.append("\n".join(parts))
+                    
+                    # Train models for this target
                     if selected_features:
                         # Create subset dataframe with selected features + target
                         train_columns = selected_features + [target_col]
@@ -738,14 +737,35 @@ async def holistic_analysis(request: Dict[str, Any]):
                         else:
                             target_models = train_models_auto(df_analysis, target_col, problem_type=problem_type)
                     
-                    # Add models to all_models list
+                    # Collect models
                     if target_models.get("models"):
-                        all_models.extend(target_models["models"])
-                        logging.info(f"Trained {len(target_models['models'])} models for target {target_col}")
+                        models = target_models["models"]
+                        logging.info(f"Trained {len(models)} models for target {target_col}")
                     
                 except Exception as e:
                     logging.error(f"ML training failed for target {target_col}: {str(e)}", exc_info=True)
-                    all_feedback_messages.append(f"⚠️ Training failed for target '{target_col}': {str(e)}")
+                    feedback_parts.append(f"⚠️ Training failed for target '{target_col}': {str(e)}")
+                
+                return {"models": models, "feedback": "\n\n".join(feedback_parts) if feedback_parts else ""}
+            
+            # Execute training in parallel for all targets
+            logging.info(f"Starting parallel training for {len(target_cols)} target(s)")
+            with ThreadPoolExecutor(max_workers=min(len(target_cols), 4)) as executor:
+                futures = {
+                    executor.submit(train_single_target, target_col, target_feature_mapping.get(target_col, [])): target_col
+                    for target_col in target_cols
+                }
+                
+                for future in as_completed(futures):
+                    target_col = futures[future]
+                    try:
+                        result = future.result()
+                        all_models.extend(result["models"])
+                        if result["feedback"]:
+                            all_feedback_messages.append(result["feedback"])
+                    except Exception as e:
+                        logging.error(f"Failed to get result for {target_col}: {e}")
+                        all_feedback_messages.append(f"⚠️ Failed to train models for '{target_col}': {str(e)}")
         
             # Build final selection feedback (only for regression/classification)
             if all_feedback_messages:
