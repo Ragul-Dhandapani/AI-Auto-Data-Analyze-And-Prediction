@@ -6735,3 +6735,44 @@ All critical smart selection and domain-agnostic features are working as designe
 **Next**: Moving to PHASE 2 - Domain-Specific Visualizations (4-6 hours)
 
 
+
+---
+## Performance Improvements & Bug Fixes - Nov 20, 2025
+
+### Issue 1: Performance Optimization ✅ FIXED
+**Problem**: Analysis taking 325 seconds
+**Root Causes**:
+1. Sequential model training (one target at a time)
+2. Domain chart generation adding overhead
+3. No parallel processing
+
+**Solution Implemented**:
+1. ✅ Added ThreadPoolExecutor for parallel model training (max 4 workers)
+2. ✅ Domain charts now skip for large datasets (>10k rows)
+3. ✅ Error handling wrapped to prevent cascade failures
+
+**Expected Performance**:
+- Multi-target: 3-4x faster with parallel processing
+- Single target: Same speed, but more resilient
+- Large datasets: Significant speedup by skipping domain charts
+
+### Issue 2: Hyperparameter Tuning ❌ NOT ENABLED BY DEFAULT
+**Answer**: NO, predictive analysis does NOT automatically do hyperparameter tuning.
+
+**Current Behavior**:
+- Default analysis uses hardcoded parameters (fast training)
+- AutoML hyperparameter tuning is available but must be explicitly enabled
+
+**How to Enable AutoML**:
+- Use `/api/mcp/intelligent-predict` endpoint with `use_automl: true`
+- Regular analysis endpoint prioritizes speed over optimization
+
+**Recommendation**: We can add an "Enable AutoML" toggle in the UI for advanced users who want optimal hyperparameters at the cost of training time.
+
+### Issue 3: Models Not Showing in Charts ⏳ INVESTIGATING
+**Problem**: Additional selected models appear in "ML Model Comparison" but not in "Actual vs. Predicted" or "Forecasting & Insights"
+
+**Root Cause**: Likely filtering or limit in frontend components
+
+**Next Step**: Need to check frontend component logic for model rendering limits.
+
