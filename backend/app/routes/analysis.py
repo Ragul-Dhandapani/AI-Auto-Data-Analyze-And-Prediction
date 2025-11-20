@@ -691,27 +691,27 @@ async def holistic_analysis(request: Dict[str, Any]):
                 try:
                     if selected_features:
                         for feat in selected_features:
-                        if feat in df_analysis.columns and feat != target_col:
-                            if pd.api.types.is_numeric_dtype(df_analysis[feat].dtype):
-                                numeric_selected.append(feat)
-                            else:
-                                # Check cardinality for categorical features
-                                unique_count = df_analysis[feat].nunique()
-                                if unique_count <= 50:  # Reasonable for one-hot encoding
-                                    categorical_selected.append(feat)
+                            if feat in df_analysis.columns and feat != target_col:
+                                if pd.api.types.is_numeric_dtype(df_analysis[feat].dtype):
+                                    numeric_selected.append(feat)
                                 else:
-                                    excluded_features.append(f"{feat} (too many categories: {unique_count})")
-                    
-                    # Build feedback message for this target
-                    feedback_parts = []
-                    feedback_parts.append(f"✅ Target '{target_col}':")
-                    if numeric_selected:
-                        feedback_parts.append(f"   • Numeric features: {', '.join(numeric_selected)}")
-                    if categorical_selected:
-                        feedback_parts.append(f"   • Categorical features (encoded): {', '.join(categorical_selected)}")
-                    if excluded_features:
-                        feedback_parts.append(f"   • ⚠️ Excluded: {', '.join(excluded_features)}")
-                    
+                                    # Check cardinality for categorical features
+                                    unique_count = df_analysis[feat].nunique()
+                                    if unique_count <= 50:  # Reasonable for one-hot encoding
+                                        categorical_selected.append(feat)
+                                    else:
+                                        excluded_features.append(f"{feat} (too many categories: {unique_count})")
+                        
+                        # Build feedback message for this target
+                        parts = []
+                        parts.append(f"✅ Target '{target_col}':")
+                        if numeric_selected:
+                            parts.append(f"   • Numeric features: {', '.join(numeric_selected)}")
+                        if categorical_selected:
+                            parts.append(f"   • Categorical features (encoded): {', '.join(categorical_selected)}")
+                        if excluded_features:
+                            parts.append(f"   • ⚠️ Excluded: {', '.join(excluded_features)}")
+                        
                         feedback_parts.append("\n".join(parts))
                     
                     # Train models for this target
