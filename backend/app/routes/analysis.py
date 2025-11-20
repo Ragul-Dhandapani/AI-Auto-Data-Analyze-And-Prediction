@@ -19,6 +19,7 @@ from app.database.adapters.factory import get_database_adapter
 from app.services.data_service import generate_data_profile, get_correlation_matrix, clean_data
 from app.services.ml_service import train_multiple_models, suggest_best_target_column, train_models_auto, detect_problem_type
 from app.services.domain_detection import detect_domain, get_domain_specific_insights
+from app.services.domain_visualizations import generate_domain_specific_charts
 # Enhanced ML Service with 30+ models
 HAS_ENHANCED_ML = False
 try:
