@@ -2773,8 +2773,8 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
           {/* Tabs for each ML model */}
           <Tabs defaultValue={analysisResults.ml_models[0].model_name} className="w-full">
-            <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${Math.min(analysisResults.ml_models.length, 4)}, 1fr)`}}>
-              {analysisResults.ml_models.slice(0, 4).map((model) => (
+            <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${analysisResults.ml_models.length}, 1fr)`}}>
+              {analysisResults.ml_models.map((model) => (
                 <TabsTrigger key={model.model_name} value={model.model_name} className="text-xs">
                   {model.model_name}
                 </TabsTrigger>
