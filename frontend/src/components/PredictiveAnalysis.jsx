@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ModelSelector from '@/components/ModelSelector';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, LineChart, Line, BarChart, Bar, Cell } from 'recharts';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
