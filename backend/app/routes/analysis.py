@@ -690,7 +690,7 @@ async def holistic_analysis(request: Dict[str, Any]):
                 
                 try:
                     if selected_features:
-                    for feat in selected_features:
+                        for feat in selected_features:
                         if feat in df_analysis.columns and feat != target_col:
                             if pd.api.types.is_numeric_dtype(df_analysis[feat].dtype):
                                 numeric_selected.append(feat)
