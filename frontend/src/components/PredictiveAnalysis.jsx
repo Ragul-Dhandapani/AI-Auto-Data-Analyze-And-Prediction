@@ -2148,7 +2148,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
 
           {/* Model Selector for Chart */}
           <div className="mb-4 flex gap-2 flex-wrap">
-            {analysisResults.ml_models.slice(0, 5).map((model, idx) => (
+            {analysisResults.ml_models.map((model, idx) => (
               <button
                 key={model.model_name}
                 onClick={() => setSelectedChartModel(model.model_name)}
