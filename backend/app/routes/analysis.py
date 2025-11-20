@@ -672,14 +672,16 @@ async def holistic_analysis(request: Dict[str, Any]):
                     "used_targets": target_cols if target_cols else []
                 }
         else:
-            # Process each target for regression/classification
+            # Process each target for regression/classification WITH PARALLEL PROCESSING
             all_models = []
             all_feedback_messages = []
             
-            for target_col in target_cols:
-                selected_features = target_feature_mapping.get(target_col, [])
-                
+            # Function to train models for a single target (for parallel execution)
+            def train_single_target(target_col, selected_features):
                 logging.info(f"Processing target: {target_col} with {len(selected_features)} selected features")
+                
+                feedback_parts = []
+                models = []
                 
                 # Separate numeric and categorical selected features
                 numeric_selected = []
