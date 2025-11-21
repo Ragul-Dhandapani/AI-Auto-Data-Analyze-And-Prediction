@@ -1861,16 +1861,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
                               <td className="p-3 text-right text-gray-600">
                                 {model.training_time ? `${model.training_time.toFixed(2)}s` : 'N/A'}
                               </td>
-                              <td className="p-3 text-center">
-                                <button
-                                  onClick={() => exportModelCode(model.model_name)}
-                                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm flex items-center gap-1 mx-auto"
-                                  title="Export production-ready Python code"
-                                >
-                                  <Download className="w-4 h-4" />
-                                  Export Code
-                                </button>
-                              </td>
                             </tr>
                           );
                         })}
