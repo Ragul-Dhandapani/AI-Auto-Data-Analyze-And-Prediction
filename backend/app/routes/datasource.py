@@ -224,6 +224,7 @@ async def upload_file(file: UploadFile = File(...), workspace_id: Optional[str] 
         
         dataset_doc = {
             "id": dataset_id,
+            "workspace_id": workspace_id,  # NEW: Link to workspace
             "name": unique_filename,
             "row_count": len(df),
             "column_count": len(df.columns),
