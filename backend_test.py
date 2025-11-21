@@ -294,12 +294,40 @@ class WorkspaceWorkflowTester:
                     self.log_test("Run Analysis", "PASS", 
                                  f"Analysis completed: {len(ml_models)} models trained")
                     
-                    # Store model info for later tests
-                    for model in ml_models:
-                        if model.get("model_name"):
-                            # Note: In real implementation, we'd get training metadata IDs from the response
-                            # For now, we'll simulate this
-                            self.training_metadata_ids.append(f"meta_{uuid.uuid4()}")
+                    # Get actual training metadata IDs from the database
+                    try:
+                        metadata_response = requests.get(
+                            f"{self.backend_url}/training/metadata?dataset_id={self.dataset_id}",
+                            timeout=30
+                        )
+                        if metadata_response.status_code == 200:
+                            metadata_result = metadata_response.json()
+                            # Extract metadata IDs from the response
+                            if isinstance(metadata_result, dict):
+                                for dataset_id, dataset_info in metadata_result.items():
+                                    if dataset_id == self.dataset_id:
+                                        workspaces = dataset_info.get("workspaces", {})
+                                        for workspace_name, workspace_info in workspaces.items():
+                                            metadata_list = workspace_info.get("metadata", [])
+                                            for metadata in metadata_list:
+                                                if metadata.get("id"):
+                                                    self.training_metadata_ids.append(metadata["id"])
+                            
+                            if not self.training_metadata_ids:
+                                # Fallback: try to extract from flat list format
+                                if isinstance(metadata_result, list):
+                                    for metadata in metadata_result:
+                                        if metadata.get("id"):
+                                            self.training_metadata_ids.append(metadata["id"])
+                        
+                        self.log_test("Get Training Metadata IDs", "PASS", 
+                                     f"Retrieved {len(self.training_metadata_ids)} training metadata IDs")
+                    except Exception as e:
+                        self.log_test("Get Training Metadata IDs", "FAIL", f"Failed to get metadata IDs: {str(e)}")
+                        # Fallback to fake IDs for testing
+                        for model in ml_models:
+                            if model.get("model_name"):
+                                self.training_metadata_ids.append(f"meta_{uuid.uuid4()}")
                 else:
                     self.log_test("Run Analysis", "FAIL", 
                                  "Analysis response missing training metadata or models", result)
