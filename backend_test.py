@@ -515,8 +515,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    def test_automl_optimization_levels(self):
         """Test 8: Test Different AutoML Optimization Levels"""
         if not hasattr(self, 'regression_path'):
             self.log_test("AutoML Optimization Levels", "SKIP", "No test dataset available")
