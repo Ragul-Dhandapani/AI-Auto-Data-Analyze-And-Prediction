@@ -375,64 +375,49 @@ class WorkspaceWorkflowTester:
         
         return True
 
-    def test_automl_with_multiple_models(self):
-        """Test 4: Test AutoML with Multiple Models (XGBoost, Ridge)"""
-        if not hasattr(self, 'regression_path'):
-            self.log_test("AutoML with Multiple Models", "SKIP", "No test dataset available")
-            return
+    def test_scenario_5_model_export(self):
+        """Test Scenario 5: Model Export"""
+        print("📦 Testing Model Export...")
         
-        print("🔍 Testing AutoML with XGBoost and Ridge...")
+        if not self.dataset_id or not self.training_metadata_ids:
+            self.log_test("Model Export", "SKIP", "No dataset ID or training metadata available")
+            return False
         
-        data_source = {"type": "file", "path": self.regression_path}
-        response = self.call_intelligent_prediction_api(
-            data_source=data_source,
-            user_prompt="Predict house prices with optimized XGBoost and Ridge models",
-            target_column="price",
-            feature_columns=["bedrooms", "bathrooms", "sqft", "age"],
-            models_to_train=["xgboost", "ridge"],
-            use_automl=True,
-            automl_optimization_level="fast"
-        )
+        # 5.1 Export models using training metadata IDs
+        export_request = {
+            "dataset_id": self.dataset_id,
+            "model_ids": self.training_metadata_ids[:2]  # Export first 2 models
+        }
         
-        if "error" in response:
-            self.log_test("AutoML with Multiple Models", "FAIL", 
-                         f"Error: {response['error']}", response)
-            return
-        
-        # Check if response is successful and contains AutoML results for multiple models
-        if response.get("status") == "success" and "data" in response:
-            data = response["data"]
-            model_comparison = data.get("model_comparison", [])
+        try:
+            response = requests.post(
+                f"{self.backend_url}/model/export",
+                json=export_request,
+                timeout=60
+            )
             
-            # Check each model for AutoML optimization
-            optimized_models = []
-            for model in model_comparison:
-                model_name = model.get("model_name")
-                if model_name in ["xgboost", "ridge"]:
-                    # Check for AutoML indicators
-                    model_str = str(model)
-                    if "automl_optimized" in model_str or "best_params" in model_str:
-                        optimized_models.append(model_name)
-            
-            if len(optimized_models) >= 2:
-                self.log_test("AutoML with Multiple Models", "PASS", 
-                             f"✅ AutoML optimization detected for {len(optimized_models)} models: {', '.join(optimized_models)}")
+            if response.status_code == 200:
+                # Check if response is a ZIP file
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
                 
-                # Store for detailed validation
-                self.automl_multi_response = response
-                return response
-            elif len(optimized_models) >= 1:
-                self.log_test("AutoML with Multiple Models", "PARTIAL", 
-                             f"AutoML optimization detected for {len(optimized_models)} models: {', '.join(optimized_models)}")
-                return response
+                if 'application/zip' in content_type or 'attachment' in content_disposition:
+                    zip_size = len(response.content)
+                    self.log_test("Export Models", "PASS", 
+                                 f"Successfully exported models as ZIP file ({zip_size} bytes)")
+                else:
+                    self.log_test("Export Models", "FAIL", 
+                                 f"Response not a ZIP file: content-type={content_type}")
+                    return False
             else:
-                self.log_test("AutoML with Multiple Models", "FAIL", 
-                             f"❌ AutoML optimization not detected for any models")
-                return None
-        else:
-            self.log_test("AutoML with Multiple Models", "FAIL", 
-                         "AutoML request did not return expected results", response)
-            return None
+                self.log_test("Export Models", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Export Models", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        return True
 
     def test_automl_returns_optimized_hyperparameters(self):
         """Test 5: Verify AutoML Returns Optimized Hyperparameters"""
