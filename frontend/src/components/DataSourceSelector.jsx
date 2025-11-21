@@ -43,6 +43,42 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
   const [showNameDialog, setShowNameDialog] = useState(false); // Show dataset naming dialog
   const [datasetName, setDatasetName] = useState(""); // User-provided dataset name
 
+  // Load workspaces on mount
+  useEffect(() => {
+    loadWorkspaces();
+  }, []);
+
+  const loadWorkspaces = async () => {
+    try {
+      const response = await axios.get(`${API}/workspace/list`);
+      setWorkspaces(response.data.workspaces || []);
+    } catch (error) {
+      console.error("Failed to load workspaces:", error);
+    }
+  };
+
+  const createWorkspace = async () => {
+    if (!newWorkspaceName.trim()) {
+      toast.error("Workspace name is required");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/workspace/create`, {
+        name: newWorkspaceName.trim(),
+        description: "",
+        tags: []
+      });
+      toast.success(`Workspace "${newWorkspaceName}" created!`);
+      setNewWorkspaceName("");
+      setShowWorkspaceDialog(false);
+      await loadWorkspaces();
+      setSelectedWorkspace(response.data.workspace);
+    } catch (error) {
+      toast.error("Failed to create workspace: " + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       'text/csv': ['.csv'],
