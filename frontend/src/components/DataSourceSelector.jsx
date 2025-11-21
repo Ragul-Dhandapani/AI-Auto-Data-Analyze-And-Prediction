@@ -20,6 +20,7 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
   const cancelTokenRef = useRef(null);
   const [useConnectionString, setUseConnectionString] = useState(false);
   const [connectionString, setConnectionString] = useState("");
+  const [enableAutoML, setEnableAutoML] = useState(false); // AutoML hyperparameter tuning flag
   const [dbConfig, setDbConfig] = useState({
     source_type: "postgresql",
     host: "",
