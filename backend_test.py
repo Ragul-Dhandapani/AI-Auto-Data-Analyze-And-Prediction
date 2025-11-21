@@ -79,44 +79,98 @@ class WorkspaceWorkflowTester:
         
         return csv_path
 
-    def call_intelligent_prediction_api(self, data_source: Dict, user_prompt: str, target_column: str, 
-                                       feature_columns: List[str], models_to_train: List[str] = None,
-                                       problem_type: str = None, use_automl: bool = False, 
-                                       automl_optimization_level: str = 'fast') -> Dict:
-        """Call the intelligent prediction API"""
-        payload = {
-            "data_source": data_source,
-            "user_prompt": user_prompt,
-            "target_column": target_column,
-            "feature_columns": feature_columns,
-            "models_to_train": models_to_train or ["random_forest", "xgboost", "ridge"],
-            "problem_type": problem_type,
-            "include_forecasting": True,
-            "include_insights": True,
-            "test_size": 0.2,
-            "use_automl": use_automl,
-            "automl_optimization_level": automl_optimization_level
+    def test_scenario_1_workspace_management(self):
+        """Test Scenario 1: Workspace Management"""
+        print("🏢 Testing Workspace Management...")
+        
+        # 1.1 Create a new workspace
+        workspace_data = {
+            "name": "E2E Test Workspace Q4 2024",
+            "description": "End-to-end testing workspace for Q4 2024 analysis",
+            "tags": ["testing", "e2e", "q4-2024"]
         }
         
         try:
             response = requests.post(
-                f"{self.backend_url}/intelligent-prediction/train-and-predict",
-                json=payload,
-                timeout=300  # 5 minutes timeout for AutoML
+                f"{self.backend_url}/workspace/create",
+                json=workspace_data,
+                timeout=30
             )
             
             if response.status_code == 200:
-                return response.json()
+                result = response.json()
+                workspace = result.get("workspace")
+                if workspace and workspace.get("id"):
+                    self.workspace_id = workspace["id"]
+                    self.log_test("Create Workspace", "PASS", 
+                                 f"Created workspace: {workspace['name']} (ID: {self.workspace_id})")
+                else:
+                    self.log_test("Create Workspace", "FAIL", "No workspace ID in response", result)
+                    return False
             else:
-                return {
-                    "error": f"HTTP {response.status_code}",
-                    "details": response.text
-                }
+                self.log_test("Create Workspace", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
         except Exception as e:
-            return {
-                "error": "Request failed",
-                "details": str(e)
-            }
+            self.log_test("Create Workspace", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        # 1.2 List all workspaces
+        try:
+            response = requests.get(f"{self.backend_url}/workspace/list", timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                workspaces = result.get("workspaces", [])
+                
+                # Check if our workspace is in the list
+                found_workspace = False
+                for ws in workspaces:
+                    if ws.get("id") == self.workspace_id:
+                        found_workspace = True
+                        break
+                
+                if found_workspace:
+                    self.log_test("List Workspaces", "PASS", 
+                                 f"Found {len(workspaces)} workspaces, including our test workspace")
+                else:
+                    self.log_test("List Workspaces", "FAIL", 
+                                 f"Test workspace not found in list of {len(workspaces)} workspaces")
+                    return False
+            else:
+                self.log_test("List Workspaces", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("List Workspaces", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        # 1.3 Get workspace details
+        try:
+            response = requests.get(f"{self.backend_url}/workspace/{self.workspace_id}", timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                workspace = result.get("workspace")
+                datasets = result.get("datasets", [])
+                training_history = result.get("training_history", [])
+                
+                if workspace and workspace.get("name") == "E2E Test Workspace Q4 2024":
+                    self.log_test("Get Workspace Details", "PASS", 
+                                 f"Retrieved workspace details: {len(datasets)} datasets, {len(training_history)} training runs")
+                else:
+                    self.log_test("Get Workspace Details", "FAIL", 
+                                 "Workspace details don't match expected values", result)
+                    return False
+            else:
+                self.log_test("Get Workspace Details", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Workspace Details", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        return True
 
     def test_setup_datasets(self):
         """Test 1: Setup test datasets for regression and classification"""
