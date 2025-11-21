@@ -1030,27 +1030,33 @@ async def holistic_analysis(request: Dict[str, Any]):
         except Exception as e:
             logging.error(f"Model explainability failed: {str(e)}", exc_info=True)
         
-        # 5C. Business Recommendations using AI
+        # 5C. Business Recommendations using AI (with timeout and skip for large datasets)
         business_recommendations = []
-        try:
-            if ai_insights_list and all_models:
-                best_model_metrics = {
-                    "best_model": {
-                        "name": best_model_info.get('model_name') if all_models else "Unknown",
-                        "r2_score": best_model_info.get('r2_score', 0) if all_models else 0,
-                        "rmse": best_model_info.get('rmse', 0) if all_models else 0
+        if should_generate_ai_insights:
+            try:
+                if ai_insights_list and all_models:
+                    best_model_metrics = {
+                        "best_model": {
+                            "name": best_model_info.get('model_name') if all_models else "Unknown",
+                            "r2_score": best_model_info.get('r2_score', 0) if all_models else 0,
+                            "rmse": best_model_info.get('rmse', 0) if all_models else 0
+                        }
                     }
-                }
-                target_for_recommendations = target_cols[0] if target_cols else "target"
-                
-                business_recommendations = await generate_business_recommendations(
-                    insights=ai_insights_list[:5],
-                    target_column=target_for_recommendations,
-                    model_performance=best_model_metrics
-                )
-                logging.info(f"Generated {len(business_recommendations)} business recommendations")
-        except Exception as e:
-            logging.error(f"Business recommendations failed: {str(e)}", exc_info=True)
+                    target_for_recommendations = target_cols[0] if target_cols else "target"
+                    
+                    business_recommendations = await asyncio.wait_for(
+                        generate_business_recommendations(
+                            insights=ai_insights_list[:5],
+                            target_column=target_for_recommendations,
+                            model_performance=best_model_metrics
+                        ),
+                        timeout=10.0  # 10 second timeout
+                    )
+                    logging.info(f"Generated {len(business_recommendations)} business recommendations")
+            except asyncio.TimeoutError:
+                logger.warning("⚠️ Business recommendations timed out")
+            except Exception as e:
+                logging.error(f"Business recommendations failed: {str(e)}", exc_info=True)
         
         # Update dataset training metadata
         db_adapter = get_db()
