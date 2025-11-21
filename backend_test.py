@@ -334,7 +334,7 @@ class WorkspaceWorkflowTester:
         
         return True
 
-    def test_automl_with_random_forest(self):
+    def test_scenario_4_performance_tracking(self):
         """Test 3: Test AutoML with Random Forest (CRITICAL TEST)"""
         if not hasattr(self, 'regression_path'):
             self.log_test("AutoML with Random Forest", "SKIP", "No test dataset available")
