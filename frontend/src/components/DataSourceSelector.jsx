@@ -1048,6 +1048,50 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
           </div>
         </div>
       )}
+
+      {/* Workspace Creation Dialog */}
+      {showWorkspaceDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold mb-4">Create New Workspace</h3>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="workspace-name">Workspace Name</Label>
+                <Input
+                  id="workspace-name"
+                  value={newWorkspaceName}
+                  onChange={(e) => setNewWorkspaceName(e.target.value)}
+                  placeholder="e.g., Sales Forecasting Q4 2024"
+                  autoFocus
+                  onKeyPress={(e) => e.key === 'Enter' && createWorkspace()}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Use descriptive names like "Customer Churn Analysis" or "Revenue Prediction 2024"
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowWorkspaceDialog(false);
+                    setNewWorkspaceName("");
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={createWorkspace}
+                  disabled={!newWorkspaceName.trim()}
+                  className="flex-1"
+                >
+                  Create Workspace
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </Card>
   );
 };
