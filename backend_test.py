@@ -335,64 +335,45 @@ class WorkspaceWorkflowTester:
         return True
 
     def test_scenario_4_performance_tracking(self):
-        """Test 3: Test AutoML with Random Forest (CRITICAL TEST)"""
-        if not hasattr(self, 'regression_path'):
-            self.log_test("AutoML with Random Forest", "SKIP", "No test dataset available")
-            return None
+        """Test Scenario 4: 30-Day Performance Tracking"""
+        print("📈 Testing 30-Day Performance Tracking...")
         
-        print("🔍 Testing AutoML with Random Forest...")
+        if not self.workspace_id:
+            self.log_test("30-Day Performance Tracking", "SKIP", "No workspace ID available")
+            return False
         
-        data_source = {"type": "file", "path": self.regression_path}
-        response = self.call_intelligent_prediction_api(
-            data_source=data_source,
-            user_prompt="Predict house prices with optimized Random Forest",
-            target_column="price",
-            feature_columns=["bedrooms", "bathrooms", "sqft", "age"],
-            models_to_train=["random_forest"],
-            use_automl=True,
-            automl_optimization_level="fast"
-        )
-        
-        if "error" in response:
-            self.log_test("AutoML with Random Forest", "FAIL", 
-                         f"Error: {response['error']}", response)
-            return None
-        
-        # Check if response is successful and contains AutoML results
-        if response.get("status") == "success" and "data" in response:
-            data = response["data"]
-            model_comparison = data.get("model_comparison", [])
+        # 4.1 Get workspace performance trends
+        try:
+            response = requests.get(
+                f"{self.backend_url}/workspace/{self.workspace_id}/performance-trends",
+                timeout=30
+            )
             
-            # Look for AutoML indicators in the response
-            automl_found = False
-            best_params_found = False
-            cv_score_found = False
-            
-            for model in model_comparison:
-                if model.get("model_name") == "random_forest":
-                    # Check if model has AutoML optimization indicators
-                    if "automl_optimized" in str(model) or "best_params" in str(model):
-                        automl_found = True
-                    if "best_params" in str(model):
-                        best_params_found = True
-                    if "cv_score" in str(model):
-                        cv_score_found = True
-            
-            if automl_found:
-                self.log_test("AutoML with Random Forest", "PASS", 
-                             f"✅ AutoML optimization detected for Random Forest. Best params: {best_params_found}, CV score: {cv_score_found}")
+            if response.status_code == 200:
+                result = response.json()
                 
-                # Store for detailed validation
-                self.automl_rf_response = response
-                return response
+                # Check required fields
+                workspace_id = result.get("workspace_id")
+                model_trends = result.get("model_trends")
+                best_model_recommendation = result.get("best_model_recommendation")
+                total_training_runs = result.get("total_training_runs")
+                
+                if workspace_id == self.workspace_id and model_trends is not None:
+                    self.log_test("Get Performance Trends", "PASS", 
+                                 f"Retrieved trends for workspace: {total_training_runs} training runs, best model: {best_model_recommendation}")
+                else:
+                    self.log_test("Get Performance Trends", "FAIL", 
+                                 "Performance trends response missing required fields", result)
+                    return False
             else:
-                self.log_test("AutoML with Random Forest", "FAIL", 
-                             f"❌ AutoML optimization not detected in response")
-                return None
-        else:
-            self.log_test("AutoML with Random Forest", "FAIL", 
-                         "AutoML request did not return expected results", response)
-            return None
+                self.log_test("Get Performance Trends", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Performance Trends", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        return True
 
     def test_automl_with_multiple_models(self):
         """Test 4: Test AutoML with Multiple Models (XGBoost, Ridge)"""
