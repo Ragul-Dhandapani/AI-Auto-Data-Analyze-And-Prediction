@@ -885,21 +885,15 @@ async def holistic_analysis(request: Dict[str, Any]):
             correlations = get_correlation_matrix(df_analysis)
         
         # ==========================================
-        # PHASE 3: Enhanced AI Insights & Explainability (PERFORMANCE OPTIMIZED)
+        # PHASE 3: Enhanced AI Insights & Explainability
         # ==========================================
         
         # 5A. Generate comprehensive AI insights using Azure OpenAI
-        # PERFORMANCE FIX: Skip AI insights for large datasets or make async
         ai_insights_list = []
         insights = "Analysis complete. Explore the charts and model results above."
         
-        # Skip expensive AI operations for very large datasets (>20k rows)
-        SKIP_AI_INSIGHTS_THRESHOLD = 20000
-        should_generate_ai_insights = len(df) <= SKIP_AI_INSIGHTS_THRESHOLD
-        
-        if not should_generate_ai_insights:
-            logger.info(f"⚡ Skipping AI insights for large dataset ({len(df)} rows) to improve performance")
-            insights = "Analysis complete. AI insights are disabled for large datasets to ensure fast performance. Explore the charts and model results above."
+        # Always generate AI insights regardless of dataset size
+        should_generate_ai_insights = True
         
         if should_generate_ai_insights:
             try:
