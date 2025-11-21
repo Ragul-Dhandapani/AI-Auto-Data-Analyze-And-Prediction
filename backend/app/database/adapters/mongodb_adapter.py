@@ -22,15 +22,40 @@ class MongoDBAdapter(DatabaseAdapter):
         logger.info(f"MongoDBAdapter initialized for database: {db_name}")
     
     async def connect(self):
-        """Establish MongoDB connection"""
+        """Establish MongoDB connection and create indexes"""
         try:
             self.client = AsyncIOMotorClient(self.mongo_url)
             self.db = self.client[self.db_name]
             self.fs = AsyncIOMotorGridFSBucket(self.db)
             logger.info("✅ MongoDB connection established successfully")
+            
+            # Create indexes for optimal performance
+            await self._create_indexes()
         except Exception as e:
             logger.error(f"❌ Failed to connect to MongoDB: {str(e)}")
             raise
+    
+    async def _create_indexes(self):
+        """Create database indexes for performance"""
+        try:
+            # Workspaces indexes
+            await self.db.workspaces.create_index([("id", 1)], unique=True)
+            await self.db.workspaces.create_index([("created_at", -1)])
+            
+            # Datasets indexes
+            await self.db.datasets.create_index([("id", 1)], unique=True)
+            await self.db.datasets.create_index([("workspace_id", 1)])
+            await self.db.datasets.create_index([("created_at", -1)])
+            
+            # Training metadata indexes
+            await self.db.training_metadata.create_index([("dataset_id", 1)])
+            await self.db.training_metadata.create_index([("workspace_id", 1)])
+            await self.db.training_metadata.create_index([("timestamp", -1)])
+            await self.db.training_metadata.create_index([("workspace_id", 1), ("timestamp", -1)])
+            
+            logger.info("✅ Database indexes created successfully")
+        except Exception as e:
+            logger.warning(f"Index creation warning (may already exist): {str(e)}")
     
     async def disconnect(self):
         """Close MongoDB connection"""
