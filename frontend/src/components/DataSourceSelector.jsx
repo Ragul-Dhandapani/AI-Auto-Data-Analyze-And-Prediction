@@ -388,6 +388,27 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
         </TabsList>
 
         <TabsContent value="file">
+          {/* AutoML Toggle */}
+          <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border-2 border-purple-200">
+            <div className="flex items-start space-x-3">
+              <input 
+                type="checkbox"
+                id="enable-automl"
+                checked={enableAutoML}
+                onChange={(e) => setEnableAutoML(e.target.checked)}
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 mt-0.5"
+              />
+              <div className="flex-1">
+                <Label htmlFor="enable-automl" className="cursor-pointer font-semibold text-purple-900">
+                  🤖 Enable AutoML Hyperparameter Tuning
+                </Label>
+                <p className="text-sm text-purple-700 mt-1">
+                  Automatically optimize model parameters for best performance. May increase training time by 2-3x.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div
             {...getRootProps()}
             data-testid="file-dropzone"
