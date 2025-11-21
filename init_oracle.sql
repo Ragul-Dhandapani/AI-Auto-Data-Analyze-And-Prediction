@@ -1,0 +1,256 @@
+-- Oracle Database Initialization Script for PROMISE AI
+-- Run with: sqlplus testuser/DbPasswordTest@ORCL @/app/init_oracle.sql
+
+SET SERVEROUTPUT ON;
+
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('🚀 Initializing PROMISE AI Oracle Database...');
+    DBMS_OUTPUT.PUT_LINE('');
+END;
+/
+
+-- =====================================================
+-- 1. WORKSPACES TABLE
+-- =====================================================
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE TABLE WORKSPACES (
+        ID VARCHAR2(255) PRIMARY KEY,
+        NAME VARCHAR2(500) NOT NULL,
+        DESCRIPTION CLOB,
+        TAGS CLOB,
+        CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
+        UPDATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
+        DATASET_COUNT NUMBER DEFAULT 0,
+        TRAINING_COUNT NUMBER DEFAULT 0
+    )';
+    DBMS_OUTPUT.PUT_LINE('✅ Created WORKSPACES table');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  WORKSPACES table already exists');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
+
+-- Create indexes for WORKSPACES
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_workspaces_created ON WORKSPACES(CREATED_AT DESC)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_workspaces_name ON WORKSPACES(NAME)';
+    DBMS_OUTPUT.PUT_LINE('✅ Created WORKSPACES indexes');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  WORKSPACES indexes already exist');
+        ELSE
+            NULL;
+        END IF;
+END;
+/
+
+-- =====================================================
+-- 2. DATASETS TABLE (with workspace_id)
+-- =====================================================
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE TABLE DATASETS (
+        ID VARCHAR2(255) PRIMARY KEY,
+        WORKSPACE_ID VARCHAR2(255),
+        NAME VARCHAR2(500) NOT NULL,
+        ROW_COUNT NUMBER,
+        COLUMN_COUNT NUMBER,
+        COLUMNS CLOB,
+        DTYPES CLOB,
+        DATA_PREVIEW CLOB,
+        CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
+        UPDATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
+        FILE_SIZE NUMBER,
+        SOURCE_TYPE VARCHAR2(50),
+        STORAGE_TYPE VARCHAR2(50),
+        GRIDFS_FILE_ID VARCHAR2(255),
+        TRAINING_COUNT NUMBER DEFAULT 0,
+        LAST_TRAINED_AT TIMESTAMP,
+        CONSTRAINT fk_dataset_workspace FOREIGN KEY (WORKSPACE_ID) 
+            REFERENCES WORKSPACES(ID) ON DELETE SET NULL
+    )';
+    DBMS_OUTPUT.PUT_LINE('✅ Created DATASETS table');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  DATASETS table already exists');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
+
+-- Create indexes for DATASETS
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_datasets_created ON DATASETS(CREATED_AT DESC)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_datasets_workspace ON DATASETS(WORKSPACE_ID)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_datasets_name ON DATASETS(NAME)';
+    DBMS_OUTPUT.PUT_LINE('✅ Created DATASETS indexes');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  DATASETS indexes already exist');
+        ELSE
+            NULL;
+        END IF;
+END;
+/
+
+-- =====================================================
+-- 3. TRAINING_METADATA TABLE (with workspace_id)
+-- =====================================================
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE TABLE TRAINING_METADATA (
+        ID VARCHAR2(255) PRIMARY KEY,
+        DATASET_ID VARCHAR2(255) NOT NULL,
+        WORKSPACE_ID VARCHAR2(255),
+        MODEL_TYPE VARCHAR2(100),
+        PROBLEM_TYPE VARCHAR2(50),
+        TARGET_VARIABLE VARCHAR2(255),
+        FEATURE_VARIABLES CLOB,
+        METRICS CLOB,
+        MODEL_PARAMS CLOB,
+        TRAINING_TIME NUMBER,
+        TIMESTAMP TIMESTAMP DEFAULT SYSTIMESTAMP,
+        CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
+        AUTOML_ENABLED NUMBER(1) DEFAULT 0,
+        HYPERPARAMETERS_TUNED CLOB,
+        CONSTRAINT fk_training_dataset FOREIGN KEY (DATASET_ID) 
+            REFERENCES DATASETS(ID) ON DELETE CASCADE,
+        CONSTRAINT fk_training_workspace FOREIGN KEY (WORKSPACE_ID) 
+            REFERENCES WORKSPACES(ID) ON DELETE SET NULL
+    )';
+    DBMS_OUTPUT.PUT_LINE('✅ Created TRAINING_METADATA table');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  TRAINING_METADATA table already exists');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
+
+-- Create indexes for TRAINING_METADATA
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_training_dataset ON TRAINING_METADATA(DATASET_ID)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_training_workspace ON TRAINING_METADATA(WORKSPACE_ID)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_training_timestamp ON TRAINING_METADATA(TIMESTAMP DESC)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_training_model_type ON TRAINING_METADATA(MODEL_TYPE)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_training_workspace_time ON TRAINING_METADATA(WORKSPACE_ID, TIMESTAMP DESC)';
+    DBMS_OUTPUT.PUT_LINE('✅ Created TRAINING_METADATA indexes');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  TRAINING_METADATA indexes already exist');
+        ELSE
+            NULL;
+        END IF;
+END;
+/
+
+-- =====================================================
+-- 4. Other tables (SAVED_STATES, PREDICTION_FEEDBACK, etc.)
+-- =====================================================
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE TABLE SAVED_STATES (
+        ID VARCHAR2(255) PRIMARY KEY,
+        WORKSPACE_NAME VARCHAR2(500),
+        DATASET_ID VARCHAR2(255),
+        CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
+        ANALYSIS_RESULTS CLOB,
+        CONSTRAINT fk_state_dataset FOREIGN KEY (DATASET_ID) 
+            REFERENCES DATASETS(ID) ON DELETE CASCADE
+    )';
+    DBMS_OUTPUT.PUT_LINE('✅ Created SAVED_STATES table');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  SAVED_STATES table already exists');
+        ELSE
+            NULL;
+        END IF;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE TABLE PREDICTION_FEEDBACK (
+        ID VARCHAR2(255) PRIMARY KEY,
+        DATASET_ID VARCHAR2(255),
+        MODEL_TYPE VARCHAR2(100),
+        PREDICTION_VALUE NUMBER,
+        ACTUAL_VALUE NUMBER,
+        FEEDBACK VARCHAR2(50),
+        USER_COMMENT CLOB,
+        CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
+        CONSTRAINT fk_feedback_dataset FOREIGN KEY (DATASET_ID) 
+            REFERENCES DATASETS(ID) ON DELETE CASCADE
+    )';
+    DBMS_OUTPUT.PUT_LINE('✅ Created PREDICTION_FEEDBACK table');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  PREDICTION_FEEDBACK table already exists');
+        ELSE
+            NULL;
+        END IF;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE TABLE DATASET_BLOBS (
+        ID VARCHAR2(255) PRIMARY KEY,
+        DATASET_ID VARCHAR2(255) NOT NULL,
+        FILENAME VARCHAR2(500),
+        CONTENT_TYPE VARCHAR2(100),
+        FILE_DATA BLOB,
+        CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
+        CONSTRAINT fk_blob_dataset FOREIGN KEY (DATASET_ID) 
+            REFERENCES DATASETS(ID) ON DELETE CASCADE
+    )';
+    DBMS_OUTPUT.PUT_LINE('✅ Created DATASET_BLOBS table');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('ℹ️  DATASET_BLOBS table already exists');
+        ELSE
+            NULL;
+        END IF;
+END;
+/
+
+-- Create remaining indexes
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_states_dataset ON SAVED_STATES(DATASET_ID)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_states_workspace ON SAVED_STATES(WORKSPACE_NAME)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_feedback_dataset ON PREDICTION_FEEDBACK(DATASET_ID)';
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_blobs_dataset ON DATASET_BLOBS(DATASET_ID)';
+    DBMS_OUTPUT.PUT_LINE('✅ Created remaining indexes');
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END;
+/
+
+-- Verify setup
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('📊 Database Statistics:');
+    
+    FOR rec IN (SELECT TABLE_NAME FROM USER_TABLES WHERE TABLE_NAME IN (
+        'WORKSPACES', 'DATASETS', 'TRAINING_METADATA', 
+        'SAVED_STATES', 'PREDICTION_FEEDBACK', 'DATASET_BLOBS'
+    ) ORDER BY TABLE_NAME) LOOP
+        DBMS_OUTPUT.PUT_LINE('  ✓ ' || rec.TABLE_NAME || ' table exists');
+    END LOOP;
+    
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('🎉 Oracle initialization complete!');
+END;
+/
+
+COMMIT;
