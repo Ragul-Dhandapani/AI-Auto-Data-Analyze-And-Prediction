@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-AutoML Hyperparameter Optimization Testing for PROMISE AI Platform
-Tests the newly integrated AutoML feature for the MCP intelligent prediction endpoint
+Comprehensive End-to-End Workspace Workflow Testing for PROMISE AI Platform
+Tests the complete workspace management, dataset upload, analysis, and model export workflow
 """
 
 import requests
@@ -10,7 +10,9 @@ import sys
 import time
 import csv
 import io
+import uuid
 from typing import Dict, List, Any
+from datetime import datetime
 
 # Backend URL from environment
 BACKEND_URL = "https://mlexport-hub.preview.emergentagent.com/api"
