@@ -47,7 +47,19 @@ async def create_workspace(request: Dict[str, Any]):
         await db_adapter.create_workspace(workspace)
         logger.info(f"✅ Created workspace: {name}")
         
-        return {"workspace": workspace, "message": "Workspace created successfully"}
+        # Return a clean copy without any MongoDB-specific fields
+        clean_workspace = {
+            "id": workspace["id"],
+            "name": workspace["name"],
+            "description": workspace["description"],
+            "tags": workspace["tags"],
+            "created_at": workspace["created_at"],
+            "updated_at": workspace["updated_at"],
+            "dataset_count": workspace["dataset_count"],
+            "training_count": workspace["training_count"]
+        }
+        
+        return {"workspace": clean_workspace, "message": "Workspace created successfully"}
     
     except HTTPException:
         raise
