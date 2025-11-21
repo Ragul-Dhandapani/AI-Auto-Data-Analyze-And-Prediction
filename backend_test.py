@@ -419,50 +419,88 @@ class WorkspaceWorkflowTester:
         
         return True
 
-    def test_automl_returns_optimized_hyperparameters(self):
-        """Test 5: Verify AutoML Returns Optimized Hyperparameters"""
-        if not hasattr(self, 'automl_rf_response'):
-            self.log_test("AutoML Returns Optimized Hyperparameters", "SKIP", "No AutoML response available")
-            return
+    def run_all_tests(self):
+        """Run all test scenarios in sequence"""
+        print("🧪 Comprehensive End-to-End Workspace Workflow Testing")
+        print("=" * 80)
+        print(f"Backend URL: {self.backend_url}")
+        print(f"Test Time: {datetime.now().isoformat()}")
+        print()
         
-        response = self.automl_rf_response
-        data = response.get("data", {})
-        model_comparison = data.get("model_comparison", [])
+        # Run test scenarios in order
+        scenario_1_success = self.test_scenario_1_workspace_management()
+        scenario_2_success = self.test_scenario_2_dataset_upload_with_workspace()
+        scenario_3_success = self.test_scenario_3_analysis_with_workspace_tracking()
+        scenario_4_success = self.test_scenario_4_performance_tracking()
+        scenario_5_success = self.test_scenario_5_model_export()
         
-        # Look for hyperparameters in the response
-        hyperparams_found = False
-        cv_scores_found = False
-        automl_optimized_found = False
+        # Summary
+        print("=" * 80)
+        print("📊 TEST SUMMARY")
+        print("=" * 80)
         
-        for model in model_comparison:
-            model_str = str(model)
-            if "best_params" in model_str:
-                hyperparams_found = True
-            if "cv_score" in model_str:
-                cv_scores_found = True
-            if "automl_optimized" in model_str:
-                automl_optimized_found = True
+        passed = sum(1 for r in self.test_results if r["status"] == "PASS")
+        failed = sum(1 for r in self.test_results if r["status"] == "FAIL")
+        skipped = sum(1 for r in self.test_results if r["status"] == "SKIP")
+        total = len(self.test_results)
         
-        # Check training summary for AutoML indicators
-        training_summary = data.get("training_summary", {})
+        print(f"Total Tests: {total}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"⏭️  Skipped: {skipped}")
+        print()
         
-        success_indicators = []
-        if hyperparams_found:
-            success_indicators.append("best_params")
-        if cv_scores_found:
-            success_indicators.append("cv_score")
-        if automl_optimized_found:
-            success_indicators.append("automl_optimized")
+        success_rate = (passed / total) * 100 if total > 0 else 0
+        print(f"Success Rate: {success_rate:.1f}%")
         
-        if len(success_indicators) >= 2:
-            self.log_test("AutoML Returns Optimized Hyperparameters", "PASS", 
-                         f"✅ AutoML hyperparameters found: {', '.join(success_indicators)}")
-        elif len(success_indicators) >= 1:
-            self.log_test("AutoML Returns Optimized Hyperparameters", "PARTIAL", 
-                         f"Some AutoML indicators found: {', '.join(success_indicators)}")
+        # Scenario results
+        print("\n🎯 SCENARIO RESULTS:")
+        scenarios = [
+            ("Scenario 1: Workspace Management", scenario_1_success),
+            ("Scenario 2: Dataset Upload with Workspace", scenario_2_success),
+            ("Scenario 3: Analysis with Workspace Tracking", scenario_3_success),
+            ("Scenario 4: 30-Day Performance Tracking", scenario_4_success),
+            ("Scenario 5: Model Export", scenario_5_success)
+        ]
+        
+        for scenario_name, success in scenarios:
+            status = "✅ PASS" if success else "❌ FAIL"
+            print(f"   {status} {scenario_name}")
+        
+        # Critical failures
+        critical_failures = [r for r in self.test_results if r["status"] == "FAIL"]
+        if critical_failures:
+            print("\n🚨 CRITICAL ISSUES:")
+            for failure in critical_failures:
+                print(f"   - {failure['test']}: {failure['details']}")
+        
+        # Overall assessment
+        all_scenarios_passed = all([scenario_1_success, scenario_2_success, scenario_3_success, scenario_4_success, scenario_5_success])
+        
+        print(f"\n🎯 OVERALL WORKSPACE WORKFLOW STATUS:")
+        if all_scenarios_passed:
+            print("   ✅ All workspace workflow scenarios completed successfully")
         else:
-            self.log_test("AutoML Returns Optimized Hyperparameters", "FAIL", 
-                         "❌ No AutoML hyperparameter indicators found in response")
+            print("   ❌ Some workspace workflow scenarios failed - see details above")
+        
+        # Environment info
+        print(f"\n📋 ENVIRONMENT INFO:")
+        print(f"   Backend URL: {self.backend_url}")
+        print(f"   Database: MongoDB (test_database)")
+        print(f"   Workspace ID: {self.workspace_id}")
+        print(f"   Dataset ID: {self.dataset_id}")
+        print(f"   Training Metadata IDs: {len(self.training_metadata_ids)}")
+        
+        return {
+            "total": total,
+            "passed": passed,
+            "failed": failed,
+            "skipped": skipped,
+            "success_rate": success_rate,
+            "all_scenarios_passed": all_scenarios_passed,
+            "workspace_id": self.workspace_id,
+            "dataset_id": self.dataset_id
+        }
 
     def test_automl_performance_comparison(self):
         """Test 6: Compare AutoML vs Default Performance"""
