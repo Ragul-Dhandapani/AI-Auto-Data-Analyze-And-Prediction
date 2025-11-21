@@ -135,8 +135,8 @@ def create_db_connection(db_type: str, config: dict):
 
 @router.post("/upload")
 @router.post("/upload-file")  # Alias for backward compatibility
-async def upload_file(file: UploadFile = File(...)):
-    """Upload CSV/Excel file and create dataset"""
+async def upload_file(file: UploadFile = File(...), workspace_id: Optional[str] = Form(None)):
+    """Upload CSV/Excel file and create dataset with optional workspace"""
     try:
         # Validate file type
         if not file.filename.lower().endswith(('.csv', '.xlsx', '.xls')):
