@@ -172,17 +172,89 @@ class WorkspaceWorkflowTester:
         
         return True
 
-    def test_setup_datasets(self):
-        """Test 1: Setup test datasets for regression and classification"""
+    def test_scenario_2_dataset_upload_with_workspace(self):
+        """Test Scenario 2: Dataset Upload with Workspace"""
+        print("📊 Testing Dataset Upload with Workspace...")
+        
+        if not self.workspace_id:
+            self.log_test("Dataset Upload with Workspace", "SKIP", "No workspace ID available")
+            return False
+        
+        # 2.1 Get list of existing datasets (baseline)
         try:
-            regression_path, classification_path = self.create_test_datasets()
-            self.regression_path = regression_path
-            self.classification_path = classification_path
+            response = requests.get(f"{self.backend_url}/datasource/datasets", timeout=30)
             
-            self.log_test("Setup Test Datasets", "PASS", 
-                         f"Created regression dataset: {regression_path} and classification dataset: {classification_path}")
+            if response.status_code == 200:
+                result = response.json()
+                initial_datasets = result.get("datasets", [])
+                initial_count = len(initial_datasets)
+                self.log_test("Get Initial Dataset Count", "PASS", 
+                             f"Found {initial_count} existing datasets")
+            else:
+                self.log_test("Get Initial Dataset Count", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
         except Exception as e:
-            self.log_test("Setup Test Datasets", "FAIL", f"Failed to create test datasets: {str(e)}")
+            self.log_test("Get Initial Dataset Count", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        # 2.2 Create and upload test CSV file with workspace_id
+        try:
+            csv_path = self.create_test_csv_data()
+            
+            with open(csv_path, 'rb') as f:
+                files = {'file': ('e2e_test_customer_data.csv', f, 'text/csv')}
+                data = {'workspace_id': self.workspace_id}
+                
+                response = requests.post(
+                    f"{self.backend_url}/datasource/upload",
+                    files=files,
+                    data=data,
+                    timeout=60
+                )
+            
+            if response.status_code == 200:
+                result = response.json()
+                dataset = result.get("dataset")
+                if dataset and dataset.get("id"):
+                    self.dataset_id = dataset["id"]
+                    self.log_test("Upload Dataset with Workspace", "PASS", 
+                                 f"Uploaded dataset: {dataset['name']} (ID: {self.dataset_id})")
+                else:
+                    self.log_test("Upload Dataset with Workspace", "FAIL", 
+                                 "No dataset ID in response", result)
+                    return False
+            else:
+                self.log_test("Upload Dataset with Workspace", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Upload Dataset with Workspace", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        # 2.3 Verify workspace_id is saved with the dataset
+        try:
+            response = requests.get(f"{self.backend_url}/datasource/datasets/{self.dataset_id}", timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                dataset = result.get("dataset")
+                if dataset and dataset.get("workspace_id") == self.workspace_id:
+                    self.log_test("Verify Workspace Link", "PASS", 
+                                 f"Dataset correctly linked to workspace {self.workspace_id}")
+                else:
+                    self.log_test("Verify Workspace Link", "FAIL", 
+                                 f"Dataset workspace_id mismatch: expected {self.workspace_id}, got {dataset.get('workspace_id') if dataset else 'None'}")
+                    return False
+            else:
+                self.log_test("Verify Workspace Link", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Verify Workspace Link", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        return True
 
     def test_endpoint_accepts_automl_parameter(self):
         """Test 2: Verify endpoint accepts use_automl parameter"""
