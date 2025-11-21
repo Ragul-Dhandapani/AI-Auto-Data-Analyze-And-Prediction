@@ -280,6 +280,7 @@ class MongoDBAdapter(DatabaseAdapter):
         doc = {
             '_id': metadata_id,
             'dataset_id': metadata['dataset_id'],
+            'workspace_id': metadata.get('workspace_id'),  # NEW: Workspace tracking
             'problem_type': metadata['problem_type'],
             'target_variable': metadata['target_variable'],
             'feature_variables': feature_vars,
@@ -287,7 +288,10 @@ class MongoDBAdapter(DatabaseAdapter):
             'model_params': metadata.get('model_params', {}),
             'metrics': metadata.get('metrics', {}),
             'training_duration': metadata.get('training_duration', 0.0),
-            'created_at': datetime.now(timezone.utc)
+            'timestamp': datetime.now(timezone.utc),  # For 30-day tracking
+            'created_at': datetime.now(timezone.utc),
+            'automl_enabled': metadata.get('automl_enabled', False),  # NEW
+            'hyperparameters_tuned': metadata.get('hyperparameters_tuned', [])  # NEW
         }
         
         await self.db.training_metadata.insert_one(doc)
