@@ -118,6 +118,9 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
     
     const formData = new FormData();
     formData.append("file", file);
+    if (selectedWorkspace) {
+      formData.append("workspace_id", selectedWorkspace.id);
+    }
 
     // Create cancel token
     const CancelToken = axios.CancelToken;
