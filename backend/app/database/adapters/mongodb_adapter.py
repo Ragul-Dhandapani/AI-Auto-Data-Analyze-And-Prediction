@@ -1,6 +1,7 @@
 """MongoDB Database Adapter - Wraps existing MongoDB code"""
 import json
 import logging
+import uuid
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
