@@ -853,6 +853,9 @@ async def holistic_analysis(request: Dict[str, Any]):
             }
         
         # 3. Generate Auto Charts - filtered to user selection if provided
+        # PERFORMANCE: Reduce max charts for large datasets
+        max_charts_limit = 10 if len(df_analysis) > 1000 else 15
+        
         if user_selection and len(target_cols) > 0:
             # Use first target for chart generation (or could generate for all targets)
             first_target = target_cols[0]
@@ -861,11 +864,11 @@ async def holistic_analysis(request: Dict[str, Any]):
             if selected_features:
                 chart_columns = [first_target] + selected_features
                 df_charts = df_analysis[chart_columns].copy()
-                auto_charts, skipped_charts = generate_auto_charts(df_charts, max_charts=15)
+                auto_charts, skipped_charts = generate_auto_charts(df_charts, max_charts=max_charts_limit)
             else:
-                auto_charts, skipped_charts = generate_auto_charts(df_analysis, max_charts=15)
+                auto_charts, skipped_charts = generate_auto_charts(df_analysis, max_charts=max_charts_limit)
         else:
-            auto_charts, skipped_charts = generate_auto_charts(df_analysis, max_charts=15)
+            auto_charts, skipped_charts = generate_auto_charts(df_analysis, max_charts=max_charts_limit)
         
         # 4. Correlation Analysis - filtered to user selection if provided
         if user_selection and len(target_cols) > 0:
