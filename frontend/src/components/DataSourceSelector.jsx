@@ -21,6 +21,10 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
   const [useConnectionString, setUseConnectionString] = useState(false);
   const [connectionString, setConnectionString] = useState("");
   const [enableAutoML, setEnableAutoML] = useState(false); // AutoML hyperparameter tuning flag
+  const [selectedWorkspace, setSelectedWorkspace] = useState(null); // Selected workspace
+  const [showWorkspaceDialog, setShowWorkspaceDialog] = useState(false); // Workspace creation dialog
+  const [workspaces, setWorkspaces] = useState([]); // Available workspaces
+  const [newWorkspaceName, setNewWorkspaceName] = useState(""); // New workspace name
   const [dbConfig, setDbConfig] = useState({
     source_type: "postgresql",
     host: "",
