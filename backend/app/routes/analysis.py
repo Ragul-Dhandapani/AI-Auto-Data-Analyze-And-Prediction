@@ -852,8 +852,7 @@ async def holistic_analysis(request: Dict[str, Any]):
             }
         
         # 3. Generate Auto Charts - filtered to user selection if provided
-        # PERFORMANCE: Reduce max charts for large datasets
-        max_charts_limit = 10 if len(df_analysis) > 1000 else 15
+        max_charts_limit = 20  # Generate more charts for better insights
         
         if user_selection and len(target_cols) > 0:
             # Use first target for chart generation (or could generate for all targets)
