@@ -388,6 +388,22 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
         </TabsList>
 
         <TabsContent value="file">
+          {/* Workspace Info Banner */}
+          <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border-2 border-blue-200">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">📁</div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-blue-900 mb-1">Organize with Workspaces</h4>
+                <p className="text-sm text-blue-700">
+                  Create a workspace first to organize datasets and track model performance over time (30-day trends, best model recommendations).
+                </p>
+                <p className="text-xs text-blue-600 mt-2">
+                  💡 Tip: Use workspaces like "Sales Q4 2024" or "Customer Churn Analysis" to keep projects organized
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* AutoML Toggle */}
           <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border-2 border-purple-200">
             <div className="flex items-start space-x-3">
