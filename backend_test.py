@@ -13,7 +13,7 @@ import io
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://model-wizard-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://mlexport-hub.preview.emergentagent.com/api"
 
 class AutoMLTester:
     def __init__(self):

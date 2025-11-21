@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = "https://model-wizard-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://mlexport-hub.preview.emergentagent.com/api"
 
 def test_api_health():
     """Test if the API is running"""
