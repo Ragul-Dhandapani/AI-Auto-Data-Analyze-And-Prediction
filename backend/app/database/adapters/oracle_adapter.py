@@ -948,3 +948,74 @@ class OracleAdapter(DatabaseAdapter):
         
         return result
 
+
+    # ==================== Workspace Operations ====================
+    
+    async def create_workspace(self, workspace: Dict[str, Any]) -> str:
+        """Create a new workspace"""
+        query = """
+            INSERT INTO WORKSPACES (ID, NAME, DESCRIPTION, TAGS, CREATED_AT, UPDATED_AT, DATASET_COUNT, TRAINING_COUNT)
+            VALUES (:id, :name, :description, :tags, SYSTIMESTAMP, SYSTIMESTAMP, 0, 0)
+        """
+        tags_json = json.dumps(workspace.get('tags', []))
+        await self._execute(query, {
+            'id': workspace['id'],
+            'name': workspace['name'],
+            'description': workspace.get('description', ''),
+            'tags': tags_json
+        })
+        logger.info(f"✅ Created workspace: {workspace['id']}")
+        return workspace['id']
+    
+    async def get_workspace(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+        """Get workspace by ID"""
+        query = "SELECT * FROM WORKSPACES WHERE ID = :id"
+        result = await self._execute(query, {'id': workspace_id}, fetch_one=True)
+        if result and result.get('TAGS'):
+            try:
+                result['tags'] = json.loads(result['TAGS'])
+                del result['TAGS']
+            except:
+                result['tags'] = []
+        return result
+    
+    async def get_workspaces(self) -> List[Dict[str, Any]]:
+        """Get all workspaces"""
+        query = "SELECT * FROM WORKSPACES ORDER BY CREATED_AT DESC"
+        results = await self._execute(query, {})
+        for result in results:
+            if result.get('TAGS'):
+                try:
+                    result['tags'] = json.loads(result['TAGS'])
+                    del result['TAGS']
+                except:
+                    result['tags'] = []
+        return results
+    
+    async def get_workspace_datasets(self, workspace_id: str) -> List[Dict[str, Any]]:
+        """Get all datasets in a workspace"""
+        query = "SELECT * FROM DATASETS WHERE WORKSPACE_ID = :workspace_id ORDER BY CREATED_AT DESC"
+        return await self._execute(query, {'workspace_id': workspace_id})
+    
+    async def get_workspace_training_history(self, workspace_id: str) -> List[Dict[str, Any]]:
+        """Get training history for workspace"""
+        query = "SELECT * FROM TRAINING_METADATA WHERE WORKSPACE_ID = :workspace_id ORDER BY TIMESTAMP DESC"
+        return await self._execute(query, {'workspace_id': workspace_id})
+    
+    async def increment_workspace_dataset_count(self, workspace_id: str) -> bool:
+        """Increment dataset count for workspace"""
+        query = """
+            UPDATE WORKSPACES 
+            SET DATASET_COUNT = DATASET_COUNT + 1, UPDATED_AT = SYSTIMESTAMP
+            WHERE ID = :workspace_id
+        """
+        await self._execute(query, {'workspace_id': workspace_id})
+        return True
+    
+    async def delete_workspace(self, workspace_id: str) -> bool:
+        """Delete workspace"""
+        query = "DELETE FROM WORKSPACES WHERE ID = :workspace_id"
+        await self._execute(query, {'workspace_id': workspace_id})
+        logger.info(f"✅ Deleted workspace: {workspace_id}")
+        return True
+
