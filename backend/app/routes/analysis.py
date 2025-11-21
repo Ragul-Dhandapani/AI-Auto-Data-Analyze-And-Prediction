@@ -988,21 +988,24 @@ async def holistic_analysis(request: Dict[str, Any]):
                             ai_insights_list.extend(anomaly_insights)
                     except asyncio.TimeoutError:
                         logger.warning("⚠️ Anomaly detection timed out")
-            
-            # Convert insights list to readable text for backward compatibility
-            if ai_insights_list:
-                insights = "🤖 AI-Powered Insights:\n\n"
-                for idx, insight in enumerate(ai_insights_list[:7], 1):  # Top 7 insights
-                    insights += f"{idx}. **{insight.get('title', 'Insight')}**\n"
-                    insights += f"   {insight.get('description', '')}\n"
-                    if insight.get('recommendation'):
-                        insights += f"   💡 Recommendation: {insight.get('recommendation')}\n"
-                    insights += "\n"
-            
-            logging.info(f"Generated {len(ai_insights_list)} AI insights")
-        except Exception as e:
-            logging.error(f"AI insights generation failed: {str(e)}", exc_info=True)
-            insights = "Analysis complete. Explore the charts and model results above."
+                
+                # Convert insights list to readable text for backward compatibility
+                if ai_insights_list:
+                    insights = "🤖 AI-Powered Insights:\n\n"
+                    for idx, insight in enumerate(ai_insights_list[:7], 1):  # Top 7 insights
+                        insights += f"{idx}. **{insight.get('title', 'Insight')}**\n"
+                        insights += f"   {insight.get('description', '')}\n"
+                        if insight.get('recommendation'):
+                            insights += f"   💡 Recommendation: {insight.get('recommendation')}\n"
+                        insights += "\n"
+                
+                logging.info(f"Generated {len(ai_insights_list)} AI insights")
+            except asyncio.TimeoutError:
+                logger.warning("⚠️ AI insights generation timed out")
+                insights = "Analysis complete. AI insights are taking longer than expected. Explore the charts and model results above."
+            except Exception as e:
+                logging.error(f"AI insights generation failed: {str(e)}", exc_info=True)
+                insights = "Analysis complete. Explore the charts and model results above."
         
         # 5B. Model Explainability (SHAP/LIME) for best performing model
         explainability_results = {}
