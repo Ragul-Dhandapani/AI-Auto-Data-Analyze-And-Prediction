@@ -1228,6 +1228,24 @@ async def holistic_analysis(request: Dict[str, Any]):
             "domain_charts": domain_charts  # Domain-specific visualizations
         }
         
+        # Generate hyperparameter tuning suggestions
+        try:
+            model_types = [m.get("model_name") for m in all_models if m.get("model_name")]
+            dataset_info = {
+                "row_count": len(df),
+                "column_count": len(df.columns)
+            }
+            hyperparameter_suggestions = get_hyperparameter_suggestions(
+                problem_type=problem_type,
+                model_types=model_types,
+                dataset_info=dataset_info
+            )
+            response["hyperparameter_suggestions"] = hyperparameter_suggestions
+            logger.info(f"✅ Generated hyperparameter suggestions for {len(model_types)} models")
+        except Exception as e:
+            logger.error(f"Failed to generate hyperparameter suggestions: {str(e)}")
+            response["hyperparameter_suggestions"] = {}
+        
         # Add selection feedback if user made a selection
         if selection_feedback:
             response["selection_feedback"] = selection_feedback
