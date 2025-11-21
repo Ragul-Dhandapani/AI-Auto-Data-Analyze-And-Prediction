@@ -409,3 +409,64 @@ class MongoDBAdapter(DatabaseAdapter):
         
         return result
 
+
+    # ==================== Workspace Operations ====================
+    
+    async def create_workspace(self, workspace: Dict[str, Any]) -> str:
+        """Create a new workspace"""
+        await self.db.workspaces.insert_one(workspace)
+        logger.info(f"✅ Created workspace: {workspace['id']}")
+        return workspace['id']
+    
+    async def get_workspace(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+        """Get workspace by ID"""
+        workspace = await self.db.workspaces.find_one({"id": workspace_id}, {"_id": 0})
+        return workspace
+    
+    async def get_workspaces(self) -> List[Dict[str, Any]]:
+        """Get all workspaces"""
+        cursor = self.db.workspaces.find({}, {"_id": 0}).sort("created_at", -1)
+        workspaces = await cursor.to_list(length=1000)
+        return workspaces
+    
+    async def get_workspace_datasets(self, workspace_id: str) -> List[Dict[str, Any]]:
+        """Get all datasets in a workspace"""
+        cursor = self.db.datasets.find({"workspace_id": workspace_id}, {"_id": 0}).sort("created_at", -1)
+        datasets = await cursor.to_list(length=1000)
+        return datasets
+    
+    async def get_workspace_training_history(self, workspace_id: str) -> List[Dict[str, Any]]:
+        """Get training history for all datasets in workspace"""
+        # First get all datasets in workspace
+        datasets = await self.get_workspace_datasets(workspace_id)
+        dataset_ids = [d["id"] for d in datasets]
+        
+        if not dataset_ids:
+            return []
+        
+        # Get training metadata for these datasets
+        cursor = self.db.training_metadata.find(
+            {"dataset_id": {"$in": dataset_ids}},
+            {"_id": 0}
+        ).sort("timestamp", -1)
+        
+        history = await cursor.to_list(length=10000)
+        return history
+    
+    async def increment_workspace_dataset_count(self, workspace_id: str) -> bool:
+        """Increment dataset count for workspace"""
+        result = await self.db.workspaces.update_one(
+            {"id": workspace_id},
+            {
+                "$inc": {"dataset_count": 1},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        return result.modified_count > 0
+    
+    async def delete_workspace(self, workspace_id: str) -> bool:
+        """Delete workspace"""
+        result = await self.db.workspaces.delete_one({"id": workspace_id})
+        logger.info(f"✅ Deleted workspace: {workspace_id}")
+        return result.deleted_count > 0
+
