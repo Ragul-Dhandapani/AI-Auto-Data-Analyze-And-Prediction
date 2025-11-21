@@ -1188,8 +1188,9 @@ async def holistic_analysis(request: Dict[str, Any]):
                 predictions=None  # We can pass predictions here if needed
             )
             
-            # Generate domain-specific charts (only for small-medium datasets to avoid slowdown)
-            if domain_info and domain_info.get("visualization_config") and len(df_analysis) <= 10000:
+            # Generate domain-specific charts (only for small datasets to avoid slowdown)
+            # PERFORMANCE: More aggressive threshold (5000 -> 3000)
+            if domain_info and domain_info.get("visualization_config") and len(df_analysis) <= 3000:
                 try:
                     domain_charts = generate_domain_specific_charts(
                         domain=domain_info["domain"],
