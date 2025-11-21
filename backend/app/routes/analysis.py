@@ -945,36 +945,49 @@ async def holistic_analysis(request: Dict[str, Any]):
                         timeout=15.0  # 15 second timeout
                     )
                     logger.info(f"✅ Azure OpenAI insights generated with user context (domain: {detected_domain})")
-            else:
-                # Fallback to existing insights
-                # Prepare correlation matrix for insights
-                corr_dict = {}
-                if correlations.get('matrix'):
-                    for key_corr in correlations['correlations']:
-                        target = key_corr.get('target', '')
-                        if target and target not in corr_dict:
-                            corr_dict[target] = {}
-                        for feat, corr_val in key_corr.get('correlations', {}).items():
-                            if target:
-                                corr_dict[target][feat] = corr_val
+                else:
+                    # Fallback to existing insights
+                    # Prepare correlation matrix for insights
+                    corr_dict = {}
+                    if correlations.get('matrix'):
+                        for key_corr in correlations['correlations']:
+                            target = key_corr.get('target', '')
+                            if target and target not in corr_dict:
+                                corr_dict[target] = {}
+                            for feat, corr_val in key_corr.get('correlations', {}).items():
+                                if target:
+                                    corr_dict[target][feat] = corr_val
+                    
+                    # Generate statistical insights using AI (with timeout)
+                    target_for_insights = target_cols[0] if target_cols else None
+                    try:
+                        ai_insights_list = await asyncio.wait_for(
+                            generate_statistical_insights(
+                                df_analysis,
+                                target_column=target_for_insights,
+                                correlation_matrix=corr_dict
+                            ),
+                            timeout=10.0  # 10 second timeout
+                        )
+                    except asyncio.TimeoutError:
+                        logger.warning("⚠️ Statistical insights generation timed out")
+                        ai_insights_list = []
                 
-                # Generate statistical insights using AI
-                target_for_insights = target_cols[0] if target_cols else None
-                ai_insights_list = await generate_statistical_insights(
-                    df_analysis,
-                    target_column=target_for_insights,
-                    correlation_matrix=corr_dict
-                )
-            
-            # Generate anomaly detection insights
-            numeric_columns_list = df_analysis.select_dtypes(include=[np.number]).columns.tolist()
-            if numeric_columns_list:
-                anomaly_insights = await generate_anomaly_detection_insights(
-                    df_analysis,
-                    numeric_columns=numeric_columns_list[:5]  # Top 5 numeric columns
-                )
-                if anomaly_insights:
-                    ai_insights_list.extend(anomaly_insights)
+                # Generate anomaly detection insights (with timeout)
+                numeric_columns_list = df_analysis.select_dtypes(include=[np.number]).columns.tolist()
+                if numeric_columns_list:
+                    try:
+                        anomaly_insights = await asyncio.wait_for(
+                            generate_anomaly_detection_insights(
+                                df_analysis,
+                                numeric_columns=numeric_columns_list[:5]  # Top 5 numeric columns
+                            ),
+                            timeout=10.0  # 10 second timeout
+                        )
+                        if anomaly_insights:
+                            ai_insights_list.extend(anomaly_insights)
+                    except asyncio.TimeoutError:
+                        logger.warning("⚠️ Anomaly detection timed out")
             
             # Convert insights list to readable text for backward compatibility
             if ai_insights_list:
