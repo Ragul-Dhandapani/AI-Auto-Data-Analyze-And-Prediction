@@ -256,44 +256,83 @@ class WorkspaceWorkflowTester:
         
         return True
 
-    def test_endpoint_accepts_automl_parameter(self):
-        """Test 2: Verify endpoint accepts use_automl parameter"""
-        if not hasattr(self, 'regression_path'):
-            self.log_test("Endpoint Accepts AutoML Parameter", "SKIP", "No test dataset available")
-            return None
+    def test_scenario_3_analysis_with_workspace_tracking(self):
+        """Test Scenario 3: Analysis with Workspace Tracking"""
+        print("🤖 Testing Analysis with Workspace Tracking...")
         
-        print("🔍 Testing endpoint accepts use_automl parameter...")
+        if not self.dataset_id or not self.workspace_id:
+            self.log_test("Analysis with Workspace Tracking", "SKIP", "No dataset or workspace ID available")
+            return False
         
-        data_source = {"type": "file", "path": self.regression_path}
-        response = self.call_intelligent_prediction_api(
-            data_source=data_source,
-            user_prompt="Predict house prices for real estate analysis",
-            target_column="price",
-            feature_columns=["bedrooms", "bathrooms", "sqft", "age"],
-            models_to_train=["random_forest"],
-            use_automl=False  # Test with AutoML disabled first
-        )
+        # 3.1 Run holistic analysis
+        analysis_request = {
+            "dataset_id": self.dataset_id,
+            "workspace_name": "E2E Test Workspace Q4 2024",
+            "problem_type": "classification",
+            "user_selection": {
+                "target_variable": "churn",
+                "selected_features": ["age", "income", "spending_score", "membership_years"],
+                "user_expectation": "Predict customer churn to improve retention strategies"
+            }
+        }
         
-        if "error" in response:
-            self.log_test("Endpoint Accepts AutoML Parameter", "FAIL", 
-                         f"Error: {response['error']}", response)
-            return None
-        
-        # Check if response is successful
-        if response.get("status") == "success" and "data" in response:
-            data = response["data"]
-            training_summary = data.get("training_summary", {})
+        try:
+            response = requests.post(
+                f"{self.backend_url}/analysis/holistic",
+                json=analysis_request,
+                timeout=300  # 5 minutes for analysis
+            )
             
-            self.log_test("Endpoint Accepts AutoML Parameter", "PASS", 
-                         f"Endpoint accepts use_automl parameter. Trained {training_summary.get('models_trained', 0)} models")
-            
-            # Store baseline for comparison
-            self.baseline_response = response
-            return response
-        else:
-            self.log_test("Endpoint Accepts AutoML Parameter", "FAIL", 
-                         "Endpoint did not return expected results", response)
-            return None
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check for training metadata
+                training_metadata = result.get("training_metadata")
+                ml_models = result.get("ml_models", [])
+                
+                if training_metadata and ml_models:
+                    self.log_test("Run Analysis", "PASS", 
+                                 f"Analysis completed: {len(ml_models)} models trained")
+                    
+                    # Store model info for later tests
+                    for model in ml_models:
+                        if model.get("model_name"):
+                            # Note: In real implementation, we'd get training metadata IDs from the response
+                            # For now, we'll simulate this
+                            self.training_metadata_ids.append(f"meta_{uuid.uuid4()}")
+                else:
+                    self.log_test("Run Analysis", "FAIL", 
+                                 "Analysis response missing training metadata or models", result)
+                    return False
+            else:
+                self.log_test("Run Analysis", "FAIL", 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Run Analysis", "FAIL", f"Request failed: {str(e)}")
+            return False
+        
+        # 3.2 Check hyperparameter suggestions
+        try:
+            # The analysis response should include hyperparameter_suggestions
+            if "hyperparameter_suggestions" in result:
+                suggestions = result["hyperparameter_suggestions"]
+                if suggestions and isinstance(suggestions, dict):
+                    self.log_test("Check Hyperparameter Suggestions", "PASS", 
+                                 f"Found hyperparameter suggestions for {len(suggestions)} model types")
+                else:
+                    self.log_test("Check Hyperparameter Suggestions", "FAIL", 
+                                 "Hyperparameter suggestions empty or invalid format")
+                    return False
+            else:
+                self.log_test("Check Hyperparameter Suggestions", "FAIL", 
+                             "No hyperparameter_suggestions field in analysis response")
+                return False
+        except Exception as e:
+            self.log_test("Check Hyperparameter Suggestions", "FAIL", f"Error checking suggestions: {str(e)}")
+            return False
+        
+        return True
 
     def test_automl_with_random_forest(self):
         """Test 3: Test AutoML with Random Forest (CRITICAL TEST)"""
