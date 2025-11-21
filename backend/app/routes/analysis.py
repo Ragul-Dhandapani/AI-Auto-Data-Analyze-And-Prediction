@@ -46,6 +46,7 @@ from app.services.ai_insights_service import generate_statistical_insights, gene
 from app.services.chart_intelligence_service import chart_intelligence
 from app.services.variable_intelligence_service import variable_intelligence
 import os
+from app.services.hyperparameter_suggestions_service import get_hyperparameter_suggestions
 import logging
 
 logger = logging.getLogger(__name__)
