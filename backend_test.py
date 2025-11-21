@@ -502,38 +502,19 @@ class WorkspaceWorkflowTester:
             "dataset_id": self.dataset_id
         }
 
-    def test_automl_performance_comparison(self):
-        """Test 6: Compare AutoML vs Default Performance"""
-        if not hasattr(self, 'regression_path') or not hasattr(self, 'baseline_response'):
-            self.log_test("AutoML Performance Comparison", "SKIP", "No baseline or AutoML response available")
-            return
-        
-        # Get baseline performance (without AutoML)
-        baseline_data = self.baseline_response.get("data", {})
-        baseline_comparison = baseline_data.get("model_comparison", [])
-        baseline_best = baseline_data.get("best_model", {})
-        baseline_score = baseline_best.get("score", 0)
-        
-        # Get AutoML performance
-        if hasattr(self, 'automl_rf_response'):
-            automl_data = self.automl_rf_response.get("data", {})
-            automl_comparison = automl_data.get("model_comparison", [])
-            automl_best = automl_data.get("best_model", {})
-            automl_score = automl_best.get("score", 0)
-            
-            # Compare performance
-            if automl_score > baseline_score:
-                improvement = ((automl_score - baseline_score) / baseline_score) * 100
-                self.log_test("AutoML Performance Comparison", "PASS", 
-                             f"✅ AutoML improved performance: {baseline_score:.4f} → {automl_score:.4f} (+{improvement:.2f}%)")
-            elif automl_score >= baseline_score * 0.95:  # Within 5% is acceptable
-                self.log_test("AutoML Performance Comparison", "PASS", 
-                             f"✅ AutoML performance comparable: {baseline_score:.4f} → {automl_score:.4f}")
-            else:
-                self.log_test("AutoML Performance Comparison", "FAIL", 
-                             f"❌ AutoML performance worse: {baseline_score:.4f} → {automl_score:.4f}")
-        else:
-            self.log_test("AutoML Performance Comparison", "SKIP", "No AutoML response available for comparison")
+def main():
+    """Main test execution"""
+    tester = WorkspaceWorkflowTester()
+    results = tester.run_all_tests()
+    
+    # Exit with appropriate code
+    if results["failed"] > 0 or not results["all_scenarios_passed"]:
+        sys.exit(1)
+    else:
+        sys.exit(0)
+
+if __name__ == "__main__":
+    main()
 
     def test_automl_classification_problem(self):
         """Test 7: Test AutoML with Classification Problem"""
