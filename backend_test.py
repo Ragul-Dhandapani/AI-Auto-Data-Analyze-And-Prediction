@@ -515,8 +515,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    def test_automl_classification_problem(self):
         """Test 7: Test AutoML with Classification Problem"""
         if not hasattr(self, 'classification_path'):
             self.log_test("AutoML Classification Problem", "SKIP", "No classification dataset available")
