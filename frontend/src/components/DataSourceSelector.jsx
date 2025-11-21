@@ -428,18 +428,45 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
         </TabsList>
 
         <TabsContent value="file">
-          {/* Workspace Info Banner */}
+          {/* Workspace Selection */}
           <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border-2 border-blue-200">
             <div className="flex items-start gap-3">
               <div className="text-2xl">📁</div>
               <div className="flex-1">
-                <h4 className="font-semibold text-blue-900 mb-1">Organize with Workspaces</h4>
-                <p className="text-sm text-blue-700">
-                  Create a workspace first to organize datasets and track model performance over time (30-day trends, best model recommendations).
+                <h4 className="font-semibold text-blue-900 mb-2">Select or Create Workspace</h4>
+                <p className="text-sm text-blue-700 mb-3">
+                  Organize datasets and track model performance over time (30-day trends, best model recommendations).
                 </p>
-                <p className="text-xs text-blue-600 mt-2">
-                  💡 Tip: Use workspaces like "Sales Q4 2024" or "Customer Churn Analysis" to keep projects organized
-                </p>
+                
+                <div className="flex gap-2 items-center">
+                  <select
+                    value={selectedWorkspace?.id || ""}
+                    onChange={(e) => {
+                      const ws = workspaces.find(w => w.id === e.target.value);
+                      setSelectedWorkspace(ws);
+                    }}
+                    className="flex-1 p-2 border rounded-md"
+                  >
+                    <option value="">No Workspace (Optional)</option>
+                    {workspaces.map(ws => (
+                      <option key={ws.id} value={ws.id}>{ws.name}</option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    onClick={() => setShowWorkspaceDialog(true)}
+                    className="whitespace-nowrap"
+                    size="sm"
+                  >
+                    + New Workspace
+                  </Button>
+                </div>
+                
+                {selectedWorkspace && (
+                  <p className="text-xs text-green-700 mt-2">
+                    ✓ Dataset will be added to: <strong>{selectedWorkspace.name}</strong>
+                  </p>
+                )}
               </div>
             </div>
           </div>
