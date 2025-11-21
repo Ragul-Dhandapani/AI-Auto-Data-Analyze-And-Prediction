@@ -515,65 +515,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-        """Test 7: Test AutoML with Classification Problem"""
-        if not hasattr(self, 'classification_path'):
-            self.log_test("AutoML Classification Problem", "SKIP", "No classification dataset available")
-            return
-        
-        print("🔍 Testing AutoML with classification problem...")
-        
-        data_source = {"type": "file", "path": self.classification_path}
-        response = self.call_intelligent_prediction_api(
-            data_source=data_source,
-            user_prompt="Predict customer churn to improve retention",
-            target_column="churn",
-            feature_columns=["monthly_charges", "total_charges", "tenure_months", "support_calls"],
-            models_to_train=["random_forest", "xgboost"],
-            problem_type="classification",
-            use_automl=True,
-            automl_optimization_level="fast"
-        )
-        
-        if "error" in response:
-            self.log_test("AutoML Classification Problem", "FAIL", 
-                         f"Error: {response['error']}", response)
-            return
-        
-        # Check if response is successful and contains AutoML results for classification
-        if response.get("status") == "success" and "data" in response:
-            data = response["data"]
-            training_summary = data.get("training_summary", {})
-            problem_type = training_summary.get("problem_type")
-            
-            if problem_type == "classification":
-                model_comparison = data.get("model_comparison", [])
-                
-                # Check for AutoML optimization in classification models
-                optimized_models = []
-                for model in model_comparison:
-                    model_str = str(model)
-                    if "automl_optimized" in model_str or "best_params" in model_str:
-                        optimized_models.append(model.get("model_name"))
-                
-                if len(optimized_models) >= 1:
-                    self.log_test("AutoML Classification Problem", "PASS", 
-                                 f"✅ AutoML classification working: {len(optimized_models)} models optimized: {', '.join(optimized_models)}")
-                    
-                    # Store for detailed validation
-                    self.automl_classification_response = response
-                    return response
-                else:
-                    self.log_test("AutoML Classification Problem", "FAIL", 
-                                 f"❌ AutoML optimization not detected for classification models")
-                    return None
-            else:
-                self.log_test("AutoML Classification Problem", "FAIL", 
-                             f"❌ Problem type not detected as classification: {problem_type}")
-                return None
-        else:
-            self.log_test("AutoML Classification Problem", "FAIL", 
-                         "AutoML classification request did not return expected results", response)
-            return None
 
     def test_automl_optimization_levels(self):
         """Test 8: Test Different AutoML Optimization Levels"""
