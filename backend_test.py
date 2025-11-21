@@ -41,64 +41,43 @@ class WorkspaceWorkflowTester:
             print(f"   Response: {response_data}")
         print()
 
-    def create_test_datasets(self):
-        """Create test datasets for regression and classification"""
+    def create_test_csv_data(self):
+        """Create test CSV data for analysis"""
         import random
-        import numpy as np
         
-        # Create regression dataset (predicting house prices)
-        regression_data = []
-        regression_data.append(["bedrooms", "bathrooms", "sqft", "age", "price"])
+        # Create a realistic dataset for ML analysis
+        data = []
+        data.append(["customer_id", "age", "income", "spending_score", "membership_years", "churn"])
         
-        for i in range(300):  # Enough data for ML training
-            bedrooms = random.randint(1, 5)
-            bathrooms = random.randint(1, 4)
-            sqft = random.randint(800, 4000)
-            age = random.randint(0, 50)
+        for i in range(200):  # Enough data for meaningful analysis
+            customer_id = f"CUST_{i+1:04d}"
+            age = random.randint(18, 80)
+            income = random.randint(20000, 150000)
+            spending_score = random.randint(1, 100)
+            membership_years = random.randint(0, 20)
             
-            # Price formula with some noise
-            base_price = (sqft * 150) + (bedrooms * 10000) + (bathrooms * 15000) - (age * 1000)
-            noise = random.uniform(-50000, 50000)
-            price = max(100000, base_price + noise)
-            
-            regression_data.append([bedrooms, bathrooms, sqft, age, int(price)])
-        
-        # Save regression dataset
-        regression_path = "/tmp/regression_test_data.csv"
-        with open(regression_path, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerows(regression_data)
-        
-        # Create classification dataset (predicting customer churn)
-        classification_data = []
-        classification_data.append(["monthly_charges", "total_charges", "tenure_months", "support_calls", "churn"])
-        
-        for i in range(300):
-            monthly_charges = random.uniform(20, 120)
-            tenure_months = random.randint(1, 72)
-            total_charges = monthly_charges * tenure_months + random.uniform(-500, 500)
-            support_calls = random.randint(0, 10)
-            
-            # Churn probability based on features
+            # Churn probability based on features (realistic business logic)
             churn_prob = 0.1
-            if monthly_charges > 80:
+            if age > 65:
                 churn_prob += 0.2
-            if tenure_months < 12:
+            if income < 30000:
                 churn_prob += 0.3
-            if support_calls > 5:
+            if spending_score < 30:
                 churn_prob += 0.4
+            if membership_years < 2:
+                churn_prob += 0.3
             
             churn = 1 if random.random() < churn_prob else 0
             
-            classification_data.append([monthly_charges, total_charges, tenure_months, support_calls, churn])
+            data.append([customer_id, age, income, spending_score, membership_years, churn])
         
-        # Save classification dataset
-        classification_path = "/tmp/classification_test_data.csv"
-        with open(classification_path, 'w', newline='') as f:
+        # Save to CSV
+        csv_path = "/tmp/e2e_test_customer_data.csv"
+        with open(csv_path, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerows(classification_data)
+            writer.writerows(data)
         
-        return regression_path, classification_path
+        return csv_path
 
     def call_intelligent_prediction_api(self, data_source: Dict, user_prompt: str, target_column: str, 
                                        feature_columns: List[str], models_to_train: List[str] = None,
