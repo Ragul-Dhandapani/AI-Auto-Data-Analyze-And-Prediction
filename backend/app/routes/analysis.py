@@ -820,9 +820,18 @@ async def holistic_analysis(request: Dict[str, Any]):
                     if model.get('confidence'):
                         metrics['confidence'] = model.get('confidence')
                     
+                    # Get workspace_id from dataset if available
+                    workspace_id = None
+                    try:
+                        dataset_info = await db_adapter.get_dataset(dataset_id)
+                        workspace_id = dataset_info.get('workspace_id') if dataset_info else None
+                    except:
+                        pass
+                    
                     # Create training metadata record
                     metadata = {
                         'dataset_id': dataset_id,
+                        'workspace_id': workspace_id,  # NEW: Direct workspace link
                         'workspace_name': workspace_name,
                         'problem_type': problem_type,
                         'target_variable': target_var,
@@ -830,7 +839,9 @@ async def holistic_analysis(request: Dict[str, Any]):
                         'model_type': model.get('model_name', 'Unknown'),
                         'model_params': model.get('hyperparameters', {}),
                         'metrics': metrics,
-                        'training_duration': model.get('training_time', 0.0)
+                        'training_duration': model.get('training_time', 0.0),
+                        'automl_enabled': False,  # NEW: Track AutoML usage
+                        'hyperparameters_tuned': []  # NEW: List of tuned params
                     }
                     
                     # Save to database
