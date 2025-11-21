@@ -17,11 +17,13 @@ from datetime import datetime
 # Backend URL from environment
 BACKEND_URL = "https://mlexport-hub.preview.emergentagent.com/api"
 
-class AutoMLTester:
+class WorkspaceWorkflowTester:
     def __init__(self):
         self.backend_url = BACKEND_URL
         self.test_results = []
-        self.test_csv_path = "/tmp/automl_test_data.csv"
+        self.workspace_id = None
+        self.dataset_id = None
+        self.training_metadata_ids = []
         
     def log_test(self, test_name: str, status: str, details: str = "", response_data: Dict = None):
         """Log test results"""
