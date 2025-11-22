@@ -243,10 +243,14 @@ async def upload_file(file: UploadFile = File(...), workspace_id: Optional[str] 
         is_oracle = hasattr(db_adapter, 'pool')  # Oracle adapter has pool attribute
         
         if file_size > 5 * 1024 * 1024 or is_oracle:  # 5MB threshold OR Oracle database
-            # OPTIMIZED: Store original file bytes directly as BLOB (much faster!)
-            # Instead of slow JSON conversion, store the original CSV/Excel file
-            # This preserves the original format and is 10-50x faster
+            # For Oracle: Create dataset entry FIRST (for FK constraint), then store file
+            dataset_doc["storage_type"] = "blob"
+            dataset_doc["gridfs_file_id"] = None  # Will be updated after file storage
             
+            # Save dataset entry to database FIRST
+            await db_adapter.create_dataset(dataset_doc)
+            
+            # NOW store the file (DATASET_BLOBS FK constraint will be satisfied)
             file_id = await db_adapter.store_file(
                 filename,
                 contents,  # Store original file bytes directly
@@ -259,16 +263,18 @@ async def upload_file(file: UploadFile = File(...), workspace_id: Optional[str] 
                     "columns": list(df.columns)
                 }
             )
-            dataset_doc["storage_type"] = "blob"
+            
+            # Update dataset with file reference
+            await db_adapter.update_dataset(dataset_id, {"gridfs_file_id": file_id})
             dataset_doc["gridfs_file_id"] = file_id
         else:
             # Store directly in document (MongoDB only, for small files)
             data_dict = df.to_dict('records')
             dataset_doc["data"] = data_dict
             dataset_doc["storage_type"] = "direct"
-        
-        # Save to database using adapter
-        await db_adapter.create_dataset(dataset_doc)
+            
+            # Save to database using adapter
+            await db_adapter.create_dataset(dataset_doc)
         
         # Remove internal fields and potentially problematic data for response
         response_doc = {
