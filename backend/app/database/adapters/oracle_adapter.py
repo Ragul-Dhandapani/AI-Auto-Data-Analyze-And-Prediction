@@ -237,14 +237,16 @@ class OracleAdapter(DatabaseAdapter):
         dataset_id = dataset.get('id', str(uuid.uuid4()))
         
         query = """
-        INSERT INTO datasets (
-            id, name, source, row_count, column_count,
-            columns_json, dtypes_json, data_preview_json,
-            storage_type, file_id, training_count, created_at
+        INSERT INTO DATASETS (
+            ID, WORKSPACE_ID, NAME, ROW_COUNT, COLUMN_COUNT,
+            COLUMNS, DTYPES, DATA_PREVIEW,
+            STORAGE_TYPE, GRIDFS_FILE_ID, SOURCE_TYPE, FILE_SIZE,
+            TRAINING_COUNT, CREATED_AT, UPDATED_AT
         ) VALUES (
-            :id, :name, :source, :row_count, :column_count,
-            :columns_json, :dtypes_json, :data_preview_json,
-            :storage_type, :file_id, :training_count, :created_at
+            :id, :workspace_id, :name, :row_count, :column_count,
+            :columns, :dtypes, :data_preview,
+            :storage_type, :gridfs_file_id, :source_type, :file_size,
+            :training_count, :created_at, :updated_at
         )
         """
         
@@ -269,17 +271,20 @@ class OracleAdapter(DatabaseAdapter):
         
         params = {
             'id': dataset_id,
+            'workspace_id': dataset.get('workspace_id'),
             'name': dataset.get('name', 'Unnamed'),
-            'source': dataset.get('source', 'upload'),
             'row_count': dataset.get('row_count', 0),
             'column_count': dataset.get('column_count', 0),
-            'columns_json': columns_json,
-            'dtypes_json': dtypes_json,
-            'data_preview_json': data_preview_json,
+            'columns': columns_json,
+            'dtypes': dtypes_json,
+            'data_preview': data_preview_json,
             'storage_type': dataset.get('storage_type', 'direct'),
-            'file_id': dataset.get('gridfs_file_id') or dataset.get('file_id'),
+            'gridfs_file_id': dataset.get('gridfs_file_id'),
+            'source_type': dataset.get('source_type', 'file_upload'),
+            'file_size': dataset.get('file_size', 0),
             'training_count': dataset.get('training_count', 0),
-            'created_at': datetime.now(timezone.utc)
+            'created_at': datetime.now(timezone.utc),
+            'updated_at': datetime.now(timezone.utc)
         }
         
         await self._execute(query, params)
