@@ -205,7 +205,8 @@ class OracleAdapterTester:
             
             if response.status_code == 200:
                 result = response.json()
-                self.test_dataset_id = result.get('dataset_id')
+                dataset = result.get('dataset', {})
+                self.test_dataset_id = dataset.get('id')
                 
                 if self.test_dataset_id:
                     self.log_test_result(
