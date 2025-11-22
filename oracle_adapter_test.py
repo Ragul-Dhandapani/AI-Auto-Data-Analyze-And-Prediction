@@ -488,7 +488,8 @@ class OracleAdapterTester:
             response = requests.get(f"{self.backend_url}/datasource/datasets/{self.test_dataset_id}")
             
             if response.status_code == 200:
-                dataset = response.json()
+                result = response.json()
+                dataset = result.get('dataset', {})
                 
                 # Verify exact match with our test data
                 expected_row_count = 10
