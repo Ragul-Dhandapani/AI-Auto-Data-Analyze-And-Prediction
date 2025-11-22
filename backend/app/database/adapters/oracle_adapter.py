@@ -294,8 +294,7 @@ class OracleAdapter(DatabaseAdapter):
             'columns': columns_json,
             'dtypes': dtypes_json,
             'data_preview': data_preview_json,
-            'storage_type': dataset.get('storage_type', 'direct'),
-            'gridfs_file_id': dataset.get('gridfs_file_id'),
+            'file_data': dataset.get('file_data'),  # Store file directly in DATASETS
             'source_type': dataset.get('source_type', 'file_upload'),
             'file_size': dataset.get('file_size', 0),
             'training_count': dataset.get('training_count', 0),
