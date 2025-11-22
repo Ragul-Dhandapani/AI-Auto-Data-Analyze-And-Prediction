@@ -787,6 +787,44 @@ const DataSourceSelector = ({ onDatasetLoaded }) => {
 
         <TabsContent value="custom-query">
           <div className="space-y-4">
+            {/* Workspace Selection */}
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-start gap-3">
+                <div className="text-2xl">📁</div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-900 mb-2">Select or Create Workspace</h4>
+                  <div className="flex gap-2 items-center">
+                    <select
+                      value={selectedWorkspace?.id || ""}
+                      onChange={(e) => {
+                        const ws = workspaces.find(w => w.id === e.target.value);
+                        setSelectedWorkspace(ws);
+                      }}
+                      className="flex-1 p-2 border rounded-md"
+                    >
+                      <option value="">No Workspace (Optional)</option>
+                      {workspaces.map(ws => (
+                        <option key={ws.id} value={ws.id}>{ws.name}</option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      onClick={() => setShowWorkspaceDialog(true)}
+                      className="whitespace-nowrap"
+                      size="sm"
+                    >
+                      + New Workspace
+                    </Button>
+                  </div>
+                  {selectedWorkspace && (
+                    <p className="text-xs text-green-700 mt-2">
+                      ✓ Dataset will be added to: <strong>{selectedWorkspace.name}</strong>
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <h3 className="font-semibold text-blue-900 mb-2">💡 Custom SQL Query</h3>
               <p className="text-sm text-blue-800">
