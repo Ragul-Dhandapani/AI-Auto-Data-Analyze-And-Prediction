@@ -503,72 +503,57 @@ class OracleAdapter(DatabaseAdapter):
         rows_affected = await self._execute(query, {'id': file_id})
         return rows_affected > 0
     
-    # ==================== Workspace Operations ====================
+    # ==================== Saved States Operations ====================
     
-    async def save_workspace(self, workspace: Dict[str, Any]) -> str:
-        """Save workspace state"""
+    async def save_workspace_state(self, workspace: Dict[str, Any]) -> str:
+        """Save workspace state (analysis snapshots)"""
         workspace_id = workspace.get('id', str(uuid.uuid4()))
         
         query = """
-        INSERT INTO workspace_states (
-            id, dataset_id, state_name, storage_type, file_id,
-            analysis_data_json, chat_history_json,
-            size_bytes, compressed_size, created_at, updated_at
+        INSERT INTO SAVED_STATES (
+            ID, WORKSPACE_NAME, DATASET_ID, CREATED_AT, ANALYSIS_RESULTS
         ) VALUES (
-            :id, :dataset_id, :state_name, :storage_type, :file_id,
-            :analysis_data, :chat_history,
-            :size_bytes, :compressed_size, :created_at, :updated_at
+            :id, :workspace_name, :dataset_id, :created_at, :analysis_results
         )
         """
         
         params = {
             'id': workspace_id,
+            'workspace_name': workspace.get('workspace_name', workspace.get('state_name')),
             'dataset_id': workspace['dataset_id'],
-            'state_name': workspace['state_name'],
-            'storage_type': workspace.get('storage_type', 'direct'),
-            'file_id': workspace.get('gridfs_file_id'),
-            'analysis_data': json.dumps(workspace.get('analysis_data', {})) if workspace.get('storage_type') == 'direct' else None,
-            'chat_history': json.dumps(workspace.get('chat_history', [])) if workspace.get('storage_type') == 'direct' else None,
-            'size_bytes': workspace.get('size_bytes', 0),
-            'compressed_size': workspace.get('compressed_size'),
-            'created_at': datetime.now(timezone.utc),
-            'updated_at': datetime.now(timezone.utc)
+            'analysis_results': json.dumps(workspace.get('analysis_data', workspace.get('analysis_results', {}))),
+            'created_at': datetime.now(timezone.utc)
         }
         
         await self._execute(query, params)
-        logger.info(f"✅ Saved workspace: {workspace_id}")
+        logger.info(f"✅ Saved workspace state: {workspace_id}")
         return workspace_id
     
-    async def get_workspace(self, workspace_id: str) -> Optional[Dict[str, Any]]:
-        """Get workspace by ID"""
+    async def get_workspace_state(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+        """Get workspace state by ID"""
         query = """
-        SELECT id, dataset_id, state_name, storage_type, file_id,
-               analysis_data_json, chat_history_json,
-               size_bytes, compressed_size, created_at, updated_at
-        FROM workspace_states
-        WHERE id = :id
+        SELECT ID, WORKSPACE_NAME, DATASET_ID, CREATED_AT, ANALYSIS_RESULTS
+        FROM SAVED_STATES
+        WHERE ID = :id
         """
         
         result = await self._execute(query, {'id': workspace_id}, fetch_one=True)
-        if result and result.get('file_id'):
-            result['gridfs_file_id'] = result['file_id']
         return result
     
-    async def list_workspaces(self, dataset_id: str) -> List[Dict[str, Any]]:
-        """List workspaces for a dataset"""
+    async def list_workspace_states(self, dataset_id: str) -> List[Dict[str, Any]]:
+        """List workspace states for a dataset"""
         query = """
-        SELECT id, dataset_id, state_name, storage_type,
-               size_bytes, created_at, updated_at
-        FROM workspace_states
-        WHERE dataset_id = :dataset_id
-        ORDER BY created_at DESC
+        SELECT ID, WORKSPACE_NAME, DATASET_ID, CREATED_AT
+        FROM SAVED_STATES
+        WHERE DATASET_ID = :dataset_id
+        ORDER BY CREATED_AT DESC
         """
         
         return await self._execute(query, {'dataset_id': dataset_id}, fetch_all=True)
     
-    async def delete_workspace(self, workspace_id: str) -> bool:
-        """Delete workspace"""
-        query = "DELETE FROM workspace_states WHERE id = :id"
+    async def delete_workspace_state(self, workspace_id: str) -> bool:
+        """Delete workspace state"""
+        query = "DELETE FROM SAVED_STATES WHERE ID = :id"
         rows_affected = await self._execute(query, {'id': workspace_id})
         return rows_affected > 0
     
