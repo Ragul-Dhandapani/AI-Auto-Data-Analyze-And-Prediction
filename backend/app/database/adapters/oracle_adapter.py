@@ -445,24 +445,21 @@ class OracleAdapter(DatabaseAdapter):
         conn = self.pool.acquire()
         try:
             cursor = conn.cursor()
+            # Use DATASET_BLOBS table with correct schema
             query = """
-            INSERT INTO file_storage (
-                id, filename, file_data, metadata_json,
-                file_size, compressed, original_size, created_at
+            INSERT INTO DATASET_BLOBS (
+                ID, DATASET_ID, FILENAME, CONTENT_TYPE, FILE_DATA, CREATED_AT
             ) VALUES (
-                :file_id, :file_name, :file_data, :metadata_json,
-                :file_size, :is_compressed, :orig_size, :created_at
+                :file_id, :dataset_id, :filename, :content_type, :file_data, :created_at
             )
             """
             
             cursor.execute(query, {
                 'file_id': file_id,
-                'file_name': filename,
+                'dataset_id': metadata.get('dataset_id', file_id),
+                'filename': filename,
+                'content_type': metadata.get('content_type', 'application/octet-stream'),
                 'file_data': data,
-                'metadata_json': json.dumps(metadata),
-                'file_size': len(data),
-                'is_compressed': 'Y' if compressed else 'N',
-                'orig_size': metadata.get('original_size', len(data)),
                 'created_at': datetime.now(timezone.utc)
             })
             conn.commit()
