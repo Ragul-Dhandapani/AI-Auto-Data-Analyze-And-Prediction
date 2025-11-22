@@ -210,17 +210,33 @@ class OracleAdapter(DatabaseAdapter):
         columns = [col[0].lower() for col in cursor.description]
         result = dict(zip(columns, row))
         
-        # Parse JSON columns
+        # Read all LOB objects first (must happen in sync context)
+        for key, value in list(result.items()):
+            if isinstance(value, cx_Oracle.LOB):
+                try:
+                    result[key] = value.read()
+                except Exception as e:
+                    logger.warning(f"Failed to read LOB for {key}: {e}")
+                    result[key] = None
+        
+        # Parse JSON columns (both _json suffix and CLOB fields)
+        json_fields = ['columns', 'dtypes', 'data_preview', 'tags', 'feature_variables', 
+                      'metrics', 'model_params', 'hyperparameters_tuned']
+        
         for key in list(result.keys()):
             if key.endswith('_json') and result[key]:
                 try:
-                    if isinstance(result[key], cx_Oracle.LOB):
-                        json_str = result[key].read()
-                    else:
-                        json_str = result[key]
+                    json_str = result[key]
                     result[key.replace('_json', '')] = json.loads(json_str)
                     del result[key]
-                except:
+                except Exception as e:
+                    logger.warning(f"Failed to parse JSON for {key}: {e}")
+                    pass
+            elif key in json_fields and result[key] and isinstance(result[key], str):
+                try:
+                    result[key] = json.loads(result[key])
+                except Exception as e:
+                    logger.warning(f"Failed to parse JSON for {key}: {e}")
                     pass
         
         # Convert timestamps
