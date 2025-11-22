@@ -244,7 +244,8 @@ class OracleAdapterTester:
             response = requests.get(f"{self.backend_url}/datasource/datasets/{self.test_dataset_id}")
             
             if response.status_code == 200:
-                dataset = response.json()
+                result = response.json()
+                dataset = result.get('dataset', {})
                 
                 # Verify required fields
                 required_fields = ['id', 'workspace_id', 'name', 'row_count', 'column_count', 'storage_type']
