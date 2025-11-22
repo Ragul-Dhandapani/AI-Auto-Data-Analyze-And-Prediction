@@ -347,7 +347,8 @@ class OracleAdapterTester:
             response = requests.get(f"{self.backend_url}/datasource/datasets/{self.test_dataset_id}")
             
             if response.status_code == 200:
-                dataset = response.json()
+                result = response.json()
+                dataset = result.get('dataset', {})
                 
                 # Verify WORKSPACE_ID foreign key relationship
                 if dataset.get('workspace_id') == self.test_workspace_id:
