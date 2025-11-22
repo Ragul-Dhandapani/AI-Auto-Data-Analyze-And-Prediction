@@ -11,7 +11,7 @@ import time
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://mlexport-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://oracle-ml-hub.preview.emergentagent.com/api"
 
 class ExpectationPersistenceTester:
     def __init__(self):

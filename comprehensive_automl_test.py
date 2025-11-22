@@ -8,7 +8,7 @@ import json
 import csv
 import time
 
-BACKEND_URL = "https://mlexport-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://oracle-ml-hub.preview.emergentagent.com/api"
 
 def create_regression_data():
     """Create regression dataset"""

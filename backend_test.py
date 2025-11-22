@@ -15,7 +15,7 @@ from typing import Dict, List, Any
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://mlexport-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://oracle-ml-hub.preview.emergentagent.com/api"
 
 class WorkspaceWorkflowTester:
     def __init__(self):

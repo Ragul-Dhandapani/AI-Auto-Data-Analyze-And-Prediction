@@ -11,7 +11,7 @@
 
 **Verification**:
 ```bash
-curl https://mlexport-hub.preview.emergentagent.com/api/config/current-database
+curl https://oracle-ml-hub.preview.emergentagent.com/api/config/current-database
 # Returns: {"current_database":"oracle"}
 ```
 

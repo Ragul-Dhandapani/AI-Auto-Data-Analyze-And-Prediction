@@ -7,7 +7,7 @@ import requests
 import json
 import csv
 
-BACKEND_URL = "https://mlexport-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://oracle-ml-hub.preview.emergentagent.com/api"
 
 # Create minimal test data
 data = [
