@@ -1016,4 +1016,15 @@ class OracleAdapter(DatabaseAdapter):
         await self._execute(query, {'workspace_id': workspace_id})
         logger.info(f"✅ Deleted workspace: {workspace_id}")
         return True
+    
+    # ==================== Backward Compatibility Aliases ====================
+    # Legacy methods for saved states - redirects to new naming convention
+    
+    async def save_workspace(self, workspace: Dict[str, Any]) -> str:
+        """Legacy: Save workspace state (redirects to save_workspace_state)"""
+        return await self.save_workspace_state(workspace)
+    
+    async def list_workspaces(self, dataset_id: str) -> List[Dict[str, Any]]:
+        """Legacy: List workspace states (redirects to list_workspace_states)"""
+        return await self.list_workspace_states(dataset_id)
 
