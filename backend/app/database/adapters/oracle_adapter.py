@@ -318,19 +318,27 @@ class OracleAdapter(DatabaseAdapter):
     async def list_datasets(self, limit: int = 10) -> List[Dict[str, Any]]:
         """List all datasets"""
         query = """
-        SELECT id, name, source, row_count, column_count,
-               columns_json, dtypes_json, data_preview_json,
-               storage_type, file_id, training_count, 
-               created_at, last_trained_at
-        FROM datasets
-        ORDER BY created_at DESC
+        SELECT ID, WORKSPACE_ID, NAME, ROW_COUNT, COLUMN_COUNT,
+               COLUMNS, DTYPES, DATA_PREVIEW,
+               STORAGE_TYPE, GRIDFS_FILE_ID, SOURCE_TYPE, FILE_SIZE,
+               TRAINING_COUNT, CREATED_AT, LAST_TRAINED_AT, UPDATED_AT
+        FROM DATASETS
+        ORDER BY CREATED_AT DESC
         FETCH FIRST :limit ROWS ONLY
         """
         
         results = await self._execute(query, {'limit': limit}, fetch_all=True)
         for result in results:
-            if result.get('file_id'):
-                result['gridfs_file_id'] = result['file_id']
+            # Parse JSON fields
+            for field in ['COLUMNS', 'DTYPES', 'DATA_PREVIEW']:
+                if result.get(field):
+                    try:
+                        result[field.lower()] = json.loads(result[field])
+                    except:
+                        result[field.lower()] = []
+            # Convert uppercase keys to lowercase
+            result_lower = {k.lower(): v for k, v in result.items()}
+            results[results.index(result)] = result_lower
         return results
     
     async def update_dataset(self, dataset_id: str, updates: Dict[str, Any]) -> bool:
