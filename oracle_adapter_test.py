@@ -388,7 +388,8 @@ class OracleAdapterTester:
             response = requests.get(f"{self.backend_url}/datasource/datasets/{self.test_dataset_id}")
             
             if response.status_code == 200:
-                dataset = response.json()
+                result = response.json()
+                dataset = result.get('dataset', {})
                 
                 # Check if dataset has file storage information
                 storage_type = dataset.get('storage_type')
