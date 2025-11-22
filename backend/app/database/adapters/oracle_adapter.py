@@ -256,12 +256,12 @@ class OracleAdapter(DatabaseAdapter):
         INSERT INTO DATASETS (
             ID, WORKSPACE_ID, NAME, ROW_COUNT, COLUMN_COUNT,
             COLUMNS, DTYPES, DATA_PREVIEW,
-            STORAGE_TYPE, GRIDFS_FILE_ID, SOURCE_TYPE, FILE_SIZE,
+            FILE_DATA, FILE_SIZE, SOURCE_TYPE,
             TRAINING_COUNT, CREATED_AT, UPDATED_AT
         ) VALUES (
             :id, :workspace_id, :name, :row_count, :column_count,
             :columns, :dtypes, :data_preview,
-            :storage_type, :gridfs_file_id, :source_type, :file_size,
+            :file_data, :file_size, :source_type,
             :training_count, :created_at, :updated_at
         )
         """
