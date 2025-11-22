@@ -1001,8 +1001,8 @@ class OracleAdapter(DatabaseAdapter):
     
     async def get_workspace_training_history(self, workspace_id: str) -> List[Dict[str, Any]]:
         """Get training history for workspace"""
-        query = "SELECT * FROM TRAINING_METADATA WHERE WORKSPACE_ID = :workspace_id ORDER BY TIMESTAMP DESC"
-        return await self._execute(query, {'workspace_id': workspace_id}, fetch_all=True)
+        query = "SELECT * FROM TRAINING_METADATA WHERE WORKSPACE_NAME = :workspace_name ORDER BY CREATED_AT DESC"
+        return await self._execute(query, {'workspace_name': workspace_id}, fetch_all=True)
     
     async def increment_workspace_dataset_count(self, workspace_id: str) -> bool:
         """Increment dataset count for workspace"""
