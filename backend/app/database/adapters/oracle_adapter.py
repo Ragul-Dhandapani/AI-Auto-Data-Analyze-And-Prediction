@@ -319,16 +319,7 @@ class OracleAdapter(DatabaseAdapter):
         """
         
         result = await self._execute(query, {'id': dataset_id}, fetch_one=True)
-        if result:
-            # Parse JSON fields
-            for field in ['COLUMNS', 'DTYPES', 'DATA_PREVIEW']:
-                if result.get(field):
-                    try:
-                        result[field.lower()] = json.loads(result[field])
-                    except:
-                        result[field.lower()] = []
-            # Convert uppercase keys to lowercase
-            result = {k.lower(): v for k, v in result.items()}
+        # LOB reading and JSON parsing already handled by _row_to_dict
         return result
     
     async def list_datasets(self, limit: int = 10) -> List[Dict[str, Any]]:
