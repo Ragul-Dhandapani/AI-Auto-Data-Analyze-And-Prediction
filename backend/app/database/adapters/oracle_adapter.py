@@ -504,7 +504,7 @@ class OracleAdapter(DatabaseAdapter):
     
     async def delete_file(self, file_id: str) -> bool:
         """Delete file"""
-        query = "DELETE FROM file_storage WHERE id = :id"
+        query = "DELETE FROM DATASET_BLOBS WHERE ID = :id"
         rows_affected = await self._execute(query, {'id': file_id})
         return rows_affected > 0
     
