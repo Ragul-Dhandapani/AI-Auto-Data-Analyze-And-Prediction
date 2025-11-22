@@ -256,12 +256,12 @@ class OracleAdapter(DatabaseAdapter):
         INSERT INTO DATASETS (
             ID, WORKSPACE_ID, NAME, ROW_COUNT, COLUMN_COUNT,
             COLUMNS, DTYPES, DATA_PREVIEW,
-            FILE_DATA, FILE_SIZE, SOURCE_TYPE,
+            FILE_SIZE, SOURCE_TYPE, STORAGE_TYPE, GRIDFS_FILE_ID,
             TRAINING_COUNT, CREATED_AT, UPDATED_AT
         ) VALUES (
             :id, :workspace_id, :name, :row_count, :column_count,
             :columns, :dtypes, :data_preview,
-            :file_data, :file_size, :source_type,
+            :file_size, :source_type, :storage_type, :gridfs_file_id,
             :training_count, :created_at, :updated_at
         )
         """
@@ -294,8 +294,9 @@ class OracleAdapter(DatabaseAdapter):
             'columns': columns_json,
             'dtypes': dtypes_json,
             'data_preview': data_preview_json,
-            'file_data': dataset.get('file_data'),  # Store file directly in DATASETS
             'source_type': dataset.get('source_type', 'file_upload'),
+            'storage_type': dataset.get('storage_type', 'direct'),
+            'gridfs_file_id': dataset.get('gridfs_file_id'),
             'file_size': dataset.get('file_size', 0),
             'training_count': dataset.get('training_count', 0),
             'created_at': datetime.now(timezone.utc),
