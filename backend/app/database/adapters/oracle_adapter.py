@@ -294,17 +294,25 @@ class OracleAdapter(DatabaseAdapter):
     async def get_dataset(self, dataset_id: str) -> Optional[Dict[str, Any]]:
         """Get dataset by ID"""
         query = """
-        SELECT id, name, source, row_count, column_count,
-               columns_json, dtypes_json, data_preview_json,
-               storage_type, file_id, training_count, 
-               created_at, last_trained_at
-        FROM datasets
-        WHERE id = :id
+        SELECT ID, WORKSPACE_ID, NAME, ROW_COUNT, COLUMN_COUNT,
+               COLUMNS, DTYPES, DATA_PREVIEW,
+               STORAGE_TYPE, GRIDFS_FILE_ID, SOURCE_TYPE, FILE_SIZE,
+               TRAINING_COUNT, CREATED_AT, LAST_TRAINED_AT, UPDATED_AT
+        FROM DATASETS
+        WHERE ID = :id
         """
         
         result = await self._execute(query, {'id': dataset_id}, fetch_one=True)
-        if result and result.get('file_id'):
-            result['gridfs_file_id'] = result['file_id']
+        if result:
+            # Parse JSON fields
+            for field in ['COLUMNS', 'DTYPES', 'DATA_PREVIEW']:
+                if result.get(field):
+                    try:
+                        result[field.lower()] = json.loads(result[field])
+                    except:
+                        result[field.lower()] = []
+            # Convert uppercase keys to lowercase
+            result = {k.lower(): v for k, v in result.items()}
         return result
     
     async def list_datasets(self, limit: int = 10) -> List[Dict[str, Any]]:
