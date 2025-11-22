@@ -492,9 +492,7 @@ class OracleAdapter(DatabaseAdapter):
             if isinstance(data, cx_Oracle.LOB):
                 data = data.read()
             
-            if compressed == 'Y':
-                data = gzip.decompress(data)
-            
+            # Data is stored uncompressed in DATASET_BLOBS
             return data
         finally:
             self.pool.release(conn)
