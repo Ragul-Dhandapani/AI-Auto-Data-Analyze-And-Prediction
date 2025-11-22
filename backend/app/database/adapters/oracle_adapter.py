@@ -344,33 +344,8 @@ class OracleAdapter(DatabaseAdapter):
         """
         
         results = await self._execute(query, {'limit': limit}, fetch_all=True)
-        processed_results = []
-        for result in results:
-            # Read LOB fields first
-            for field in ['COLUMNS', 'DTYPES', 'DATA_PREVIEW']:
-                if result.get(field) and isinstance(result[field], cx_Oracle.LOB):
-                    result[field] = result[field].read()
-            
-            # Parse JSON fields
-            for field in ['COLUMNS', 'DTYPES', 'DATA_PREVIEW']:
-                if result.get(field):
-                    try:
-                        if isinstance(result[field], str):
-                            result[field.lower()] = json.loads(result[field])
-                        else:
-                            result[field.lower()] = result[field]
-                    except:
-                        result[field.lower()] = [] if field in ['COLUMNS', 'DATA_PREVIEW'] else {}
-            
-            # Convert uppercase keys to lowercase
-            result_lower = {k.lower(): v for k, v in result.items() if not k.isupper() or k in ['ID', 'WORKSPACE_ID', 'NAME', 'ROW_COUNT', 'COLUMN_COUNT', 'STORAGE_TYPE', 'GRIDFS_FILE_ID', 'SOURCE_TYPE', 'FILE_SIZE', 'TRAINING_COUNT', 'CREATED_AT', 'LAST_TRAINED_AT', 'UPDATED_AT']}
-            # Ensure lowercase
-            final_result = {}
-            for k, v in result_lower.items():
-                final_result[k.lower()] = v
-            processed_results.append(final_result)
-        
-        return processed_results
+        # LOB reading and JSON parsing already handled by _row_to_dict
+        return results
     
     async def update_dataset(self, dataset_id: str, updates: Dict[str, Any]) -> bool:
         """Update dataset"""
