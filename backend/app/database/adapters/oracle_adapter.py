@@ -484,14 +484,14 @@ class OracleAdapter(DatabaseAdapter):
         conn = self.pool.acquire()
         try:
             cursor = conn.cursor()
-            query = "SELECT file_data, compressed FROM file_storage WHERE id = :id"
+            query = "SELECT FILE_DATA FROM DATASET_BLOBS WHERE ID = :id"
             cursor.execute(query, {'id': file_id})
             result = cursor.fetchone()
             
             if not result:
                 raise FileNotFoundError(f"File not found: {file_id}")
             
-            data, compressed = result
+            data = result[0]
             if isinstance(data, cx_Oracle.LOB):
                 data = data.read()
             
