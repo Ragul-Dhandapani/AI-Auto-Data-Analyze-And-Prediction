@@ -432,7 +432,8 @@ class OracleAdapterTester:
             response = requests.get(f"{self.backend_url}/datasource/datasets/{self.test_dataset_id}")
             
             if response.status_code == 200:
-                dataset = response.json()
+                result = response.json()
+                dataset = result.get('dataset', {})
                 
                 # Check data preview (this indicates file was successfully loaded as DataFrame)
                 data_preview = dataset.get('data_preview', [])
