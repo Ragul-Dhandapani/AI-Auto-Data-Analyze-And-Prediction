@@ -980,7 +980,7 @@ class OracleAdapter(DatabaseAdapter):
     async def get_workspaces(self) -> List[Dict[str, Any]]:
         """Get all workspaces"""
         query = "SELECT * FROM WORKSPACES ORDER BY CREATED_AT DESC"
-        results = await self._execute(query, {})
+        results = await self._execute(query, {}, fetch_all=True)
         for result in results:
             if result.get('TAGS'):
                 try:
@@ -993,12 +993,12 @@ class OracleAdapter(DatabaseAdapter):
     async def get_workspace_datasets(self, workspace_id: str) -> List[Dict[str, Any]]:
         """Get all datasets in a workspace"""
         query = "SELECT * FROM DATASETS WHERE WORKSPACE_ID = :workspace_id ORDER BY CREATED_AT DESC"
-        return await self._execute(query, {'workspace_id': workspace_id})
+        return await self._execute(query, {'workspace_id': workspace_id}, fetch_all=True)
     
     async def get_workspace_training_history(self, workspace_id: str) -> List[Dict[str, Any]]:
         """Get training history for workspace"""
         query = "SELECT * FROM TRAINING_METADATA WHERE WORKSPACE_ID = :workspace_id ORDER BY TIMESTAMP DESC"
-        return await self._execute(query, {'workspace_id': workspace_id})
+        return await self._execute(query, {'workspace_id': workspace_id}, fetch_all=True)
     
     async def increment_workspace_dataset_count(self, workspace_id: str) -> bool:
         """Increment dataset count for workspace"""
