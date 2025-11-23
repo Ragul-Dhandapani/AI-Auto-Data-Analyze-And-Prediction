@@ -475,6 +475,7 @@ const DashboardPage = () => {
                 onDatasetLoaded={handleDatasetLoaded}
                 onWorkspaceChange={handleWorkspaceChange}
                 selectedWorkspace={selectedWorkspace}
+                onAutoMLChange={setEnableAutoML}
               />
               
               {/* Filter datasets by workspace if one is selected */}
