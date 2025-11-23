@@ -781,13 +781,13 @@ const DashboardPage = () => {
       {showSaveDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-96 p-6">
-            <h3 className="text-lg font-semibold mb-4">Save Workspace State</h3>
+            <h3 className="text-lg font-semibold mb-4">Save Dataset Analysis</h3>
             
             {isSaving ? (
               <div className="space-y-4">
                 <div className="text-center">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-                  <p className="text-sm text-gray-600 mb-2">Saving workspace...</p>
+                  <p className="text-sm text-gray-600 mb-2">Saving dataset analysis...</p>
                   <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                     <div 
                       className="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-500"
