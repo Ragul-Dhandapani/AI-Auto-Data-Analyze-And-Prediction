@@ -456,7 +456,7 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
                     value={selectedWorkspace?.id || ""}
                     onChange={(e) => {
                       const ws = workspaces.find(w => w.id === e.target.value);
-                      setSelectedWorkspace(ws);
+                      handleWorkspaceSelect(ws);
                     }}
                     className="flex-1 p-2 border rounded-md"
                   >
