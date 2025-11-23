@@ -141,7 +141,7 @@ class WorkspaceManagerTester:
                     save_request = {
                         "dataset_id": self.dataset_id,
                         "workspace_name": self.workspace_name,
-                        "analysis_name": analysis_name,
+                        "state_name": analysis_name,
                         "analysis_data": result,
                         "chat_history": []
                     }
