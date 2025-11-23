@@ -687,9 +687,9 @@ const DashboardPage = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <Button
-                      onClick={() => {
-                        // Load saved states for this dataset
-                        loadSavedStates();
+                      onClick={async () => {
+                        await loadSavedStates();
+                        setShowLoadDialog(true);
                       }}
                       variant="outline"
                       className="border-blue-600 text-blue-600 hover:bg-blue-50"
