@@ -399,6 +399,15 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         console.log('Using selected models:', selectedModels);
       }
       
+      // Add AutoML settings
+      if (enableAutoML !== undefined) {
+        payload.use_automl = enableAutoML;
+        if (enableAutoML) {
+          payload.automl_optimization_level = 'balanced'; // Default to balanced
+          console.log('AutoML enabled with balanced optimization');
+        }
+      }
+      
       const response = await axios.post(`${API}/analysis/holistic`, payload);
 
       const endTime = Date.now();
