@@ -51,6 +51,26 @@ const DashboardPage = () => {
 
   useEffect(() => {
     loadDatasets();
+    
+    // Check if we need to load an analysis from Workspace Manager
+    const loadAnalysisData = localStorage.getItem('loadAnalysisOnMount');
+    if (loadAnalysisData) {
+      try {
+        const { stateId, datasetId, stateName, analysisData } = JSON.parse(loadAnalysisData);
+        console.log('Loading analysis from Workspace Manager:', stateName);
+        
+        // Clear the flag
+        localStorage.removeItem('loadAnalysisOnMount');
+        
+        // Load the analysis after a short delay to ensure datasets are loaded
+        setTimeout(() => {
+          loadWorkspaceStateFromData(stateId, datasetId, analysisData);
+        }, 500);
+      } catch (error) {
+        console.error('Failed to parse loadAnalysisOnMount:', error);
+        localStorage.removeItem('loadAnalysisOnMount');
+      }
+    }
   }, []);
 
   const loadDatasets = async () => {
