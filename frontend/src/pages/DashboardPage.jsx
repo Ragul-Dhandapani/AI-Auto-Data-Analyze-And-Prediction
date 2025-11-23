@@ -516,7 +516,7 @@ const DashboardPage = () => {
                             size="sm"
                             onClick={selectAllDatasets}
                           >
-                            {selectedDatasetIds.size === datasets.length ? "Deselect All" : "Select All"}
+                            {selectedDatasetIds.size === displayDatasets.length ? "Deselect All" : "Select All"}
                           </Button>
                           <Button
                             variant="destructive"
