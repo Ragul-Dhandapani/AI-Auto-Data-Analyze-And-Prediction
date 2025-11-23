@@ -101,6 +101,14 @@ const HomePage = () => {
             <CompactDatabaseToggle />
             
             <Button 
+              onClick={() => navigate('/workspace-manager')}
+              variant="outline"
+              className="px-4 py-2 rounded-full border-2 border-purple-600 text-purple-600 hover:bg-purple-50"
+            >
+              <Database className="w-4 h-4 mr-2" />
+              Workspaces
+            </Button>
+            <Button 
               onClick={() => navigate('/documentation')}
               variant="outline"
               className="px-4 py-2 rounded-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50"
