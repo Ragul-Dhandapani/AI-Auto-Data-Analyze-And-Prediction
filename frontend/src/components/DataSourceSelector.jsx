@@ -25,6 +25,16 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
   const [showWorkspaceDialog, setShowWorkspaceDialog] = useState(false); // Workspace creation dialog
   const [workspaces, setWorkspaces] = useState([]); // Available workspaces
   const [newWorkspaceName, setNewWorkspaceName] = useState(""); // New workspace name
+
+  // Wrapper function to update workspace and notify parent
+  const handleWorkspaceSelect = (workspace) => {
+    setSelectedWorkspace(workspace);
+    if (onWorkspaceChange) {
+      onWorkspaceChange(workspace);
+    }
+  };
+
+
   const [dbConfig, setDbConfig] = useState({
     source_type: "postgresql",
     host: "",
