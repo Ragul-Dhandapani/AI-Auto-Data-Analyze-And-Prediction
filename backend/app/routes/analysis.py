@@ -363,7 +363,7 @@ async def load_dataframe(dataset_id: str) -> pd.DataFrame:
     return df
 
 
-def train_models_with_selection(df, target_column, problem_type, selected_models):
+def train_models_with_selection(df, target_column, problem_type, selected_models, use_automl=False, automl_optimization_level='balanced'):
     """
     Train models using enhanced ML service with model selection
     
@@ -372,6 +372,8 @@ def train_models_with_selection(df, target_column, problem_type, selected_models
         target_column: Name of target column
         problem_type: classification or regression
         selected_models: List of model keys to train
+        use_automl: Enable AutoML hyperparameter optimization
+        automl_optimization_level: AutoML optimization level ('fast', 'balanced', 'thorough')
     
     Returns:
         Dictionary with trained models results
