@@ -331,10 +331,32 @@ const TrainingMetadataPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 animate-spin mx-auto text-blue-600 mb-4" />
-          <p className="text-gray-600">Loading training history...</p>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="mb-6">
+            <div className="h-8 w-96 bg-gray-200 rounded animate-pulse mb-2"></div>
+            <div className="h-4 w-64 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          
+          {/* Content Skeleton */}
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="p-6">
+                <div className="space-y-3">
+                  <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="text-center mt-6">
+            <Loader className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2" />
+            <p className="text-sm text-gray-600">Loading training history... (max 30 seconds)</p>
+            <p className="text-xs text-gray-500 mt-1">If this takes too long, please check your connection or try again</p>
+          </div>
         </div>
       </div>
     );
