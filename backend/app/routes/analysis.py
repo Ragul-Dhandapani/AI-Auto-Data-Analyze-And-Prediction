@@ -1691,7 +1691,7 @@ async def load_analysis_state(state_id: str):
     """Load saved analysis state - OPTIMIZED"""
     try:
         db_adapter = get_db()
-        state = await db_adapter.get_workspace(state_id)
+        state = await db_adapter.get_workspace_state(state_id)
         if not state:
             raise HTTPException(404, "Analysis state not found")
         
