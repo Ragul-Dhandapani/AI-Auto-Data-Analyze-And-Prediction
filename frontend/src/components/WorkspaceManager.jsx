@@ -172,12 +172,24 @@ const WorkspaceManager = () => {
       const response = await axios.get(`${BACKEND_URL}/api/analysis/load-state/${analysis.id}`);
       const stateData = response.data;
       
+      // Parse analysis_results if it's a JSON string
+      let analysisData = stateData.analysis_results || stateData.analysis_data;
+      if (typeof analysisData === 'string') {
+        try {
+          analysisData = JSON.parse(analysisData);
+        } catch (e) {
+          console.error('Failed to parse analysis data:', e);
+          toast.error('Failed to parse analysis data');
+          return;
+        }
+      }
+      
       // Store in localStorage for the dashboard to pick up
       localStorage.setItem('loadAnalysisOnMount', JSON.stringify({
         stateId: analysis.id,
         datasetId: dataset.id,
         stateName: analysis.state_name,
-        analysisData: stateData.analysis_results || stateData.analysis_data
+        analysisData: analysisData
       }));
       
       // Navigate to dashboard
