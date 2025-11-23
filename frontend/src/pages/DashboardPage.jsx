@@ -840,14 +840,14 @@ const DashboardPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-[500px] p-6 max-h-[600px] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Load Saved Workspace</h3>
+              <h3 className="text-lg font-semibold">Load Saved Dataset Analysis</h3>
               <Button variant="ghost" size="sm" onClick={() => setShowLoadDialog(false)}>
                 ×
               </Button>
             </div>
             <div className="space-y-2">
               {savedStates.length === 0 ? (
-                <p className="text-gray-600 text-center py-4">No saved workspace states found</p>
+                <p className="text-gray-600 text-center py-4">No saved dataset states found</p>
               ) : (
                 savedStates.map((state) => (
                   <div
