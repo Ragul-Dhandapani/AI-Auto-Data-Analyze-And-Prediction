@@ -160,14 +160,26 @@ const WorkspaceManager = () => {
         console.log('📝 Parsing JSON string...');
         try {
           analysisData = JSON.parse(analysisData);
-          console.log('✅ Parsed successfully, ml_models count:', analysisData.ml_models?.length || 0);
         } catch (e) {
           console.error('❌ Failed to parse analysis_results:', e);
           analysisData = {};
         }
-      } else {
-        console.log('✅ Already an object, ml_models count:', analysisData.ml_models?.length || 0);
       }
+      
+      // Handle nested structure: analysis_data might have predictive_analysis key
+      let finalData = analysisData;
+      if (analysisData.analysis_data) {
+        console.log('🔄 Found nested analysis_data structure');
+        finalData = analysisData.analysis_data;
+      }
+      
+      // If predictive_analysis exists at root, that's the actual data
+      if (finalData.predictive_analysis) {
+        console.log('📊 Found predictive_analysis section');
+        finalData = finalData.predictive_analysis;
+      }
+      
+      console.log('✅ Final ml_models count:', finalData.ml_models?.length || 0);
       
       // Normalize the structure
       const normalizedDetails = {
