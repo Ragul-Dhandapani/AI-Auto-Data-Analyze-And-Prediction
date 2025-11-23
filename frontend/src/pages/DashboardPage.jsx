@@ -480,7 +480,8 @@ const DashboardPage = () => {
                   ? datasets.filter(d => d.workspace_id === selectedWorkspace.id)
                   : [];
                 
-                const displayDatasets = selectedWorkspace ? filteredDatasets : datasets;
+                // Only show datasets if a workspace is selected
+                const displayDatasets = selectedWorkspace ? filteredDatasets : [];
                 
                 return displayDatasets.length > 0 ? (
                 <Card className="mt-8 p-6 bg-white/90 backdrop-blur-sm">
