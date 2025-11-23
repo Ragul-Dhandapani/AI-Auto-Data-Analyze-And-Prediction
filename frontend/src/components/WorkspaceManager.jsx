@@ -248,16 +248,17 @@ const WorkspaceManager = () => {
   };
 
   const getDataSourceInfo = (dataset) => {
-    if (dataset.storage_type === 'file' || dataset.file_name) {
+    // Check for file upload
+    if (dataset.storage_type === 'file' || dataset.storage_type === 'gridfs' || dataset.name) {
       return {
         type: 'File Upload',
-        detail: dataset.file_name,
+        detail: dataset.name || dataset.file_name || 'Unknown file',
         icon: '📁'
       };
-    } else if (dataset.db_table) {
+    } else if (dataset.db_table || dataset.source_type === 'database') {
       return {
         type: 'Database Table',
-        detail: dataset.db_table,
+        detail: dataset.db_table || dataset.name || 'Unknown table',
         icon: '🗄️'
       };
     } else if (dataset.custom_query) {
@@ -266,6 +267,14 @@ const WorkspaceManager = () => {
         detail: dataset.custom_query.length > 50 ? dataset.custom_query.substring(0, 50) + '...' : dataset.custom_query,
         fullQuery: dataset.custom_query,
         icon: '🔍'
+      };
+    }
+    // Fallback to dataset name if available
+    if (dataset.name) {
+      return {
+        type: 'Dataset',
+        detail: dataset.name,
+        icon: '📊'
       };
     }
     return { type: 'Unknown', detail: 'N/A', icon: '❓' };
