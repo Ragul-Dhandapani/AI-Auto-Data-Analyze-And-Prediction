@@ -22,6 +22,7 @@ const DashboardPage = () => {
   const [currentStep, setCurrentStep] = useState("data-source");
   const [selectedDataset, setSelectedDataset] = useState(null);
   const [datasets, setDatasets] = useState([]);
+  const [selectedWorkspace, setSelectedWorkspace] = useState(null); // Selected workspace for filtering
   const [showRecentDatasets, setShowRecentDatasets] = useState(true);
   const [selectedDatasetIds, setSelectedDatasetIds] = useState(new Set());
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
