@@ -613,6 +613,14 @@ const DashboardPage = () => {
                                 <span>{(dataset.file_size / 1024 / 1024).toFixed(2)} MB</span>
                               </p>
                             )}
+                            {dataset.workspace_name && (
+                              <p className="flex justify-between items-center">
+                                <span>Workspace:</span>
+                                <span className="font-medium text-purple-600 text-xs truncate max-w-[120px]" title={dataset.workspace_name}>
+                                  {dataset.workspace_name}
+                                </span>
+                              </p>
+                            )}
                             {dataset.training_count && dataset.training_count > 0 && (
                               <div className="mt-2 pt-2 border-t border-green-200 bg-green-50 -mx-2 px-2 py-1 rounded">
                                 <p className="text-xs font-semibold text-green-700 flex items-center gap-1">
