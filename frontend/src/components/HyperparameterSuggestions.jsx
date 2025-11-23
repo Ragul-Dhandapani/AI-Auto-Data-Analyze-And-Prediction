@@ -67,6 +67,11 @@ const HyperparameterSuggestions = ({ suggestions, onApply }) => {
               Our AI has analyzed your dataset characteristics and problem type to recommend optimal parameter ranges.
               These suggestions are based on proven best practices and dataset-specific patterns.
             </p>
+            <p className="text-sm text-blue-700 mt-2">
+              <strong>Why different models have different parameter counts:</strong> Simpler models like Linear Regression 
+              have fewer hyperparameters (mainly regularization), while complex models like XGBoost have many parameters 
+              to control tree growth, learning rate, and sampling strategies.
+            </p>
           </div>
         </div>
       </Card>
