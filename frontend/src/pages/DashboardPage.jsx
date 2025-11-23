@@ -806,14 +806,14 @@ const DashboardPage = () => {
                   type="text"
                   value={stateName}
                   onChange={(e) => setStateName(e.target.value)}
-                  placeholder="Enter workspace name (e.g., 'Customer Analysis v1')"
+                  placeholder="Enter save name (e.g., 'Customer Analysis v1')"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   onKeyPress={(e) => e.key === 'Enter' && !isSaving && saveWorkspaceState()}
                   disabled={isSaving}
                 />
                 {stateName.trim() && savedStates.some(s => s.state_name === stateName.trim()) && (
                   <div className="mb-3 p-2 bg-yellow-50 border border-yellow-300 rounded text-sm text-yellow-800">
-                    ⚠️ A workspace with this name already exists. Saving will update the existing workspace.
+                    ⚠️ A saved state with this name already exists. Saving will update the existing state.
                   </div>
                 )}
                 <div className="mb-4"></div>
@@ -825,8 +825,8 @@ const DashboardPage = () => {
                     {isSaving 
                       ? 'Saving...' 
                       : savedStates.some(s => s.state_name === stateName.trim()) 
-                        ? '🔄 Update Workspace' 
-                        : '💾 Save Workspace'}
+                        ? '🔄 Update Dataset' 
+                        : '💾 Save Dataset'}
                   </Button>
                 </div>
               </>
