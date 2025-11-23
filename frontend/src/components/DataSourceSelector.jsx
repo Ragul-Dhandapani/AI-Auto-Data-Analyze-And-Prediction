@@ -850,9 +850,9 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
                         const ws = workspaces.find(w => w.id === e.target.value);
                         handleWorkspaceSelect(ws);
                       }}
-                      className="flex-1 p-2 border rounded-md"
+                      className={`flex-1 p-2 border rounded-md ${!selectedWorkspace ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
                     >
-                      <option value="">No Workspace (Optional)</option>
+                      <option value="">⚠️ Select a workspace (Required)</option>
                       {workspaces.map(ws => (
                         <option key={ws.id} value={ws.id}>{ws.name}</option>
                       ))}
@@ -871,10 +871,28 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
                       ✓ Dataset will be added to: <strong>{selectedWorkspace.name}</strong>
                     </p>
                   )}
+                  {!selectedWorkspace && (
+                    <p className="text-xs text-red-700 mt-2 font-semibold">
+                      ⚠️ Please select a workspace before running custom query
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
+            {!selectedWorkspace ? (
+              <div className="p-12 border-2 border-red-300 bg-red-50 rounded-xl text-center">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h3 className="text-xl font-bold text-red-900 mb-2">Workspace Required</h3>
+                <p className="text-red-700 mb-4">
+                  You must select or create a workspace before running custom queries.
+                </p>
+                <p className="text-sm text-red-600">
+                  Workspaces help organize your datasets and track model performance over time.
+                </p>
+              </div>
+            ) : (
+            <>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <h3 className="font-semibold text-blue-900 mb-2">💡 Custom SQL Query</h3>
               <p className="text-sm text-blue-800">
