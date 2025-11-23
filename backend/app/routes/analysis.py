@@ -1601,11 +1601,14 @@ async def save_analysis_state(request: SaveStateRequest):
             # Extract user expectation from analysis data if present
             user_expectation = None
             detected_domain = None
-            if analysis_data and isinstance(analysis_data, dict):
-                if 'user_expectation' in analysis_data:
-                    user_expectation = analysis_data.get('user_expectation')
-                if 'detected_domain' in analysis_data:
-                    detected_domain = analysis_data.get('detected_domain')
+            if optimized_analysis_data and isinstance(optimized_analysis_data, dict):
+                # Check in predictive_analysis section
+                pred_analysis = optimized_analysis_data.get('predictive_analysis', {})
+                if isinstance(pred_analysis, dict):
+                    if 'user_expectation' in pred_analysis:
+                        user_expectation = pred_analysis.get('user_expectation')
+                    if 'detected_domain' in pred_analysis:
+                        detected_domain = pred_analysis.get('detected_domain')
             
             state_doc = {
                 "id": state_id,
