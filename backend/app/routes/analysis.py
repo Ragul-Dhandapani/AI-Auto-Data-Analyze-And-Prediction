@@ -55,6 +55,31 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 
+def sanitize_json_response(obj):
+    """
+    Recursively sanitize objects for JSON serialization by converting NaN, inf, and -inf to None
+    This prevents "Out of range float values are not JSON compliant" errors
+    """
+    if isinstance(obj, dict):
+        return {k: sanitize_json_response(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_json_response(item) for item in obj]
+    elif isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, np.floating):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
+        return float(obj)
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.ndarray):
+        return sanitize_json_response(obj.tolist())
+    else:
+        return obj
+
+
 @router.post("/run")
 async def run_analysis(request: Dict[str, Any]):
     """Run specific analysis type (profile, clean, or visualize) - for DataProfiler and VisualizationPanel components"""
