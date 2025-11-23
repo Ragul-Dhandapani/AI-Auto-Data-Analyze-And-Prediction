@@ -34,6 +34,14 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
     }
   };
 
+  // Notify parent when AutoML setting changes
+  const handleAutoMLToggle = (checked) => {
+    setEnableAutoML(checked);
+    if (onAutoMLChange) {
+      onAutoMLChange(checked);
+    }
+  };
+
 
   const [dbConfig, setDbConfig] = useState({
     source_type: "postgresql",
