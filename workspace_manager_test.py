@@ -462,6 +462,14 @@ class WorkspaceManagerTester:
                         "insights": analysis_data.get("insights")  # This might be string or array
                     }
                     
+                    # Also check correlations but be more lenient since it can be dict or array
+                    correlations_data = analysis_data.get("correlations")
+                    if correlations_data is not None:
+                        if isinstance(correlations_data, (list, dict)):
+                            critical_arrays["correlations"] = correlations_data
+                        else:
+                            critical_arrays["correlations"] = correlations_data
+                    
                     array_validation_results = []
                     for array_name, array_data in critical_arrays.items():
                         if array_data is not None:
