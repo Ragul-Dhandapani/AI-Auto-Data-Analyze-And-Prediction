@@ -655,37 +655,54 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     setShowExportModal(true);
   };
   
-  // Export selected models as Python scripts (client-side generation)
-  const exportModelCode = () => {
+  // Export selected models as complete package (ZIP with scripts, requirements, README)
+  const exportModelCode = async () => {
     if (modelsForExport.length === 0) {
       toast.error("Please select at least one model to export");
       return;
     }
     
     try {
-      toast.info(`Generating ${modelsForExport.length} model script(s)...`);
+      toast.info(`Generating complete export package...`);
       
-      // Generate Python scripts for each selected model
+      // Use JSZip to create a proper ZIP file
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      
+      // Generate files for each model
       modelsForExport.forEach(modelName => {
         const model = analysisResults.ml_models.find(m => m.model_name === modelName);
         if (!model) return;
         
         // Generate Python script
         const pythonScript = generateModelPythonScript(model, analysisResults);
-        
-        // Create and download file
-        const blob = new Blob([pythonScript], { type: 'text/x-python' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${modelName.replace(/\s+/g, '_')}_model.py`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
+        zip.file(`${modelName.replace(/\s+/g, '_')}_model.py`, pythonScript);
       });
       
-      toast.success(`✅ Exported ${modelsForExport.length} model script(s) successfully!`);
+      // Generate requirements.txt
+      const requirements = generateRequirementsTxt(modelsForExport);
+      zip.file('requirements.txt', requirements);
+      
+      // Generate comprehensive README
+      const readme = generateReadme(modelsForExport, analysisResults);
+      zip.file('README.md', readme);
+      
+      // Generate config file with analysis details
+      const config = generateConfigFile(analysisResults);
+      zip.file('config.json', config);
+      
+      // Generate the ZIP and download
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `promise_ai_export_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`✅ Exported ${modelsForExport.length} model(s) with documentation!`);
       console.log(`✅ Exported models: ${modelsForExport.join(', ')}`);
       setShowExportModal(false);
     } catch (error) {
