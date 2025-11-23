@@ -93,8 +93,18 @@ const WorkspaceManager = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Workspace Manager</h1>
-          <p className="text-gray-600 mt-1">Organize your datasets and track ML training projects</p>
+          <div className="flex items-center gap-4 mb-2">
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Back Home
+            </Button>
+            <h1 className="text-3xl font-bold">Workspace Manager</h1>
+          </div>
+          <p className="text-gray-600 mt-1 ml-32">Organize your datasets and track ML training projects</p>
         </div>
         <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
           <DialogTrigger asChild>
