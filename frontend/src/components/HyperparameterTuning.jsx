@@ -321,6 +321,50 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
                     placeholder="e.g., 0.01,0.1,0.2"
                   />
                 </div>
+                <div>
+                  <label className="text-sm text-gray-600">subsample</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded mt-1"
+                    value={customParams.subsample}
+                    onChange={(e) => setCustomParams({...customParams, subsample: e.target.value})}
+                    placeholder="e.g., 0.5,0.8,1.0"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Fraction of samples used for training each tree</p>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600">colsample_bytree</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded mt-1"
+                    value={customParams.colsample_bytree}
+                    onChange={(e) => setCustomParams({...customParams, colsample_bytree: e.target.value})}
+                    placeholder="e.g., 0.5,0.8,1.0"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Subsample ratio of columns for each tree</p>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600">min_samples_split</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded mt-1"
+                    value={customParams.min_samples_split}
+                    onChange={(e) => setCustomParams({...customParams, min_samples_split: e.target.value})}
+                    placeholder="e.g., 2,5,10"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minimum samples required to split a node</p>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600">min_samples_leaf</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded mt-1"
+                    value={customParams.min_samples_leaf}
+                    onChange={(e) => setCustomParams({...customParams, min_samples_leaf: e.target.value})}
+                    placeholder="e.g., 1,2,4"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minimum samples required at each leaf node</p>
+                </div>
               </div>
             </div>
 
