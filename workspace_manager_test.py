@@ -479,6 +479,12 @@ class WorkspaceManagerTester:
                                     array_validation_results.append(f"{array_name}: OK ({type(array_data).__name__})")
                                 else:
                                     array_validation_results.append(f"{array_name}: ISSUE ({type(array_data).__name__})")
+                            elif array_name == "correlations":
+                                # Correlations can be dict or array
+                                if isinstance(array_data, (list, dict)):
+                                    array_validation_results.append(f"{array_name}: OK ({type(array_data).__name__})")
+                                else:
+                                    array_validation_results.append(f"{array_name}: ISSUE ({type(array_data).__name__})")
                             else:
                                 # Other fields should be arrays
                                 if isinstance(array_data, list):
