@@ -664,6 +664,51 @@ const DashboardPage = () => {
             </div>
           ) : (
             <div>
+              {/* Dataset Header with Save/Load Actions */}
+              <Card className="p-4 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">{selectedDataset.name}</h3>
+                      <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
+                        {selectedDataset.workspace_name && (
+                          <span className="flex items-center gap-1">
+                            <Database className="w-4 h-4 text-purple-600" />
+                            <span className="font-medium text-purple-700">{selectedDataset.workspace_name}</span>
+                          </span>
+                        )}
+                        <span>•</span>
+                        <span>{selectedDataset.row_count?.toLocaleString()} rows</span>
+                        <span>•</span>
+                        <span>{selectedDataset.column_count} columns</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      onClick={() => {
+                        // Load saved states for this dataset
+                        loadSavedStates();
+                      }}
+                      variant="outline"
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                    >
+                      <FolderOpen className="w-4 h-4 mr-2" />
+                      Load Dataset
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowSaveDialog(true);
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Dataset
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
               <Card className="p-6 bg-white/90 backdrop-blur-sm">
                 <Tabs defaultValue="profile" className="w-full">
                   <TabsList className="grid w-full grid-cols-3 mb-6">
