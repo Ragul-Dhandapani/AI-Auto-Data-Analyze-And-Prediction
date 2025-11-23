@@ -736,6 +736,7 @@ const DashboardPage = () => {
                       dataset={selectedDataset}
                       analysisCache={predictiveAnalysisCache[selectedDataset.id]}
                       variableSelection={selectedDataset?.variableSelection || variableSelection}
+                      enableAutoML={enableAutoML}
                       onAnalysisUpdate={(data) => {
                         setPredictiveAnalysisCache(prev => ({
                           ...prev,
