@@ -1359,6 +1359,8 @@ async def holistic_analysis(request: Dict[str, Any]):
             except Exception as e:
                 logger.error(f"Failed to generate forecast: {str(e)}")
         
+        # Sanitize response to ensure JSON serialization compatibility
+        response = sanitize_json_response(response)
         return response
         
     except HTTPException:
