@@ -683,7 +683,7 @@ const WorkspaceManager = () => {
                                       {analyses.slice(0, 3).map((analysis) => {
                                         const details = analysisDetails[analysis.id];
                                         const analysisData = details?.analysis_data || {};
-                                        const models = analysisData.ml_models || [];
+                                        const models = Array.isArray(analysisData.ml_models) ? analysisData.ml_models : [];
                                         const bestModel = getBestModel(models);
                                         const bestScore = bestModel ? (bestModel.metrics?.r2_score || bestModel.metrics?.accuracy || 0) : 0;
                                         
