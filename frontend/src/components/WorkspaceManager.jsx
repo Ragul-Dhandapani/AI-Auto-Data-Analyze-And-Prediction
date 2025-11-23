@@ -725,11 +725,11 @@ const WorkspaceManager = () => {
                                     {analyses.map((analysis) => {
                                       const details = analysisDetails[analysis.id];
                                       const analysisData = details?.analysis_data || {};
-                                      const models = analysisData.ml_models || [];
+                                      const models = Array.isArray(analysisData.ml_models) ? analysisData.ml_models : [];
                                       const bestModel = getBestModel(models);
-                                      const insights = analysisData.insights || [];
-                                      const forecasts = analysisData.predictions || [];
-                                      const hyperparams = analysisData.hyperparameter_suggestions || [];
+                                      const insights = Array.isArray(analysisData.insights) ? analysisData.insights : [];
+                                      const forecasts = Array.isArray(analysisData.predictions) ? analysisData.predictions : [];
+                                      const hyperparams = Array.isArray(analysisData.hyperparameter_suggestions) ? analysisData.hyperparameter_suggestions : [];
                                       const autoMLEnabled = analysisData.automl_enabled || false;
                                       
                                       return (
