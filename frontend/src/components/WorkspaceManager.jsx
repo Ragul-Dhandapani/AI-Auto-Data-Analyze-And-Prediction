@@ -5,8 +5,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Loader2, Plus, Trash2, FolderOpen, TrendingUp, Database, Activity, ArrowLeft, Home } from 'lucide-react';
+import { Loader2, Plus, Trash2, FolderOpen, TrendingUp, Database, Activity, Home, ChevronDown, ChevronRight, FileText, BarChart3, Eye } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -18,8 +19,12 @@ const WorkspaceManager = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [newWorkspace, setNewWorkspace] = useState({ name: '', description: '', tags: '' });
   const [creating, setCreating] = useState(false);
-  const [holisticScores, setHolisticScores] = useState({}); // Store holistic scores per workspace
-  const [loadingScores, setLoadingScores] = useState({}); // Track loading state per workspace
+  const [holisticScores, setHolisticScores] = useState({});
+  const [loadingScores, setLoadingScores] = useState({});
+  const [expandedWorkspaces, setExpandedWorkspaces] = useState({});
+  const [workspaceDatasets, setWorkspaceDatasets] = useState({});
+  const [savedAnalyses, setSavedAnalyses] = useState({});
+  const [loadingDatasets, setLoadingDatasets] = useState({});
 
   useEffect(() => {
     loadWorkspaces();
@@ -32,7 +37,6 @@ const WorkspaceManager = () => {
       const workspaceList = response.data.workspaces || [];
       setWorkspaces(workspaceList);
       
-      // Load holistic scores for each workspace
       await loadHolisticScores(workspaceList);
     } catch (error) {
       console.error('Failed to load workspaces:', error);
@@ -46,7 +50,6 @@ const WorkspaceManager = () => {
     const scores = {};
     const loadingStates = {};
     
-    // Load scores in parallel for better performance
     await Promise.all(
       workspaceList.map(async (workspace) => {
         try {
@@ -55,7 +58,6 @@ const WorkspaceManager = () => {
           scores[workspace.id] = response.data;
         } catch (error) {
           console.error(`Failed to load holistic score for workspace ${workspace.id}:`, error);
-          // Set default score if loading fails
           scores[workspace.id] = {
             score: 0,
             grade: 'N/A',
@@ -69,6 +71,65 @@ const WorkspaceManager = () => {
     
     setHolisticScores(scores);
     setLoadingScores(loadingStates);
+  };
+
+  const toggleWorkspace = async (workspaceId) => {
+    const isExpanded = expandedWorkspaces[workspaceId];
+    
+    if (!isExpanded) {
+      await loadWorkspaceDatasets(workspaceId);
+    }
+    
+    setExpandedWorkspaces(prev => ({
+      ...prev,
+      [workspaceId]: !isExpanded
+    }));
+  };
+
+  const loadWorkspaceDatasets = async (workspaceId) => {
+    try {
+      setLoadingDatasets(prev => ({ ...prev, [workspaceId]: true }));
+      
+      const response = await axios.get(`${BACKEND_URL}/api/datasource/datasets`);
+      const allDatasets = response.data.datasets || [];
+      
+      const workspaceDatasetsList = allDatasets.filter(d => d.workspace_id === workspaceId);
+      
+      setWorkspaceDatasets(prev => ({
+        ...prev,
+        [workspaceId]: workspaceDatasetsList
+      }));
+      
+      for (const dataset of workspaceDatasetsList) {
+        await loadDatasetAnalyses(dataset.id);
+      }
+    } catch (error) {
+      console.error('Failed to load datasets:', error);
+      toast.error('Failed to load datasets for workspace');
+    } finally {
+      setLoadingDatasets(prev => ({ ...prev, [workspaceId]: false }));
+    }
+  };
+
+  const loadDatasetAnalyses = async (datasetId) => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/analysis/saved-states/${datasetId}`);
+      setSavedAnalyses(prev => ({
+        ...prev,
+        [datasetId]: response.data.states || []
+      }));
+    } catch (error) {
+      console.error(`Failed to load analyses for dataset ${datasetId}:`, error);
+    }
+  };
+
+  const viewAnalysis = (analysis, dataset) => {
+    navigate('/', {
+      state: {
+        loadStateId: analysis.id,
+        datasetId: dataset.id
+      }
+    });
   };
 
   const createWorkspace = async () => {
@@ -125,13 +186,10 @@ const WorkspaceManager = () => {
     return 'text-gray-600 bg-gray-50 border-gray-200';
   };
 
-  const getScoreGrade = (score) => {
-    if (score >= 90) return 'A+';
-    if (score >= 80) return 'A';
-    if (score >= 70) return 'B';
-    if (score >= 60) return 'C';
-    if (score > 0) return 'D';
-    return 'N/A';
+  const getBestModelScore = (models) => {
+    if (!models || models.length === 0) return 0;
+    const scores = models.map(m => m.metrics?.r2_score || m.metrics?.accuracy || 0);
+    return Math.max(...scores);
   };
 
   return (
@@ -150,7 +208,7 @@ const WorkspaceManager = () => {
             </Button>
             <h1 className="text-3xl font-bold">Workspace Manager</h1>
           </div>
-          <p className="text-gray-600 mt-1 ml-32">Organize your datasets and track ML training projects</p>
+          <p className="text-gray-600 mt-1 ml-32">Manage workspaces, datasets, and saved analyses</p>
         </div>
         <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
           <DialogTrigger asChild>
@@ -211,7 +269,7 @@ const WorkspaceManager = () => {
         />
       </div>
 
-      {/* Workspaces Grid */}
+      {/* Workspaces List */}
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -233,110 +291,164 @@ const WorkspaceManager = () => {
           )}
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
           {filteredWorkspaces.map((workspace) => {
             const scoreData = holisticScores[workspace.id] || {};
             const score = scoreData.score || 0;
-            const grade = scoreData.grade || 'N/A';
-            const isLoadingScore = loadingScores[workspace.id];
+            const isExpanded = expandedWorkspaces[workspace.id];
+            const datasets = workspaceDatasets[workspace.id] || [];
+            const isLoadingDatasets = loadingDatasets[workspace.id];
             
             return (
-              <Card key={workspace.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">{workspace.name}</h3>
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {workspace.description || 'No description'}
-                    </p>
+              <Card key={workspace.id} className="overflow-hidden">
+                {/* Workspace Header */}
+                <div className="p-6 bg-gray-50 border-b">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleWorkspace(workspace.id)}
+                          className="p-0 h-auto hover:bg-transparent"
+                        >
+                          {isExpanded ? 
+                            <ChevronDown className="w-5 h-5 text-gray-600" /> : 
+                            <ChevronRight className="w-5 h-5 text-gray-600" />
+                          }
+                        </Button>
+                        <h3 className="text-xl font-semibold">{workspace.name}</h3>
+                      </div>
+                      <p className="text-sm text-gray-600 ml-8">
+                        {workspace.description || 'No description'}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteWorkspace(workspace.id, workspace.name)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteWorkspace(workspace.id, workspace.name)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-blue-600" />
-                    <div>
-                      <div className="text-2xl font-bold">{workspace.dataset_count || 0}</div>
-                      <div className="text-xs text-gray-600">Datasets</div>
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-4 mt-4 ml-8">
+                    <div className="flex items-center gap-2">
+                      <Database className="w-4 h-4 text-blue-600" />
+                      <div>
+                        <div className="text-xl font-bold">{workspace.dataset_count || 0}</div>
+                        <div className="text-xs text-gray-600">Datasets</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-green-600" />
+                      <div>
+                        <div className="text-xl font-bold">{workspace.training_count || 0}</div>
+                        <div className="text-xs text-gray-600">Trainings</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-purple-600" />
+                      <div>
+                        <div className={`text-xl font-bold px-2 py-1 rounded ${getScoreColor(score)}`}>
+                          {score > 0 ? score.toFixed(1) : 'N/A'}
+                        </div>
+                        <div className="text-xs text-gray-600">Holistic Score</div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-green-600" />
-                    <div>
-                      <div className="text-2xl font-bold">{workspace.training_count || 0}</div>
-                      <div className="text-xs text-gray-600">Trainings</div>
-                    </div>
-                  </div>
                 </div>
 
-                {/* Tags */}
-                {workspace.tags && workspace.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {workspace.tags.map((tag, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Holistic Score */}
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4" />
-                      Holistic Score
-                    </span>
-                    {isLoadingScore ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                {/* Expanded Content - Datasets and Analyses */}
+                {isExpanded && (
+                  <div className="p-6 bg-white">
+                    {isLoadingDatasets ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                        <span className="ml-2 text-gray-600">Loading datasets...</span>
+                      </div>
+                    ) : datasets.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Database className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                        <p>No datasets in this workspace yet</p>
+                        <p className="text-sm mt-1">Upload a dataset from the main dashboard</p>
+                      </div>
                     ) : (
-                      <div className={`px-3 py-1 rounded-full font-bold text-sm border ${getScoreColor(score)}`}>
-                        {score > 0 ? `${score.toFixed(1)} (${grade})` : 'No Data'}
+                      <div className="space-y-4">
+                        {datasets.map((dataset) => {
+                          const analyses = savedAnalyses[dataset.id] || [];
+                          
+                          return (
+                            <div key={dataset.id} className="border rounded-lg p-4 bg-gray-50">
+                              <div className="flex items-center gap-3 mb-3">
+                                <FileText className="w-5 h-5 text-blue-600" />
+                                <div className="flex-1">
+                                  <h4 className="font-semibold">{dataset.file_name}</h4>
+                                  <p className="text-xs text-gray-500">
+                                    Uploaded: {new Date(dataset.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Saved Analyses for this dataset */}
+                              {analyses.length > 0 ? (
+                                <div className="space-y-2 mt-3 pl-8">
+                                  <p className="text-sm font-medium text-gray-700 mb-2">
+                                    📊 Saved Analyses ({analyses.length}):
+                                  </p>
+                                  {analyses.map((analysis) => {
+                                    const analysisData = analysis.analysis_data || {};
+                                    const models = analysisData.ml_models || [];
+                                    const bestScore = getBestModelScore(models);
+                                    
+                                    return (
+                                      <div
+                                        key={analysis.id}
+                                        className="bg-white border rounded p-3 hover:shadow-md transition-shadow"
+                                      >
+                                        <div className="flex justify-between items-start">
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                              <BarChart3 className="w-4 h-4 text-purple-600" />
+                                              <span className="font-semibold text-sm">{analysis.state_name || analysis.workspace_name || 'Unnamed'}</span>
+                                            </div>
+                                            
+                                            {models.length > 0 && (
+                                              <div className="space-y-1 text-xs text-gray-600">
+                                                <p>🤖 Models: {models.map(m => m.model_name).join(', ')}</p>
+                                                <p>🎯 Best Score: {bestScore > 0 ? bestScore.toFixed(4) : 'N/A'}</p>
+                                                <p>📅 Saved: {new Date(analysis.created_at).toLocaleString()}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                          
+                                          <Button
+                                            size="sm"
+                                            onClick={() => viewAnalysis(analysis, dataset)}
+                                            className="bg-blue-600 hover:bg-blue-700"
+                                          >
+                                            <Eye className="w-4 h-4 mr-1" />
+                                            View
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <div className="text-center py-4 text-gray-400 text-sm pl-8">
+                                  No saved analyses for this dataset
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
-                  
-                  {/* Score Details */}
-                  {scoreData.details && score > 0 && (
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <div className="flex justify-between">
-                        <span>Avg Accuracy:</span>
-                        <span className="font-medium">{(scoreData.details.avg_accuracy * 100).toFixed(2)}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Training Runs:</span>
-                        <span className="font-medium">{scoreData.details.training_count}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Trend:</span>
-                        <span className={`font-medium capitalize ${
-                          scoreData.details.trend === 'improving' ? 'text-green-600' : 
-                          scoreData.details.trend === 'declining' ? 'text-red-600' : 
-                          'text-gray-600'
-                        }`}>
-                          {scoreData.details.trend === 'improving' ? '↗' : 
-                           scoreData.details.trend === 'declining' ? '↘' : '→'} {scoreData.details.trend}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="mt-4">
-                  <Button variant="outline" className="w-full" onClick={() => window.location.href = `/workspace/${workspace.id}`}>
-                    <FolderOpen className="w-4 h-4 mr-2" />
-                    Open Workspace
-                  </Button>
-                </div>
+                )}
               </Card>
             );
           })}
