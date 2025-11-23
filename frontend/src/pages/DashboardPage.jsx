@@ -480,12 +480,21 @@ const DashboardPage = () => {
                   ? datasets.filter(d => d.workspace_id === selectedWorkspace.id)
                   : [];
                 
-                return (filteredDatasets.length > 0 || (!selectedWorkspace && datasets.length > 0)) ? (
+                const displayDatasets = selectedWorkspace ? filteredDatasets : datasets;
+                
+                return displayDatasets.length > 0 ? (
                 <Card className="mt-8 p-6 bg-white/90 backdrop-blur-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                      <h2 className="text-xl font-semibold">Recent Datasets ({datasets.length})</h2>
-                      {datasets.length > 0 && (
+                      <h2 className="text-xl font-semibold">
+                        Recent Datasets ({displayDatasets.length})
+                        {selectedWorkspace && (
+                          <span className="ml-2 text-sm font-normal text-blue-600">
+                            in "{selectedWorkspace.name}"
+                          </span>
+                        )}
+                      </h2>
+                      {displayDatasets.length > 0 && (
                         <Button
                           variant={isMultiSelectMode ? "default" : "outline"}
                           size="sm"
