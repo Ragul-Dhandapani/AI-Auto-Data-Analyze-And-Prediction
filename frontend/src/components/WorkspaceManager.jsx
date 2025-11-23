@@ -18,6 +18,8 @@ const WorkspaceManager = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [newWorkspace, setNewWorkspace] = useState({ name: '', description: '', tags: '' });
   const [creating, setCreating] = useState(false);
+  const [holisticScores, setHolisticScores] = useState({}); // Store holistic scores per workspace
+  const [loadingScores, setLoadingScores] = useState({}); // Track loading state per workspace
 
   useEffect(() => {
     loadWorkspaces();
@@ -27,13 +29,46 @@ const WorkspaceManager = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${BACKEND_URL}/api/workspace/list`);
-      setWorkspaces(response.data.workspaces || []);
+      const workspaceList = response.data.workspaces || [];
+      setWorkspaces(workspaceList);
+      
+      // Load holistic scores for each workspace
+      await loadHolisticScores(workspaceList);
     } catch (error) {
       console.error('Failed to load workspaces:', error);
       toast.error('Failed to load workspaces');
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadHolisticScores = async (workspaceList) => {
+    const scores = {};
+    const loadingStates = {};
+    
+    // Load scores in parallel for better performance
+    await Promise.all(
+      workspaceList.map(async (workspace) => {
+        try {
+          loadingStates[workspace.id] = true;
+          const response = await axios.get(`${BACKEND_URL}/api/workspace/${workspace.id}/holistic-score`);
+          scores[workspace.id] = response.data;
+        } catch (error) {
+          console.error(`Failed to load holistic score for workspace ${workspace.id}:`, error);
+          // Set default score if loading fails
+          scores[workspace.id] = {
+            score: 0,
+            grade: 'N/A',
+            message: 'No data available'
+          };
+        } finally {
+          loadingStates[workspace.id] = false;
+        }
+      })
+    );
+    
+    setHolisticScores(scores);
+    setLoadingScores(loadingStates);
   };
 
   const createWorkspace = async () => {
@@ -83,9 +118,20 @@ const WorkspaceManager = () => {
   );
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600 bg-green-50';
-    if (score >= 50) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
+    if (score >= 80) return 'text-green-600 bg-green-50 border-green-200';
+    if (score >= 60) return 'text-blue-600 bg-blue-50 border-blue-200';
+    if (score >= 40) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+    if (score > 0) return 'text-orange-600 bg-orange-50 border-orange-200';
+    return 'text-gray-600 bg-gray-50 border-gray-200';
+  };
+
+  const getScoreGrade = (score) => {
+    if (score >= 90) return 'A+';
+    if (score >= 80) return 'A';
+    if (score >= 70) return 'B';
+    if (score >= 60) return 'C';
+    if (score > 0) return 'D';
+    return 'N/A';
   };
 
   return (
@@ -188,73 +234,112 @@ const WorkspaceManager = () => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredWorkspaces.map((workspace) => (
-            <Card key={workspace.id} className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-1">{workspace.name}</h3>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {workspace.description || 'No description'}
-                  </p>
+          {filteredWorkspaces.map((workspace) => {
+            const scoreData = holisticScores[workspace.id] || {};
+            const score = scoreData.score || 0;
+            const grade = scoreData.grade || 'N/A';
+            const isLoadingScore = loadingScores[workspace.id];
+            
+            return (
+              <Card key={workspace.id} className="p-6 hover:shadow-lg transition-shadow">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-1">{workspace.name}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {workspace.description || 'No description'}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteWorkspace(workspace.id, workspace.name)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteWorkspace(workspace.id, workspace.name)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Database className="w-4 h-4 text-blue-600" />
-                  <div>
-                    <div className="text-2xl font-bold">{workspace.dataset_count || 0}</div>
-                    <div className="text-xs text-gray-600">Datasets</div>
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-blue-600" />
+                    <div>
+                      <div className="text-2xl font-bold">{workspace.dataset_count || 0}</div>
+                      <div className="text-xs text-gray-600">Datasets</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-green-600" />
+                    <div>
+                      <div className="text-2xl font-bold">{workspace.training_count || 0}</div>
+                      <div className="text-xs text-gray-600">Trainings</div>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-green-600" />
-                  <div>
-                    <div className="text-2xl font-bold">{workspace.training_count || 0}</div>
-                    <div className="text-xs text-gray-600">Trainings</div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Tags */}
-              {workspace.tags && workspace.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {workspace.tags.map((tag, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-                      {tag}
+                {/* Tags */}
+                {workspace.tags && workspace.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {workspace.tags.map((tag, idx) => (
+                      <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Holistic Score */}
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                      <TrendingUp className="w-4 h-4" />
+                      Holistic Score
                     </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Holistic Score (Placeholder) */}
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Holistic Score</span>
-                  <div className={`px-3 py-1 rounded-full font-semibold text-sm ${getScoreColor(0)}`}>
-                    Coming Soon
+                    {isLoadingScore ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    ) : (
+                      <div className={`px-3 py-1 rounded-full font-bold text-sm border ${getScoreColor(score)}`}>
+                        {score > 0 ? `${score.toFixed(1)} (${grade})` : 'No Data'}
+                      </div>
+                    )}
                   </div>
+                  
+                  {/* Score Details */}
+                  {scoreData.details && score > 0 && (
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <div className="flex justify-between">
+                        <span>Avg Accuracy:</span>
+                        <span className="font-medium">{(scoreData.details.avg_accuracy * 100).toFixed(2)}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Training Runs:</span>
+                        <span className="font-medium">{scoreData.details.training_count}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Trend:</span>
+                        <span className={`font-medium capitalize ${
+                          scoreData.details.trend === 'improving' ? 'text-green-600' : 
+                          scoreData.details.trend === 'declining' ? 'text-red-600' : 
+                          'text-gray-600'
+                        }`}>
+                          {scoreData.details.trend === 'improving' ? '↗' : 
+                           scoreData.details.trend === 'declining' ? '↘' : '→'} {scoreData.details.trend}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Actions */}
-              <div className="mt-4">
-                <Button variant="outline" className="w-full" onClick={() => window.location.href = `/workspace/${workspace.id}`}>
-                  <FolderOpen className="w-4 h-4 mr-2" />
-                  Open Workspace
-                </Button>
-              </div>
-            </Card>
-          ))}
+                {/* Actions */}
+                <div className="mt-4">
+                  <Button variant="outline" className="w-full" onClick={() => window.location.href = `/workspace/${workspace.id}`}>
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Open Workspace
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
