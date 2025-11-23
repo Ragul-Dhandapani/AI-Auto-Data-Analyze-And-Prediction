@@ -25,13 +25,29 @@ const TrainingMetadataPage = () => {
   const [expandedRunDetails, setExpandedRunDetails] = useState({});
 
   useEffect(() => {
-    loadMetadata();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      toast.error('Request timed out after 30 seconds. Please try again or contact support if the issue persists.');
+      setLoading(false);
+    }, 30000); // 30 second timeout
+    
+    loadMetadata(controller.signal, timeoutId);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
-  const loadMetadata = async () => {
+  const loadMetadata = async (signal, timeoutId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/training/metadata/by-workspace`);
+      const response = await axios.get(`${API}/training/metadata/by-workspace`, {
+        signal,
+        timeout: 30000 // 30 seconds
+      });
+      clearTimeout(timeoutId); // Clear timeout on success
       setData(response.data);
       
       // Auto-expand first dataset
@@ -40,8 +56,13 @@ const TrainingMetadataPage = () => {
         setExpandedDatasets({ [firstDatasetId]: true });
       }
     } catch (error) {
-      console.error('Failed to load training metadata:', error);
-      toast.error('Failed to load training history');
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        console.error('Request timed out:', error);
+        toast.error('Loading training metadata timed out. The server may be slow. Please try again.');
+      } else {
+        console.error('Failed to load training metadata:', error);
+        toast.error('Failed to load training history');
+      }
     } finally {
       setLoading(false);
     }
