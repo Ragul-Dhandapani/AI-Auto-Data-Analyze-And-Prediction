@@ -592,7 +592,7 @@ const WorkspaceManager = () => {
                                 <div className="flex items-center gap-3 flex-1">
                                   <FileText className="w-6 h-6 text-blue-600" />
                                   <div>
-                                    <h4 className="font-bold text-lg">{dataset.file_name}</h4>
+                                    <h4 className="font-bold text-lg">{dataset.name || dataset.file_name || 'Unnamed Dataset'}</h4>
                                     <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
                                       <span>{dataSource.icon} <strong>{dataSource.type}:</strong> {dataSource.detail}</span>
                                       {dataSource.fullQuery && (
