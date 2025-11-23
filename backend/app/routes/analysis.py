@@ -775,13 +775,13 @@ async def holistic_analysis(request: Dict[str, Any]):
                         
                         # Use enhanced ML service if selected_models provided
                         if selected_models and HAS_ENHANCED_ML:
-                            target_models = train_models_with_selection(df_subset, target_col, problem_type, selected_models)
+                            target_models = train_models_with_selection(df_subset, target_col, problem_type, selected_models, use_automl, automl_optimization_level)
                         else:
                             target_models = train_models_auto(df_subset, target_col, problem_type=problem_type)
                     else:
                         # Train on all numeric features
                         if selected_models and HAS_ENHANCED_ML:
-                            target_models = train_models_with_selection(df_analysis, target_col, problem_type, selected_models)
+                            target_models = train_models_with_selection(df_analysis, target_col, problem_type, selected_models, use_automl, automl_optimization_level)
                         else:
                             target_models = train_models_auto(df_analysis, target_col, problem_type=problem_type)
                     
