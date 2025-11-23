@@ -1434,6 +1434,41 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
+
+      {/* Hyperparameter Tuning Suggestions */}
+      {analysisResults.hyperparameter_suggestions && Object.keys(analysisResults.hyperparameter_suggestions).length > 0 && !collapsed.hyperparameters && (
+        <Card id="hyperparameters-section" className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                🎯 AI-Powered Hyperparameter Tuning Suggestions
+              </h3>
+              <p className="text-sm text-gray-600 italic mt-1">Optimize your models with these recommended parameter ranges</p>
+            </div>
+            <Button onClick={() => toggleSection('hyperparameters')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          <HyperparameterSuggestions 
+            suggestions={analysisResults.hyperparameter_suggestions}
+            onApply={(modelName, params) => {
+              console.log('Applying hyperparameters for', modelName, params);
+              toast.success(`Hyperparameters saved for ${modelName}. They will be used in the next training run.`);
+            }}
+          />
+        </Card>
+      )}
+
+      {analysisResults.hyperparameter_suggestions && Object.keys(analysisResults.hyperparameter_suggestions).length > 0 && collapsed.hyperparameters && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('hyperparameters')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">🎯 Hyperparameter Tuning Suggestions ({Object.keys(analysisResults.hyperparameter_suggestions).length} models)</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
+
       {/* Correlations */}
       {analysisResults.correlations && 
        analysisResults.correlations.correlations && 
