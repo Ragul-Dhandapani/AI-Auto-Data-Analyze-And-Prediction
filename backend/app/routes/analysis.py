@@ -489,6 +489,10 @@ async def holistic_analysis(request: Dict[str, Any]):
         problem_type = request.get("problem_type", "auto")  # "auto", "regression", "classification", or "time_series"
         selected_models = request.get("selected_models")  # NEW: Optional list of model keys to train
         use_ai_recommendations = request.get("use_ai_recommendations", False)  # NEW: Use AI model recommendations
+        use_automl = request.get("use_automl", False)  # NEW: Enable AutoML hyperparameter optimization
+        automl_optimization_level = request.get("automl_optimization_level", "balanced")  # NEW: AutoML optimization level
+        
+        logger.info(f"🤖 AutoML Settings: enabled={use_automl}, level={automl_optimization_level}")
         
         df = await load_dataframe(dataset_id)
         original_size = len(df)
