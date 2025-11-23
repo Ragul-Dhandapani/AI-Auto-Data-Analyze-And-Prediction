@@ -184,7 +184,7 @@ const WorkspaceManager = () => {
       // Normalize the structure
       const normalizedDetails = {
         ...details,
-        analysis_data: analysisData
+        analysis_data: finalData
       };
       
       console.log('💾 Storing normalized details for:', stateId);
