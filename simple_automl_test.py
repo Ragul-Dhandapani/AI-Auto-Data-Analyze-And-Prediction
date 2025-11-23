@@ -7,7 +7,7 @@ import requests
 import json
 import csv
 
-BACKEND_URL = "https://aiworkbench-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://model-genius.preview.emergentagent.com/api"
 
 # Create minimal test data
 data = [

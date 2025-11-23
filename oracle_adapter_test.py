@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Backend URL from environment
-BACKEND_URL = "https://aiworkbench-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://model-genius.preview.emergentagent.com/api"
 
 class OracleAdapterTester:
     def __init__(self):

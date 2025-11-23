@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://aiworkbench-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://model-genius.preview.emergentagent.com/api"
 
 def print_section(title):
     """Print formatted section header"""

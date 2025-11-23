@@ -10,7 +10,7 @@ import cx_Oracle
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://aiworkbench-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://model-genius.preview.emergentagent.com/api"
 ORACLE_CONFIG = {
     'user': 'testuser',
     'password': 'DbPasswordTest',

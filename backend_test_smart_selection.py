@@ -11,7 +11,7 @@ import time
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://aiworkbench-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://model-genius.preview.emergentagent.com/api"
 
 class SmartSelectionTester:
     def __init__(self):

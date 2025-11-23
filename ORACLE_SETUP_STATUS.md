@@ -67,7 +67,7 @@ sed -i 's/DB_TYPE="oracle"/DB_TYPE="mongodb"/' /app/backend/.env
 sudo supervisorctl restart backend
 
 # Verify database
-curl https://aiworkbench-2.preview.emergentagent.com/api/config/current-database
+curl https://model-genius.preview.emergentagent.com/api/config/current-database
 ```
 
 ## ✅ Oracle Adapter Code: READY

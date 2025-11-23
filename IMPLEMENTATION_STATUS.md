@@ -11,7 +11,7 @@
 
 **Verification**:
 ```bash
-curl https://aiworkbench-2.preview.emergentagent.com/api/config/current-database
+curl https://model-genius.preview.emergentagent.com/api/config/current-database
 # Returns: {"current_database":"oracle"}
 ```
 
