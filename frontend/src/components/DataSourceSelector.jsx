@@ -458,9 +458,9 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
                       const ws = workspaces.find(w => w.id === e.target.value);
                       handleWorkspaceSelect(ws);
                     }}
-                    className="flex-1 p-2 border rounded-md"
+                    className={`flex-1 p-2 border rounded-md ${!selectedWorkspace ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
                   >
-                    <option value="">No Workspace (Optional)</option>
+                    <option value="">⚠️ Select a workspace (Required)</option>
                     {workspaces.map(ws => (
                       <option key={ws.id} value={ws.id}>{ws.name}</option>
                     ))}
