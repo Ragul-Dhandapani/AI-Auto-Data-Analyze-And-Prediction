@@ -199,39 +199,47 @@ const WorkspaceManager = () => {
 
   const viewAnalysis = async (analysis, dataset) => {
     try {
-      // Load the analysis state first
-      const response = await axios.get(`${BACKEND_URL}/api/analysis/load-state/${analysis.id}`);
-      const stateData = response.data;
+      console.log('🔍 Loading analysis for viewing:', analysis.id);
       
-      // Parse analysis_results if it's a JSON string
-      let analysisData = stateData.analysis_results || stateData.analysis_data;
-      if (typeof analysisData === 'string') {
-        try {
-          analysisData = JSON.parse(analysisData);
-        } catch (e) {
-          console.error('Failed to parse analysis data:', e);
-          toast.error('Failed to parse analysis data');
-          return;
-        }
+      // Get the full analysis details
+      const details = analysisDetails[analysis.id];
+      if (!details || !details.analysis_data) {
+        toast.error('Analysis data not loaded. Please try again.');
+        return;
       }
       
+      const analysisData = details.analysis_data;
+      console.log('📦 Analysis data keys:', Object.keys(analysisData));
+      console.log('📊 Models count:', analysisData.ml_models?.length || 0);
+      
       // Store in localStorage for the dashboard to pick up
-      localStorage.setItem('loadAnalysisOnMount', JSON.stringify({
+      const loadData = {
         stateId: analysis.id,
         datasetId: dataset.id,
-        stateName: analysis.state_name,
+        stateName: analysis.state_name || analysis.workspace_name || 'Unnamed Analysis',
         analysisData: analysisData
-      }));
+      };
+      
+      console.log('💾 Storing analysis in localStorage');
+      localStorage.setItem('loadAnalysisOnMount', JSON.stringify(loadData));
       
       // Navigate to dashboard
-      navigate('/');
+      console.log('🚀 Navigating to dashboard');
+      navigate('/', {
+        state: {
+          loadAnalysis: true,
+          stateId: analysis.id,
+          datasetId: dataset.id,
+          stateName: analysis.state_name || analysis.workspace_name
+        }
+      });
       
-      // Small delay then reload to trigger loading
+      // Force a page reload to ensure the data loads properly
       setTimeout(() => {
         window.location.reload();
       }, 100);
     } catch (error) {
-      console.error('Failed to load analysis:', error);
+      console.error('❌ Failed to view analysis:', error);
       toast.error('Failed to load analysis. Please try again.');
     }
   };
