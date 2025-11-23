@@ -291,7 +291,18 @@ class WorkspaceManagerTester:
                     result = response.json()
                     
                     # Check if analysis data is present and properly structured
-                    analysis_data = result.get("analysis_data", {})
+                    # The API returns analysis_results as a JSON string, not analysis_data as an object
+                    analysis_results_str = result.get("analysis_results", "")
+                    analysis_data = {}
+                    
+                    if analysis_results_str:
+                        try:
+                            analysis_data = json.loads(analysis_results_str)
+                        except json.JSONDecodeError:
+                            self.log_test("GET /api/analysis/load-state/{state_id}", "FAIL", 
+                                         "analysis_results is not valid JSON")
+                            return False
+                    
                     if analysis_data:
                         # Check for key components that should be present
                         ml_models = analysis_data.get("ml_models", [])
