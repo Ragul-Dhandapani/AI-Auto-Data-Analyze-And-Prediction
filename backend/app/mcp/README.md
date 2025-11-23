@@ -241,7 +241,7 @@ result = mcp.predict_from_file(...)
 ### Method 2: REST API Endpoint (Coming Soon)
 
 ```bash
-curl -X POST https://oracle-ml-hub.preview.emergentagent.com/api/mcp/predict \
+curl -X POST https://aiworkbench-2.preview.emergentagent.com/api/mcp/predict \
   -H "Content-Type: application/json" \
   -d '{
     "source_type": "file",
