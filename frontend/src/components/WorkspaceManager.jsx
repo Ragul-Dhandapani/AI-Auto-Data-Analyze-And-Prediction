@@ -11,6 +11,7 @@ import { Loader2, Plus, Trash2, FolderOpen, TrendingUp, Database, Activity, Arro
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const WorkspaceManager = () => {
+  const navigate = useNavigate();
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
