@@ -647,14 +647,20 @@ const DashboardPage = () => {
                     </div>
                   )}
                 </Card>
+              ) : selectedWorkspace ? (
+                <Card className="mt-8 p-6 bg-blue-50 text-center border-2 border-blue-200">
+                  <Database className="w-12 h-12 mx-auto mb-3 text-blue-400" />
+                  <p className="text-gray-700 font-medium">No datasets in workspace "{selectedWorkspace.name}"</p>
+                  <p className="text-sm text-gray-600 mt-1">Upload a file to this workspace to get started</p>
+                </Card>
               ) : (
                 <Card className="mt-8 p-6 bg-gray-50 text-center">
                   <Database className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                  <p className="text-gray-600 font-medium">No datasets yet</p>
-                  <p className="text-sm text-gray-500 mt-1">Upload a file or connect to a database above to get started</p>
-                  <p className="text-xs text-gray-400 mt-3">Note: If you uploaded data but don't see it, try refreshing the page</p>
+                  <p className="text-gray-600 font-medium">Select a workspace to see datasets</p>
+                  <p className="text-sm text-gray-500 mt-1">Choose a workspace from the dropdown above to view its datasets</p>
                 </Card>
-              )}
+              );
+              })()}
             </div>
           ) : (
             <div>
