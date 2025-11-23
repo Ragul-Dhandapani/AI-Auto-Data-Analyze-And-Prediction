@@ -52,6 +52,7 @@ const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelect
             analysisCache={analysisCache}
             onAnalysisUpdate={onAnalysisUpdate}
             variableSelection={variableSelection}
+            enableAutoML={enableAutoML}
           />
         </TabsContent>
 
