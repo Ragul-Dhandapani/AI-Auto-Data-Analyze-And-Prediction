@@ -5,6 +5,7 @@ import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import TrainingMetadataPage from "@/pages/TrainingMetadataPage";
 import DocumentationPage from "@/pages/DocumentationPage";
+import WorkspaceManagerPage from "@/pages/WorkspaceManagerPage";
 import { Toaster } from "@/components/ui/sonner";
 import { initializeStorageManager } from "@/utils/storageManager";
 
