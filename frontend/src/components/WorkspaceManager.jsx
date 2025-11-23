@@ -140,9 +140,15 @@ const WorkspaceManager = () => {
       const response = await axios.get(`${BACKEND_URL}/api/analysis/load-state/${stateId}`);
       const details = response.data;
       
+      // Normalize the structure - backend returns analysis_results, we need analysis_data
+      const normalizedDetails = {
+        ...details,
+        analysis_data: details.analysis_results || details.analysis_data || {}
+      };
+      
       setAnalysisDetails(prev => ({
         ...prev,
-        [stateId]: details
+        [stateId]: normalizedDetails
       }));
     } catch (error) {
       console.error(`Failed to load analysis details for ${stateId}:`, error);
