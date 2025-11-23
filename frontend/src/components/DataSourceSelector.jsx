@@ -573,6 +573,8 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
               </Button>
             </div>
           )}
+          </>
+          )}
         </TabsContent>
 
         <TabsContent value="database">
