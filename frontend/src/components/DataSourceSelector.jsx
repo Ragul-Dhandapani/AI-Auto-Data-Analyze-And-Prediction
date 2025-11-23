@@ -592,9 +592,9 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
                         const ws = workspaces.find(w => w.id === e.target.value);
                         handleWorkspaceSelect(ws);
                       }}
-                      className="flex-1 p-2 border rounded-md"
+                      className={`flex-1 p-2 border rounded-md ${!selectedWorkspace ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
                     >
-                      <option value="">No Workspace (Optional)</option>
+                      <option value="">⚠️ Select a workspace (Required)</option>
                       {workspaces.map(ws => (
                         <option key={ws.id} value={ws.id}>{ws.name}</option>
                       ))}
@@ -613,10 +613,28 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
                       ✓ Dataset will be added to: <strong>{selectedWorkspace.name}</strong>
                     </p>
                   )}
+                  {!selectedWorkspace && (
+                    <p className="text-xs text-red-700 mt-2 font-semibold">
+                      ⚠️ Please select a workspace before connecting to database
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
+            {!selectedWorkspace ? (
+              <div className="p-12 border-2 border-red-300 bg-red-50 rounded-xl text-center">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h3 className="text-xl font-bold text-red-900 mb-2">Workspace Required</h3>
+                <p className="text-red-700 mb-4">
+                  You must select or create a workspace before connecting to a database.
+                </p>
+                <p className="text-sm text-red-600">
+                  Workspaces help organize your datasets and track model performance over time.
+                </p>
+              </div>
+            ) : (
+            <>
             <div>
               <Label>Database Type</Label>
               <Select 
