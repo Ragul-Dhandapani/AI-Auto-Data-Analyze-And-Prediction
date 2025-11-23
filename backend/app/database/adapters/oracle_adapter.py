@@ -538,7 +538,12 @@ class OracleAdapter(DatabaseAdapter):
     async def get_workspace_state(self, workspace_id: str) -> Optional[Dict[str, Any]]:
         """Get workspace state by ID"""
         query = """
-        SELECT ID, WORKSPACE_NAME, DATASET_ID, CREATED_AT, ANALYSIS_RESULTS
+        SELECT 
+            ID, 
+            WORKSPACE_NAME AS STATE_NAME, 
+            DATASET_ID, 
+            CREATED_AT, 
+            ANALYSIS_RESULTS
         FROM SAVED_STATES
         WHERE ID = :id
         """
