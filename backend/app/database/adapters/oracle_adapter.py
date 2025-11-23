@@ -549,7 +549,11 @@ class OracleAdapter(DatabaseAdapter):
     async def list_workspace_states(self, dataset_id: str) -> List[Dict[str, Any]]:
         """List workspace states for a dataset"""
         query = """
-        SELECT ID, WORKSPACE_NAME, DATASET_ID, CREATED_AT
+        SELECT 
+            ID, 
+            WORKSPACE_NAME AS STATE_NAME,
+            DATASET_ID, 
+            CREATED_AT
         FROM SAVED_STATES
         WHERE DATASET_ID = :dataset_id
         ORDER BY CREATED_AT DESC
