@@ -831,6 +831,8 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
               </div>
             )}
           </div>
+          </>
+          )}
         </TabsContent>
 
         <TabsContent value="custom-query">
