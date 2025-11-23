@@ -480,11 +480,29 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
                     ✓ Dataset will be added to: <strong>{selectedWorkspace.name}</strong>
                   </p>
                 )}
+                {!selectedWorkspace && (
+                  <p className="text-xs text-red-700 mt-2 font-semibold">
+                    ⚠️ Please select a workspace before uploading data
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* AutoML Toggle */}
+          {!selectedWorkspace ? (
+            <div className="p-12 border-2 border-red-300 bg-red-50 rounded-xl text-center">
+              <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+              <h3 className="text-xl font-bold text-red-900 mb-2">Workspace Required</h3>
+              <p className="text-red-700 mb-4">
+                You must select or create a workspace before uploading data.
+              </p>
+              <p className="text-sm text-red-600">
+                Workspaces help organize your datasets and track model performance over time.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* AutoML Toggle */}
           <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border-2 border-purple-200">
             <div className="flex items-start space-x-3">
               <input 
