@@ -445,7 +445,7 @@ const DashboardPage = () => {
                   className="gap-2"
                 >
                   <Save className="w-4 h-4" />
-                  Save Workspace
+                  Save Dataset
                 </Button>
               </>
             )}
