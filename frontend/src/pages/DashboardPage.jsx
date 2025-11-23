@@ -40,6 +40,7 @@ const DashboardPage = () => {
   
   // Save/Load state management
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
   const [stateName, setStateName] = useState("");
   const [savedStates, setSavedStates] = useState([]);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
