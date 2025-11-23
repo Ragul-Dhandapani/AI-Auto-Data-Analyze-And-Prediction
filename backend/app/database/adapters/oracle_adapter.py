@@ -1022,6 +1022,16 @@ class OracleAdapter(DatabaseAdapter):
         await self._execute(query, {'workspace_id': workspace_id})
         return True
     
+    async def increment_workspace_training_count(self, workspace_id: str) -> bool:
+        """Increment training count for workspace"""
+        query = """
+            UPDATE WORKSPACES 
+            SET TRAINING_COUNT = TRAINING_COUNT + 1, UPDATED_AT = SYSTIMESTAMP
+            WHERE ID = :workspace_id
+        """
+        await self._execute(query, {'workspace_id': workspace_id})
+        return True
+    
     async def delete_workspace(self, workspace_id: str) -> bool:
         """Delete workspace"""
         query = "DELETE FROM WORKSPACES WHERE ID = :workspace_id"
