@@ -147,18 +147,26 @@ const WorkspaceManager = () => {
 
   const loadAnalysisDetails = async (stateId) => {
     try {
+      console.log('⏳ Fetching analysis details for:', stateId);
       const response = await axios.get(`${BACKEND_URL}/api/analysis/load-state/${stateId}`);
       const details = response.data;
+      console.log('📦 Received details, keys:', Object.keys(details));
       
       // Parse analysis_results if it's a JSON string
       let analysisData = details.analysis_results || details.analysis_data || {};
+      console.log('🔧 Analysis data type:', typeof analysisData);
+      
       if (typeof analysisData === 'string') {
+        console.log('📝 Parsing JSON string...');
         try {
           analysisData = JSON.parse(analysisData);
+          console.log('✅ Parsed successfully, ml_models count:', analysisData.ml_models?.length || 0);
         } catch (e) {
-          console.error('Failed to parse analysis_results:', e);
+          console.error('❌ Failed to parse analysis_results:', e);
           analysisData = {};
         }
+      } else {
+        console.log('✅ Already an object, ml_models count:', analysisData.ml_models?.length || 0);
       }
       
       // Normalize the structure
@@ -167,12 +175,13 @@ const WorkspaceManager = () => {
         analysis_data: analysisData
       };
       
+      console.log('💾 Storing normalized details for:', stateId);
       setAnalysisDetails(prev => ({
         ...prev,
         [stateId]: normalizedDetails
       }));
     } catch (error) {
-      console.error(`Failed to load analysis details for ${stateId}:`, error);
+      console.error(`❌ Failed to load analysis details for ${stateId}:`, error);
     }
   };
 
