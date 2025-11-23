@@ -83,6 +83,12 @@ const DashboardPage = () => {
     loadDatasets();
   };
 
+  const handleWorkspaceChange = (workspace) => {
+    setSelectedWorkspace(workspace);
+  };
+
+
+
   const handleVariableSelectionConfirm = (selection) => {
     console.log('handleVariableSelectionConfirm received:', selection);
     
