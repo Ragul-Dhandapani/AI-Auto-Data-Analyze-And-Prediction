@@ -202,6 +202,24 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     }
   }, [analysisResults?.correlation_heatmap]);
 
+  // Fetch holistic score for workspace
+  useEffect(() => {
+    const fetchHolisticScore = async () => {
+      if (dataset?.workspace_id) {
+        try {
+          const response = await axios.get(`${BACKEND_URL}/api/workspace/${dataset.workspace_id}/holistic-score`);
+          setHolisticScore(response.data);
+        } catch (error) {
+          console.error('Failed to fetch holistic score:', error);
+          // Don't show error toast, it's optional feature
+        }
+      }
+    };
+    fetchHolisticScore();
+  }, [dataset?.workspace_id, analysisResults]); // Re-fetch when new analysis completes
+
+
+
   // Render custom charts when available OR when collapsed state changes
   useEffect(() => {
     if (analysisResults?.custom_charts && analysisResults.custom_charts.length > 0 && !collapsed.custom_charts) {
