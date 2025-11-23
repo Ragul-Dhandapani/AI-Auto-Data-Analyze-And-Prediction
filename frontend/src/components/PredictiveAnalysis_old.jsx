@@ -1207,6 +1207,118 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       )}
 
       {/* Rest of sections with collapse... */}
+      {/* Volume Analysis */}
+      {analysisResults.volume_analysis && analysisResults.volume_analysis.by_dimensions && analysisResults.volume_analysis.by_dimensions.length > 0 && !collapsed.volume && (
+        <Card id="volume-analysis-section" className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">📊 Volume Analysis</h3>
+              <p className="text-sm text-gray-600 italic mt-1">Comprehensive data distribution and pattern analysis</p>
+              {analysisResults.volume_analysis.summary && (
+                <div className="mt-2 flex gap-4 text-xs text-gray-600">
+                  <span>📈 Total: {analysisResults.volume_analysis.total_records.toLocaleString()} rows</span>
+                  <span>📋 Columns: {analysisResults.volume_analysis.summary.total_columns}</span>
+                  <span>💾 Memory: {analysisResults.volume_analysis.summary.memory_usage_mb} MB</span>
+                </div>
+              )}
+            </div>
+            <Button onClick={() => toggleSection('volume')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          {/* Categorical Volume Analysis - Two-Column Grid Layout */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-800 mb-4">Categorical Distribution</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {analysisResults.volume_analysis.by_dimensions.map((item, idx) => (
+                <div key={idx} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="flex items-start justify-between mb-2">
+                    <h5 className="font-semibold text-gray-900 truncate flex-1">{String(item.dimension)}</h5>
+                    <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded ml-2 whitespace-nowrap">
+                      {item.total_unique} unique
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3 line-clamp-2">{String(item.insights)}</p>
+                  
+                  {/* Top values breakdown */}
+                  {item.breakdown && Object.keys(item.breakdown).length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-gray-600 mb-2">Top Values:</p>
+                      {Object.entries(item.breakdown).slice(0, 4).map(([key, value], i) => {
+                        const percentage = ((value / analysisResults.volume_analysis.total_records) * 100).toFixed(1);
+                        return (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-xs text-gray-700 w-24 truncate" title={key}>{key}</span>
+                            <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-gradient-to-r from-blue-400 to-indigo-500"
+                                style={{ width: `${percentage}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-gray-600 w-16 text-right">{percentage}%</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Numeric Volume Analysis - Horizontal Cards Layout */}
+          {analysisResults.volume_analysis.numeric_summary && analysisResults.volume_analysis.numeric_summary.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="font-semibold text-gray-800">Numeric Distribution</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {analysisResults.volume_analysis.numeric_summary.map((item, idx) => (
+                  <div key={idx} className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">{String(item.dimension)}</h5>
+                    <p className="text-sm text-gray-700 mb-3">{String(item.insights)}</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Min:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.min}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Mean:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.mean}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Max:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.max}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Median:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.median}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Std Dev:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.std}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <span className="text-gray-600">Range:</span>
+                        <span className="font-semibold text-gray-900 ml-1">{item.range}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {analysisResults.volume_analysis && collapsed.volume && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('volume')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">📊 Volume Analysis</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
       {/* PHASE 3: AI-Powered Insights */}
       {analysisResults.ai_insights && analysisResults.ai_insights.length > 0 && !collapsed.ai_insights && (
         <Card id="ai-insights-section" className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200">
@@ -1330,6 +1442,76 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
+      {/* PHASE 3: Business Recommendations */}
+      {analysisResults.business_recommendations && analysisResults.business_recommendations.length > 0 && !collapsed.recommendations && (
+        <Card id="recommendations-section" className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                💼 Business Recommendations
+              </h3>
+              <p className="text-sm text-gray-600 italic mt-1">AI-generated strategic recommendations</p>
+              <p className="text-xs text-orange-700 mt-2 bg-white px-3 py-2 rounded border border-orange-200">
+                💡 <strong>How to use:</strong> These are strategic recommendations for your team to implement. 
+                Review each recommendation, assess the effort vs. impact, and work with your technical team to apply the suggested improvements.
+              </p>
+            </div>
+            <Button onClick={() => toggleSection('recommendations')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {analysisResults.business_recommendations.map((rec, idx) => (
+              <div key={idx} className={`p-4 rounded-lg border-2 ${
+                rec.priority === 'high' ? 'bg-red-50 border-red-300' :
+                rec.priority === 'medium' ? 'bg-yellow-50 border-yellow-300' :
+                'bg-green-50 border-green-300'
+              }`}>
+                <div className="flex items-start gap-3 mb-3">
+                  <div className={`px-2 py-1 rounded text-xs font-semibold ${
+                    rec.priority === 'high' ? 'bg-red-600 text-white' :
+                    rec.priority === 'medium' ? 'bg-yellow-600 text-white' :
+                    'bg-green-600 text-white'
+                  }`}>
+                    {rec.priority?.toUpperCase()}
+                  </div>
+                  <h4 className="font-semibold text-gray-900 flex-1">{rec.title}</h4>
+                </div>
+                <p className="text-sm text-gray-700 mb-2">{rec.description}</p>
+                {rec.expected_impact && (
+                  <div className="flex items-start gap-2 text-xs mb-1">
+                    <span className="font-semibold text-gray-600">📊 Impact:</span>
+                    <span className="text-gray-700">{rec.expected_impact}</span>
+                  </div>
+                )}
+                {rec.implementation_effort && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-semibold text-gray-600">⚙️ Effort:</span>
+                    <span className={`px-2 py-0.5 rounded ${
+                      rec.implementation_effort === 'high' ? 'bg-red-100 text-red-700' :
+                      rec.implementation_effort === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {rec.implementation_effort}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.business_recommendations && analysisResults.business_recommendations.length > 0 && collapsed.recommendations && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('recommendations')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">💼 Business Recommendations ({analysisResults.business_recommendations.length} recommendations)</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
+
       {/* Hyperparameter Tuning Suggestions */}
       {analysisResults.hyperparameter_suggestions && Object.keys(analysisResults.hyperparameter_suggestions).length > 0 && !collapsed.hyperparameters && (
         <Card id="hyperparameters-section" className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200">
@@ -1416,6 +1598,123 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">🔗 Key Correlations ({analysisResults.correlations.correlations.length} found)</h3>
             <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
+      {/* Custom Charts Section */}
+      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length > 0 && !collapsed.custom_charts && (
+        <Card className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">📈 Custom Analysis Charts</h3>
+              <p className="text-sm text-gray-600 italic mt-1">Additional charts added via chat assistant</p>
+            </div>
+            <Button onClick={() => toggleSection('custom_charts')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="space-y-6">
+            {analysisResults.custom_charts
+              .filter(chart => chart && chart.plotly_data)
+              .map((chart, idx) => (
+              <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                <h4 className="font-semibold mb-2 text-sm">{chart.title}</h4>
+                {chart.description && (
+                  <p className="text-xs text-gray-600 italic mb-3 line-clamp-2">{chart.description}</p>
+                )}
+                <div 
+                  id={`custom-chart-${idx}`} 
+                  className="w-full"
+                  style={{ 
+                    height: '450px',
+                    maxWidth: '100%',
+                    overflow: 'hidden'
+                  }}
+                ></div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length > 0 && collapsed.custom_charts && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('custom_charts')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">📈 Custom Analysis Charts ({analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length})</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
+      {/* Rest of sections... */}
+
+
+      {/* Data Preprocessing Report */}
+      {analysisResults.preprocessing_report && (
+        <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 mb-6">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl">
+              🧹
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-blue-900 mb-1">
+                Data Preprocessing Applied
+              </h3>
+              <p className="text-sm text-blue-700">
+                Your data was automatically cleaned and optimized before training to improve model performance
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="text-2xl font-bold text-blue-600 mb-1">
+                {analysisResults.preprocessing_report.duplicates_removed}
+              </div>
+              <div className="text-xs text-gray-600 mb-1">Duplicates Removed</div>
+              <div className="text-xs text-blue-700">
+                {analysisResults.preprocessing_report.original_rows} → {analysisResults.preprocessing_report.cleaned_rows} rows
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="text-2xl font-bold text-green-600 mb-1">
+                {analysisResults.preprocessing_report.missing_values_filled}
+              </div>
+              <div className="text-xs text-gray-600 mb-1">Missing Values Filled</div>
+              <div className="text-xs text-green-700">
+                Method: {analysisResults.preprocessing_report.imputation_method || 'median'}
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="text-2xl font-bold text-orange-600 mb-1">
+                {analysisResults.preprocessing_report.outliers_capped}
+              </div>
+              <div className="text-xs text-gray-600 mb-1">Outliers Capped</div>
+              <div className="text-xs text-orange-700">
+                {analysisResults.preprocessing_report.outlier_method || 'IQR method'}
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="text-2xl font-bold text-purple-600 mb-1">
+                {analysisResults.preprocessing_report.features_normalized ? '✓' : '—'}
+              </div>
+              <div className="text-xs text-gray-600 mb-1">Feature Normalization</div>
+              <div className="text-xs text-purple-700">
+                {analysisResults.preprocessing_report.normalization_method || 'StandardScaler'}
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
+            <p className="text-xs text-blue-900">
+              <strong>ℹ️ Note:</strong> These preprocessing steps were applied automatically to improve model accuracy. 
+              Your original uploaded data remains unchanged in the database. The cleaned version was used only for training these models.
+            </p>
           </div>
         </Card>
       )}
@@ -1939,164 +2238,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
       )}
 
 
-      {/* Forecasting & Predictive Insights - WITH TABS FOR EACH MODEL */}
-      {analysisResults.sre_forecast && analysisResults.ml_models && analysisResults.ml_models.length > 0 && !collapsed.sre_forecast && (
-        <Card id="forecasting-section" className="p-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-l-cyan-500">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">🔮 Forecasting & Predictive Insights</h3>
-              <p className="text-sm text-gray-600 italic mt-1">
-                Forward-looking predictions based on trained ML models
-              </p>
-            </div>
-            <Button onClick={() => toggleSection('sre_forecast')} variant="ghost" size="sm">
-              <ChevronUp className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Feature Influence Summary */}
-          {analysisResults.sre_forecast.feature_influence && (
-            <div className="mb-4 p-4 bg-white rounded-lg border-2 border-cyan-300">
-              <p className="text-sm font-semibold text-cyan-800">
-                💡 {analysisResults.sre_forecast.feature_influence}
-              </p>
-            </div>
-          )}
-
-          {/* Good News Predictions */}
-          {analysisResults.sre_forecast.good_news && analysisResults.sre_forecast.good_news.length > 0 && (
-            <div className="mb-4">
-              {analysisResults.sre_forecast.good_news.map((news, idx) => (
-                <div key={idx} className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500 mb-2">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-green-800">{news.message}</p>
-                      {news.period && (
-                        <p className="text-xs text-green-600 mt-1">Period: {news.period}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Tabs for each ML model */}
-          <Tabs defaultValue={analysisResults.ml_models[0].model_name} className="w-full">
-            <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${analysisResults.ml_models.length}, 1fr)`}}>
-              {analysisResults.ml_models.map((model) => (
-                <TabsTrigger key={model.model_name} value={model.model_name} className="text-xs">
-                  {model.model_name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {analysisResults.ml_models.map((model) => (
-              <TabsContent key={model.model_name} value={model.model_name}>
-                <div className="bg-white rounded-lg p-4 border border-cyan-200">
-                  
-                  {/* Feature Context - Shows which features predictions are based on */}
-                  {model.feature_importance && Object.keys(model.feature_importance).length > 0 && (
-                    <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                      <p className="text-sm font-semibold text-gray-700 mb-3">📊 Predictions Based On These Features:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries(model.feature_importance)
-                          .sort(([,a], [,b]) => b - a)
-                          .slice(0, 8)
-                          .map(([feature, importance], idx) => (
-                            <span key={idx} className="text-xs bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full font-medium">
-                              {feature} ({(importance * 100).toFixed(1)}% influence)
-                            </span>
-                          ))}
-                      </div>
-                      {Object.keys(model.feature_importance).length > 8 && (
-                        <p className="text-xs text-gray-500 mt-2">
-                          +{Object.keys(model.feature_importance).length - 8} more features analyzed
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Forecasts */}
-                  {analysisResults.sre_forecast.forecasts && analysisResults.sre_forecast.forecasts.length > 0 && (
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-gray-800 mb-3">📈 Trend Predictions (Based on Ensemble Analysis)</h4>
-                      <p className="text-xs text-gray-600 mb-3 italic">
-                        These forecasts are generated by analyzing predictions from all trained models, providing a consensus view of future trends.
-                      </p>
-                      <div className="grid md:grid-cols-3 gap-4">
-                        {analysisResults.sre_forecast.forecasts.map((forecast, idx) => (
-                          <div key={idx} className="p-4 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg border-2 border-cyan-200">
-                            <div className="flex items-start justify-between mb-2">
-                              <span className="text-xs font-semibold text-cyan-700 uppercase">{forecast.timeframe}</span>
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                forecast.confidence === 'high' ? 'bg-green-100 text-green-700' :
-                                forecast.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-gray-100 text-gray-700'
-                              }`}>
-                                {forecast.confidence} confidence
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-700 mb-2">{forecast.prediction}</p>
-                            {forecast.value && forecast.value !== 'N/A' && (
-                              <p className="text-lg font-bold text-cyan-600">{forecast.value}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Critical Alerts */}
-                  {analysisResults.sre_forecast.critical_alerts && analysisResults.sre_forecast.critical_alerts.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-3">⚠️ Critical Alerts</h4>
-                      <div className="space-y-2">
-                        {analysisResults.sre_forecast.critical_alerts.map((alert, idx) => (
-                          <div key={idx} className={`p-3 rounded-lg border-l-4 ${
-                            alert.severity === 'high' ? 'bg-red-50 border-red-500' :
-                            alert.severity === 'medium' ? 'bg-orange-50 border-orange-500' :
-                            'bg-yellow-50 border-yellow-500'
-                          }`}>
-                            <div className="flex items-start gap-2">
-                              <AlertCircle className={`w-5 h-5 mt-0.5 ${
-                                alert.severity === 'high' ? 'text-red-600' :
-                                alert.severity === 'medium' ? 'text-orange-600' :
-                                'text-yellow-600'
-                              }`} />
-                              <div className="flex-1">
-                                <span className={`text-xs font-semibold uppercase ${
-                                  alert.severity === 'high' ? 'text-red-700' :
-                                  alert.severity === 'medium' ? 'text-orange-700' :
-                                  'text-yellow-700'
-                                }`}>
-                                  {alert.severity} severity
-                                </span>
-                                <p className="text-sm text-gray-700 mt-1">{alert.alert}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </Card>
-      )}
-
-      {analysisResults.sre_forecast && collapsed.sre_forecast && (
-        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('sre_forecast')}>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">🔮 Forecasting & Predictive Insights</h3>
-            <ChevronDown className="w-5 h-5" />
-          </div>
-        </Card>
-      )}
-
       {/* Actual vs. Predicted Chart - NEW SECTION */}
       {analysisResults.ml_models && analysisResults.ml_models.length > 0 && analysisResults.ml_models[0].actual_vs_predicted && (
         <Card className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-l-blue-500">
@@ -2293,305 +2434,6 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </Card>
       )}
 
-
-      {/* PHASE 3: Business Recommendations */}
-      {analysisResults.business_recommendations && analysisResults.business_recommendations.length > 0 && !collapsed.recommendations && (
-        <Card id="recommendations-section" className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                💼 Business Recommendations
-              </h3>
-              <p className="text-sm text-gray-600 italic mt-1">AI-generated strategic recommendations</p>
-              <p className="text-xs text-orange-700 mt-2 bg-white px-3 py-2 rounded border border-orange-200">
-                💡 <strong>How to use:</strong> These are strategic recommendations for your team to implement. 
-                Review each recommendation, assess the effort vs. impact, and work with your technical team to apply the suggested improvements.
-              </p>
-            </div>
-            <Button onClick={() => toggleSection('recommendations')} variant="ghost" size="sm">
-              <ChevronUp className="w-4 h-4" />
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {analysisResults.business_recommendations.map((rec, idx) => (
-              <div key={idx} className={`p-4 rounded-lg border-2 ${
-                rec.priority === 'high' ? 'bg-red-50 border-red-300' :
-                rec.priority === 'medium' ? 'bg-yellow-50 border-yellow-300' :
-                'bg-green-50 border-green-300'
-              }`}>
-                <div className="flex items-start gap-3 mb-3">
-                  <div className={`px-2 py-1 rounded text-xs font-semibold ${
-                    rec.priority === 'high' ? 'bg-red-600 text-white' :
-                    rec.priority === 'medium' ? 'bg-yellow-600 text-white' :
-                    'bg-green-600 text-white'
-                  }`}>
-                    {rec.priority?.toUpperCase()}
-                  </div>
-                  <h4 className="font-semibold text-gray-900 flex-1">{rec.title}</h4>
-                </div>
-                <p className="text-sm text-gray-700 mb-2">{rec.description}</p>
-                {rec.expected_impact && (
-                  <div className="flex items-start gap-2 text-xs mb-1">
-                    <span className="font-semibold text-gray-600">📊 Impact:</span>
-                    <span className="text-gray-700">{rec.expected_impact}</span>
-                  </div>
-                )}
-                {rec.implementation_effort && (
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-semibold text-gray-600">⚙️ Effort:</span>
-                    <span className={`px-2 py-0.5 rounded ${
-                      rec.implementation_effort === 'high' ? 'bg-red-100 text-red-700' :
-                      rec.implementation_effort === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {rec.implementation_effort}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {analysisResults.business_recommendations && analysisResults.business_recommendations.length > 0 && collapsed.recommendations && (
-        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('recommendations')}>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">💼 Business Recommendations ({analysisResults.business_recommendations.length} recommendations)</h3>
-            <ChevronDown className="w-5 h-5" />
-          </div>
-        </Card>
-      )}
-
-
-      {/* Volume Analysis */}
-      {analysisResults.volume_analysis && analysisResults.volume_analysis.by_dimensions && analysisResults.volume_analysis.by_dimensions.length > 0 && !collapsed.volume && (
-        <Card id="volume-analysis-section" className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">📊 Volume Analysis</h3>
-              <p className="text-sm text-gray-600 italic mt-1">Comprehensive data distribution and pattern analysis</p>
-              {analysisResults.volume_analysis.summary && (
-                <div className="mt-2 flex gap-4 text-xs text-gray-600">
-                  <span>📈 Total: {analysisResults.volume_analysis.total_records.toLocaleString()} rows</span>
-                  <span>📋 Columns: {analysisResults.volume_analysis.summary.total_columns}</span>
-                  <span>💾 Memory: {analysisResults.volume_analysis.summary.memory_usage_mb} MB</span>
-                </div>
-              )}
-            </div>
-            <Button onClick={() => toggleSection('volume')} variant="ghost" size="sm">
-              <ChevronUp className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          {/* Categorical Volume Analysis - Two-Column Grid Layout */}
-          <div className="mb-6">
-            <h4 className="font-semibold text-gray-800 mb-4">Categorical Distribution</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {analysisResults.volume_analysis.by_dimensions.map((item, idx) => (
-                <div key={idx} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                  <div className="flex items-start justify-between mb-2">
-                    <h5 className="font-semibold text-gray-900 truncate flex-1">{String(item.dimension)}</h5>
-                    <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded ml-2 whitespace-nowrap">
-                      {item.total_unique} unique
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-3 line-clamp-2">{String(item.insights)}</p>
-                  
-                  {/* Top values breakdown */}
-                  {item.breakdown && Object.keys(item.breakdown).length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-gray-600 mb-2">Top Values:</p>
-                      {Object.entries(item.breakdown).slice(0, 4).map(([key, value], i) => {
-                        const percentage = ((value / analysisResults.volume_analysis.total_records) * 100).toFixed(1);
-                        return (
-                          <div key={i} className="flex items-center gap-2">
-                            <span className="text-xs text-gray-700 w-24 truncate" title={key}>{key}</span>
-                            <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-gradient-to-r from-blue-400 to-indigo-500"
-                                style={{ width: `${percentage}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-xs text-gray-600 w-16 text-right">{percentage}%</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Numeric Volume Analysis - Horizontal Cards Layout */}
-          {analysisResults.volume_analysis.numeric_summary && analysisResults.volume_analysis.numeric_summary.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-800">Numeric Distribution</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {analysisResults.volume_analysis.numeric_summary.map((item, idx) => (
-                  <div key={idx} className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
-                    <h5 className="font-semibold text-gray-900 mb-2">{String(item.dimension)}</h5>
-                    <p className="text-sm text-gray-700 mb-3">{String(item.insights)}</p>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="bg-white p-2 rounded border border-green-200">
-                        <span className="text-gray-600">Min:</span>
-                        <span className="font-semibold text-gray-900 ml-1">{item.min}</span>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-green-200">
-                        <span className="text-gray-600">Mean:</span>
-                        <span className="font-semibold text-gray-900 ml-1">{item.mean}</span>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-green-200">
-                        <span className="text-gray-600">Max:</span>
-                        <span className="font-semibold text-gray-900 ml-1">{item.max}</span>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-green-200">
-                        <span className="text-gray-600">Median:</span>
-                        <span className="font-semibold text-gray-900 ml-1">{item.median}</span>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-green-200">
-                        <span className="text-gray-600">Std Dev:</span>
-                        <span className="font-semibold text-gray-900 ml-1">{item.std}</span>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-green-200">
-                        <span className="text-gray-600">Range:</span>
-                        <span className="font-semibold text-gray-900 ml-1">{item.range}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {analysisResults.volume_analysis && collapsed.volume && (
-        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('volume')}>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">📊 Volume Analysis</h3>
-            <ChevronDown className="w-5 h-5" />
-          </div>
-        </Card>
-      )}
-
-      {/* Custom Charts Section */}
-      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length > 0 && !collapsed.custom_charts && (
-        <Card className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">📈 Custom Analysis Charts</h3>
-              <p className="text-sm text-gray-600 italic mt-1">Additional charts added via chat assistant</p>
-            </div>
-            <Button onClick={() => toggleSection('custom_charts')} variant="ghost" size="sm">
-              <ChevronUp className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <div className="space-y-6">
-            {analysisResults.custom_charts
-              .filter(chart => chart && chart.plotly_data)
-              .map((chart, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
-                <h4 className="font-semibold mb-2 text-sm">{chart.title}</h4>
-                {chart.description && (
-                  <p className="text-xs text-gray-600 italic mb-3 line-clamp-2">{chart.description}</p>
-                )}
-                <div 
-                  id={`custom-chart-${idx}`} 
-                  className="w-full"
-                  style={{ 
-                    height: '450px',
-                    maxWidth: '100%',
-                    overflow: 'hidden'
-                  }}
-                ></div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {analysisResults.custom_charts && analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length > 0 && collapsed.custom_charts && (
-        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('custom_charts')}>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">📈 Custom Analysis Charts ({analysisResults.custom_charts.filter(chart => chart && chart.plotly_data).length})</h3>
-            <ChevronDown className="w-5 h-5" />
-          </div>
-        </Card>
-      )}
-
-      {/* Rest of sections... */}
-
-
-      {/* Data Preprocessing Report */}
-      {analysisResults.preprocessing_report && (
-        <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 mb-6">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl">
-              🧹
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-blue-900 mb-1">
-                Data Preprocessing Applied
-              </h3>
-              <p className="text-sm text-blue-700">
-                Your data was automatically cleaned and optimized before training to improve model performance
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <div className="bg-white rounded-lg p-4 border border-blue-200">
-              <div className="text-2xl font-bold text-blue-600 mb-1">
-                {analysisResults.preprocessing_report.duplicates_removed}
-              </div>
-              <div className="text-xs text-gray-600 mb-1">Duplicates Removed</div>
-              <div className="text-xs text-blue-700">
-                {analysisResults.preprocessing_report.original_rows} → {analysisResults.preprocessing_report.cleaned_rows} rows
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4 border border-blue-200">
-              <div className="text-2xl font-bold text-green-600 mb-1">
-                {analysisResults.preprocessing_report.missing_values_filled}
-              </div>
-              <div className="text-xs text-gray-600 mb-1">Missing Values Filled</div>
-              <div className="text-xs text-green-700">
-                Method: {analysisResults.preprocessing_report.imputation_method || 'median'}
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4 border border-blue-200">
-              <div className="text-2xl font-bold text-orange-600 mb-1">
-                {analysisResults.preprocessing_report.outliers_capped}
-              </div>
-              <div className="text-xs text-gray-600 mb-1">Outliers Capped</div>
-              <div className="text-xs text-orange-700">
-                {analysisResults.preprocessing_report.outlier_method || 'IQR method'}
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4 border border-blue-200">
-              <div className="text-2xl font-bold text-purple-600 mb-1">
-                {analysisResults.preprocessing_report.features_normalized ? '✓' : '—'}
-              </div>
-              <div className="text-xs text-gray-600 mb-1">Feature Normalization</div>
-              <div className="text-xs text-purple-700">
-                {analysisResults.preprocessing_report.normalization_method || 'StandardScaler'}
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
-            <p className="text-xs text-blue-900">
-              <strong>ℹ️ Note:</strong> These preprocessing steps were applied automatically to improve model accuracy. 
-              Your original uploaded data remains unchanged in the database. The cleaned version was used only for training these models.
-            </p>
-          </div>
-        </Card>
-      )}
 
       {/* Domain-Specific Visualizations - NEW SECTION */}
       {analysisResults.domain_info && analysisResults.domain_charts && analysisResults.domain_charts.length > 0 && (
@@ -2983,6 +2825,164 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('historical_trends')}>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">📊 Historical Trends Analysis</h3>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </Card>
+      )}
+
+      {/* Forecasting & Predictive Insights - WITH TABS FOR EACH MODEL */}
+      {analysisResults.sre_forecast && analysisResults.ml_models && analysisResults.ml_models.length > 0 && !collapsed.sre_forecast && (
+        <Card id="forecasting-section" className="p-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-l-cyan-500">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">🔮 Forecasting & Predictive Insights</h3>
+              <p className="text-sm text-gray-600 italic mt-1">
+                Forward-looking predictions based on trained ML models
+              </p>
+            </div>
+            <Button onClick={() => toggleSection('sre_forecast')} variant="ghost" size="sm">
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Feature Influence Summary */}
+          {analysisResults.sre_forecast.feature_influence && (
+            <div className="mb-4 p-4 bg-white rounded-lg border-2 border-cyan-300">
+              <p className="text-sm font-semibold text-cyan-800">
+                💡 {analysisResults.sre_forecast.feature_influence}
+              </p>
+            </div>
+          )}
+
+          {/* Good News Predictions */}
+          {analysisResults.sre_forecast.good_news && analysisResults.sre_forecast.good_news.length > 0 && (
+            <div className="mb-4">
+              {analysisResults.sre_forecast.good_news.map((news, idx) => (
+                <div key={idx} className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500 mb-2">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-green-800">{news.message}</p>
+                      {news.period && (
+                        <p className="text-xs text-green-600 mt-1">Period: {news.period}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tabs for each ML model */}
+          <Tabs defaultValue={analysisResults.ml_models[0].model_name} className="w-full">
+            <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${analysisResults.ml_models.length}, 1fr)`}}>
+              {analysisResults.ml_models.map((model) => (
+                <TabsTrigger key={model.model_name} value={model.model_name} className="text-xs">
+                  {model.model_name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {analysisResults.ml_models.map((model) => (
+              <TabsContent key={model.model_name} value={model.model_name}>
+                <div className="bg-white rounded-lg p-4 border border-cyan-200">
+                  
+                  {/* Feature Context - Shows which features predictions are based on */}
+                  {model.feature_importance && Object.keys(model.feature_importance).length > 0 && (
+                    <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                      <p className="text-sm font-semibold text-gray-700 mb-3">📊 Predictions Based On These Features:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(model.feature_importance)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 8)
+                          .map(([feature, importance], idx) => (
+                            <span key={idx} className="text-xs bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full font-medium">
+                              {feature} ({(importance * 100).toFixed(1)}% influence)
+                            </span>
+                          ))}
+                      </div>
+                      {Object.keys(model.feature_importance).length > 8 && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          +{Object.keys(model.feature_importance).length - 8} more features analyzed
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Forecasts */}
+                  {analysisResults.sre_forecast.forecasts && analysisResults.sre_forecast.forecasts.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-gray-800 mb-3">📈 Trend Predictions (Based on Ensemble Analysis)</h4>
+                      <p className="text-xs text-gray-600 mb-3 italic">
+                        These forecasts are generated by analyzing predictions from all trained models, providing a consensus view of future trends.
+                      </p>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {analysisResults.sre_forecast.forecasts.map((forecast, idx) => (
+                          <div key={idx} className="p-4 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg border-2 border-cyan-200">
+                            <div className="flex items-start justify-between mb-2">
+                              <span className="text-xs font-semibold text-cyan-700 uppercase">{forecast.timeframe}</span>
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                forecast.confidence === 'high' ? 'bg-green-100 text-green-700' :
+                                forecast.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {forecast.confidence} confidence
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 mb-2">{forecast.prediction}</p>
+                            {forecast.value && forecast.value !== 'N/A' && (
+                              <p className="text-lg font-bold text-cyan-600">{forecast.value}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Critical Alerts */}
+                  {analysisResults.sre_forecast.critical_alerts && analysisResults.sre_forecast.critical_alerts.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-3">⚠️ Critical Alerts</h4>
+                      <div className="space-y-2">
+                        {analysisResults.sre_forecast.critical_alerts.map((alert, idx) => (
+                          <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                            alert.severity === 'high' ? 'bg-red-50 border-red-500' :
+                            alert.severity === 'medium' ? 'bg-orange-50 border-orange-500' :
+                            'bg-yellow-50 border-yellow-500'
+                          }`}>
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className={`w-5 h-5 mt-0.5 ${
+                                alert.severity === 'high' ? 'text-red-600' :
+                                alert.severity === 'medium' ? 'text-orange-600' :
+                                'text-yellow-600'
+                              }`} />
+                              <div className="flex-1">
+                                <span className={`text-xs font-semibold uppercase ${
+                                  alert.severity === 'high' ? 'text-red-700' :
+                                  alert.severity === 'medium' ? 'text-orange-700' :
+                                  'text-yellow-700'
+                                }`}>
+                                  {alert.severity} severity
+                                </span>
+                                <p className="text-sm text-gray-700 mt-1">{alert.alert}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </Card>
+      )}
+
+      {analysisResults.sre_forecast && collapsed.sre_forecast && (
+        <Card className="p-4 cursor-pointer hover:bg-gray-50" onClick={() => toggleSection('sre_forecast')}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">🔮 Forecasting & Predictive Insights</h3>
             <ChevronDown className="w-5 h-5" />
           </div>
         </Card>
