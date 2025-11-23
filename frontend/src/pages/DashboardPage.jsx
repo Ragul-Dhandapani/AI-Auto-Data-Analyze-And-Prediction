@@ -552,7 +552,7 @@ const DashboardPage = () => {
                   
                   {showRecentDatasets && (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[600px] overflow-y-auto pr-2">
-                      {datasets.map((dataset) => {
+                      {displayDatasets.map((dataset) => {
                         const isSelected = selectedDatasetIds.has(dataset.id);
                         return (
                         <div
