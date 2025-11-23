@@ -22,6 +22,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/training-metadata" element={<TrainingMetadataPage />} />
+          <Route path="/workspace-manager" element={<WorkspaceManagerPage />} />
           <Route path="/documentation" element={<DocumentationPage />} />
         </Routes>
       </BrowserRouter>
