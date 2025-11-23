@@ -665,11 +665,17 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     try {
       toast.info(`Exporting ${modelsForExport.length} model(s)...`);
       
+      // Convert model names to model IDs (backend expects model_ids not model_names)
+      const modelIds = modelsForExport.map(name => {
+        const model = analysisResults.ml_models.find(m => m.model_name === name);
+        return model?.model_id || name;
+      });
+      
       const response = await axios.post(
-        `${API}/export/code`,
+        `${API}/model/export`,
         {
           dataset_id: dataset.id,
-          model_names: modelsForExport,
+          model_ids: modelIds,
           target_column: analysisResults.target_column || selectedTarget,
           feature_columns: analysisResults.feature_columns || selectedFeatures,
           analysis_results: analysisResults // Include full results for better README
