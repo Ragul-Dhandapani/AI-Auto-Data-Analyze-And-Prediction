@@ -199,6 +199,144 @@ async def get_performance_trends(workspace_id: str):
         raise HTTPException(500, f"Failed to get trends: {str(e)}")
 
 
+@router.get("/{workspace_id}/holistic-score")
+async def get_holistic_workspace_score(workspace_id: str):
+    """
+    Calculate holistic performance score for workspace
+    
+    Aggregates all model training results and provides:
+    - Overall performance score (0-100)
+    - Average model accuracy
+    - Best performing model
+    - Improvement trend
+    - Training activity level
+    """
+    try:
+        db_adapter = get_db()
+        
+        # Verify workspace exists
+        workspace = await db_adapter.get_workspace(workspace_id)
+        if not workspace:
+            raise HTTPException(404, "Workspace not found")
+        
+        # Get all training metadata for this workspace
+        training_history = await db_adapter.get_workspace_training_history(workspace_id)
+        
+        if not training_history or len(training_history) == 0:
+            return {
+                "workspace_id": workspace_id,
+                "score": 0,
+                "grade": "N/A",
+                "message": "No training data available",
+                "details": {
+                    "avg_accuracy": 0,
+                    "best_model": None,
+                    "training_count": 0,
+                    "trend": "no_data"
+                }
+            }
+        
+        # Extract scores from training history
+        scores = []
+        for training in training_history:
+            metrics = training.get("metrics", {})
+            # Handle both regression (r2_score) and classification (accuracy)
+            score = metrics.get("r2_score") or metrics.get("accuracy") or 0
+            scores.append(score)
+        
+        # Calculate metrics
+        avg_accuracy = sum(scores) / len(scores) if scores else 0
+        best_score = max(scores) if scores else 0
+        training_count = len(training_history)
+        
+        # Find best model
+        best_model_info = None
+        if training_history:
+            best_training = max(
+                training_history,
+                key=lambda t: (t.get("metrics", {}).get("r2_score") or 
+                              t.get("metrics", {}).get("accuracy") or 0)
+            )
+            best_model_info = {
+                "model_type": best_training.get("model_type"),
+                "score": (best_training.get("metrics", {}).get("r2_score") or 
+                         best_training.get("metrics", {}).get("accuracy") or 0),
+                "problem_type": best_training.get("problem_type")
+            }
+        
+        # Calculate improvement trend (compare recent vs historical)
+        improvement_trend = 0
+        if len(scores) >= 5:
+            recent_avg = sum(scores[-5:]) / 5
+            historical_avg = sum(scores[:-5]) / len(scores[:-5]) if len(scores) > 5 else avg_accuracy
+            improvement_trend = (recent_avg - historical_avg) / max(historical_avg, 0.01)
+        
+        trend_label = "improving" if improvement_trend > 0.05 else "declining" if improvement_trend < -0.05 else "stable"
+        
+        # Calculate holistic score (0-100)
+        # Weighted formula:
+        # - 40% average accuracy
+        # - 30% best model score
+        # - 20% improvement trend (normalized)
+        # - 10% training activity (bonus for more training runs)
+        
+        activity_bonus = min(training_count / 20, 1.0)  # Cap at 20 runs for max bonus
+        trend_component = max(min(improvement_trend, 0.2), -0.2) + 0.2  # Normalize -0.2 to 0.4 -> 0 to 0.6
+        
+        holistic_score = (
+            avg_accuracy * 0.4 +
+            best_score * 0.3 +
+            (trend_component / 0.6) * 0.2 +  # Normalize trend to 0-1 range
+            activity_bonus * 0.1
+        ) * 100
+        
+        holistic_score = round(max(0, min(100, holistic_score)), 2)
+        
+        # Determine grade
+        if holistic_score >= 90:
+            grade = "A+"
+        elif holistic_score >= 80:
+            grade = "A"
+        elif holistic_score >= 70:
+            grade = "B"
+        elif holistic_score >= 60:
+            grade = "C"
+        else:
+            grade = "D"
+        
+        logger.info(f"Calculated holistic score for workspace {workspace_id}: {holistic_score} ({grade})")
+        
+        return {
+            "workspace_id": workspace_id,
+            "workspace_name": workspace.get("name"),
+            "score": holistic_score,
+            "grade": grade,
+            "details": {
+                "avg_accuracy": round(avg_accuracy, 4),
+                "best_model": best_model_info,
+                "training_count": training_count,
+                "trend": trend_label,
+                "improvement_rate": round(improvement_trend * 100, 2)  # As percentage
+            },
+            "interpretation": {
+                "score_meaning": f"This workspace has {'excellent' if holistic_score >= 80 else 'good' if holistic_score >= 60 else 'moderate' if holistic_score >= 40 else 'low'} overall performance",
+                "recommendation": (
+                    "Continue training with current approach" if holistic_score >= 80 else
+                    "Try different models or feature engineering" if holistic_score >= 60 else
+                    "Consider data quality improvements and hyperparameter tuning" if holistic_score >= 40 else
+                    "Review data quality, feature selection, and problem formulation"
+                )
+            }
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to calculate holistic score: {str(e)}", exc_info=True)
+        raise HTTPException(500, f"Failed to calculate score: {str(e)}")
+
+
+
 @router.delete("/{workspace_id}")
 async def delete_workspace(workspace_id: str):
     """Delete a workspace"""
