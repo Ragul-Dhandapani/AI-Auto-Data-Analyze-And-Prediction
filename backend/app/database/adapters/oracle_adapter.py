@@ -323,14 +323,16 @@ class OracleAdapter(DatabaseAdapter):
         return result
     
     async def list_datasets(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """List all datasets"""
+        """List all datasets with workspace information"""
         query = """
-        SELECT ID, WORKSPACE_ID, NAME, ROW_COUNT, COLUMN_COUNT,
-               COLUMNS, DTYPES, DATA_PREVIEW,
-               STORAGE_TYPE, GRIDFS_FILE_ID, SOURCE_TYPE, FILE_SIZE,
-               TRAINING_COUNT, CREATED_AT, LAST_TRAINED_AT, UPDATED_AT
-        FROM DATASETS
-        ORDER BY CREATED_AT DESC
+        SELECT d.ID, d.WORKSPACE_ID, d.NAME, d.ROW_COUNT, d.COLUMN_COUNT,
+               d.COLUMNS, d.DTYPES, d.DATA_PREVIEW,
+               d.STORAGE_TYPE, d.GRIDFS_FILE_ID, d.SOURCE_TYPE, d.FILE_SIZE,
+               d.TRAINING_COUNT, d.CREATED_AT, d.LAST_TRAINED_AT, d.UPDATED_AT,
+               w.NAME as WORKSPACE_NAME
+        FROM DATASETS d
+        LEFT JOIN WORKSPACES w ON d.WORKSPACE_ID = w.ID
+        ORDER BY d.CREATED_AT DESC
         FETCH FIRST :limit ROWS ONLY
         """
         
