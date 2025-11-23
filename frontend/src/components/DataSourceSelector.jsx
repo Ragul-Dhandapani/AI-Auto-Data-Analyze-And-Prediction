@@ -517,7 +517,7 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
                 type="checkbox"
                 id="enable-automl"
                 checked={enableAutoML}
-                onChange={(e) => setEnableAutoML(e.target.checked)}
+                onChange={(e) => handleAutoMLToggle(e.target.checked)}
                 className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 mt-0.5"
               />
               <div className="flex-1">
