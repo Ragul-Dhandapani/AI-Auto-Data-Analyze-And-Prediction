@@ -293,17 +293,22 @@ const DashboardPage = () => {
       setSaveProgress(40);
       toast.info("Preparing workspace data...");
       
-      // Prepare payload
+      // Prepare payload - Extract data for current dataset
       const payload = {
         dataset_id: selectedDataset.id,
         state_name: stateName,
         analysis_data: {
-          predictive_analysis: predictiveAnalysisCache,
-          visualization: visualizationCache,
-          data_profiler: dataProfilerCache
+          predictive_analysis: predictiveAnalysisCache[selectedDataset.id] || {},
+          visualization: visualizationCache[selectedDataset.id] || {},
+          data_profiler: dataProfilerCache[selectedDataset.id] || {}
         },
         chat_history: []
       };
+      
+      console.log('💾 Saving analysis data:', {
+        hasModels: !!payload.analysis_data?.predictive_analysis?.ml_models,
+        modelCount: payload.analysis_data?.predictive_analysis?.ml_models?.length || 0
+      });
       
       // Check payload size (informational - backend will handle large data)
       const payloadSize = new Blob([JSON.stringify(payload)]).size;
