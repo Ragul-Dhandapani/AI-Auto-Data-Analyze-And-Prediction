@@ -20,11 +20,15 @@ const HyperparameterTuning = ({ dataset, cachedResults, onComplete }) => {
   const [nIter, setNIter] = useState(20);
   const [results, setResults] = useState(cachedResults || null);
   
-  // Custom parameter grid
+  // Custom parameter grid - Extended to match AI suggestions
   const [customParams, setCustomParams] = useState({
     n_estimators: '50,100,200',
     max_depth: '5,10,20',
-    learning_rate: '0.01,0.1,0.2'
+    learning_rate: '0.01,0.1,0.2',
+    subsample: '0.5,0.8,1.0',
+    colsample_bytree: '0.5,0.8,1.0',
+    min_samples_split: '2,5,10',
+    min_samples_leaf: '1,2,4'
   });
 
   // Update results when cache changes
