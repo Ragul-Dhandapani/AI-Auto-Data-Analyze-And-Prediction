@@ -7,7 +7,7 @@ import HyperparameterTuning from './HyperparameterTuning';
 import FeedbackPanel from './FeedbackPanel';
 import { BarChart3, TrendingUp, Settings, MessageSquare, Database } from 'lucide-react';
 
-const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection }) => {
+const AnalysisTabs = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection, enableAutoML }) => {
   const [tabResults, setTabResults] = useState({
     predictive: analysisCache || null,
     timeseries: null,
