@@ -83,7 +83,7 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
       setNewWorkspaceName("");
       setShowWorkspaceDialog(false);
       await loadWorkspaces();
-      setSelectedWorkspace(response.data.workspace);
+      handleWorkspaceSelect(response.data.workspace);
     } catch (error) {
       toast.error("Failed to create workspace: " + (error.response?.data?.detail || error.message));
     }
