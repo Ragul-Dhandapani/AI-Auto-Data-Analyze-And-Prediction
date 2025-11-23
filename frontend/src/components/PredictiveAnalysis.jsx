@@ -1053,6 +1053,64 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
         </div>
       )}
 
+
+      {/* Holistic Workspace Score */}
+      {holisticScore && (
+        <Card className="p-6 bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-300">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity className="w-6 h-6 text-purple-600" />
+                <h3 className="text-xl font-bold text-gray-800">Workspace Performance Score</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">{holisticScore.interpretation?.score_meaning}</p>
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Average Accuracy</p>
+                  <p className="text-lg font-bold text-gray-800">{(holisticScore.details?.avg_accuracy * 100).toFixed(1)}%</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Total Trainings</p>
+                  <p className="text-lg font-bold text-gray-800">{holisticScore.details?.training_count}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Best Model</p>
+                  <p className="text-sm font-semibold text-gray-800">{holisticScore.details?.best_model?.model_type || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Trend</p>
+                  <p className="text-sm font-semibold">
+                    <span className={`px-2 py-1 rounded ${
+                      holisticScore.details?.trend === 'improving' ? 'bg-green-100 text-green-700' :
+                      holisticScore.details?.trend === 'declining' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {holisticScore.details?.trend === 'improving' ? '↗ Improving' :
+                       holisticScore.details?.trend === 'declining' ? '↘ Declining' :
+                       '→ Stable'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-center ml-6 px-6 border-l-2 border-purple-200">
+              <div className="text-6xl font-bold bg-gradient-to-br from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                {holisticScore.score}
+              </div>
+              <div className="text-2xl font-bold text-purple-700 mt-2">
+                Grade: {holisticScore.grade}
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-white rounded-lg border border-purple-200">
+            <p className="text-sm text-gray-700">
+              <strong className="text-purple-700">💡 Recommendation:</strong> {holisticScore.interpretation?.recommendation}
+            </p>
+          </div>
+        </Card>
+      )}
+
+
       {/* AI Summary - TOP POSITION */}
       {analysisResults.ai_summary && !collapsed.summary && (
         <Card className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
