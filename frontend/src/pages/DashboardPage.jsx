@@ -311,7 +311,7 @@ const DashboardPage = () => {
       const sizeInfo = savedInfo.size_mb ? ` (${savedInfo.size_mb} MB)` : '';
       const optimizedInfo = savedInfo.optimized ? ' - Optimized & Compressed' : '';
       
-      toast.success(`✅ Workspace saved as "${stateName}"${sizeInfo}${optimizedInfo}`);
+      toast.success(`✅ Dataset analysis saved as "${stateName}"${sizeInfo}${optimizedInfo}`);
       
       // Store workspace name in localStorage for linking future training runs
       localStorage.setItem('current_workspace_name', stateName);
