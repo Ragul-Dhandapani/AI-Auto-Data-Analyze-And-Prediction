@@ -897,6 +897,17 @@ async def holistic_analysis(request: Dict[str, Any]):
                 
                 logger.info(f"✅ Successfully saved training metadata for ALL {len(all_models)} models!")
                 
+                # Update workspace training count if workspace_id is present
+                if workspace_id:
+                    try:
+                        # Increment by the number of models trained
+                        for _ in range(len(all_models)):
+                            await db_adapter.increment_workspace_training_count(workspace_id)
+                        logger.info(f"✅ Updated workspace {workspace_id} training count (+{len(all_models)})")
+                    except Exception as ws_error:
+                        logger.warning(f"⚠️ Failed to update workspace training count: {ws_error}")
+                        # Don't fail the entire operation if workspace update fails
+                
             except Exception as e:
                 logger.error(f"⚠️ Failed to save training metadata: {str(e)}")
                 # Don't fail the entire request if metadata saving fails
