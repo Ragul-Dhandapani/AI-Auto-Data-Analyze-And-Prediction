@@ -140,10 +140,21 @@ const WorkspaceManager = () => {
       const response = await axios.get(`${BACKEND_URL}/api/analysis/load-state/${stateId}`);
       const details = response.data;
       
-      // Normalize the structure - backend returns analysis_results, we need analysis_data
+      // Parse analysis_results if it's a JSON string
+      let analysisData = details.analysis_results || details.analysis_data || {};
+      if (typeof analysisData === 'string') {
+        try {
+          analysisData = JSON.parse(analysisData);
+        } catch (e) {
+          console.error('Failed to parse analysis_results:', e);
+          analysisData = {};
+        }
+      }
+      
+      // Normalize the structure
       const normalizedDetails = {
         ...details,
-        analysis_data: details.analysis_results || details.analysis_data || {}
+        analysis_data: analysisData
       };
       
       setAnalysisDetails(prev => ({
