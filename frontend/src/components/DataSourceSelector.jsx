@@ -13,7 +13,7 @@ import { Upload, Database, Loader2, Check, X, Clock, Code } from "lucide-react";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorkspace: propSelectedWorkspace }) => {
+const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorkspace: propSelectedWorkspace, onAutoMLChange }) => {
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
