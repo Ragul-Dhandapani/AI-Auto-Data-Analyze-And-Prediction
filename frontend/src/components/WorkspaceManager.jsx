@@ -155,13 +155,31 @@ const WorkspaceManager = () => {
     }
   };
 
-  const viewAnalysis = (analysis, dataset) => {
-    navigate('/', {
-      state: {
-        loadStateId: analysis.id,
-        datasetId: dataset.id
-      }
-    });
+  const viewAnalysis = async (analysis, dataset) => {
+    try {
+      // Load the analysis state first
+      const response = await axios.get(`${BACKEND_URL}/api/analysis/load-state/${analysis.id}`);
+      const stateData = response.data;
+      
+      // Store in localStorage for the dashboard to pick up
+      localStorage.setItem('loadAnalysisOnMount', JSON.stringify({
+        stateId: analysis.id,
+        datasetId: dataset.id,
+        stateName: analysis.state_name,
+        analysisData: stateData.analysis_results || stateData.analysis_data
+      }));
+      
+      // Navigate to dashboard
+      navigate('/');
+      
+      // Small delay then reload to trigger loading
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } catch (error) {
+      console.error('Failed to load analysis:', error);
+      toast.error('Failed to load analysis. Please try again.');
+    }
   };
 
   const createWorkspace = async () => {
