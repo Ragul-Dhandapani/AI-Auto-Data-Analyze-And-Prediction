@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useDropzone } from "react-dropzone";
-import { Upload, Database, Loader2, Check, X, Clock, Code } from "lucide-react";
+import { Upload, Database, Loader2, Check, X, Clock, Code, AlertTriangle } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
