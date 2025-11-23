@@ -1,175 +1,210 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Card } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp, Award, Activity, Calendar } from "lucide-react";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, Activity, TrendingUp, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
-const ModelMonitoring = ({ workspaceId }) => {
-  const [trends, setTrends] = useState(null);
+const ModelMonitoring = ({ workspaceId, datasetId }) => {
+  const [trainingHistory, setTrainingHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMetric, setSelectedMetric] = useState('r2_score');
 
   useEffect(() => {
-    if (workspaceId) {
-      loadPerformanceTrends();
-    }
-  }, [workspaceId]);
+    loadTrainingHistory();
+  }, [workspaceId, datasetId]);
 
-  const loadPerformanceTrends = async () => {
-    setLoading(true);
+  const loadTrainingHistory = async () => {
     try {
-      const response = await axios.get(`${API}/workspace/${workspaceId}/performance-trends`);
-      setTrends(response.data);
+      setLoading(true);
+      let response;
+      
+      if (datasetId) {
+        response = await axios.get(`${BACKEND_URL}/api/training-metadata/${datasetId}`);
+      } else if (workspaceId) {
+        response = await axios.get(`${BACKEND_URL}/api/workspace/${workspaceId}/training-history`);
+      }
+      
+      setTrainingHistory(response?.data?.trainings || []);
     } catch (error) {
-      console.error("Failed to load performance trends:", error);
+      console.error('Failed to load training history:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const prepareChartData = () => {
+    return trainingHistory
+      .slice().reverse()
+      .map((training, idx) => ({
+        name: `Run ${idx + 1}`,
+        timestamp: new Date(training.created_at).toLocaleDateString(),
+        r2_score: training.metrics?.r2_score || training.metrics?.accuracy || 0,
+        rmse: training.metrics?.rmse || 0,
+        mae: training.metrics?.mae || 0,
+        training_duration: training.training_duration || 0,
+        model: training.model_type
+      }));
+  };
+
+  const getModelTypeColor = (modelType) => {
+    const colors = {
+      'RandomForest': '#10b981',
+      'XGBoost': '#3b82f6',
+      'LinearRegression': '#8b5cf6',
+      'GradientBoosting': '#f59e0b',
+      'Default': '#6b7280'
+    };
+    return colors[modelType] || colors.Default;
+  };
+
+  const calculateStats = () => {
+    if (trainingHistory.length === 0) return null;
+
+    const scores = trainingHistory.map(t => t.metrics?.r2_score || t.metrics?.accuracy || 0);
+    const durations = trainingHistory.map(t => t.training_duration || 0);
+    
+    return {
+      avgScore: (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(4),
+      bestScore: Math.max(...scores).toFixed(4),
+      totalRuns: trainingHistory.length,
+      avgDuration: (durations.reduce((a, b) => a + b, 0) / durations.length).toFixed(2),
+      trend: scores[scores.length - 1] > scores[0] ? 'improving' : 'declining'
+    };
+  };
+
+  const stats = calculateStats();
+  const chartData = prepareChartData();
+
   if (loading) {
-    return <div className="text-center py-8">Loading performance trends...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
   }
 
-  if (!trends || trends.total_training_runs === 0) {
+  if (trainingHistory.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <Activity className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-        <h4 className="font-semibold text-gray-700 mb-2">No Training History Yet</h4>
-        <p className="text-sm text-gray-600">
-          Train models in this workspace to see performance trends over time
-        </p>
+      <Card className="p-12 text-center">
+        <Activity className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">No Training History</h3>
+        <p className="text-gray-500">Run your first analysis to start tracking model performance</p>
       </Card>
     );
   }
 
-  const { model_trends, best_model_recommendation, total_training_runs } = trends;
-
-  // Prepare chart data
-  const chartData = {};
-  Object.entries(model_trends).forEach(([modelType, runs]) => {
-    runs.forEach((run) => {
-      const date = new Date(run.timestamp).toLocaleDateString();
-      if (!chartData[date]) {
-        chartData[date] = { date };
-      }
-      const score = run.metrics.r2_score || run.metrics.accuracy || 0;
-      chartData[date][modelType] = score;
-    });
-  });
-
-  const chartDataArray = Object.values(chartData);
-
-  const colors = [
-    "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
-    "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#84cc16"
-  ];
-
   return (
     <div className="space-y-6">
-      {/* Header Stats */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-blue-600" />
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Trainings</p>
-              <p className="text-2xl font-bold text-gray-900">{total_training_runs}</p>
+              <p className="text-sm text-gray-600">Average Score</p>
+              <p className="text-2xl font-bold">{stats.avgScore}</p>
             </div>
+            <TrendingUp className="w-8 h-8 text-blue-600" />
           </div>
         </Card>
-
-        <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100">
-          <div className="flex items-center gap-3">
-            <Activity className="w-8 h-8 text-green-600" />
+        
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Models Tested</p>
-              <p className="text-2xl font-bold text-gray-900">{Object.keys(model_trends).length}</p>
+              <p className="text-sm text-gray-600">Best Score</p>
+              <p className="text-2xl font-bold">{stats.bestScore}</p>
             </div>
+            <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </Card>
-
-        {best_model_recommendation && (
-          <Card className="p-4 bg-gradient-to-br from-purple-50 to-purple-100">
-            <div className="flex items-center gap-3">
-              <Award className="w-8 h-8 text-purple-600" />
-              <div>
-                <p className="text-sm text-gray-600">Best Model</p>
-                <p className="text-lg font-bold text-gray-900">{best_model_recommendation.model_type}</p>
-                <p className="text-xs text-gray-600">
-                  Avg Score: {best_model_recommendation.avg_score.toFixed(4)}
-                </p>
-              </div>
+        
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Total Runs</p>
+              <p className="text-2xl font-bold">{stats.totalRuns}</p>
             </div>
-          </Card>
-        )}
+            <Activity className="w-8 h-8 text-purple-600" />
+          </div>
+        </Card>
+        
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Avg Duration</p>
+              <p className="text-2xl font-bold">{stats.avgDuration}s</p>
+            </div>
+            <Clock className="w-8 h-8 text-orange-600" />
+          </div>
+        </Card>
       </div>
 
-      {/* Performance Trends Chart */}
+      {/* Performance Trend Chart */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-blue-600" />
-          Performance Trends Over Time
-        </h3>
-
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={chartDataArray}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Performance Trend</h3>
+          <div className="flex items-center gap-2">
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              stats.trend === 'improving' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
+              {stats.trend === 'improving' ? '↗ Improving' : '↘ Declining'}
+            </span>
+          </div>
+        </div>
+        
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis domain={[0, 1]} />
+            <XAxis dataKey="name" />
+            <YAxis />
             <Tooltip />
             <Legend />
-            {Object.keys(model_trends).map((modelType, idx) => (
-              <Line
-                key={modelType}
-                type="monotone"
-                dataKey={modelType}
-                stroke={colors[idx % colors.length]}
-                strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            ))}
+            <Line type="monotone" dataKey="r2_score" stroke="#3b82f6" name="R² Score" strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
-
-        <p className="text-xs text-gray-500 mt-4 text-center">
-          Higher scores indicate better model performance. Track trends to identify the most consistent models.
-        </p>
       </Card>
 
-      {/* Model Performance Details */}
+      {/* Recent Training Runs */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Model Performance Details</h3>
-        <div className="space-y-4">
-          {Object.entries(model_trends).map(([modelType, runs]) => {
-            const avgScore = (runs.reduce((sum, r) => sum + (r.metrics.r2_score || r.metrics.accuracy || 0), 0) / runs.length).toFixed(4);
-            const minScore = Math.min(...runs.map(r => r.metrics.r2_score || r.metrics.accuracy || 0)).toFixed(4);
-            const maxScore = Math.max(...runs.map(r => r.metrics.r2_score || r.metrics.accuracy || 0)).toFixed(4);
-
-            return (
-              <div key={modelType} className="border-l-4 border-blue-500 pl-4 py-2">
-                <h4 className="font-semibold text-gray-900">{modelType}</h4>
-                <div className="grid grid-cols-3 gap-4 mt-2 text-sm">
-                  <div>
-                    <p className="text-gray-600">Avg Score</p>
-                    <p className="font-semibold">{avgScore}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Best</p>
-                    <p className="font-semibold text-green-600">{maxScore}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Worst</p>
-                    <p className="font-semibold text-red-600">{minScore}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">{runs.length} training runs</p>
-              </div>
-            );
-          })}
+        <h3 className="text-lg font-semibold mb-4">Recent Training Runs</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 px-4">Model</th>
+                <th className="text-left py-2 px-4">Score</th>
+                <th className="text-left py-2 px-4">Duration</th>
+                <th className="text-left py-2 px-4">Date</th>
+                <th className="text-left py-2 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trainingHistory.slice(0, 10).map((training, idx) => (
+                <tr key={idx} className="border-b hover:bg-gray-50">
+                  <td className="py-3 px-4">
+                    <span
+                      className="px-2 py-1 rounded text-sm font-medium"
+                      style={{ backgroundColor: `${getModelTypeColor(training.model_type)}20`, color: getModelTypeColor(training.model_type) }}
+                    >
+                      {training.model_type}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 font-semibold">
+                    {(training.metrics?.r2_score || training.metrics?.accuracy || 0).toFixed(4)}
+                  </td>
+                  <td className="py-3 px-4">{(training.training_duration || 0).toFixed(2)}s</td>
+                  <td className="py-3 px-4">{new Date(training.created_at).toLocaleString()}</td>
+                  <td className="py-3 px-4">
+                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">
+                      ✓ Complete
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </Card>
     </div>
