@@ -1146,8 +1146,6 @@ const DataSourceSelector = ({ onDatasetLoaded, onWorkspaceChange, selectedWorksp
               </div>
             )}
           </div>
-          </>
-          )}
         </TabsContent>
       </Tabs>
       
