@@ -124,8 +124,12 @@ const WorkspaceManager = () => {
 
   const loadDatasetAnalyses = async (datasetId) => {
     try {
+      console.log('📊 Fetching saved states for dataset:', datasetId);
       const response = await axios.get(`${BACKEND_URL}/api/analysis/saved-states/${datasetId}`);
       const states = response.data.states || [];
+      console.log('💾 Saved states found:', states.length);
+      console.log('📝 State names:', states.map(s => s.state_name || s.workspace_name));
+      
       setSavedAnalyses(prev => ({
         ...prev,
         [datasetId]: states
@@ -133,10 +137,11 @@ const WorkspaceManager = () => {
       
       // Load full details for each analysis
       for (const state of states) {
+        console.log('🔍 Loading details for state:', state.id, state.state_name);
         await loadAnalysisDetails(state.id);
       }
     } catch (error) {
-      console.error(`Failed to load analyses for dataset ${datasetId}:`, error);
+      console.error(`❌ Failed to load analyses for dataset ${datasetId}:`, error);
     }
   };
 
