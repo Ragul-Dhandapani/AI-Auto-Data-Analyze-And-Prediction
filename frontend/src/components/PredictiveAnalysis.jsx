@@ -31,7 +31,7 @@ const loadPlotly = () => {
   });
 };
 
-const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection }) => {
+const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variableSelection, enableAutoML }) => {
   // CRITICAL: Initialize ref BEFORE state to ensure it's ready for merge operations
   const previousResultsRef = useRef(null);  // CRITICAL: Persist previous results across state updates
   
