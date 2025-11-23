@@ -77,6 +77,7 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
   const [showExportModal, setShowExportModal] = useState(false); // Show export model selection modal
   const [modelsForExport, setModelsForExport] = useState([]); // Selected models for export
   const [selectedChartModel, setSelectedChartModel] = useState(null); // Selected model for Actual vs. Predicted chart
+  const [holisticScore, setHolisticScore] = useState(null); // Workspace holistic performance score
   const chatEndRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const hasRunAnalysisRef = useRef(false);  // Track if analysis has been triggered
