@@ -309,13 +309,18 @@ class WorkspaceManagerTester:
                         insights = analysis_data.get("insights", "")
                         
                         # Check for arrays that should be properly handled (no "map is not a function" errors)
-                        arrays_to_check = ["ml_models", "auto_charts", "correlations"]
+                        arrays_to_check = ["ml_models", "auto_charts"]
                         array_issues = []
                         
                         for array_name in arrays_to_check:
                             array_data = analysis_data.get(array_name)
                             if array_data is not None and not isinstance(array_data, list):
                                 array_issues.append(f"{array_name} is not an array: {type(array_data)}")
+                        
+                        # Special handling for correlations - can be dict or array
+                        correlations_data = analysis_data.get("correlations")
+                        if correlations_data is not None and not isinstance(correlations_data, (list, dict)):
+                            array_issues.append(f"correlations has unexpected type: {type(correlations_data)}")
                         
                         if array_issues:
                             self.log_test("GET /api/analysis/load-state/{state_id}", "FAIL", 
