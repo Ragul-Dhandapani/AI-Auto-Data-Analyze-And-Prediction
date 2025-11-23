@@ -33,6 +33,9 @@ const DashboardPage = () => {
   const [pendingDataset, setPendingDataset] = useState(null);
   const [variableSelection, setVariableSelection] = useState(null);
   
+  // AutoML settings
+  const [enableAutoML, setEnableAutoML] = useState(false);
+  
   // Lift analysis state to prevent re-analysis on tab switch
   const [predictiveAnalysisCache, setPredictiveAnalysisCache] = useState({});
   const [visualizationCache, setVisualizationCache] = useState({});
