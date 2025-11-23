@@ -96,10 +96,14 @@ const WorkspaceManager = () => {
     try {
       setLoadingDatasets(prev => ({ ...prev, [workspaceId]: true }));
       
+      console.log('🔍 Loading datasets for workspace:', workspaceId);
       const response = await axios.get(`${BACKEND_URL}/api/datasource/datasets`);
       const allDatasets = response.data.datasets || [];
+      console.log('📊 Total datasets fetched:', allDatasets.length);
       
       const workspaceDatasetsList = allDatasets.filter(d => d.workspace_id === workspaceId);
+      console.log('✅ Datasets in this workspace:', workspaceDatasetsList.length);
+      console.log('📁 Dataset names:', workspaceDatasetsList.map(d => d.name));
       
       setWorkspaceDatasets(prev => ({
         ...prev,
@@ -107,10 +111,11 @@ const WorkspaceManager = () => {
       }));
       
       for (const dataset of workspaceDatasetsList) {
+        console.log('🔄 Loading analyses for dataset:', dataset.id);
         await loadDatasetAnalyses(dataset.id);
       }
     } catch (error) {
-      console.error('Failed to load datasets:', error);
+      console.error('❌ Failed to load datasets:', error);
       toast.error('Failed to load datasets for workspace');
     } finally {
       setLoadingDatasets(prev => ({ ...prev, [workspaceId]: false }));
