@@ -440,15 +440,30 @@ def train_models_with_selection(df, target_column, problem_type, selected_models
     
     logger.info(f"✅ Final problem type: {problem_type} (target has {unique_values} unique values)")
     
-    # Train with enhanced service
-    if problem_type == 'classification':
-        results, best_model, best_score = train_classification_models_enhanced(
-            X_train, y_train, X_test, y_test, selected_models
-        )
-    else:  # regression
-        results, best_model, best_score = train_regression_models_enhanced(
-            X_train, y_train, X_test, y_test, selected_models
-        )
+    # Train with enhanced service (with optional AutoML)
+    if use_automl:
+        logger.info(f"🤖 Using AutoML optimization (level: {automl_optimization_level})")
+        from app.mcp.automl_optimizer import AutoMLOptimizer
+        
+        automl = AutoMLOptimizer(optimization_level=automl_optimization_level)
+        
+        if problem_type == 'classification':
+            results, best_model, best_score = automl.optimize_classification_models(
+                X_train, y_train, X_test, y_test, selected_models
+            )
+        else:  # regression
+            results, best_model, best_score = automl.optimize_regression_models(
+                X_train, y_train, X_test, y_test, selected_models
+            )
+    else:
+        if problem_type == 'classification':
+            results, best_model, best_score = train_classification_models_enhanced(
+                X_train, y_train, X_test, y_test, selected_models
+            )
+        else:  # regression
+            results, best_model, best_score = train_regression_models_enhanced(
+                X_train, y_train, X_test, y_test, selected_models
+            )
     
     # Format results to match expected structure
     formatted_models = []
