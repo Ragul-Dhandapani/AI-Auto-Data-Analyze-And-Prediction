@@ -468,9 +468,19 @@ const DashboardPage = () => {
 
           {!selectedDataset ? (
             <div>
-              <DataSourceSelector onDatasetLoaded={handleDatasetLoaded} />
+              <DataSourceSelector 
+                onDatasetLoaded={handleDatasetLoaded}
+                onWorkspaceChange={handleWorkspaceChange}
+                selectedWorkspace={selectedWorkspace}
+              />
               
-              {datasets.length > 0 ? (
+              {/* Filter datasets by workspace if one is selected */}
+              {(() => {
+                const filteredDatasets = selectedWorkspace 
+                  ? datasets.filter(d => d.workspace_id === selectedWorkspace.id)
+                  : [];
+                
+                return (filteredDatasets.length > 0 || (!selectedWorkspace && datasets.length > 0)) ? (
                 <Card className="mt-8 p-6 bg-white/90 backdrop-blur-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
