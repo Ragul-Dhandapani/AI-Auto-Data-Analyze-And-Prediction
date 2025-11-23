@@ -655,56 +655,217 @@ const PredictiveAnalysis = ({ dataset, analysisCache, onAnalysisUpdate, variable
     setShowExportModal(true);
   };
   
-  // Export selected models as ZIP
-  const exportModelCode = async () => {
+  // Export selected models as Python scripts (client-side generation)
+  const exportModelCode = () => {
     if (modelsForExport.length === 0) {
       toast.error("Please select at least one model to export");
       return;
     }
     
     try {
-      toast.info(`Exporting ${modelsForExport.length} model(s)...`);
+      toast.info(`Generating ${modelsForExport.length} model script(s)...`);
       
-      // Convert model names to model IDs (backend expects model_ids not model_names)
-      const modelIds = modelsForExport.map(name => {
-        const model = analysisResults.ml_models.find(m => m.model_name === name);
-        return model?.model_id || name;
+      // Generate Python scripts for each selected model
+      modelsForExport.forEach(modelName => {
+        const model = analysisResults.ml_models.find(m => m.model_name === modelName);
+        if (!model) return;
+        
+        // Generate Python script
+        const pythonScript = generateModelPythonScript(model, analysisResults);
+        
+        // Create and download file
+        const blob = new Blob([pythonScript], { type: 'text/x-python' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${modelName.replace(/\s+/g, '_')}_model.py`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
       });
       
-      const response = await axios.post(
-        `${API}/model/export`,
-        {
-          dataset_id: dataset.id,
-          model_ids: modelIds,
-          target_column: analysisResults.target_column || selectedTarget,
-          feature_columns: analysisResults.feature_columns || selectedFeatures,
-          analysis_results: analysisResults // Include full results for better README
-        },
-        { responseType: 'blob' }
-      );
-      
-      // Download ZIP file
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      
-      const filename = modelsForExport.length === 1 
-        ? `${modelsForExport[0]}_export.zip`
-        : `promise_ai_${modelsForExport.length}_models_export.zip`;
-      
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.success(`✅ Exported ${modelsForExport.length} model(s) successfully!`);
+      toast.success(`✅ Exported ${modelsForExport.length} model script(s) successfully!`);
       console.log(`✅ Exported models: ${modelsForExport.join(', ')}`);
       setShowExportModal(false);
     } catch (error) {
       console.error('❌ Export failed:', error);
       toast.error('Failed to export model code. Please try again.');
     }
+  };
+  
+  // Generate Python script for a model
+  const generateModelPythonScript = (model, results) => {
+    const targetCol = results.target_column || 'target';
+    const featureCols = results.feature_columns || [];
+    const problemType = results.problem_type || 'regression';
+    const metrics = model.metrics || {};
+    
+    return `"""
+Generated Model Script: ${model.model_name}
+Problem Type: ${problemType}
+Target Column: ${targetCol}
+Features: ${featureCols.length} columns
+Performance: ${problemType === 'regression' ? `R² = ${metrics.r2_score?.toFixed(4) || 'N/A'}` : `Accuracy = ${metrics.accuracy?.toFixed(4) || 'N/A'}`}
+"""
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+${getModelImports(model.model_name)}
+
+# Configuration
+TARGET_COLUMN = '${targetCol}'
+FEATURE_COLUMNS = ${JSON.stringify(featureCols, null, 2)}
+TEST_SIZE = 0.2
+RANDOM_STATE = 42
+
+def load_data(filepath):
+    """Load dataset from CSV file"""
+    df = pd.read_csv(filepath)
+    return df
+
+def prepare_data(df):
+    """Prepare features and target"""
+    X = df[FEATURE_COLUMNS]
+    y = df[TARGET_COLUMN]
+    
+    # Handle missing values
+    X = X.fillna(X.mean())
+    y = y.fillna(y.mean())
+    
+    return X, y
+
+def train_model(X_train, y_train):
+    """Train ${model.model_name} model"""
+    ${getModelCode(model.model_name, model.best_params)}
+    model.fit(X_train, y_train)
+    return model
+
+def evaluate_model(model, X_test, y_test):
+    """Evaluate model performance"""
+    from sklearn.metrics import ${problemType === 'regression' ? 'r2_score, mean_squared_error, mean_absolute_error' : 'accuracy_score, precision_score, recall_score, f1_score'}
+    
+    y_pred = model.predict(X_test)
+    
+    ${problemType === 'regression' ? `
+    r2 = r2_score(y_test, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    mae = mean_absolute_error(y_test, y_pred)
+    
+    print(f"R² Score: {r2:.4f}")
+    print(f"RMSE: {rmse:.4f}")
+    print(f"MAE: {mae:.4f}")
+    
+    return {'r2': r2, 'rmse': rmse, 'mae': mae}
+    ` : `
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)
+    recall = recall_score(y_test, y_pred, average='weighted', zero_division=0)
+    f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0)
+    
+    print(f"Accuracy: {accuracy:.4f}")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall: {recall:.4f}")
+    print(f"F1 Score: {f1:.4f}")
+    
+    return {'accuracy': accuracy, 'precision': precision, 'recall': recall, 'f1': f1}
+    `}
+
+def main():
+    """Main training pipeline"""
+    print("=" * 50)
+    print("${model.model_name} Training Pipeline")
+    print("=" * 50)
+    
+    # Load data
+    print("\\n1. Loading data...")
+    df = load_data('your_data.csv')  # Replace with your data file
+    print(f"   Dataset shape: {df.shape}")
+    
+    # Prepare data
+    print("\\n2. Preparing features and target...")
+    X, y = prepare_data(df)
+    print(f"   Features shape: {X.shape}")
+    print(f"   Target shape: {y.shape}")
+    
+    # Split data
+    print("\\n3. Splitting into train/test...")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE
+    )
+    print(f"   Train size: {len(X_train)}")
+    print(f"   Test size: {len(X_test)}")
+    
+    # Train model
+    print("\\n4. Training model...")
+    model = train_model(X_train, y_train)
+    print("   ✅ Training complete!")
+    
+    # Evaluate
+    print("\\n5. Evaluating model...")
+    metrics = evaluate_model(model, X_test, y_test)
+    
+    print("\\n" + "=" * 50)
+    print("Training Complete!")
+    print("=" * 50)
+    
+    return model, metrics
+
+if __name__ == "__main__":
+    model, metrics = main()
+    
+    # Optional: Save model
+    # import joblib
+    # joblib.dump(model, '${model.model_name.replace(/\s+/g, '_')}_model.pkl')
+    # print("\\nModel saved to ${model.model_name.replace(/\s+/g, '_')}_model.pkl")
+`;
+  };
+  
+  // Helper: Get import statements for model
+  const getModelImports = (modelName) => {
+    const imports = {
+      'Random Forest': 'from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier',
+      'XGBoost': 'from xgboost import XGBRegressor, XGBClassifier',
+      'Gradient Boosting': 'from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier',
+      'Linear Regression': 'from sklearn.linear_model import LinearRegression, Ridge, Lasso',
+      'Logistic Regression': 'from sklearn.linear_model import LogisticRegression',
+      'Decision Tree': 'from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier',
+      'SVM': 'from sklearn.svm import SVR, SVC',
+      'KNN': 'from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier'
+    };
+    
+    return imports[modelName] || 'from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier';
+  };
+  
+  // Helper: Get model initialization code
+  const getModelCode = (modelName, params = {}) => {
+    const modelMap = {
+      'Random Forest': `model = RandomForestRegressor(
+        n_estimators=${params.n_estimators || 100},
+        max_depth=${params.max_depth || 'None'},
+        random_state=RANDOM_STATE
+    )`,
+      'XGBoost': `model = XGBRegressor(
+        n_estimators=${params.n_estimators || 100},
+        learning_rate=${params.learning_rate || 0.1},
+        max_depth=${params.max_depth || 6},
+        random_state=RANDOM_STATE
+    )`,
+      'Gradient Boosting': `model = GradientBoostingRegressor(
+        n_estimators=${params.n_estimators || 100},
+        learning_rate=${params.learning_rate || 0.1},
+        max_depth=${params.max_depth || 3},
+        random_state=RANDOM_STATE
+    )`,
+      'Linear Regression': `model = LinearRegression()`,
+      'Logistic Regression': `model = LogisticRegression(
+        random_state=RANDOM_STATE,
+        max_iter=1000
+    )`
+    };
+    
+    return modelMap[modelName] || `model = RandomForestRegressor(random_state=RANDOM_STATE)`;
   };
   
   // Toggle model selection
