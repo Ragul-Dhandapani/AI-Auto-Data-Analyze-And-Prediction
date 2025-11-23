@@ -356,6 +356,34 @@ const DashboardPage = () => {
     }
   };
 
+  const loadWorkspaceStateFromData = (stateId, datasetId, analysisData) => {
+    try {
+      // Find the dataset
+      const dataset = datasets.find(d => d.id === datasetId);
+      if (!dataset) {
+        console.error('Dataset not found:', datasetId);
+        toast.error('Dataset not found');
+        return;
+      }
+      
+      // Set the selected dataset
+      setSelectedDataset(dataset);
+      
+      // Restore the analysis results
+      if (analysisData && analysisData.ml_models) {
+        setPredictiveAnalysisCache(prev => ({
+          ...prev,
+          [dataset.id]: analysisData
+        }));
+        
+        toast.success(`✅ Loaded analysis from Workspace Manager`);
+      }
+    } catch (error) {
+      console.error('Failed to load analysis:', error);
+      toast.error('Failed to load analysis');
+    }
+  };
+
   const loadWorkspaceState = async (stateId) => {
     try {
       const response = await axios.get(`${API}/analysis/load-state/${stateId}`);
